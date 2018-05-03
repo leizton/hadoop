@@ -1,20 +1,20 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2.api.records.impl.pb;
 
@@ -32,7 +32,7 @@ public class TaskIdPBImpl extends TaskId {
   TaskIdProto.Builder builder = null;
   boolean viaProto = false;
 
-  private JobId jobId = null;  
+  private JobId jobId = null;
 
   public TaskIdPBImpl() {
     builder = TaskIdProto.newBuilder(proto);
@@ -44,7 +44,7 @@ public class TaskIdPBImpl extends TaskId {
   }
 
   public synchronized TaskIdProto getProto() {
-      mergeLocalToProto();
+    mergeLocalToProto();
     proto = viaProto ? proto : builder.build();
     viaProto = true;
     return proto;
@@ -58,7 +58,7 @@ public class TaskIdPBImpl extends TaskId {
   }
 
   private synchronized void mergeLocalToProto() {
-    if (viaProto) 
+    if (viaProto)
       maybeInitBuilder();
     mergeLocalToBuilder();
     proto = builder.build();
@@ -129,7 +129,7 @@ public class TaskIdPBImpl extends TaskId {
   }
 
   private JobIdProto convertToProtoFormat(JobId t) {
-    return ((JobIdPBImpl)t).getProto();
+    return ((JobIdPBImpl) t).getProto();
   }
 
   private TaskTypeProto convertToProtoFormat(TaskType e) {

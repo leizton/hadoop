@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,25 +18,28 @@
 
 package org.apache.hadoop.mapreduce.lib.db;
 
-import java.sql.*;
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-//import org.apache.hadoop.examples.DBCountPageView;
-import org.apache.hadoop.fs.*;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.mapred.HadoopTestCase;
-import org.apache.hadoop.mapreduce.*;
-import org.apache.hadoop.mapreduce.lib.db.*;
-import org.apache.hadoop.mapreduce.lib.input.*;
-import org.apache.hadoop.mapreduce.lib.output.*;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.TaskCounter;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.StringUtils;
 import org.hsqldb.server.Server;
+
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+import java.sql.*;
+
+//import org.apache.hadoop.examples.DBCountPageView;
 
 /**
  * Test aspects of DataDrivenDBInputFormat
@@ -48,7 +51,7 @@ public class TestDataDrivenDBInputFormat extends HadoopTestCase {
 
   private static final String DB_NAME = "dddbif";
   private static final String DB_URL =
-    "jdbc:hsqldb:hsql://localhost/" + DB_NAME;
+      "jdbc:hsqldb:hsql://localhost/" + DB_NAME;
   private static final String DRIVER_CLASS = "org.hsqldb.jdbc.JDBCDriver";
 
   private Server server;
@@ -75,7 +78,7 @@ public class TestDataDrivenDBInputFormat extends HadoopTestCase {
   }
 
   private void createConnection(String driverClassName,
-      String url) throws Exception {
+                                String url) throws Exception {
 
     Class.forName(driverClassName);
     connection = DriverManager.getConnection(url);
@@ -87,15 +90,15 @@ public class TestDataDrivenDBInputFormat extends HadoopTestCase {
       connection.commit();
       connection.close();
       connection = null;
-    }catch (Throwable ex) {
+    } catch (Throwable ex) {
       LOG.warn("Exception occurred while closing connection :"
           + StringUtils.stringifyException(ex));
     } finally {
       try {
-        if(server != null) {
+        if (server != null) {
           server.shutdown();
         }
-      }catch (Throwable ex) {
+      } catch (Throwable ex) {
         LOG.warn("Exception occurred while shutting down HSQLDB :"
             + StringUtils.stringifyException(ex));
       }
@@ -118,7 +121,6 @@ public class TestDataDrivenDBInputFormat extends HadoopTestCase {
     super.tearDown();
     shutdown();
   }
-
 
 
   public static class DateCol implements DBWritable, WritableComparable {
@@ -217,6 +219,6 @@ public class TestDataDrivenDBInputFormat extends HadoopTestCase {
     // Check to see that we imported as much as we thought we did.
     assertEquals("Did not get all the records", 4,
         job.getCounters().findCounter(TaskCounter.REDUCE_OUTPUT_RECORDS)
-        .getValue());
+            .getValue());
   }
 }

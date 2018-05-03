@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,17 +16,6 @@
  * limitations under the License.
  */
 package org.apache.hadoop.mapreduce.v2.app.webapp.dao;
-
-import static org.apache.hadoop.yarn.util.StringHelper.percent;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 
 import org.apache.hadoop.mapreduce.JobACL;
 import org.apache.hadoop.mapreduce.v2.api.records.JobReport;
@@ -40,6 +29,16 @@ import org.apache.hadoop.mapreduce.v2.util.MRApps;
 import org.apache.hadoop.mapreduce.v2.util.MRApps.TaskAttemptStateUI;
 import org.apache.hadoop.security.authorize.AccessControlList;
 import org.apache.hadoop.yarn.util.Times;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static org.apache.hadoop.yarn.util.StringHelper.percent;
 
 @XmlRootElement(name = "job")
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -276,35 +275,35 @@ public class JobInfo {
     }
     for (Task task : tasks.values()) {
       switch (task.getType()) {
-      case MAP:
-        // Task counts
-        switch (task.getState()) {
-        case RUNNING:
-          ++this.mapsRunning;
+        case MAP:
+          // Task counts
+          switch (task.getState()) {
+            case RUNNING:
+              ++this.mapsRunning;
+              break;
+            case SCHEDULED:
+              ++this.mapsPending;
+              break;
+            default:
+              break;
+          }
           break;
-        case SCHEDULED:
-          ++this.mapsPending;
+        case REDUCE:
+          // Task counts
+          switch (task.getState()) {
+            case RUNNING:
+              ++this.reducesRunning;
+              break;
+            case SCHEDULED:
+              ++this.reducesPending;
+              break;
+            default:
+              break;
+          }
           break;
         default:
-          break;
-        }
-        break;
-      case REDUCE:
-        // Task counts
-        switch (task.getState()) {
-        case RUNNING:
-          ++this.reducesRunning;
-          break;
-        case SCHEDULED:
-          ++this.reducesPending;
-          break;
-        default:
-          break;
-        }
-        break;
-      default:
-        throw new IllegalStateException(
-            "Task type is neither map nor reduce: " + task.getType());
+          throw new IllegalStateException(
+              "Task type is neither map nor reduce: " + task.getType());
       }
       // Attempts counts
       Map<TaskAttemptId, TaskAttempt> attempts = task.getAttempts();
@@ -330,23 +329,23 @@ public class JobInfo {
         }
 
         switch (task.getType()) {
-        case MAP:
-          this.newMapAttempts += newAttempts;
-          this.runningMapAttempts += running;
-          this.successfulMapAttempts += successful;
-          this.failedMapAttempts += failed;
-          this.killedMapAttempts += killed;
-          break;
-        case REDUCE:
-          this.newReduceAttempts += newAttempts;
-          this.runningReduceAttempts += running;
-          this.successfulReduceAttempts += successful;
-          this.failedReduceAttempts += failed;
-          this.killedReduceAttempts += killed;
-          break;
-        default:
-          throw new IllegalStateException("Task type neither map nor reduce: " + 
-              task.getType());
+          case MAP:
+            this.newMapAttempts += newAttempts;
+            this.runningMapAttempts += running;
+            this.successfulMapAttempts += successful;
+            this.failedMapAttempts += failed;
+            this.killedMapAttempts += killed;
+            break;
+          case REDUCE:
+            this.newReduceAttempts += newAttempts;
+            this.runningReduceAttempts += running;
+            this.successfulReduceAttempts += successful;
+            this.failedReduceAttempts += failed;
+            this.killedReduceAttempts += killed;
+            break;
+          default:
+            throw new IllegalStateException("Task type neither map nor reduce: " +
+                task.getType());
         }
       }
     }

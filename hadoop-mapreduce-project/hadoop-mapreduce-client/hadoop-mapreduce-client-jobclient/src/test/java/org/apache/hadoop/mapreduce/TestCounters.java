@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,15 +17,15 @@
  */
 package org.apache.hadoop.mapreduce;
 
-import java.util.Random;
-
-import org.junit.Test;
-import static org.junit.Assert.*;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.mapreduce.counters.LimitExceededException;
 import org.apache.hadoop.mapreduce.counters.Limits;
+import org.junit.Test;
+
+import java.util.Random;
+
+import static org.junit.Assert.*;
 
 /**
  * TestCounters checks the sanity and recoverability of {@code Counters}
@@ -63,14 +63,15 @@ public class TestCounters {
     }
   }
 
-  @Test public void testLimits() {
+  @Test
+  public void testLimits() {
     for (int i = 0; i < 3; ++i) {
       // make sure limits apply to separate containers
       testMaxCounters(new Counters());
       testMaxGroups(new Counters());
     }
   }
-  
+
   @Test
   public void testCountersIncrement() {
     Counters fCounters = new Counters();
@@ -101,9 +102,9 @@ public class TestCounters {
   static final long FS_COUNTER_VALUE = 10;
 
   private void testMaxCounters(final Counters counters) {
-    LOG.info("counters max="+ Limits.getCountersMax());
+    LOG.info("counters max=" + Limits.getCountersMax());
     for (int i = 0; i < Limits.getCountersMax(); ++i) {
-      counters.findCounter("test", "test"+ i);
+      counters.findCounter("test", "test" + i);
     }
     setExpected(counters);
     shouldThrow(LimitExceededException.class, new Runnable() {
@@ -115,10 +116,10 @@ public class TestCounters {
   }
 
   private void testMaxGroups(final Counters counters) {
-    LOG.info("counter groups max="+ Limits.getGroupsMax());
+    LOG.info("counter groups max=" + Limits.getGroupsMax());
     for (int i = 0; i < Limits.getGroupsMax(); ++i) {
       // assuming COUNTERS_MAX > GROUPS_MAX
-      counters.findCounter("test"+ i, "test");
+      counters.findCounter("test" + i, "test");
     }
     setExpected(counters);
     shouldThrow(LimitExceededException.class, new Runnable() {
@@ -136,9 +137,9 @@ public class TestCounters {
 
   private void checkExpected(Counters counters) {
     assertEquals(FRAMEWORK_COUNTER_VALUE,
-                 counters.findCounter(FRAMEWORK_COUNTER).getValue());
+        counters.findCounter(FRAMEWORK_COUNTER).getValue());
     assertEquals(FS_COUNTER_VALUE,
-                 counters.findCounter(FS_SCHEME, FS_COUNTER).getValue());
+        counters.findCounter(FS_SCHEME, FS_COUNTER).getValue());
   }
 
   private void shouldThrow(Class<? extends Exception> ecls, Runnable runnable) {
@@ -146,9 +147,9 @@ public class TestCounters {
       runnable.run();
     } catch (Exception e) {
       assertSame(ecls, e.getClass());
-      LOG.info("got expected: "+ e);
+      LOG.info("got expected: " + e);
       return;
     }
-    assertTrue("Should've thrown "+ ecls.getSimpleName(), false);
+    assertTrue("Should've thrown " + ecls.getSimpleName(), false);
   }
 }

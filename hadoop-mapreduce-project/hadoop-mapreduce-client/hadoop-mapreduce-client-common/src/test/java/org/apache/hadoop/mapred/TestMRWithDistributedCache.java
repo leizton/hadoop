@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,6 +16,25 @@
  * limitations under the License.
  */
 package org.apache.hadoop.mapred;
+
+import junit.framework.TestCase;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.filecache.DistributedCache;
+import org.apache.hadoop.fs.*;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.TaskInputOutputContext;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
+import org.apache.hadoop.mapreduce.server.jobtracker.JTConfig;
+import org.junit.Assert;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -27,53 +46,30 @@ import java.util.Arrays;
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 
-import org.junit.Assert;
-import junit.framework.TestCase;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.filecache.DistributedCache;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.LocalFileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.TaskInputOutputContext;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
-import org.apache.hadoop.mapreduce.server.jobtracker.JTConfig;
-import org.junit.Test;
-
 /**
  * Tests the use of the
  * {@link org.apache.hadoop.mapreduce.filecache.DistributedCache} within the
  * full MR flow as well as the LocalJobRunner. This ought to be part of the
  * filecache package, but that package is not currently in mapred, so cannot
  * depend on MR for testing.
- * 
+ *
  * We use the distributed.* namespace for temporary files.
- * 
+ *
  * See {@link TestMiniMRLocalFS}, {@link TestMiniMRDFSCaching}, and
  * {@link MRCaching} for other tests that test the distributed cache.
- * 
+ *
  * This test is not fast: it uses MiniMRCluster.
  */
 @SuppressWarnings("deprecation")
 public class TestMRWithDistributedCache extends TestCase {
   private static Path TEST_ROOT_DIR =
-    new Path(System.getProperty("test.build.data","/tmp"));
+      new Path(System.getProperty("test.build.data", "/tmp"));
   private static File symlinkFile = new File("distributed.first.symlink");
   private static File expectedAbsentSymlinkFile =
-    new File("distributed.second.jar");
+      new File("distributed.second.jar");
   private static Configuration conf = new Configuration();
   private static FileSystem localFs;
+
   static {
     try {
       localFs = FileSystem.getLocal(conf);
@@ -83,8 +79,8 @@ public class TestMRWithDistributedCache extends TestCase {
   }
 
   private static final Log LOG =
-    LogFactory.getLog(TestMRWithDistributedCache.class);
-  
+      LogFactory.getLog(TestMRWithDistributedCache.class);
+
   private static class DistributedCacheChecker {
 
     public void setup(TaskInputOutputContext<?, ?, ?, ?> context)
@@ -105,7 +101,7 @@ public class TestMRWithDistributedCache extends TestCase {
       // Check the file name
       TestCase.assertTrue(files[0].getPath().endsWith("distributed.first"));
       TestCase.assertTrue(files[1].getPath().endsWith("distributed.second.jar"));
-      
+
       // Check lengths of the files
       TestCase.assertEquals(1, fs.getFileStatus(localFiles[0]).getLen());
       TestCase.assertTrue(fs.getFileStatus(localFiles[1]).getLen() > 1);
@@ -130,7 +126,7 @@ public class TestMRWithDistributedCache extends TestCase {
           symlinkFile.exists());
       TestCase.assertEquals("symlink distributed.first.symlink length not 1", 1,
           symlinkFile.length());
-      
+
       //This last one is a difference between MRv2 and MRv1
       TestCase.assertTrue("second file should be symlinked too",
           expectedAbsentSymlinkFile.exists());
@@ -177,7 +173,7 @@ public class TestMRWithDistributedCache extends TestCase {
     FileInputFormat.setInputPaths(job, first);
     // Creates the Job Configuration
     job.addCacheFile(
-      new URI(first.toUri().toString() + "#distributed.first.symlink"));
+        new URI(first.toUri().toString() + "#distributed.first.symlink"));
     job.addFileToClassPath(second);
     job.addArchiveToClassPath(third);
     job.addCacheArchive(fourth.toUri());
@@ -190,16 +186,16 @@ public class TestMRWithDistributedCache extends TestCase {
   /** Tests using the local job runner. */
   public void testLocalJobRunner() throws Exception {
     symlinkFile.delete(); // ensure symlink is not present (e.g. if test is
-                          // killed part way through)
-    
+    // killed part way through)
+
     Configuration c = new Configuration();
     c.set(JTConfig.JT_IPC_ADDRESS, "local");
     c.set("fs.defaultFS", "file:///");
     testWithConf(c);
-    
+
     assertFalse("Symlink not removed by local job runner",
-            // Symlink target will have gone so can't use File.exists()
-            Arrays.asList(new File(".").list()).contains(symlinkFile.getName()));
+        // Symlink target will have gone so can't use File.exists()
+        Arrays.asList(new File(".").list()).contains(symlinkFile.getName()));
   }
 
   private Path createTempFile(String filename, String contents)
@@ -223,7 +219,7 @@ public class TestMRWithDistributedCache extends TestCase {
     return p;
   }
 
-  @Test (timeout = 1000)
+  @Test(timeout = 1000)
   public void testDeprecatedFunctions() throws Exception {
     DistributedCache.addLocalArchives(conf, "Test Local Archives 1");
     Assert.assertEquals("Test Local Archives 1",

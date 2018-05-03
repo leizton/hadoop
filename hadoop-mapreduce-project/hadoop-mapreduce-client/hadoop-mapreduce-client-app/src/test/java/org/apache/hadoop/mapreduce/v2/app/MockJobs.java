@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,16 +18,9 @@
 
 package org.apache.hadoop.mapreduce.v2.app;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileContext;
 import org.apache.hadoop.fs.Path;
@@ -35,24 +28,9 @@ import org.apache.hadoop.mapred.JobACLsManager;
 import org.apache.hadoop.mapred.ShuffleHandler;
 import org.apache.hadoop.mapred.TaskCompletionEvent;
 import org.apache.hadoop.mapreduce.Counters;
-import org.apache.hadoop.mapreduce.FileSystemCounter;
-import org.apache.hadoop.mapreduce.JobACL;
-import org.apache.hadoop.mapreduce.JobCounter;
-import org.apache.hadoop.mapreduce.MRConfig;
-import org.apache.hadoop.mapreduce.TaskCounter;
-import org.apache.hadoop.mapreduce.TypeConverter;
-import org.apache.hadoop.mapreduce.v2.api.records.AMInfo;
-import org.apache.hadoop.mapreduce.v2.api.records.JobId;
-import org.apache.hadoop.mapreduce.v2.api.records.JobReport;
-import org.apache.hadoop.mapreduce.v2.api.records.JobState;
-import org.apache.hadoop.mapreduce.v2.api.records.Phase;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptCompletionEvent;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptReport;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptState;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskId;
+import org.apache.hadoop.mapreduce.*;
+import org.apache.hadoop.mapreduce.v2.api.records.*;
 import org.apache.hadoop.mapreduce.v2.api.records.TaskReport;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskState;
 import org.apache.hadoop.mapreduce.v2.api.records.TaskType;
 import org.apache.hadoop.mapreduce.v2.app.job.Job;
 import org.apache.hadoop.mapreduce.v2.app.job.Task;
@@ -68,9 +46,8 @@ import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.util.Records;
 
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import java.io.IOException;
+import java.util.*;
 
 public class MockJobs extends MockApps {
   static final Iterator<JobState> JOB_STATES = Iterators.cycle(JobState
@@ -114,7 +91,7 @@ public class MockJobs extends MockApps {
    * Create numJobs in a map with jobs having appId==jobId
    */
   public static Map<JobId, Job> newJobs(int numJobs, int numTasksPerJob,
-      int numAttemptsPerTask) {
+                                        int numAttemptsPerTask) {
     Map<JobId, Job> map = Maps.newHashMap();
     for (int j = 0; j < numJobs; ++j) {
       ApplicationId appID = MockJobs.newAppID(j);
@@ -123,9 +100,9 @@ public class MockJobs extends MockApps {
     }
     return map;
   }
-  
+
   public static Map<JobId, Job> newJobs(ApplicationId appID, int numJobsPerApp,
-      int numTasksPerJob, int numAttemptsPerTask) {
+                                        int numTasksPerJob, int numAttemptsPerTask) {
     Map<JobId, Job> map = Maps.newHashMap();
     for (int j = 0; j < numJobsPerApp; ++j) {
       Job job = newJob(appID, j, numTasksPerJob, numAttemptsPerTask);
@@ -133,9 +110,9 @@ public class MockJobs extends MockApps {
     }
     return map;
   }
-  
+
   public static Map<JobId, Job> newJobs(ApplicationId appID, int numJobsPerApp,
-      int numTasksPerJob, int numAttemptsPerTask, boolean hasFailedTasks) {
+                                        int numTasksPerJob, int numAttemptsPerTask, boolean hasFailedTasks) {
     Map<JobId, Job> map = Maps.newHashMap();
     for (int j = 0; j < numJobsPerApp; ++j) {
       Job job = newJob(appID, j, numTasksPerJob, numAttemptsPerTask, null,
@@ -155,7 +132,7 @@ public class MockJobs extends MockApps {
   public static JobReport newJobReport(JobId id) {
     JobReport report = Records.newRecord(JobReport.class);
     report.setJobId(id);
-    report.setSubmitTime(System.currentTimeMillis()-DT);
+    report.setSubmitTime(System.currentTimeMillis() - DT);
     report
         .setStartTime(System.currentTimeMillis() - (int) (Math.random() * DT));
     report.setFinishTime(System.currentTimeMillis()
@@ -231,7 +208,7 @@ public class MockJobs extends MockApps {
   }
 
   public static Map<TaskAttemptId, TaskAttempt> newTaskAttempts(TaskId tid,
-      int m) {
+                                                                int m) {
     Map<TaskAttemptId, TaskAttempt> map = Maps.newHashMap();
     for (int i = 0; i < m; ++i) {
       TaskAttempt ta = newTaskAttempt(tid, i);
@@ -247,10 +224,10 @@ public class MockJobs extends MockApps {
     final TaskAttemptReport report = newTaskAttemptReport(taid);
     return new TaskAttempt() {
       @Override
-      public NodeId getNodeId() throws UnsupportedOperationException{
+      public NodeId getNodeId() throws UnsupportedOperationException {
         throw new UnsupportedOperationException();
       }
-      
+
       @Override
       public TaskAttemptId getID() {
         return taid;
@@ -302,10 +279,10 @@ public class MockJobs extends MockApps {
       @Override
       public boolean isFinished() {
         switch (report.getTaskAttemptState()) {
-        case SUCCEEDED:
-        case FAILED:
-        case KILLED:
-          return true;
+          case SUCCEEDED:
+          case FAILED:
+          case KILLED:
+            return true;
         }
         return false;
       }
@@ -314,7 +291,7 @@ public class MockJobs extends MockApps {
       public ContainerId getAssignedContainerID() {
         ApplicationAttemptId appAttemptId =
             ApplicationAttemptId.newInstance(taid.getTaskId().getJobId()
-              .getAppId(), 0);
+                .getAppId(), 0);
         ContainerId id = ContainerId.newContainerId(appAttemptId, 0);
         return id;
       }
@@ -384,7 +361,7 @@ public class MockJobs extends MockApps {
           return null;
         }
         return new Counters(
-          TypeConverter.fromYarn(report.getCounters()));
+            TypeConverter.fromYarn(report.getCounters()));
       }
 
       @Override
@@ -410,10 +387,10 @@ public class MockJobs extends MockApps {
       @Override
       public boolean isFinished() {
         switch (report.getTaskState()) {
-        case SUCCEEDED:
-        case KILLED:
-        case FAILED:
-          return true;
+          case SUCCEEDED:
+          case KILLED:
+          case FAILED:
+            return true;
         }
         return false;
       }
@@ -480,16 +457,16 @@ public class MockJobs extends MockApps {
   public static Job newJob(ApplicationId appID, int i, int n, int m, Path confFile) {
     return newJob(appID, i, n, m, confFile, false);
   }
-  
+
   public static Job newJob(ApplicationId appID, int i, int n, int m,
-      Path confFile, boolean hasFailedTasks) {
+                           Path confFile, boolean hasFailedTasks) {
     final JobId id = newJobID(appID, i);
     final String name = newJobName();
     final JobReport report = newJobReport(id);
     final Map<TaskId, Task> tasks = newTasks(id, n, m, hasFailedTasks);
     final TaskCount taskCount = getTaskCount(tasks.values());
     final Counters counters = getCounters(tasks
-      .values());
+        .values());
     final Path configFile = confFile;
 
     Map<JobACL, AccessControlList> tmpJobACLs = new HashMap<JobACL, AccessControlList>();
@@ -585,12 +562,12 @@ public class MockJobs extends MockApps {
 
       @Override
       public List<String> getDiagnostics() {
-        return Collections.<String> emptyList();
+        return Collections.<String>emptyList();
       }
 
       @Override
       public boolean checkAccess(UserGroupInformation callerUGI,
-          JobACL jobOperation) {
+                                 JobACL jobOperation) {
         return true;
       }
 

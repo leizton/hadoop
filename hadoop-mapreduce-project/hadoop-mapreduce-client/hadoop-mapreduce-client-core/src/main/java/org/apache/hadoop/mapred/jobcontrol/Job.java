@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,10 +19,6 @@
 package org.apache.hadoop.mapred.jobcontrol;
 
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
@@ -31,6 +27,10 @@ import org.apache.hadoop.mapred.JobClient;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.JobID;
 import org.apache.hadoop.mapreduce.lib.jobcontrol.ControlledJob;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @InterfaceAudience.Public
 @InterfaceStability.Stable
@@ -44,15 +44,15 @@ public class Job extends ControlledJob {
   final public static int FAILED = 4;
   final public static int DEPENDENT_FAILED = 5;
 
-  /** 
+  /**
    * Construct a job.
    * @param jobConf a mapred job configuration representing a job to be executed.
    * @param dependingJobs an array of jobs the current job depends on
    */
   @SuppressWarnings("unchecked")
   public Job(JobConf jobConf, ArrayList<?> dependingJobs) throws IOException {
-    super(new org.apache.hadoop.mapreduce.Job(jobConf), 
-          (List<ControlledJob>) dependingJobs);
+    super(new org.apache.hadoop.mapreduce.Job(jobConf),
+        (List<ControlledJob>) dependingJobs);
   }
 
   public Job(JobConf conf) throws IOException {
@@ -94,7 +94,7 @@ public class Job extends ControlledJob {
   public synchronized void setJobConf(JobConf jobConf) {
     try {
       super.setJob(new org.apache.hadoop.mapreduce.Job(jobConf));
-    } catch (IOException ioe) { 
+    } catch (IOException ioe) {
       LOG.info("Exception" + ioe);
     }
   }
@@ -106,7 +106,7 @@ public class Job extends ControlledJob {
     State state = super.getJobState();
     if (state == State.SUCCESS) {
       return SUCCESS;
-    } 
+    }
     if (state == State.WAITING) {
       return WAITING;
     }
@@ -116,19 +116,19 @@ public class Job extends ControlledJob {
     if (state == State.READY) {
       return READY;
     }
-    if (state == State.FAILED ) {
+    if (state == State.FAILED) {
       return FAILED;
     }
-    if (state == State.DEPENDENT_FAILED ) {
+    if (state == State.DEPENDENT_FAILED) {
       return DEPENDENT_FAILED;
     }
     return -1;
   }
-  
+
   /**
    * This is a no-op function, Its a behavior change from 1.x We no more can
    * change the state from job
-   * 
+   *
    * @param state
    *          the new state for this job.
    */
@@ -136,19 +136,19 @@ public class Job extends ControlledJob {
   protected synchronized void setState(int state) {
     // No-Op, we dont want to change the sate
   }
-  
+
   /**
    * Add a job to this jobs' dependency list. 
    * Dependent jobs can only be added while a Job 
    * is waiting to run, not during or afterwards.
-   * 
+   *
    * @param dependingJob Job that this Job depends on.
    * @return <tt>true</tt> if the Job was added.
    */
   public synchronized boolean addDependingJob(Job dependingJob) {
     return super.addDependingJob(dependingJob);
   }
-  
+
   /**
    * @return the job client of this job
    */
@@ -180,7 +180,7 @@ public class Job extends ControlledJob {
   /**
    * This is no-op method for backward compatibility. It's a behavior change
    * from 1.x, we can not change job ids from job.
-   * 
+   *
    * @param mapredJobID
    *          the mapred job ID for this job.
    */

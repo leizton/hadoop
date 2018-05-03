@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,48 +18,48 @@
 
 package org.apache.hadoop.mapreduce.lib.aggregate;
 
+import org.apache.hadoop.classification.InterfaceAudience;
+import org.apache.hadoop.classification.InterfaceStability;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeMap;
 
-import org.apache.hadoop.classification.InterfaceAudience;
-import org.apache.hadoop.classification.InterfaceStability;
-
 /**
  * This class implements a value aggregator that dedupes a sequence of objects.
- * 
+ *
  */
 @InterfaceAudience.Public
 @InterfaceStability.Stable
 public class UniqValueCount implements ValueAggregator<Object> {
-  public static final String MAX_NUM_UNIQUE_VALUES = 
-    "mapreduce.aggregate.max.num.unique.values";
+  public static final String MAX_NUM_UNIQUE_VALUES =
+      "mapreduce.aggregate.max.num.unique.values";
 
   private TreeMap<Object, Object> uniqItems = null;
 
   private long numItems = 0;
-  
+
   private long maxNumItems = Long.MAX_VALUE;
 
   /**
    * the default constructor
-   * 
+   *
    */
   public UniqValueCount() {
     this(Long.MAX_VALUE);
   }
-  
+
   /**
    * constructor
    * @param maxNum the limit in the number of unique values to keep.
-   *  
+   *
    */
   public UniqValueCount(long maxNum) {
     uniqItems = new TreeMap<Object, Object>();
     this.numItems = 0;
     maxNumItems = Long.MAX_VALUE;
-    if (maxNum > 0 ) {
+    if (maxNum > 0) {
       this.maxNumItems = maxNum;
     }
   }
@@ -77,13 +77,13 @@ public class UniqValueCount implements ValueAggregator<Object> {
     }
     return this.maxNumItems;
   }
-  
+
   /**
    * add a value to the aggregator
-   * 
+   *
    * @param val
    *          an object.
-   * 
+   *
    */
   public void addNextValue(Object val) {
     if (this.numItems <= this.maxNumItems) {
@@ -100,7 +100,7 @@ public class UniqValueCount implements ValueAggregator<Object> {
   }
 
   /**
-   * 
+   *
    * @return the set of the unique objects
    */
   public Set<Object> getUniqueItems() {

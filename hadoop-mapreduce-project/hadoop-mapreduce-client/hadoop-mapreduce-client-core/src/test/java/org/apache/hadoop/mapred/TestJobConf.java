@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,16 +18,17 @@
 
 package org.apache.hadoop.mapred;
 
-import java.util.regex.Pattern;
-import static org.junit.Assert.*;
-
 import org.apache.hadoop.fs.Path;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.regex.Pattern;
+
+import static org.junit.Assert.*;
+
 /**
  * test JobConf
- * 
+ *
  */
 public class TestJobConf {
 
@@ -35,7 +36,7 @@ public class TestJobConf {
    * test getters and setters of JobConf
    */
   @SuppressWarnings("deprecation")
-  @Test (timeout=5000)
+  @Test(timeout = 5000)
   public void testJobConf() {
     JobConf conf = new JobConf();
     // test default value
@@ -148,7 +149,7 @@ public class TestJobConf {
     assertEquals(-1, conf.getMaxPhysicalMemoryForTask());
     assertEquals("The variable key is no longer used.",
         JobConf.deprecatedString("key"));
-    
+
     // make sure mapreduce.map|reduce.java.opts are not set by default
     // so that they won't override mapred.child.java.opts
     assertEquals("mapreduce.map.java.opts should not be set by default",
@@ -162,7 +163,7 @@ public class TestJobConf {
    * old property names
    */
   @SuppressWarnings("deprecation")
-  @Test (timeout = 1000)
+  @Test(timeout = 1000)
   public void testDeprecatedPropertyNameForTaskVmem() {
     JobConf configuration = new JobConf();
 

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,15 +30,14 @@ import org.apache.hadoop.mapreduce.v2.util.MRProtoUtils;
 import org.apache.hadoop.yarn.api.records.impl.pb.ProtoBase;
 
 
-    
 public class TaskAttemptCompletionEventPBImpl extends ProtoBase<TaskAttemptCompletionEventProto> implements TaskAttemptCompletionEvent {
   TaskAttemptCompletionEventProto proto = TaskAttemptCompletionEventProto.getDefaultInstance();
   TaskAttemptCompletionEventProto.Builder builder = null;
   boolean viaProto = false;
-  
+
   private TaskAttemptId taskAttemptId = null;
-  
-  
+
+
   public TaskAttemptCompletionEventPBImpl() {
     builder = TaskAttemptCompletionEventProto.newBuilder();
   }
@@ -47,9 +46,9 @@ public class TaskAttemptCompletionEventPBImpl extends ProtoBase<TaskAttemptCompl
     this.proto = proto;
     viaProto = true;
   }
-  
+
   public TaskAttemptCompletionEventProto getProto() {
-      mergeLocalToProto();
+    mergeLocalToProto();
     proto = viaProto ? proto : builder.build();
     viaProto = true;
     return proto;
@@ -62,7 +61,7 @@ public class TaskAttemptCompletionEventPBImpl extends ProtoBase<TaskAttemptCompl
   }
 
   private void mergeLocalToProto() {
-    if (viaProto) 
+    if (viaProto)
       maybeInitBuilder();
     mergeLocalToBuilder();
     proto = builder.build();
@@ -75,8 +74,8 @@ public class TaskAttemptCompletionEventPBImpl extends ProtoBase<TaskAttemptCompl
     }
     viaProto = false;
   }
-    
-  
+
+
   @Override
   public TaskAttemptId getAttemptId() {
     TaskAttemptCompletionEventProtoOrBuilder p = viaProto ? proto : builder;
@@ -93,10 +92,11 @@ public class TaskAttemptCompletionEventPBImpl extends ProtoBase<TaskAttemptCompl
   @Override
   public void setAttemptId(TaskAttemptId attemptId) {
     maybeInitBuilder();
-    if (attemptId == null) 
+    if (attemptId == null)
       builder.clearAttemptId();
     this.taskAttemptId = attemptId;
   }
+
   @Override
   public TaskAttemptCompletionEventStatus getStatus() {
     TaskAttemptCompletionEventProtoOrBuilder p = viaProto ? proto : builder;
@@ -115,6 +115,7 @@ public class TaskAttemptCompletionEventPBImpl extends ProtoBase<TaskAttemptCompl
     }
     builder.setStatus(convertToProtoFormat(status));
   }
+
   @Override
   public String getMapOutputServerAddress() {
     TaskAttemptCompletionEventProtoOrBuilder p = viaProto ? proto : builder;
@@ -133,6 +134,7 @@ public class TaskAttemptCompletionEventPBImpl extends ProtoBase<TaskAttemptCompl
     }
     builder.setMapOutputServerAddress((mapOutputServerAddress));
   }
+
   @Override
   public int getAttemptRunTime() {
     TaskAttemptCompletionEventProtoOrBuilder p = viaProto ? proto : builder;
@@ -144,6 +146,7 @@ public class TaskAttemptCompletionEventPBImpl extends ProtoBase<TaskAttemptCompl
     maybeInitBuilder();
     builder.setAttemptRunTime((attemptRunTime));
   }
+
   @Override
   public int getEventId() {
     TaskAttemptCompletionEventProtoOrBuilder p = viaProto ? proto : builder;
@@ -161,7 +164,7 @@ public class TaskAttemptCompletionEventPBImpl extends ProtoBase<TaskAttemptCompl
   }
 
   private TaskAttemptIdProto convertToProtoFormat(TaskAttemptId t) {
-    return ((TaskAttemptIdPBImpl)t).getProto();
+    return ((TaskAttemptIdPBImpl) t).getProto();
   }
 
   private TaskAttemptCompletionEventStatusProto convertToProtoFormat(TaskAttemptCompletionEventStatus e) {
@@ -173,5 +176,4 @@ public class TaskAttemptCompletionEventPBImpl extends ProtoBase<TaskAttemptCompl
   }
 
 
-
-}  
+}

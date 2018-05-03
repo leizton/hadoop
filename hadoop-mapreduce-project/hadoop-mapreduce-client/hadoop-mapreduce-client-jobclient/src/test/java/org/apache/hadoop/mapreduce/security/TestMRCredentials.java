@@ -1,15 +1,16 @@
 package org.apache.hadoop.mapreduce.security;
 
-/** Licensed to the Apache Software Foundation (ASF) under one
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
  * regarding copyright ownership.  The ASF licenses this file
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,15 +18,6 @@ package org.apache.hadoop.mapreduce.security;
  * limitations under the License.
  */
 
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.URI;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -39,6 +31,15 @@ import org.apache.hadoop.util.ToolRunner;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.URI;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
  * Tests whether a protected secret passed from JobClient is
@@ -68,10 +69,10 @@ public class TestMRCredentials {
 
   @AfterClass
   public static void tearDown() throws Exception {
-    if(mrCluster != null)
+    if (mrCluster != null)
       mrCluster.stop();
     mrCluster = null;
-    if(dfsCluster != null)
+    if (dfsCluster != null)
       dfsCluster.shutdown();
     dfsCluster = null;
 
@@ -79,22 +80,22 @@ public class TestMRCredentials {
 
   }
 
-  public static void createKeysAsJson (String fileName) 
-  throws FileNotFoundException, IOException{
+  public static void createKeysAsJson(String fileName)
+      throws FileNotFoundException, IOException {
     StringBuilder jsonString = new StringBuilder();
     jsonString.append("{");
-    for(int i=0; i<NUM_OF_KEYS; i++) {
-      String keyName = "alias"+i;
-      String password = "password"+i;
-      jsonString.append("\""+ keyName +"\":"+ "\""+password+"\"" );
-      if (i < (NUM_OF_KEYS-1)){
+    for (int i = 0; i < NUM_OF_KEYS; i++) {
+      String keyName = "alias" + i;
+      String password = "password" + i;
+      jsonString.append("\"" + keyName + "\":" + "\"" + password + "\"");
+      if (i < (NUM_OF_KEYS - 1)) {
         jsonString.append(",");
       }
 
     }
     jsonString.append("}");
 
-    FileOutputStream fos= new FileOutputStream (fileName);
+    FileOutputStream fos = new FileOutputStream(fileName);
     fos.write(jsonString.toString().getBytes());
     fos.close();
   }
@@ -105,10 +106,10 @@ public class TestMRCredentials {
    * @throws IOException
    */
   @Test
-  public void test () throws IOException {
+  public void test() throws IOException {
 
     // make sure JT starts
-    Configuration jobConf =  new JobConf(mrCluster.getConfig());
+    Configuration jobConf = new JobConf(mrCluster.getConfig());
 
     // provide namenodes names for the job to get the delegation tokens for
     //String nnUri = dfsCluster.getNameNode().getUri(namenode).toString();
@@ -117,7 +118,7 @@ public class TestMRCredentials {
     jobConf.set(JobContext.JOB_NAMENODES, nnUri + "," + nnUri.toString());
 
 
-    jobConf.set("mapreduce.job.credentials.json" , "keys.json");
+    jobConf.set("mapreduce.job.credentials.json", "keys.json");
 
     // using argument to pass the file name
     String[] args = {

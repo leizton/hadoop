@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,26 +18,18 @@
 
 package testshell;
 
-import java.io.IOException;
-import java.util.Iterator;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.WritableComparable;
-import org.apache.hadoop.mapred.FileInputFormat;
-import org.apache.hadoop.mapred.FileOutputFormat;
-import org.apache.hadoop.mapred.JobClient;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.MapReduceBase;
-import org.apache.hadoop.mapred.Mapper;
-import org.apache.hadoop.mapred.OutputCollector;
-import org.apache.hadoop.mapred.Reducer;
-import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapred.*;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+
+import java.io.IOException;
+import java.util.Iterator;
 
 /**
  * will be in an external jar and used for 
@@ -50,24 +42,24 @@ public class ExternalMapReduce extends Configured implements Tool {
   }
 
   public void close()
-    throws IOException {
+      throws IOException {
 
   }
 
-  public static class MapClass extends MapReduceBase 
-    implements Mapper<WritableComparable, Writable,
-                      WritableComparable, IntWritable> {
+  public static class MapClass extends MapReduceBase
+      implements Mapper<WritableComparable, Writable,
+      WritableComparable, IntWritable> {
     public void map(WritableComparable key, Writable value,
                     OutputCollector<WritableComparable, IntWritable> output,
                     Reporter reporter)
-      throws IOException {
+        throws IOException {
       //check for classpath
       String classpath = System.getProperty("java.class.path");
       if (classpath.indexOf("testjob.jar") == -1) {
         throw new IOException("failed to find in the library " + classpath);
       }
       if (classpath.indexOf("test.jar") == -1) {
-        throw new IOException("failed to find the library test.jar in" 
+        throw new IOException("failed to find the library test.jar in"
             + classpath);
       }
       //fork off ls to see if the file exists.
@@ -85,7 +77,7 @@ public class ExternalMapReduce extends Configured implements Tool {
       int ret = -1;
       try {
         ret = p.waitFor();
-      } catch(InterruptedException ie) {
+      } catch (InterruptedException ie) {
         //do nothing here.
       }
       if (ret != 0) {
@@ -95,16 +87,16 @@ public class ExternalMapReduce extends Configured implements Tool {
   }
 
   public static class Reduce extends MapReduceBase
-    implements Reducer<WritableComparable, Writable,
-                       WritableComparable, IntWritable> {
+      implements Reducer<WritableComparable, Writable,
+      WritableComparable, IntWritable> {
     public void reduce(WritableComparable key, Iterator<Writable> values,
                        OutputCollector<WritableComparable, IntWritable> output,
                        Reporter reporter)
-      throws IOException {
-     //do nothing
+        throws IOException {
+      //do nothing
     }
   }
-  
+
   public int run(String[] argv) throws IOException {
     if (argv.length < 2) {
       System.out.println("ExternalMapReduce <input> <output>");
@@ -113,7 +105,7 @@ public class ExternalMapReduce extends Configured implements Tool {
     Path outDir = new Path(argv[1]);
     Path input = new Path(argv[0]);
     JobConf testConf = new JobConf(getConf(), ExternalMapReduce.class);
-    
+
     //try to load a class from libjar
     try {
       testConf.getClassByName("testjar.ClassWordCount");
@@ -121,8 +113,8 @@ public class ExternalMapReduce extends Configured implements Tool {
       System.out.println("Could not find class from libjar");
       return -1;
     }
-    
-    
+
+
     testConf.setJobName("external job");
     FileInputFormat.setInputPaths(testConf, input);
     FileOutputFormat.setOutputPath(testConf, outDir);
@@ -132,10 +124,10 @@ public class ExternalMapReduce extends Configured implements Tool {
     JobClient.runJob(testConf);
     return 0;
   }
-  
+
   public static void main(String[] args) throws Exception {
     int res = ToolRunner.run(new Configuration(),
-                     new ExternalMapReduce(), args);
+        new ExternalMapReduce(), args);
     System.exit(res);
   }
 }

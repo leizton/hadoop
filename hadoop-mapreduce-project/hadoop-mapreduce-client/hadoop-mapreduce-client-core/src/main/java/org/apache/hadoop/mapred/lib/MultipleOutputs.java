@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -149,10 +149,10 @@ public class MultipleOutputs {
     List<String> definedChannels = getNamedOutputsList(conf);
     if (alreadyDefined && definedChannels.contains(namedOutput)) {
       throw new IllegalArgumentException("Named output '" + namedOutput +
-        "' already alreadyDefined");
+          "' already alreadyDefined");
     } else if (!alreadyDefined && !definedChannels.contains(namedOutput)) {
       throw new IllegalArgumentException("Named output '" + namedOutput +
-        "' not defined");
+          "' not defined");
     }
   }
 
@@ -165,7 +165,7 @@ public class MultipleOutputs {
   private static void checkTokenName(String namedOutput) {
     if (namedOutput == null || namedOutput.length() == 0) {
       throw new IllegalArgumentException(
-        "Name cannot be NULL or emtpy");
+          "Name cannot be NULL or emtpy");
     }
     for (char ch : namedOutput.toCharArray()) {
       if ((ch >= 'A') && (ch <= 'Z')) {
@@ -178,7 +178,7 @@ public class MultipleOutputs {
         continue;
       }
       throw new IllegalArgumentException(
-        "Name cannot be have a '" + ch + "' char");
+          "Name cannot be have a '" + ch + "' char");
     }
   }
 
@@ -193,7 +193,7 @@ public class MultipleOutputs {
     // name cannot be the name used for the default output
     if (namedOutput.equals("part")) {
       throw new IllegalArgumentException(
-        "Named output name cannot be 'part'");
+          "Named output name cannot be 'part'");
     }
   }
 
@@ -235,10 +235,10 @@ public class MultipleOutputs {
    * @return namedOutput OutputFormat
    */
   public static Class<? extends OutputFormat> getNamedOutputFormatClass(
-    JobConf conf, String namedOutput) {
+      JobConf conf, String namedOutput) {
     checkNamedOutput(conf, namedOutput, false);
     return conf.getClass(MO_PREFIX + namedOutput + FORMAT, null,
-      OutputFormat.class);
+        OutputFormat.class);
   }
 
   /**
@@ -252,7 +252,7 @@ public class MultipleOutputs {
                                                 String namedOutput) {
     checkNamedOutput(conf, namedOutput, false);
     return conf.getClass(MO_PREFIX + namedOutput + KEY, null,
-	Object.class);
+        Object.class);
   }
 
   /**
@@ -266,7 +266,7 @@ public class MultipleOutputs {
                                                   String namedOutput) {
     checkNamedOutput(conf, namedOutput, false);
     return conf.getClass(MO_PREFIX + namedOutput + VALUE, null,
-      Object.class);
+        Object.class);
   }
 
   /**
@@ -283,10 +283,10 @@ public class MultipleOutputs {
    * @param valueClass        value class
    */
   public static void addNamedOutput(JobConf conf, String namedOutput,
-                                Class<? extends OutputFormat> outputFormatClass,
-                                Class<?> keyClass, Class<?> valueClass) {
+                                    Class<? extends OutputFormat> outputFormatClass,
+                                    Class<?> keyClass, Class<?> valueClass) {
     addNamedOutput(conf, namedOutput, false, outputFormatClass, keyClass,
-      valueClass);
+        valueClass);
   }
 
   /**
@@ -303,10 +303,10 @@ public class MultipleOutputs {
    * @param valueClass        value class
    */
   public static void addMultiNamedOutput(JobConf conf, String namedOutput,
-                               Class<? extends OutputFormat> outputFormatClass,
-                               Class<?> keyClass, Class<?> valueClass) {
+                                         Class<? extends OutputFormat> outputFormatClass,
+                                         Class<?> keyClass, Class<?> valueClass) {
     addNamedOutput(conf, namedOutput, true, outputFormatClass, keyClass,
-      valueClass);
+        valueClass);
   }
 
   /**
@@ -324,14 +324,14 @@ public class MultipleOutputs {
    * @param valueClass        value class
    */
   private static void addNamedOutput(JobConf conf, String namedOutput,
-                               boolean multi,
-                               Class<? extends OutputFormat> outputFormatClass,
-                               Class<?> keyClass, Class<?> valueClass) {
+                                     boolean multi,
+                                     Class<? extends OutputFormat> outputFormatClass,
+                                     Class<?> keyClass, Class<?> valueClass) {
     checkNamedOutputName(namedOutput);
     checkNamedOutput(conf, namedOutput, true);
     conf.set(NAMED_OUTPUTS, conf.get(NAMED_OUTPUTS, "") + " " + namedOutput);
     conf.setClass(MO_PREFIX + namedOutput + FORMAT, outputFormatClass,
-      OutputFormat.class);
+        OutputFormat.class);
     conf.setClass(MO_PREFIX + namedOutput + KEY, keyClass, Object.class);
     conf.setClass(MO_PREFIX + namedOutput + VALUE, valueClass, Object.class);
     conf.setBoolean(MO_PREFIX + namedOutput + MULTI, multi);
@@ -394,7 +394,7 @@ public class MultipleOutputs {
     this.conf = job;
     outputFormat = new InternalFileOutputFormat();
     namedOutputs = Collections.unmodifiableSet(
-      new HashSet<String>(MultipleOutputs.getNamedOutputsList(job)));
+        new HashSet<String>(MultipleOutputs.getNamedOutputsList(job)));
     recordWriters = new HashMap<String, RecordWriter>();
     countersEnabled = getCountersEnabled(job);
   }
@@ -414,23 +414,23 @@ public class MultipleOutputs {
   private synchronized RecordWriter getRecordWriter(String namedOutput,
                                                     String baseFileName,
                                                     final Reporter reporter)
-    throws IOException {
+      throws IOException {
     RecordWriter writer = recordWriters.get(baseFileName);
     if (writer == null) {
       if (countersEnabled && reporter == null) {
         throw new IllegalArgumentException(
-          "Counters are enabled, Reporter cannot be NULL");
+            "Counters are enabled, Reporter cannot be NULL");
       }
       JobConf jobConf = new JobConf(conf);
       jobConf.set(InternalFileOutputFormat.CONFIG_NAMED_OUTPUT, namedOutput);
       FileSystem fs = FileSystem.get(conf);
       writer =
-        outputFormat.getRecordWriter(fs, jobConf, baseFileName, reporter);
+          outputFormat.getRecordWriter(fs, jobConf, baseFileName, reporter);
 
       if (countersEnabled) {
         if (reporter == null) {
           throw new IllegalArgumentException(
-            "Counters are enabled, Reporter cannot be NULL");
+              "Counters are enabled, Reporter cannot be NULL");
         }
         writer = new RecordWriterWithCounter(writer, baseFileName, reporter);
       }
@@ -474,7 +474,7 @@ public class MultipleOutputs {
    */
   @SuppressWarnings({"unchecked"})
   public OutputCollector getCollector(String namedOutput, Reporter reporter)
-    throws IOException {
+      throws IOException {
     return getCollector(namedOutput, null, reporter);
   }
 
@@ -491,18 +491,18 @@ public class MultipleOutputs {
   @SuppressWarnings({"unchecked"})
   public OutputCollector getCollector(String namedOutput, String multiName,
                                       Reporter reporter)
-    throws IOException {
+      throws IOException {
 
     checkNamedOutputName(namedOutput);
     if (!namedOutputs.contains(namedOutput)) {
       throw new IllegalArgumentException("Undefined named output '" +
-        namedOutput + "'");
+          namedOutput + "'");
     }
     boolean multi = isMultiNamedOutput(conf, namedOutput);
 
     if (!multi && multiName != null) {
       throw new IllegalArgumentException("Name output '" + namedOutput +
-        "' has not been defined as multi");
+          "' has not been defined as multi");
     }
     if (multi) {
       checkTokenName(multiName);
@@ -511,7 +511,7 @@ public class MultipleOutputs {
     String baseFileName = (multi) ? namedOutput + "_" + multiName : namedOutput;
 
     final RecordWriter writer =
-      getRecordWriter(namedOutput, baseFileName, reporter);
+        getRecordWriter(namedOutput, baseFileName, reporter);
 
     return new OutputCollector() {
 
@@ -539,14 +539,14 @@ public class MultipleOutputs {
   }
 
   private static class InternalFileOutputFormat extends
-    FileOutputFormat<Object, Object> {
+      FileOutputFormat<Object, Object> {
 
     public static final String CONFIG_NAMED_OUTPUT = "mo.config.namedOutput";
 
     @SuppressWarnings({"unchecked"})
     public RecordWriter<Object, Object> getRecordWriter(
-      FileSystem fs, JobConf job, String baseFileName, Progressable progress)
-      throws IOException {
+        FileSystem fs, JobConf job, String baseFileName, Progressable progress)
+        throws IOException {
 
       String nameOutput = job.get(CONFIG_NAMED_OUTPUT, null);
       String fileName = getUniqueName(job, baseFileName);

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,13 +17,9 @@
  */
 package org.apache.hadoop.mapreduce.lib.db;
 
-import java.sql.Connection;
-import java.sql.Types;
-import java.util.List;
-
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.InputSplit;
+import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.MRJobConfig;
 import org.apache.hadoop.mapreduce.lib.db.DBInputFormat.DBInputSplit;
@@ -31,8 +27,14 @@ import org.apache.hadoop.mapreduce.lib.db.DBInputFormat.NullDBWritable;
 import org.apache.hadoop.mapreduce.lib.db.DataDrivenDBInputFormat.DataDrivenDBInputSplit;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import java.sql.Connection;
+import java.sql.Types;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TestDbClasses {
   /**
@@ -81,14 +83,14 @@ public class TestDbClasses {
 
   @Test(timeout = 1000)
   public void testOracleDataDrivenDBInputFormat() throws Exception {
-    OracleDataDrivenDBInputFormat<NullDBWritable> format = 
+    OracleDataDrivenDBInputFormat<NullDBWritable> format =
         new OracleDataDrivenDBInputFormatForTest();
     testCommonSplitterTypes(format);
     assertEquals(OracleDateSplitter.class, format.getSplitter(Types.TIMESTAMP)
         .getClass());
-    assertEquals(OracleDateSplitter.class, 
+    assertEquals(OracleDateSplitter.class,
         format.getSplitter(Types.DATE).getClass());
-    assertEquals(OracleDateSplitter.class, 
+    assertEquals(OracleDateSplitter.class,
         format.getSplitter(Types.TIME).getClass());
   }
 
@@ -104,7 +106,7 @@ public class TestDbClasses {
 
     DBConfiguration dbConfiguration = new DBConfiguration(configuration);
     dbConfiguration.setInputOrderBy("Order");
-    String[] fields = { "f1", "f2" };
+    String[] fields = {"f1", "f2"};
 
     OracleDBRecordReader<NullDBWritable> recorder = new OracleDBRecordReader<NullDBWritable>(
         splitter, NullDBWritable.class, configuration, connect,
@@ -152,7 +154,7 @@ public class TestDbClasses {
     @Override
     public DBConfiguration getDBConf() {
 
-      String[] names = { "field1", "field2" };
+      String[] names = {"field1", "field2"};
       DBConfiguration result = mock(DBConfiguration.class);
       when(result.getInputConditions()).thenReturn("conditions");
       when(result.getInputFieldNames()).thenReturn(names);
@@ -166,5 +168,5 @@ public class TestDbClasses {
     }
 
   }
-  
+
 }

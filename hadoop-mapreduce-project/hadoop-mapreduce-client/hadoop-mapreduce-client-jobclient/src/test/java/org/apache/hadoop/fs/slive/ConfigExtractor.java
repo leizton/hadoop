@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,16 +18,16 @@
 
 package org.apache.hadoop.fs.slive;
 
-import java.text.NumberFormat;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.slive.Constants.OperationType;
 import org.apache.hadoop.util.StringUtils;
+
+import java.text.NumberFormat;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Simple access layer onto of a configuration object that extracts the slive
@@ -77,7 +77,7 @@ class ConfigExtractor {
    *          primary the initial string to be used for the value of this
    *          configuration option (if not provided then config and then the
    *          default are used)
-   * 
+   *
    * @return the base directory where output & data should be stored using
    *         primary,config,default (in that order)
    */
@@ -115,7 +115,7 @@ class ConfigExtractor {
    *          primary the initial string to be used for the value of this
    *          configuration option (if not provided then config and then the
    *          default are used)
-   * 
+   *
    * @return the boolean of whether the mapper/reducer should exit when they
    *         first error from primary,config,default (in that order)
    */
@@ -303,7 +303,7 @@ class ConfigExtractor {
 
   /**
    * Gets the grid queue name to run on using config and default only
-   * 
+   *
    * @return String
    */
   String getQueueName() {
@@ -313,9 +313,9 @@ class ConfigExtractor {
   /**
    * Gets the grid queue name to run on using the primary string or config or
    * default
-   * 
+   *
    * @param primary
-   * 
+   *
    * @return String
    */
   String getQueueName(String primary) {
@@ -571,14 +571,14 @@ class ConfigExtractor {
 
   /**
    * Returns whether the write range should use the block size range
-   * 
+   *
    * @return true|false
    */
   boolean shouldWriteUseBlockSize() {
     Range<Long> writeRange = getWriteSize();
     if (writeRange == null
         || (writeRange.getLower() == writeRange.getUpper() && (writeRange
-            .getUpper() == Long.MAX_VALUE))) {
+        .getUpper() == Long.MAX_VALUE))) {
       return true;
     }
     return false;
@@ -586,14 +586,14 @@ class ConfigExtractor {
 
   /**
    * Returns whether the append range should use the block size range
-   * 
+   *
    * @return true|false
    */
   boolean shouldAppendUseBlockSize() {
     Range<Long> appendRange = getAppendSize();
     if (appendRange == null
         || (appendRange.getLower() == appendRange.getUpper() && (appendRange
-            .getUpper() == Long.MAX_VALUE))) {
+        .getUpper() == Long.MAX_VALUE))) {
       return true;
     }
     return false;
@@ -601,14 +601,14 @@ class ConfigExtractor {
 
   /**
    * Returns whether the read range should use the entire file
-   * 
+   *
    * @return true|false
    */
   boolean shouldReadFullFile() {
     Range<Long> readRange = getReadSize();
     if (readRange == null
         || (readRange.getLower() == readRange.getUpper() && (readRange
-            .getUpper() == Long.MAX_VALUE))) {
+        .getUpper() == Long.MAX_VALUE))) {
       return true;
     }
     return false;
@@ -623,15 +623,15 @@ class ConfigExtractor {
   Range<Long> getReadSize(String primary) {
     return getMinMaxBytes(ConfigOption.READ_SIZE, primary);
   }
-  
+
   /**
    * Gets the bytes per checksum (if it exists or null if not)
-   * 
-   * @return Long 
+   *
+   * @return Long
    */
   Long getByteCheckSum() {
     String val = config.get(Constants.BYTES_PER_CHECKSUM);
-    if(val == null) {
+    if (val == null) {
       return null;
     }
     return Long.parseLong(val);
@@ -647,7 +647,7 @@ class ConfigExtractor {
 
   /**
    * Dumps out the given options for the given config extractor
-   * 
+   *
    * @param cfg
    *          the config to write to the log
    */

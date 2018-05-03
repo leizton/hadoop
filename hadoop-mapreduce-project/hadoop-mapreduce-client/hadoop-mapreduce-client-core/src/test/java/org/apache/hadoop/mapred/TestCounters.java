@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,17 +16,6 @@
  * limitations under the License.
  */
 package org.apache.hadoop.mapred;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.io.IOException;
-import java.text.ParseException;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Random;
-
-import org.junit.Assert;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -37,18 +26,30 @@ import org.apache.hadoop.mapred.Counters.GroupFactory;
 import org.apache.hadoop.mapreduce.FileSystemCounter;
 import org.apache.hadoop.mapreduce.JobCounter;
 import org.apache.hadoop.mapreduce.TaskCounter;
-import org.apache.hadoop.mapreduce.counters.FrameworkCounterGroup;
 import org.apache.hadoop.mapreduce.counters.CounterGroupFactory.FrameworkGroupFactory;
+import org.apache.hadoop.mapreduce.counters.FrameworkCounterGroup;
+import org.junit.Assert;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.text.ParseException;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Random;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * TestCounters checks the sanity and recoverability of {@code Counters}
  */
 public class TestCounters {
-  enum myCounters {TEST1, TEST2};
+  enum myCounters {TEST1, TEST2}
+
+  ;
   private static final long MAX_VALUE = 10;
   private static final Log LOG = LogFactory.getLog(TestCounters.class);
-  
+
   static final Enum<?> FRAMEWORK_COUNTER = TaskCounter.CPU_MILLISECONDS;
   static final long FRAMEWORK_COUNTER_VALUE = 8;
   static final String FS_SCHEME = "HDFS";
@@ -65,7 +66,7 @@ public class TestCounters {
     }
     return counters;
   }
-  
+
   // Generate string based counters
   private Counters getEnumCounters(String[] gNames, String[] cNames) {
     Counters counters = new Counters();
@@ -78,30 +79,30 @@ public class TestCounters {
     }
     return counters;
   }
-  
+
   /**
    * Test counter recovery
    */
   private void testCounter(Counters counter) throws ParseException {
     String compactEscapedString = counter.makeEscapedCompactString();
-    
-    Counters recoveredCounter = 
-      Counters.fromEscapedCompactString(compactEscapedString);
+
+    Counters recoveredCounter =
+        Counters.fromEscapedCompactString(compactEscapedString);
     // Check for recovery from string
-    assertEquals("Recovered counter does not match on content", 
-                 counter, recoveredCounter);
+    assertEquals("Recovered counter does not match on content",
+        counter, recoveredCounter);
   }
-  
+
   @Test
   public void testCounters() throws IOException {
-    Enum[] keysWithResource = {TaskCounter.MAP_INPUT_RECORDS, 
-                               TaskCounter.MAP_OUTPUT_BYTES};
-    
+    Enum[] keysWithResource = {TaskCounter.MAP_INPUT_RECORDS,
+        TaskCounter.MAP_OUTPUT_BYTES};
+
     Enum[] keysWithoutResource = {myCounters.TEST1, myCounters.TEST2};
-    
+
     String[] groups = {"group1", "group2", "group{}()[]"};
     String[] counters = {"counter1", "counter2", "counter{}()[]"};
-    
+
     try {
       // I. Check enum counters that have resource bundler
       testCounter(getEnumCounters(keysWithResource));
@@ -115,7 +116,7 @@ public class TestCounters {
       throw new IOException(pe);
     }
   }
-  
+
   /**
    * Verify counter value works
    */
@@ -132,21 +133,21 @@ public class TestCounters {
       Counter counter = counters.findCounter("foo", "bar");
       counter.setValue(initValue);
       assertEquals("Counter value is not initialized correctly",
-                   expectedValue, counter.getValue());
+          expectedValue, counter.getValue());
       for (int j = 0; j < NUMBER_INC; j++) {
         int incValue = rand.nextInt();
         counter.increment(incValue);
         expectedValue += incValue;
         assertEquals("Counter value is not incremented correctly",
-                     expectedValue, counter.getValue());
+            expectedValue, counter.getValue());
       }
       expectedValue = rand.nextInt();
       counter.setValue(expectedValue);
       assertEquals("Counter value is not set correctly",
-                   expectedValue, counter.getValue());
+          expectedValue, counter.getValue());
     }
   }
-  
+
   @SuppressWarnings("deprecation")
   @Test
   public void testReadWithLegacyNames() {
@@ -154,10 +155,10 @@ public class TestCounters {
     counters.incrCounter(TaskCounter.MAP_INPUT_RECORDS, 1);
     counters.incrCounter(JobCounter.DATA_LOCAL_MAPS, 1);
     counters.findCounter("file", FileSystemCounter.BYTES_READ).increment(1);
-    
+
     checkLegacyNames(counters);
   }
-  
+
   @SuppressWarnings("deprecation")
   @Test
   public void testWriteWithLegacyNames() {
@@ -165,7 +166,7 @@ public class TestCounters {
     counters.incrCounter(Task.Counter.MAP_INPUT_RECORDS, 1);
     counters.incrCounter(JobInProgress.Counter.DATA_LOCAL_MAPS, 1);
     counters.findCounter("FileSystemCounters", "FILE_BYTES_READ").increment(1);
-    
+
     checkLegacyNames(counters);
   }
 
@@ -195,7 +196,7 @@ public class TestCounters {
         "FileSystemCounters",
         "FILE_BYTES_READ").getValue());
   }
-  
+
   @SuppressWarnings("deprecation")
   @Test
   public void testCounterIteratorConcurrency() {
@@ -205,8 +206,8 @@ public class TestCounters {
     counters.incrCounter("group2", "counter2", 1);
     iterator.next();
   }
-  
-  
+
+
   @SuppressWarnings("deprecation")
   @Test
   public void testGroupIteratorConcurrency() {
@@ -224,7 +225,7 @@ public class TestCounters {
     // create 2 filesystem counter groups
     counters.findCounter("fs1", FileSystemCounter.BYTES_READ).increment(1);
     counters.findCounter("fs2", FileSystemCounter.BYTES_READ).increment(1);
-    
+
     // Iterate over the counters in this group while updating counters in
     // the group
     Group group = counters.getGroup(FileSystemCounter.class.getName());
@@ -236,7 +237,7 @@ public class TestCounters {
     assertTrue(iterator.hasNext());
     iterator.next();
   }
-  
+
   @Test
   public void testLegacyGetGroupNames() {
     Counters counters = new Counters();
@@ -244,7 +245,7 @@ public class TestCounters {
     counters.findCounter("fs1", FileSystemCounter.BYTES_READ).increment(1);
     counters.findCounter("fs2", FileSystemCounter.BYTES_READ).increment(1);
     counters.incrCounter("group1", "counter1", 1);
-    
+
     HashSet<String> groups = new HashSet<String>(counters.getGroupNames());
     HashSet<String> expectedGroups = new HashSet<String>();
     expectedGroups.add("group1");
@@ -253,7 +254,7 @@ public class TestCounters {
 
     assertEquals(expectedGroups, groups);
   }
-  
+
   @Test
   public void testMakeCompactString() {
     final String GC1 = "group1.counter1:1";
@@ -266,7 +267,7 @@ public class TestCounters {
     assertTrue("Bad compact string",
         cs.equals(GC1 + ',' + GC2) || cs.equals(GC2 + ',' + GC1));
   }
-  
+
   @Test
   public void testCounterLimits() {
     testMaxCountersLimits(new Counters());
@@ -307,9 +308,9 @@ public class TestCounters {
 
   private void checkExpected(Counters counters) {
     assertEquals(FRAMEWORK_COUNTER_VALUE,
-      counters.findCounter(FRAMEWORK_COUNTER).getValue());
+        counters.findCounter(FRAMEWORK_COUNTER).getValue());
     assertEquals(FS_COUNTER_VALUE, counters.findCounter(FS_SCHEME, FS_COUNTER)
-      .getValue());
+        .getValue());
   }
 
   private void shouldThrow(Class<? extends Exception> ecls, Runnable runnable) {
@@ -324,55 +325,55 @@ public class TestCounters {
   public static void main(String[] args) throws IOException {
     new TestCounters().testCounters();
   }
-  
+
   @SuppressWarnings("rawtypes")
   @Test
   public void testFrameworkCounter() {
     GroupFactory groupFactory = new GroupFactoryForTest();
-    FrameworkGroupFactory frameworkGroupFactory = 
+    FrameworkGroupFactory frameworkGroupFactory =
         groupFactory.newFrameworkGroupFactory(JobCounter.class);
     Group group = (Group) frameworkGroupFactory.newGroup("JobCounter");
-    
-    FrameworkCounterGroup counterGroup = 
+
+    FrameworkCounterGroup counterGroup =
         (FrameworkCounterGroup) group.getUnderlyingGroup();
-  
-    org.apache.hadoop.mapreduce.Counter count1 = 
+
+    org.apache.hadoop.mapreduce.Counter count1 =
         counterGroup.findCounter(JobCounter.NUM_FAILED_MAPS.toString());
     Assert.assertNotNull(count1);
-    
+
     // Verify no exception get thrown when finding an unknown counter
-    org.apache.hadoop.mapreduce.Counter count2 = 
+    org.apache.hadoop.mapreduce.Counter count2 =
         counterGroup.findCounter("Unknown");
     Assert.assertNull(count2);
   }
-  
+
   @Test
   public void testFilesystemCounter() {
     GroupFactory groupFactory = new GroupFactoryForTest();
     Group fsGroup = groupFactory.newFileSystemGroup();
-  
-    org.apache.hadoop.mapreduce.Counter count1 = 
+
+    org.apache.hadoop.mapreduce.Counter count1 =
         fsGroup.findCounter("ANY_BYTES_READ");
     Assert.assertNotNull(count1);
-    
+
     // Verify no exception get thrown when finding an unknown counter
-    org.apache.hadoop.mapreduce.Counter count2 = 
+    org.apache.hadoop.mapreduce.Counter count2 =
         fsGroup.findCounter("Unknown");
     Assert.assertNull(count2);
   }
-  
+
 }
 
-  class GroupFactoryForTest extends GroupFactory {
-    public <T extends Enum<T>>
-        FrameworkGroupFactory<Group> newFrameworkGroupFactory(final Class<T> cls) {
-      return super.newFrameworkGroupFactory(cls);
-    }
-    
-    public Group newFileSystemGroup() {
-      return super.newFileSystemGroup();
-    }
-    
+class GroupFactoryForTest extends GroupFactory {
+  public <T extends Enum<T>>
+  FrameworkGroupFactory<Group> newFrameworkGroupFactory(final Class<T> cls) {
+    return super.newFrameworkGroupFactory(cls);
   }
+
+  public Group newFileSystemGroup() {
+    return super.newFileSystemGroup();
+  }
+
+}
 
 

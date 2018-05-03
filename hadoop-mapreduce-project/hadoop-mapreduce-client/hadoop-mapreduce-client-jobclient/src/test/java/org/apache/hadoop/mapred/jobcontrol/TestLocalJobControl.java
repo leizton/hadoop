@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,15 +18,15 @@
 
 package org.apache.hadoop.mapred.jobcontrol;
 
-import java.io.IOException;
-import java.util.ArrayList;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.HadoopTestCase;
 import org.apache.hadoop.mapred.JobConf;
+
+import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * HadoopTestCase that tests the local job runner.
@@ -39,7 +39,7 @@ public class TestLocalJobControl extends HadoopTestCase {
   /**
    * Initialises a new instance of this test case to use a Local MR cluster and
    * a local filesystem.
-   * 
+   *
    * @throws IOException If an error occurs initialising this object.
    */
   public TestLocalJobControl() throws IOException {
@@ -54,7 +54,7 @@ public class TestLocalJobControl extends HadoopTestCase {
    * from outdir_1 and outdir_2 to outdir_3 Job 4: copy data from outdir to
    * outdir_4 The jobs 1 and 2 have no dependency. The job 3 depends on jobs 1
    * and 2. The job 4 depends on job 3.
-   * 
+   *
    * Then it creates a JobControl object and add the 4 jobs to the JobControl
    * object. Finally, it creates a thread to run the JobControl object and
    * monitors/reports the job states.

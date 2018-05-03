@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,33 +18,14 @@
 
 package org.apache.hadoop.mapreduce.lib.db;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Writable;
-import org.apache.hadoop.mapreduce.InputFormat;
-import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.JobContext;
-import org.apache.hadoop.mapreduce.RecordReader;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
-import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
+
+import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  * A RecordReader that reads records from a SQL table,
@@ -62,11 +43,11 @@ public class DataDrivenDBRecordReader<T extends DBWritable> extends DBRecordRead
 
   /**
    * @param split The InputSplit to read data for
-   * @throws SQLException 
+   * @throws SQLException
    */
   public DataDrivenDBRecordReader(DBInputFormat.DBInputSplit split,
-      Class<T> inputClass, Configuration conf, Connection conn, DBConfiguration dbConfig,
-      String cond, String [] fields, String table, String dbProduct)
+                                  Class<T> inputClass, Configuration conf, Connection conn, DBConfiguration dbConfig,
+                                  String cond, String[] fields, String table, String dbProduct)
       throws SQLException {
     super(split, inputClass, conf, conn, dbConfig, cond, fields, table);
     this.dbProductName = dbProduct;
@@ -80,7 +61,7 @@ public class DataDrivenDBRecordReader<T extends DBWritable> extends DBRecordRead
     DataDrivenDBInputFormat.DataDrivenDBInputSplit dataSplit =
         (DataDrivenDBInputFormat.DataDrivenDBInputSplit) getSplit();
     DBConfiguration dbConf = getDBConf();
-    String [] fieldNames = getFieldNames();
+    String[] fieldNames = getFieldNames();
     String tableName = getTableName();
     String conditions = getConditions();
 
@@ -91,13 +72,13 @@ public class DataDrivenDBRecordReader<T extends DBWritable> extends DBRecordRead
     conditionClauses.append(" ) AND ( ").append(dataSplit.getUpperClause());
     conditionClauses.append(" )");
 
-    if(dbConf.getInputQuery() == null) {
+    if (dbConf.getInputQuery() == null) {
       // We need to generate the entire query.
       query.append("SELECT ");
 
       for (int i = 0; i < fieldNames.length; i++) {
         query.append(fieldNames[i]);
-        if (i != fieldNames.length -1) {
+        if (i != fieldNames.length - 1) {
           query.append(", ");
         }
       }

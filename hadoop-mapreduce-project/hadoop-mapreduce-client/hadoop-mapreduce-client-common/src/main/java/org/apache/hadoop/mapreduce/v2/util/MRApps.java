@@ -1,39 +1,24 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2.util;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.security.AccessController;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.google.common.annotations.VisibleForTesting;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
@@ -42,19 +27,9 @@ import org.apache.hadoop.classification.InterfaceStability.Unstable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapred.InvalidJobConfException;
-import org.apache.hadoop.mapreduce.JobID;
-import org.apache.hadoop.mapreduce.MRConfig;
-import org.apache.hadoop.mapreduce.MRJobConfig;
-import org.apache.hadoop.mapreduce.TaskAttemptID;
-import org.apache.hadoop.mapreduce.TaskID;
-import org.apache.hadoop.mapreduce.TypeConverter;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.filecache.DistributedCache;
-import org.apache.hadoop.mapreduce.v2.api.records.JobId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptState;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskState;
+import org.apache.hadoop.mapreduce.v2.api.records.*;
 import org.apache.hadoop.mapreduce.v2.api.records.TaskType;
 import org.apache.hadoop.util.ApplicationClassLoader;
 import org.apache.hadoop.util.StringUtils;
@@ -69,6 +44,16 @@ import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
 import org.apache.hadoop.yarn.util.Apps;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.log4j.RollingFileAppender;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
+import java.util.*;
 
 /**
  * Helper class for MR applications
@@ -95,7 +80,7 @@ public class MRApps extends Apps {
   }
 
   public static String toString(TaskAttemptId taid) {
-    return taid.toString(); 
+    return taid.toString();
   }
 
   public static TaskAttemptId toTaskAttemptID(String taid) {
@@ -104,22 +89,24 @@ public class MRApps extends Apps {
 
   public static String taskSymbol(TaskType type) {
     switch (type) {
-      case MAP:           return "m";
-      case REDUCE:        return "r";
+      case MAP:
+        return "m";
+      case REDUCE:
+        return "r";
     }
-    throw new YarnRuntimeException("Unknown task type: "+ type.toString());
+    throw new YarnRuntimeException("Unknown task type: " + type.toString());
   }
 
   public static enum TaskAttemptStateUI {
     NEW(
-        new TaskAttemptState[] { TaskAttemptState.NEW,
-            TaskAttemptState.STARTING }),
+        new TaskAttemptState[]{TaskAttemptState.NEW,
+            TaskAttemptState.STARTING}),
     RUNNING(
-        new TaskAttemptState[] { TaskAttemptState.RUNNING,
-            TaskAttemptState.COMMIT_PENDING }),
-    SUCCESSFUL(new TaskAttemptState[] { TaskAttemptState.SUCCEEDED}),
-    FAILED(new TaskAttemptState[] { TaskAttemptState.FAILED}),
-    KILLED(new TaskAttemptState[] { TaskAttemptState.KILLED});
+        new TaskAttemptState[]{TaskAttemptState.RUNNING,
+            TaskAttemptState.COMMIT_PENDING}),
+    SUCCESSFUL(new TaskAttemptState[]{TaskAttemptState.SUCCEEDED}),
+    FAILED(new TaskAttemptState[]{TaskAttemptState.FAILED}),
+    KILLED(new TaskAttemptState[]{TaskAttemptState.KILLED});
 
     private final List<TaskAttemptState> correspondingStates;
 
@@ -153,7 +140,7 @@ public class MRApps extends Apps {
     // JDK 7 supports switch on strings
     if (symbol.equals("m")) return TaskType.MAP;
     if (symbol.equals("r")) return TaskType.REDUCE;
-    throw new YarnRuntimeException("Unknown task symbol: "+ symbol);
+    throw new YarnRuntimeException("Unknown task symbol: " + symbol);
   }
 
   public static TaskAttemptStateUI taskAttemptState(String attemptStateStr) {
@@ -197,7 +184,7 @@ public class MRApps extends Apps {
     }
     boolean crossPlatform =
         conf.getBoolean(MRConfig.MAPREDUCE_APP_SUBMISSION_CROSS_PLATFORM,
-          MRConfig.DEFAULT_MAPREDUCE_APP_SUBMISSION_CROSS_PLATFORM);
+            MRConfig.DEFAULT_MAPREDUCE_APP_SUBMISSION_CROSS_PLATFORM);
 
     // if the framework is specified then only use the MR classpath
     String frameworkName = getMRFrameworkName(conf);
@@ -208,7 +195,7 @@ public class MRApps extends Apps {
               ? YarnConfiguration.DEFAULT_YARN_CROSS_PLATFORM_APPLICATION_CLASSPATH
               : YarnConfiguration.DEFAULT_YARN_APPLICATION_CLASSPATH)) {
         MRApps.addToEnvironment(environment, Environment.CLASSPATH.name(),
-          c.trim(), conf);
+            c.trim(), conf);
       }
     }
 
@@ -218,7 +205,7 @@ public class MRApps extends Apps {
             StringUtils.getStrings(MRJobConfig.DEFAULT_MAPREDUCE_CROSS_PLATFORM_APPLICATION_CLASSPATH)
             : StringUtils.getStrings(MRJobConfig.DEFAULT_MAPREDUCE_APPLICATION_CLASSPATH))) {
       MRApps.addToEnvironment(environment, Environment.CLASSPATH.name(),
-        c.trim(), conf);
+          c.trim(), conf);
       if (!foundFrameworkInClasspath) {
         foundFrameworkInClasspath = c.contains(frameworkName);
       }
@@ -227,23 +214,23 @@ public class MRApps extends Apps {
     if (!foundFrameworkInClasspath) {
       throw new IllegalArgumentException(
           "Could not locate MapReduce framework name '" + frameworkName
-          + "' in " + MRJobConfig.MAPREDUCE_APPLICATION_CLASSPATH);
+              + "' in " + MRJobConfig.MAPREDUCE_APPLICATION_CLASSPATH);
     }
     // TODO: Remove duplicates.
   }
-  
+
   @SuppressWarnings("deprecation")
   public static void setClasspath(Map<String, String> environment,
-      Configuration conf) throws IOException {
-    boolean userClassesTakesPrecedence = 
-      conf.getBoolean(MRJobConfig.MAPREDUCE_JOB_USER_CLASSPATH_FIRST, false);
+                                  Configuration conf) throws IOException {
+    boolean userClassesTakesPrecedence =
+        conf.getBoolean(MRJobConfig.MAPREDUCE_JOB_USER_CLASSPATH_FIRST, false);
 
-    String classpathEnvVar = 
-      conf.getBoolean(MRJobConfig.MAPREDUCE_JOB_CLASSLOADER, false)
-        ? Environment.APP_CLASSPATH.name() : Environment.CLASSPATH.name();
+    String classpathEnvVar =
+        conf.getBoolean(MRJobConfig.MAPREDUCE_JOB_CLASSLOADER, false)
+            ? Environment.APP_CLASSPATH.name() : Environment.CLASSPATH.name();
 
     MRApps.addToEnvironment(environment,
-      classpathEnvVar, crossPlatformifyMREnv(conf, Environment.PWD), conf);
+        classpathEnvVar, crossPlatformifyMREnv(conf, Environment.PWD), conf);
     if (!userClassesTakesPrecedence) {
       MRApps.setMRFrameworkClasspath(environment, conf);
     }
@@ -277,7 +264,7 @@ public class MRApps extends Apps {
       MRApps.setMRFrameworkClasspath(environment, conf);
     }
   }
-  
+
   /**
    * Add the paths to the classpath if they are not jars
    * @param paths the paths to add to the classpath
@@ -287,13 +274,13 @@ public class MRApps extends Apps {
    * @throws IOException if there is an error resolving any of the paths.
    */
   private static void addToClasspathIfNotJar(Path[] paths,
-      URI[] withLinks, Configuration conf,
-      Map<String, String> environment,
-      String classpathEnvVar) throws IOException {
+                                             URI[] withLinks, Configuration conf,
+                                             Map<String, String> environment,
+                                             String classpathEnvVar) throws IOException {
     if (paths != null) {
       HashMap<Path, String> linkLookup = new HashMap<Path, String>();
       if (withLinks != null) {
-        for (URI u: withLinks) {
+        for (URI u : withLinks) {
           Path p = new Path(u);
           FileSystem remoteFS = p.getFileSystem(conf);
           p = remoteFS.resolvePath(p.makeQualified(remoteFS.getUri(),
@@ -305,7 +292,7 @@ public class MRApps extends Apps {
           }
         }
       }
-      
+
       for (Path p : paths) {
         FileSystem remoteFS = p.getFileSystem(conf);
         p = remoteFS.resolvePath(p.makeQualified(remoteFS.getUri(),
@@ -314,7 +301,7 @@ public class MRApps extends Apps {
         if (name == null) {
           name = p.getName();
         }
-        if(!name.toLowerCase().endsWith(".jar")) {
+        if (!name.toLowerCase().endsWith(".jar")) {
           MRApps.addToEnvironment(
               environment,
               classpathEnvVar,
@@ -373,7 +360,7 @@ public class MRApps extends Apps {
    * @param conf
    */
   public static void setClassLoader(ClassLoader classLoader,
-      Configuration conf) {
+                                    Configuration conf) {
     if (classLoader != null) {
       LOG.info("Setting classloader " + classLoader.getClass().getName() +
           " on the configuration and as the thread context classloader");
@@ -389,16 +376,16 @@ public class MRApps extends Apps {
   }
 
   private static ClassLoader createJobClassLoader(final String appClasspath,
-      final String[] systemClasses) throws IOException {
+                                                  final String[] systemClasses) throws IOException {
     try {
       return AccessController.doPrivileged(
-        new PrivilegedExceptionAction<ClassLoader>() {
-          @Override
-          public ClassLoader run() throws MalformedURLException {
-            return new ApplicationClassLoader(appClasspath,
-                MRApps.class.getClassLoader(), Arrays.asList(systemClasses));
-          }
-      });
+          new PrivilegedExceptionAction<ClassLoader>() {
+            @Override
+            public ClassLoader run() throws MalformedURLException {
+              return new ApplicationClassLoader(appClasspath,
+                  MRApps.class.getClassLoader(), Arrays.asList(systemClasses));
+            }
+          });
     } catch (PrivilegedActionException e) {
       Throwable t = e.getCause();
       if (t instanceof MalformedURLException) {
@@ -409,57 +396,58 @@ public class MRApps extends Apps {
   }
 
   private static final String STAGING_CONSTANT = ".staging";
+
   public static Path getStagingAreaDir(Configuration conf, String user) {
     return new Path(conf.get(MRJobConfig.MR_AM_STAGING_DIR,
         MRJobConfig.DEFAULT_MR_AM_STAGING_DIR)
         + Path.SEPARATOR + user + Path.SEPARATOR + STAGING_CONSTANT);
   }
 
-  public static String getJobFile(Configuration conf, String user, 
-      org.apache.hadoop.mapreduce.JobID jobId) {
+  public static String getJobFile(Configuration conf, String user,
+                                  org.apache.hadoop.mapreduce.JobID jobId) {
     Path jobFile = new Path(MRApps.getStagingAreaDir(conf, user),
         jobId.toString() + Path.SEPARATOR + MRJobConfig.JOB_CONF_FILE);
     return jobFile.toString();
   }
-  
+
   public static Path getEndJobCommitSuccessFile(Configuration conf, String user,
-      JobId jobId) {
+                                                JobId jobId) {
     Path endCommitFile = new Path(MRApps.getStagingAreaDir(conf, user),
         jobId.toString() + Path.SEPARATOR + "COMMIT_SUCCESS");
     return endCommitFile;
   }
-  
+
   public static Path getEndJobCommitFailureFile(Configuration conf, String user,
-      JobId jobId) {
+                                                JobId jobId) {
     Path endCommitFile = new Path(MRApps.getStagingAreaDir(conf, user),
         jobId.toString() + Path.SEPARATOR + "COMMIT_FAIL");
     return endCommitFile;
   }
-  
+
   public static Path getStartJobCommitFile(Configuration conf, String user,
-      JobId jobId) {
+                                           JobId jobId) {
     Path startCommitFile = new Path(MRApps.getStagingAreaDir(conf, user),
         jobId.toString() + Path.SEPARATOR + "COMMIT_STARTED");
     return startCommitFile;
   }
 
-  public static void setupDistributedCache( 
-      Configuration conf, 
-      Map<String, LocalResource> localResources) 
-  throws IOException {
-    
+  public static void setupDistributedCache(
+      Configuration conf,
+      Map<String, LocalResource> localResources)
+      throws IOException {
+
     // Cache archives
-    parseDistributedCacheArtifacts(conf, localResources,  
-        LocalResourceType.ARCHIVE, 
-        DistributedCache.getCacheArchives(conf), 
+    parseDistributedCacheArtifacts(conf, localResources,
+        LocalResourceType.ARCHIVE,
+        DistributedCache.getCacheArchives(conf),
         DistributedCache.getArchiveTimestamps(conf),
-        getFileSizes(conf, MRJobConfig.CACHE_ARCHIVES_SIZES), 
+        getFileSizes(conf, MRJobConfig.CACHE_ARCHIVES_SIZES),
         DistributedCache.getArchiveVisibilities(conf));
-    
+
     // Cache files
-    parseDistributedCacheArtifacts(conf, 
-        localResources,  
-        LocalResourceType.FILE, 
+    parseDistributedCacheArtifacts(conf,
+        localResources,
+        LocalResourceType.FILE,
         DistributedCache.getCacheFiles(conf),
         DistributedCache.getFileTimestamps(conf),
         getFileSizes(conf, MRJobConfig.CACHE_FILES_SIZES),
@@ -523,22 +511,22 @@ public class MRApps extends Apps {
   }
 
   private static String getResourceDescription(LocalResourceType type) {
-    if(type == LocalResourceType.ARCHIVE || type == LocalResourceType.PATTERN) {
+    if (type == LocalResourceType.ARCHIVE || type == LocalResourceType.PATTERN) {
       return "cache archive (" + MRJobConfig.CACHE_ARCHIVES + ") ";
     }
     return "cache file (" + MRJobConfig.CACHE_FILES + ") ";
   }
-  
+
   private static String toString(org.apache.hadoop.yarn.api.records.URL url) {
     StringBuffer b = new StringBuffer();
     b.append(url.getScheme()).append("://").append(url.getHost());
-    if(url.getPort() >= 0) {
+    if (url.getPort() >= 0) {
       b.append(":").append(url.getPort());
     }
     b.append(url.getFile());
     return b.toString();
   }
-  
+
   // TODO - Move this to MR!
   // Use TaskDistributedCacheManager.CacheFiles.makeCacheFiles(URI[], 
   // long[], boolean[], Path[], FileType)
@@ -547,7 +535,7 @@ public class MRApps extends Apps {
       Map<String, LocalResource> localResources,
       LocalResourceType type,
       URI[] uris, long[] timestamps, long[] sizes, boolean visibilities[])
-  throws IOException {
+      throws IOException {
 
     if (uris != null) {
       // Sanity check
@@ -558,9 +546,9 @@ public class MRApps extends Apps {
             " #uris=" + uris.length +
             " #timestamps=" + timestamps.length +
             " #visibilities=" + visibilities.length
-            );
+        );
       }
-      
+
       for (int i = 0; i < uris.length; ++i) {
         URI u = uris[i];
         Path p = new Path(u);
@@ -569,31 +557,31 @@ public class MRApps extends Apps {
             remoteFS.getWorkingDirectory()));
         // Add URI fragment or just the filename
         Path name = new Path((null == u.getFragment())
-          ? p.getName()
-          : u.getFragment());
+            ? p.getName()
+            : u.getFragment());
         if (name.isAbsolute()) {
           throw new IllegalArgumentException("Resource name must be relative");
         }
         String linkName = name.toUri().getPath();
         LocalResource orig = localResources.get(linkName);
-        org.apache.hadoop.yarn.api.records.URL url = 
-          ConverterUtils.getYarnUrlFromURI(p.toUri());
-        if(orig != null && !orig.getResource().equals(url)) {
+        org.apache.hadoop.yarn.api.records.URL url =
+            ConverterUtils.getYarnUrlFromURI(p.toUri());
+        if (orig != null && !orig.getResource().equals(url)) {
           LOG.warn(
-              getResourceDescription(orig.getType()) + 
-              toString(orig.getResource()) + " conflicts with " + 
-              getResourceDescription(type) + toString(url) + 
-              " This will be an error in Hadoop 2.0");
+              getResourceDescription(orig.getType()) +
+                  toString(orig.getResource()) + " conflicts with " +
+                  getResourceDescription(type) + toString(url) +
+                  " This will be an error in Hadoop 2.0");
           continue;
         }
         localResources.put(linkName, LocalResource.newInstance(ConverterUtils
-          .getYarnUrlFromURI(p.toUri()), type, visibilities[i]
-            ? LocalResourceVisibility.PUBLIC : LocalResourceVisibility.PRIVATE,
-          sizes[i], timestamps[i]));
+                .getYarnUrlFromURI(p.toUri()), type, visibilities[i]
+                ? LocalResourceVisibility.PUBLIC : LocalResourceVisibility.PRIVATE,
+            sizes[i], timestamps[i]));
       }
     }
   }
-  
+
   // TODO - Move this to MR!
   private static long[] getFileSizes(Configuration conf, String key) {
     String[] strs = conf.getStrings(key);
@@ -601,12 +589,12 @@ public class MRApps extends Apps {
       return null;
     }
     long[] result = new long[strs.length];
-    for(int i=0; i < strs.length; ++i) {
+    for (int i = 0; i < strs.length; ++i) {
       result[i] = Long.parseLong(strs[i]);
     }
     return result;
   }
-  
+
   /**
    * Add the JVM system properties necessary to configure {@link ContainerLogAppender}.
    * @param logLevel the desired log level (eg INFO/WARN/DEBUG)
@@ -616,7 +604,7 @@ public class MRApps extends Apps {
    * @param conf configuration of MR job
    */
   public static void addLog4jSystemProperties(
-      String logLevel, long logSize, int numBackups, List<String> vargs, 
+      String logLevel, long logSize, int numBackups, List<String> vargs,
       Configuration conf) {
     String log4jPropertyFile =
         conf.get(MRJobConfig.MAPREDUCE_JOB_LOG4J_PROPERTIES_FILE, "");
@@ -630,9 +618,9 @@ public class MRApps extends Apps {
         throw new IllegalArgumentException(e);
       }
       Path log4jPath = new Path(log4jURI);
-      vargs.add("-Dlog4j.configuration="+log4jPath.getName());
+      vargs.add("-Dlog4j.configuration=" + log4jPath.getName());
     }
-    
+
     vargs.add("-D" + YarnConfiguration.YARN_APP_CONTAINER_LOG_DIR + "=" +
         ApplicationConstants.LOG_DIR_EXPANSION_VAR);
     vargs.add(
@@ -648,10 +636,10 @@ public class MRApps extends Apps {
   }
 
   public static void setEnvFromInputString(Map<String, String> env,
-      String envString, Configuration conf) {
+                                           String envString, Configuration conf) {
     String classPathSeparator =
         conf.getBoolean(MRConfig.MAPREDUCE_APP_SUBMISSION_CROSS_PLATFORM,
-          MRConfig.DEFAULT_MAPREDUCE_APP_SUBMISSION_CROSS_PLATFORM)
+            MRConfig.DEFAULT_MAPREDUCE_APP_SUBMISSION_CROSS_PLATFORM)
             ? ApplicationConstants.CLASS_PATH_SEPARATOR : File.pathSeparator;
     Apps.setEnvFromInputString(env, envString, classPathSeparator);
   }
@@ -659,10 +647,10 @@ public class MRApps extends Apps {
   @Public
   @Unstable
   public static void addToEnvironment(Map<String, String> environment,
-      String variable, String value, Configuration conf) {
+                                      String variable, String value, Configuration conf) {
     String classPathSeparator =
         conf.getBoolean(MRConfig.MAPREDUCE_APP_SUBMISSION_CROSS_PLATFORM,
-          MRConfig.DEFAULT_MAPREDUCE_APP_SUBMISSION_CROSS_PLATFORM)
+            MRConfig.DEFAULT_MAPREDUCE_APP_SUBMISSION_CROSS_PLATFORM)
             ? ApplicationConstants.CLASS_PATH_SEPARATOR : File.pathSeparator;
     Apps.addToEnvironment(environment, variable, value, classPathSeparator);
   }
@@ -670,7 +658,7 @@ public class MRApps extends Apps {
   public static String crossPlatformifyMREnv(Configuration conf, Environment env) {
     boolean crossPlatform =
         conf.getBoolean(MRConfig.MAPREDUCE_APP_SUBMISSION_CROSS_PLATFORM,
-          MRConfig.DEFAULT_MAPREDUCE_APP_SUBMISSION_CROSS_PLATFORM);
+            MRConfig.DEFAULT_MAPREDUCE_APP_SUBMISSION_CROSS_PLATFORM);
     return crossPlatform ? env.$$() : env.$();
   }
 }

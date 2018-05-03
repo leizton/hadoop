@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,15 +18,7 @@
 
 package org.apache.hadoop.mapreduce;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
 import junit.framework.TestCase;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.LocalJobRunner;
@@ -43,11 +35,18 @@ import org.apache.hadoop.yarn.factories.RecordFactory;
 import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 public class TestYarnClientProtocolProvider extends TestCase {
-  
+
   private static final RecordFactory recordFactory = RecordFactoryProvider.
       getRecordFactory(null);
-  
+
   @Test
   public void testClusterWithYarnClientProtocolProvider() throws Exception {
 
@@ -60,7 +59,7 @@ public class TestYarnClientProtocolProvider extends TestCase {
       throw new Exception(
           "Failed to initialize a local runner w/o a cluster framework key", e);
     }
-    
+
     try {
       assertTrue("client is not a LocalJobRunner",
           cluster.getClient() instanceof LocalJobRunner);
@@ -69,7 +68,7 @@ public class TestYarnClientProtocolProvider extends TestCase {
         cluster.close();
       }
     }
-    
+
     try {
       conf = new Configuration();
       conf.set(MRConfig.FRAMEWORK_NAME, MRConfig.YARN_FRAMEWORK_NAME);
@@ -85,7 +84,7 @@ public class TestYarnClientProtocolProvider extends TestCase {
     }
   }
 
- 
+
   @Test
   public void testClusterGetDelegationToken() throws Exception {
 
@@ -96,10 +95,10 @@ public class TestYarnClientProtocolProvider extends TestCase {
       conf.set(MRConfig.FRAMEWORK_NAME, MRConfig.YARN_FRAMEWORK_NAME);
       cluster = new Cluster(conf);
       YARNRunner yrunner = (YARNRunner) cluster.getClient();
-      GetDelegationTokenResponse getDTResponse = 
+      GetDelegationTokenResponse getDTResponse =
           recordFactory.newRecordInstance(GetDelegationTokenResponse.class);
       org.apache.hadoop.yarn.api.records.Token rmDTToken = recordFactory.newRecordInstance(
-        org.apache.hadoop.yarn.api.records.Token.class);
+          org.apache.hadoop.yarn.api.records.Token.class);
       rmDTToken.setIdentifier(ByteBuffer.wrap(new byte[2]));
       rmDTToken.setKind("Testclusterkind");
       rmDTToken.setPassword(ByteBuffer.wrap("testcluster".getBytes()));
@@ -119,7 +118,7 @@ public class TestYarnClientProtocolProvider extends TestCase {
       yrunner.setResourceMgrDelegate(rmgrDelegate);
       Token t = cluster.getDelegationToken(new Text(" "));
       assertTrue("Token kind is instead " + t.getKind().toString(),
-        "Testclusterkind".equals(t.getKind().toString()));
+          "Testclusterkind".equals(t.getKind().toString()));
     } finally {
       if (cluster != null) {
         cluster.close();

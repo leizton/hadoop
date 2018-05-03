@@ -1,25 +1,22 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2.hs;
-
-import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,18 +25,15 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.TaskCompletionEvent;
 import org.apache.hadoop.mapreduce.Counters;
 import org.apache.hadoop.mapreduce.JobACL;
-import org.apache.hadoop.mapreduce.v2.api.records.AMInfo;
-import org.apache.hadoop.mapreduce.v2.api.records.JobId;
-import org.apache.hadoop.mapreduce.v2.api.records.JobReport;
-import org.apache.hadoop.mapreduce.v2.api.records.JobState;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptCompletionEvent;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskType;
+import org.apache.hadoop.mapreduce.v2.api.records.*;
 import org.apache.hadoop.mapreduce.v2.app.job.Task;
 import org.apache.hadoop.mapreduce.v2.jobhistory.JobIndexInfo;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.authorize.AccessControlList;
 import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
+
+import java.util.List;
+import java.util.Map;
 
 
 public class PartialJob implements org.apache.hadoop.mapreduce.v2.app.job.Job {
@@ -48,7 +42,7 @@ public class PartialJob implements org.apache.hadoop.mapreduce.v2.app.job.Job {
   private JobIndexInfo jobIndexInfo = null;
   private JobId jobId = null;
   private JobReport jobReport = null;
-  
+
   public PartialJob(JobIndexInfo jobIndexInfo, JobId jobId) {
     this.jobIndexInfo = jobIndexInfo;
     this.jobId = jobId;
@@ -58,7 +52,7 @@ public class PartialJob implements org.apache.hadoop.mapreduce.v2.app.job.Job {
     jobReport.setFinishTime(jobIndexInfo.getFinishTime());
     jobReport.setJobState(getState());
   }
-  
+
   @Override
   public JobId getID() {
 //    return jobIndexInfo.getJobId();
@@ -165,7 +159,7 @@ public class PartialJob implements org.apache.hadoop.mapreduce.v2.app.job.Job {
   public boolean checkAccess(UserGroupInformation callerUGI, JobACL jobOperation) {
     return true;
   }
-  
+
   @Override
   public String getUserName() {
     return jobIndexInfo.getUser();
@@ -175,7 +169,7 @@ public class PartialJob implements org.apache.hadoop.mapreduce.v2.app.job.Job {
   public Path getConfFile() {
     throw new IllegalStateException("Not implemented yet");
   }
-  
+
   @Override
   public Configuration loadConfFile() {
     throw new IllegalStateException("Not implemented yet");
@@ -190,7 +184,7 @@ public class PartialJob implements org.apache.hadoop.mapreduce.v2.app.job.Job {
   public List<AMInfo> getAMInfos() {
     return null;
   }
-  
+
   @Override
   public void setQueueName(String queueName) {
     throw new UnsupportedOperationException("Can't set job's queue name in history");

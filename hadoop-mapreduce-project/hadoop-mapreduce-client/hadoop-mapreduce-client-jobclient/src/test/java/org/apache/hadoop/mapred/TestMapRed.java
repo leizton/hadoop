@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,30 +17,13 @@
  */
 package org.apache.hadoop.mapred;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.File;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Random;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.io.SequenceFile;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.WritableComparable;
+import org.apache.hadoop.io.*;
 import org.apache.hadoop.io.SequenceFile.CompressionType;
 import org.apache.hadoop.mapred.lib.IdentityMapper;
 import org.apache.hadoop.mapred.lib.IdentityReducer;
@@ -50,8 +33,14 @@ import org.apache.hadoop.util.ToolRunner;
 import org.junit.After;
 import org.junit.Test;
 
-import static org.junit.Assert.assertTrue;
+import java.io.*;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Random;
+
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**********************************************************
  * MapredLoadTest generates a bunch of work that exercises
@@ -116,8 +105,8 @@ public class TestMapRed extends Configured implements Tool {
           System.getProperty("java.io.tmpdir")), "TestMapRed-mapred");
 
   static class RandomGenMapper
-    implements Mapper<IntWritable, IntWritable, IntWritable, IntWritable> {
-    
+      implements Mapper<IntWritable, IntWritable, IntWritable, IntWritable> {
+
     public void configure(JobConf job) {
     }
 
@@ -131,14 +120,16 @@ public class TestMapRed extends Configured implements Tool {
         out.collect(new IntWritable(Math.abs(r.nextInt())), new IntWritable(randomVal));
       }
     }
+
     public void close() {
     }
   }
+
   /**
    */
   static class RandomGenReducer
-    implements Reducer<IntWritable, IntWritable, IntWritable, IntWritable> {
-    
+      implements Reducer<IntWritable, IntWritable, IntWritable, IntWritable> {
+
     public void configure(JobConf job) {
     }
 
@@ -149,6 +140,7 @@ public class TestMapRed extends Configured implements Tool {
         out.collect(it.next(), null);
       }
     }
+
     public void close() {
     }
   }
@@ -170,8 +162,8 @@ public class TestMapRed extends Configured implements Tool {
    * number of times the number was emitted.
    */
   static class RandomCheckMapper
-    implements Mapper<WritableComparable, Text, IntWritable, IntWritable> {
-    
+      implements Mapper<WritableComparable, Text, IntWritable, IntWritable> {
+
     public void configure(JobConf job) {
     }
 
@@ -180,16 +172,18 @@ public class TestMapRed extends Configured implements Tool {
                     Reporter reporter) throws IOException {
       out.collect(new IntWritable(Integer.parseInt(val.toString().trim())), new IntWritable(1));
     }
+
     public void close() {
     }
   }
+
   /**
    */
   static class RandomCheckReducer
       implements Reducer<IntWritable, IntWritable, IntWritable, IntWritable> {
     public void configure(JobConf job) {
     }
-        
+
     public void reduce(IntWritable key, Iterator<IntWritable> it,
                        OutputCollector<IntWritable, IntWritable> out,
                        Reporter reporter) throws IOException {
@@ -201,6 +195,7 @@ public class TestMapRed extends Configured implements Tool {
       }
       out.collect(new IntWritable(keyint), new IntWritable(count));
     }
+
     public void close() {
     }
   }
@@ -214,8 +209,8 @@ public class TestMapRed extends Configured implements Tool {
    * and reduce() just sums.  Nothing to see here!
    */
   static class MergeMapper
-    implements Mapper<IntWritable, IntWritable, IntWritable, IntWritable> {
-    
+      implements Mapper<IntWritable, IntWritable, IntWritable, IntWritable> {
+
     public void configure(JobConf job) {
     }
 
@@ -227,14 +222,16 @@ public class TestMapRed extends Configured implements Tool {
 
       out.collect(new IntWritable(keyint), new IntWritable(valint));
     }
+
     public void close() {
     }
   }
+
   static class MergeReducer
-    implements Reducer<IntWritable, IntWritable, IntWritable, IntWritable> {
+      implements Reducer<IntWritable, IntWritable, IntWritable, IntWritable> {
     public void configure(JobConf job) {
     }
-        
+
     public void reduce(IntWritable key, Iterator<IntWritable> it,
                        OutputCollector<IntWritable, IntWritable> out,
                        Reporter reporter) throws IOException {
@@ -245,6 +242,7 @@ public class TestMapRed extends Configured implements Tool {
       }
       out.collect(new IntWritable(keyint), new IntWritable(total));
     }
+
     public void close() {
     }
   }
@@ -259,12 +257,12 @@ public class TestMapRed extends Configured implements Tool {
   }
 
   /**
-     public TestMapRed(int range, int counts, Configuration conf) throws IOException {
-     this.range = range;
-     this.counts = counts;
-     this.conf = conf;
-     }
-  **/
+   public TestMapRed(int range, int counts, Configuration conf) throws IOException {
+   this.range = range;
+   this.counts = counts;
+   this.conf = conf;
+   }
+   **/
 
   @Test
   public void testMapred() throws Exception {
@@ -272,11 +270,11 @@ public class TestMapRed extends Configured implements Tool {
   }
 
   private static class MyMap
-    implements Mapper<WritableComparable, Text, Text, Text> {
-      
+      implements Mapper<WritableComparable, Text, Text, Text> {
+
     public void configure(JobConf conf) {
     }
-      
+
     public void map(WritableComparable key, Text value,
                     OutputCollector<Text, Text> output,
                     Reporter reporter) throws IOException {
@@ -287,21 +285,21 @@ public class TestMapRed extends Configured implements Tool {
     public void close() throws IOException {
     }
   }
-    
+
   private static class MyReduce extends IdentityReducer {
     private JobConf conf;
     private boolean compressInput;
     private boolean first = true;
-      
+
     @Override
     public void configure(JobConf conf) {
       this.conf = conf;
       compressInput = conf.getCompressMapOutput();
     }
-      
+
     public void reduce(WritableComparable key, Iterator values,
                        OutputCollector output, Reporter reporter
-                       ) throws IOException {
+    ) throws IOException {
       if (first) {
         first = false;
         MapOutputFile mapOutputFile = new MROutputFiles();
@@ -309,26 +307,30 @@ public class TestMapRed extends Configured implements Tool {
         Path input = mapOutputFile.getInputFile(0);
         FileSystem fs = FileSystem.get(conf);
         assertTrue("reduce input exists " + input, fs.exists(input));
-        SequenceFile.Reader rdr = 
-          new SequenceFile.Reader(fs, input, conf);
-        assertEquals("is reduce input compressed " + input, 
-                     compressInput, 
-                     rdr.isCompressed());
-        rdr.close();          
+        SequenceFile.Reader rdr =
+            new SequenceFile.Reader(fs, input, conf);
+        assertEquals("is reduce input compressed " + input,
+            compressInput,
+            rdr.isCompressed());
+        rdr.close();
       }
     }
-      
+
   }
 
   public static class NullMapper
-      implements Mapper<NullWritable,Text,NullWritable,Text> {
+      implements Mapper<NullWritable, Text, NullWritable, Text> {
     public void map(NullWritable key, Text val,
-        OutputCollector<NullWritable,Text> output, Reporter reporter)
+                    OutputCollector<NullWritable, Text> output, Reporter reporter)
         throws IOException {
       output.collect(NullWritable.get(), val);
     }
-    public void configure(JobConf conf) { }
-    public void close() { }
+
+    public void configure(JobConf conf) {
+    }
+
+    public void close() {
+    }
   }
 
   @Test
@@ -339,10 +341,10 @@ public class TestMapRed extends Configured implements Tool {
     String m = "AAAAAAAAAAAAAA";
     for (int i = 1; i < 11; ++i) {
       values.add(m);
-      m = m.replace((char)('A' + i - 1), (char)('A' + i));
+      m = m.replace((char) ('A' + i - 1), (char) ('A' + i));
     }
     Path testdir = new Path(
-        System.getProperty("test.build.data","/tmp")).makeQualified(fs);
+        System.getProperty("test.build.data", "/tmp")).makeQualified(fs);
     fs.delete(testdir, true);
     Path inFile = new Path(testdir, "nullin/blah");
     SequenceFile.Writer w = SequenceFile.createWriter(fs, conf, inFile,
@@ -362,7 +364,7 @@ public class TestMapRed extends Configured implements Tool {
     conf.setInputFormat(SequenceFileInputFormat.class);
     conf.setOutputFormat(SequenceFileOutputFormat.class);
     conf.setNumReduceTasks(1);
-    conf.set(MRConfig.FRAMEWORK_NAME, MRConfig.LOCAL_FRAMEWORK_NAME); 
+    conf.set(MRConfig.FRAMEWORK_NAME, MRConfig.LOCAL_FRAMEWORK_NAME);
 
     JobClient.runJob(conf);
 
@@ -372,7 +374,7 @@ public class TestMapRed extends Configured implements Tool {
     m = "AAAAAAAAAAAAAA";
     for (int i = 1; r.next(NullWritable.get(), t); ++i) {
       assertTrue("Unexpected value: " + t, values.remove(t.toString()));
-      m = m.replace((char)('A' + i - 1), (char)('A' + i));
+      m = m.replace((char) ('A' + i - 1), (char) ('A' + i));
     }
     assertTrue("Missing values: " + values.toString(), values.isEmpty());
   }
@@ -380,7 +382,7 @@ public class TestMapRed extends Configured implements Tool {
   private void checkCompression(boolean compressMapOutputs,
                                 CompressionType redCompression,
                                 boolean includeCombine
-                                ) throws Exception {
+  ) throws Exception {
     JobConf conf = new JobConf(TestMapRed.class);
     Path testdir = new Path(TEST_DIR.getAbsolutePath());
     Path inDir = new Path(testdir, "in");
@@ -417,34 +419,34 @@ public class TestMapRed extends Configured implements Tool {
       assertTrue("job was complete", rj.isComplete());
       assertTrue("job was successful", rj.isSuccessful());
       Path output = new Path(outDir,
-                             Task.getOutputName(0));
+          Task.getOutputName(0));
       assertTrue("reduce output exists " + output, fs.exists(output));
-      SequenceFile.Reader rdr = 
-        new SequenceFile.Reader(fs, output, conf);
-      assertEquals("is reduce output compressed " + output, 
-                   redCompression != CompressionType.NONE, 
-                   rdr.isCompressed());
+      SequenceFile.Reader rdr =
+          new SequenceFile.Reader(fs, output, conf);
+      assertEquals("is reduce output compressed " + output,
+          redCompression != CompressionType.NONE,
+          rdr.isCompressed());
       rdr.close();
     } finally {
       fs.delete(testdir, true);
     }
   }
-  
-  @Test 
+
+  @Test
   public void testCompression() throws Exception {
     EnumSet<SequenceFile.CompressionType> seq =
-      EnumSet.allOf(SequenceFile.CompressionType.class);
+        EnumSet.allOf(SequenceFile.CompressionType.class);
     for (CompressionType redCompression : seq) {
-      for(int combine=0; combine < 2; ++combine) {
+      for (int combine = 0; combine < 2; ++combine) {
         checkCompression(false, redCompression, combine == 1);
         checkCompression(true, redCompression, combine == 1);
       }
     }
   }
-    
-    
+
+
   /**
-   * 
+   *
    */
   public void launch() throws Exception {
     //
@@ -453,7 +455,7 @@ public class TestMapRed extends Configured implements Tool {
     JobConf conf;
     //Check to get configuration and check if it is configured thro' Configured
     //interface. This would happen when running testcase thro' command line.
-    if(getConf() == null) {
+    if (getConf() == null) {
       conf = new JobConf();
     } else {
       conf = new JobConf(getConf());
@@ -468,7 +470,7 @@ public class TestMapRed extends Configured implements Tool {
       countsToGo -= dist[i];
     }
     if (countsToGo > 0) {
-      dist[dist.length-1] += countsToGo;
+      dist[dist.length - 1] += countsToGo;
     }
 
     //
@@ -486,10 +488,10 @@ public class TestMapRed extends Configured implements Tool {
     }
 
     Path answerkey = new Path(randomIns, "answer.key");
-    SequenceFile.Writer out = 
-      SequenceFile.createWriter(fs, conf, answerkey, IntWritable.class,
-                                IntWritable.class, 
-                                SequenceFile.CompressionType.NONE);
+    SequenceFile.Writer out =
+        SequenceFile.createWriter(fs, conf, answerkey, IntWritable.class,
+            IntWritable.class,
+            SequenceFile.CompressionType.NONE);
     try {
       for (int i = 0; i < range; i++) {
         out.append(new IntWritable(i), new IntWritable(dist[i]));
@@ -595,17 +597,17 @@ public class TestMapRed extends Configured implements Tool {
     FileInputFormat.setInputPaths(mergeJob, intermediateOuts);
     mergeJob.setInputFormat(SequenceFileInputFormat.class);
     mergeJob.setMapperClass(MergeMapper.class);
-        
+
     FileOutputFormat.setOutputPath(mergeJob, finalOuts);
     mergeJob.setOutputKeyClass(IntWritable.class);
     mergeJob.setOutputValueClass(IntWritable.class);
     mergeJob.setOutputFormat(SequenceFileOutputFormat.class);
     mergeJob.setReducerClass(MergeReducer.class);
     mergeJob.setNumReduceTasks(1);
-        
+
     JobClient.runJob(mergeJob);
     //printFiles(finalOuts, conf); 
- 
+
     //
     // Finally, we compare the reconstructed answer key with the
     // original one.  Remember, we need to ignore zero-count items
@@ -617,7 +619,7 @@ public class TestMapRed extends Configured implements Tool {
     int totalseen = 0;
     try {
       IntWritable key = new IntWritable();
-      IntWritable val = new IntWritable();            
+      IntWritable val = new IntWritable();
       for (int i = 0; i < range; i++) {
         if (dist[i] == 0) {
           continue;
@@ -628,8 +630,8 @@ public class TestMapRed extends Configured implements Tool {
           break;
         } else {
           if (!((key.get() == i) && (val.get() == dist[i]))) {
-            System.err.println("Mismatch!  Pos=" + key.get() + ", i=" + i + 
-                               ", val=" + val.get() + ", dist[i]=" + dist[i]);
+            System.err.println("Mismatch!  Pos=" + key.get() + ", i=" + i +
+                ", val=" + val.get() + ", dist[i]=" + dist[i]);
             success = false;
           }
           totalseen += val.get();
@@ -675,7 +677,7 @@ public class TestMapRed extends Configured implements Tool {
     in.close();
   }
 
-  private static void printSequenceFile(FileSystem fs, Path p, 
+  private static void printSequenceFile(FileSystem fs, Path p,
                                         Configuration conf) throws IOException {
     SequenceFile.Reader r = new SequenceFile.Reader(fs, p, conf);
     Object key = null;
@@ -684,14 +686,14 @@ public class TestMapRed extends Configured implements Tool {
       value = r.getCurrentValue(value);
       System.out.println("  Row: " + key + ", " + value);
     }
-    r.close();    
+    r.close();
   }
 
   private static boolean isSequenceFile(FileSystem fs,
                                         Path f) throws IOException {
     DataInputStream in = fs.open(f);
     byte[] seq = "SEQ".getBytes();
-    for(int i=0; i < seq.length; ++i) {
+    for (int i = 0; i < seq.length; ++i) {
       if (seq[i] != in.read()) {
         return false;
       }
@@ -699,10 +701,10 @@ public class TestMapRed extends Configured implements Tool {
     return true;
   }
 
-  private static void printFiles(Path dir, 
+  private static void printFiles(Path dir,
                                  Configuration conf) throws IOException {
     FileSystem fs = dir.getFileSystem(conf);
-    for(FileStatus f: fs.listStatus(dir)) {
+    for (FileStatus f : fs.listStatus(dir)) {
       System.out.println("Reading " + f.getPath() + ": ");
       if (f.isDirectory()) {
         System.out.println("  it is a map file.");
@@ -724,13 +726,14 @@ public class TestMapRed extends Configured implements Tool {
     int res = ToolRunner.run(new TestMapRed(), argv);
     System.exit(res);
   }
-  @Test  
-  public void testSmallInput(){
+
+  @Test
+  public void testSmallInput() {
     runJob(100);
   }
-  
+
   @Test
-  public void testBiggerInput(){
+  public void testBiggerInput() {
     runJob(1000);
   }
 
@@ -760,7 +763,7 @@ public class TestMapRed extends Configured implements Tool {
       }
       Path inFile = new Path(inDir, "part0");
       SequenceFile.Writer writer = SequenceFile.createWriter(fs, conf, inFile,
-                                                             Text.class, Text.class);
+          Text.class, Text.class);
 
       StringBuffer content = new StringBuffer();
 
@@ -777,7 +780,7 @@ public class TestMapRed extends Configured implements Tool {
 
       JobClient.runJob(conf);
     } catch (Exception e) {
-      assertTrue("Threw exception:" + e,false);
+      assertTrue("Threw exception:" + e, false);
     }
   }
 

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -43,7 +43,7 @@ class DataVerifier {
     private long readTime;
 
     VerifyOutput(long sameChunks, long differentChunks, long readBytes,
-        long readTime) {
+                 long readTime) {
       this.same = sameChunks;
       this.different = differentChunks;
       this.read = readBytes;
@@ -134,7 +134,7 @@ class DataVerifier {
   /**
    * Inits with given buffer size (must be greater than bytes per long and a
    * multiple of bytes per long)
-   * 
+   *
    * @param bufferSize
    *          size which must be greater than BYTES_PER_LONG and which also must
    *          be a multiple of BYTES_PER_LONG
@@ -160,7 +160,7 @@ class DataVerifier {
 
   /**
    * Verifies a buffer of a given size using the given start hash offset
-   * 
+   *
    * @param buf
    *          the buffer to verify
    * @param size
@@ -169,11 +169,11 @@ class DataVerifier {
    *          the start hash offset
    * @param hasher
    *          the hasher to use for calculating expected values
-   * 
+   *
    * @return ResumeBytes a set of data about the next offset and chunks analyzed
    */
   private VerifyInfo verifyBuffer(ByteBuffer buf, int size, long startOffset,
-      DataHasher hasher) {
+                                  DataHasher hasher) {
     ByteBuffer cmpBuf = ByteBuffer.wrap(new byte[BYTES_PER_LONG]);
     long hashOffset = startOffset;
     long chunksSame = 0;
@@ -221,9 +221,9 @@ class DataVerifier {
 
   /**
    * Determines the offset to use given a byte counter
-   * 
+   *
    * @param byteRead
-   * 
+   *
    * @return offset position
    */
   private long determineOffset(long byteRead) {
@@ -236,19 +236,19 @@ class DataVerifier {
   /**
    * Verifies a given number of bytes from a file - less number of bytes may be
    * read if a header can not be read in due to the byte limit
-   * 
+   *
    * @param byteAm
    *          the byte amount to limit to (should be less than or equal to file
    *          size)
-   * 
+   *
    * @param in
    *          the input stream to read from
-   * 
+   *
    * @return VerifyOutput with data about reads
-   * 
+   *
    * @throws IOException
    *           if a read failure occurs
-   * 
+   *
    * @throws BadFileException
    *           if a header can not be read or end of file is reached
    *           unexpectedly
@@ -261,28 +261,28 @@ class DataVerifier {
   /**
    * Verifies a given number of bytes from a file - less number of bytes may be
    * read if a header can not be read in due to the byte limit
-   * 
+   *
    * @param byteAm
    *          the byte amount to limit to (should be less than or equal to file
    *          size)
-   * 
+   *
    * @param bytesRead
    *          the starting byte location
-   * 
+   *
    * @param in
    *          the input stream to read from
-   * 
+   *
    * @return VerifyOutput with data about reads
-   * 
+   *
    * @throws IOException
    *           if a read failure occurs
-   * 
+   *
    * @throws BadFileException
    *           if a header can not be read or end of file is reached
    *           unexpectedly
    */
   private VerifyOutput verifyBytes(long byteAm, long bytesRead,
-      DataInputStream in) throws IOException, BadFileException {
+                                   DataInputStream in) throws IOException, BadFileException {
     if (byteAm <= 0) {
       return new VerifyOutput(0, 0, 0, 0);
     }
@@ -367,15 +367,15 @@ class DataVerifier {
 
   /**
    * Reads a header from the given input stream
-   * 
+   *
    * @param in
    *          input stream to read from
-   * 
+   *
    * @return ReadInfo
-   * 
+   *
    * @throws IOException
    *           if a read error occurs or EOF occurs
-   * 
+   *
    * @throws BadFileException
    *           if end of file occurs or the byte amount read is invalid
    */

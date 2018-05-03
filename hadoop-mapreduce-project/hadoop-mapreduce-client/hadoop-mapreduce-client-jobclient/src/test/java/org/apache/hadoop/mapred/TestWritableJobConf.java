@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,12 +18,7 @@
 
 package org.apache.hadoop.mapred;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
 import junit.framework.TestCase;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DataInputBuffer;
 import org.apache.hadoop.io.DataOutputBuffer;
@@ -32,6 +27,10 @@ import org.apache.hadoop.io.serializer.SerializationFactory;
 import org.apache.hadoop.io.serializer.Serializer;
 import org.apache.hadoop.util.GenericsUtil;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 public class TestWritableJobConf extends TestCase {
 
   private static final Configuration CONF = new Configuration();
@@ -39,9 +38,9 @@ public class TestWritableJobConf extends TestCase {
   private <K> K serDeser(K conf) throws Exception {
     SerializationFactory factory = new SerializationFactory(CONF);
     Serializer<K> serializer =
-      factory.getSerializer(GenericsUtil.getClass(conf));
+        factory.getSerializer(GenericsUtil.getClass(conf));
     Deserializer<K> deserializer =
-      factory.getDeserializer(GenericsUtil.getClass(conf));
+        factory.getDeserializer(GenericsUtil.getClass(conf));
 
     DataOutputBuffer out = new DataOutputBuffer();
     serializer.open(out);
@@ -61,7 +60,7 @@ public class TestWritableJobConf extends TestCase {
     // deprecated and the non-deprecated versions of a config are set.
     // This is consistent with both the set and the get methods.
     Iterator<Map.Entry<String, String>> iterator1 = conf1.iterator();
-    Map<String, String> map1 = new HashMap<String,String>();
+    Map<String, String> map1 = new HashMap<String, String>();
     while (iterator1.hasNext()) {
       Map.Entry<String, String> entry = iterator1.next();
       if (!Configuration.isDeprecated(entry.getKey())) {
@@ -70,7 +69,7 @@ public class TestWritableJobConf extends TestCase {
     }
 
     Iterator<Map.Entry<String, String>> iterator2 = conf2.iterator();
-    Map<String, String> map2 = new HashMap<String,String>();
+    Map<String, String> map2 = new HashMap<String, String>();
     while (iterator2.hasNext()) {
       Map.Entry<String, String> entry = iterator2.next();
       if (!Configuration.isDeprecated(entry.getKey())) {
@@ -102,5 +101,5 @@ public class TestWritableJobConf extends TestCase {
     Configuration deser = serDeser(conf);
     assertEquals(conf, deser);
   }
-  
+
 }

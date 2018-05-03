@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,20 +18,15 @@
 
 package org.apache.hadoop.fs.slive;
 
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.TreeMap;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.slive.Constants.Distribution;
 import org.apache.hadoop.fs.slive.Constants.OperationType;
-import org.apache.hadoop.fs.slive.Weights.UniformWeight;
 import org.apache.hadoop.fs.slive.ObserveableOp.Observer;
+import org.apache.hadoop.fs.slive.Weights.UniformWeight;
+
+import java.text.NumberFormat;
+import java.util.*;
 
 /**
  * This class is the main handler that selects operations to run using the
@@ -81,20 +76,20 @@ class WeightSelector {
 
   /**
    * Determines how many initial operations a given operation data should have
-   * 
+   *
    * @param totalAm
    *          the total amount of operations allowed
-   * 
+   *
    * @param opData
    *          the given operation information (with a valid percentage >= 0)
-   * 
+   *
    * @return the number of items to allow to run
-   * 
+   *
    * @throws IllegalArgumentException
    *           if negative operations are determined
    */
   static int determineHowMany(int totalAm, OperationData opData,
-      OperationType type) {
+                              OperationType type) {
     if (totalAm <= 0) {
       return 0;
     }
@@ -110,7 +105,7 @@ class WeightSelector {
    * Sets up the operation using the given configuration by setting up the
    * number of operations to perform (and how many are left) and setting up the
    * operation objects to be used throughout selection.
-   * 
+   *
    * @param cfg
    *          ConfigExtractor.
    */
@@ -161,12 +156,12 @@ class WeightSelector {
    * Selects an operation from the known operation set or returns null if none
    * are available by applying the weighting algorithms and then handing off the
    * weight operations to the selection object.
-   * 
+   *
    * @param elapsed
    *          the currently elapsed time (milliseconds) of the running program
    * @param duration
    *          the maximum amount of milliseconds of the running program
-   * 
+   *
    * @return operation or null if none left
    */
   Operation select(int elapsed, int duration) {

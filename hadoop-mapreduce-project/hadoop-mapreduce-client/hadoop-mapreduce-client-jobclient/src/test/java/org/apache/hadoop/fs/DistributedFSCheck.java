@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,30 +18,22 @@
 
 package org.apache.hadoop.fs;
 
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
-import java.util.Date;
-import java.util.StringTokenizer;
-import java.util.TreeSet;
-import java.util.Vector;
-
 import junit.framework.TestCase;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.SequenceFile;
-import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.SequenceFile.CompressionType;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.*;
 import org.junit.Ignore;
+
+import java.io.*;
+import java.util.Date;
+import java.util.StringTokenizer;
+import java.util.TreeSet;
+import java.util.Vector;
 
 /**
  * Distributed checkup of the file system consistency.
@@ -51,7 +43,7 @@ import org.junit.Ignore;
  * Report corrupted blocks and general file statistics.
  * <p>
  * Optionally displays statistics on read performance.
- * 
+ *
  */
 @Ignore
 public class DistributedFSCheck extends TestCase {
@@ -62,15 +54,15 @@ public class DistributedFSCheck extends TestCase {
   private static final int DEFAULT_BUFFER_SIZE = 1000000;
   private static final String DEFAULT_RES_FILE_NAME = "DistributedFSCheck_results.log";
   private static final long MEGA = 0x100000;
-  
+
   private static Configuration fsConfig = new Configuration();
-  private static Path TEST_ROOT_DIR = new Path(System.getProperty("test.build.data","/benchmarks/DistributedFSCheck"));
+  private static Path TEST_ROOT_DIR = new Path(System.getProperty("test.build.data", "/benchmarks/DistributedFSCheck"));
   private static Path MAP_INPUT_DIR = new Path(TEST_ROOT_DIR, "map_input");
   private static Path READ_DIR = new Path(TEST_ROOT_DIR, "io_read");
 
   private FileSystem fs;
   private long nrFiles;
-  
+
   DistributedFSCheck(Configuration conf) throws Exception {
     fsConfig = conf;
     this.fs = FileSystem.get(conf);
@@ -78,7 +70,7 @@ public class DistributedFSCheck extends TestCase {
 
   /**
    * Run distributed checkup for the entire files system.
-   * 
+   *
    * @throws Exception
    */
   public void testFSBlocks() throws Exception {
@@ -87,7 +79,7 @@ public class DistributedFSCheck extends TestCase {
 
   /**
    * Run distributed checkup for the specified directory.
-   * 
+   *
    * @param rootName root directory name
    * @throws Exception
    */
@@ -102,9 +94,9 @@ public class DistributedFSCheck extends TestCase {
 
     Path inputFile = new Path(MAP_INPUT_DIR, "in_file");
     SequenceFile.Writer writer =
-      SequenceFile.createWriter(fs, fsConfig, inputFile, 
-                                Text.class, LongWritable.class, CompressionType.NONE);
-    
+        SequenceFile.createWriter(fs, fsConfig, inputFile,
+            Text.class, LongWritable.class, CompressionType.NONE);
+
     try {
       nrFiles = 0;
       listSubtree(new Path(rootName), writer);
@@ -113,32 +105,32 @@ public class DistributedFSCheck extends TestCase {
     }
     LOG.info("Created map input files.");
   }
-  
+
   private void listSubtree(Path rootFile,
                            SequenceFile.Writer writer
-                           ) throws IOException {
+  ) throws IOException {
     FileStatus rootStatus = fs.getFileStatus(rootFile);
     listSubtree(rootStatus, writer);
   }
 
   private void listSubtree(FileStatus rootStatus,
                            SequenceFile.Writer writer
-                           ) throws IOException {
+  ) throws IOException {
     Path rootFile = rootStatus.getPath();
     if (rootStatus.isFile()) {
       nrFiles++;
       // For a regular file generate <fName,offset> pairs
       long blockSize = fs.getDefaultBlockSize(rootFile);
       long fileLength = rootStatus.getLen();
-      for(long offset = 0; offset < fileLength; offset += blockSize)
+      for (long offset = 0; offset < fileLength; offset += blockSize)
         writer.append(new Text(rootFile.toString()), new LongWritable(offset));
       return;
     }
-    
-    FileStatus [] children = null;
+
+    FileStatus[] children = null;
     try {
       children = fs.listStatus(rootFile);
-    } catch (FileNotFoundException fnfe ){
+    } catch (FileNotFoundException fnfe) {
       throw new IOException("Could not get listing for " + rootFile);
     }
 
@@ -151,33 +143,33 @@ public class DistributedFSCheck extends TestCase {
    */
   public static class DistributedFSCheckMapper extends IOMapperBase<Object> {
 
-    public DistributedFSCheckMapper() { 
+    public DistributedFSCheckMapper() {
     }
 
-    public Object doIO(Reporter reporter, 
-                       String name, 
-                       long offset 
-                       ) throws IOException {
+    public Object doIO(Reporter reporter,
+                       String name,
+                       long offset
+    ) throws IOException {
       // open file
       FSDataInputStream in = null;
       Path p = new Path(name);
       try {
         in = fs.open(p);
-      } catch(IOException e) {
+      } catch (IOException e) {
         return name + "@(missing)";
       }
       in.seek(offset);
       long actualSize = 0;
       try {
         long blockSize = fs.getDefaultBlockSize(p);
-        reporter.setStatus("reading " + name + "@" + 
-                           offset + "/" + blockSize);
-        for( int curSize = bufferSize; 
+        reporter.setStatus("reading " + name + "@" +
+            offset + "/" + blockSize);
+        for (int curSize = bufferSize;
              curSize == bufferSize && actualSize < blockSize;
              actualSize += curSize) {
           curSize = in.read(buffer, 0, bufferSize);
         }
-      } catch(IOException e) {
+      } catch (IOException e) {
         LOG.info("Corrupted block detected in \"" + name + "\" at " + offset);
         return name + "@" + offset;
       } finally {
@@ -185,10 +177,10 @@ public class DistributedFSCheck extends TestCase {
       }
       return new Long(actualSize);
     }
-    
-    void collectStats(OutputCollector<Text, Text> output, 
-                      String name, 
-                      long execTime, 
+
+    void collectStats(OutputCollector<Text, Text> output,
+                      String name,
+                      long execTime,
                       Object corruptedBlock) throws IOException {
       output.collect(new Text(AccumulatingReducer.VALUE_TYPE_LONG + "blocks"),
           new Text(String.valueOf(1)));
@@ -196,24 +188,24 @@ public class DistributedFSCheck extends TestCase {
       if (corruptedBlock.getClass().getName().endsWith("String")) {
         output.collect(
             new Text(AccumulatingReducer.VALUE_TYPE_STRING + "badBlocks"),
-            new Text((String)corruptedBlock));
+            new Text((String) corruptedBlock));
         return;
       }
-      long totalSize = ((Long)corruptedBlock).longValue();
-      float ioRateMbSec = (float)totalSize * 1000 / (execTime * 0x100000);
+      long totalSize = ((Long) corruptedBlock).longValue();
+      float ioRateMbSec = (float) totalSize * 1000 / (execTime * 0x100000);
       LOG.info("Number of bytes processed = " + totalSize);
       LOG.info("Exec time = " + execTime);
       LOG.info("IO rate = " + ioRateMbSec);
-      
+
       output.collect(new Text(AccumulatingReducer.VALUE_TYPE_LONG + "size"),
           new Text(String.valueOf(totalSize)));
       output.collect(new Text(AccumulatingReducer.VALUE_TYPE_LONG + "time"),
           new Text(String.valueOf(execTime)));
       output.collect(new Text(AccumulatingReducer.VALUE_TYPE_FLOAT + "rate"),
-          new Text(String.valueOf(ioRateMbSec*1000)));
+          new Text(String.valueOf(ioRateMbSec * 1000)));
     }
   }
-  
+
   private void runDistributedFSCheck() throws Exception {
     JobConf job = new JobConf(fs.getConf(), DistributedFSCheck.class);
 
@@ -238,12 +230,12 @@ public class DistributedFSCheck extends TestCase {
     boolean viewStats = false;
 
     String usage = "Usage: DistributedFSCheck [-root name] [-clean] [-resFile resultFileName] [-bufferSize Bytes] [-stats] ";
-    
+
     if (args.length == 1 && args[0].startsWith("-h")) {
       System.err.println(usage);
       System.exit(-1);
     }
-    for(int i = 0; i < args.length; i++) {       // parse command line
+    for (int i = 0; i < args.length; i++) {       // parse command line
       if (args[i].equals("-root")) {
         rootName = args[++i];
       } else if (args[i].startsWith("-clean")) {
@@ -259,8 +251,8 @@ public class DistributedFSCheck extends TestCase {
 
     LOG.info("root = " + rootName);
     LOG.info("bufferSize = " + bufferSize);
-  
-    Configuration conf = new Configuration();  
+
+    Configuration conf = new Configuration();
     conf.setInt("test.io.file.buffer.size", bufferSize);
     DistributedFSCheck test = new DistributedFSCheck(conf);
 
@@ -272,31 +264,31 @@ public class DistributedFSCheck extends TestCase {
     long tStart = System.currentTimeMillis();
     test.runDistributedFSCheck();
     long execTime = System.currentTimeMillis() - tStart;
-    
+
     test.analyzeResult(execTime, resFileName, viewStats);
     // test.cleanup();  // clean up after all to restore the system state
   }
-  
+
   private void analyzeResult(long execTime,
                              String resFileName,
                              boolean viewStats
-                             ) throws IOException {
-    Path reduceFile= new Path(READ_DIR, "part-00000");
+  ) throws IOException {
+    Path reduceFile = new Path(READ_DIR, "part-00000");
     DataInputStream in;
     in = new DataInputStream(fs.open(reduceFile));
-  
+
     BufferedReader lines;
     lines = new BufferedReader(new InputStreamReader(in));
     long blocks = 0;
     long size = 0;
     long time = 0;
     float rate = 0;
-    StringTokenizer  badBlocks = null;
+    StringTokenizer badBlocks = null;
     long nrBadBlocks = 0;
     String line;
-    while((line = lines.readLine()) != null) {
+    while ((line = lines.readLine()) != null) {
       StringTokenizer tokens = new StringTokenizer(line, " \t\n\r\f%");
-      String attr = tokens.nextToken(); 
+      String attr = tokens.nextToken();
       if (attr.endsWith("blocks"))
         blocks = Long.parseLong(tokens.nextToken());
       else if (attr.endsWith("size"))
@@ -310,43 +302,43 @@ public class DistributedFSCheck extends TestCase {
         nrBadBlocks = badBlocks.countTokens();
       }
     }
-    
+
     Vector<String> resultLines = new Vector<String>();
-    resultLines.add( "----- DistributedFSCheck ----- : ");
-    resultLines.add( "               Date & time: " + new Date(System.currentTimeMillis()));
-    resultLines.add( "    Total number of blocks: " + blocks);
-    resultLines.add( "    Total number of  files: " + nrFiles);
-    resultLines.add( "Number of corrupted blocks: " + nrBadBlocks);
-    
+    resultLines.add("----- DistributedFSCheck ----- : ");
+    resultLines.add("               Date & time: " + new Date(System.currentTimeMillis()));
+    resultLines.add("    Total number of blocks: " + blocks);
+    resultLines.add("    Total number of  files: " + nrFiles);
+    resultLines.add("Number of corrupted blocks: " + nrBadBlocks);
+
     int nrBadFilesPos = resultLines.size();
     TreeSet<String> badFiles = new TreeSet<String>();
     long nrBadFiles = 0;
     if (nrBadBlocks > 0) {
       resultLines.add("");
       resultLines.add("----- Corrupted Blocks (file@offset) ----- : ");
-      while(badBlocks.hasMoreTokens()) {
+      while (badBlocks.hasMoreTokens()) {
         String curBlock = badBlocks.nextToken();
         resultLines.add(curBlock);
         badFiles.add(curBlock.substring(0, curBlock.indexOf('@')));
       }
       nrBadFiles = badFiles.size();
     }
-    
+
     resultLines.insertElementAt(" Number of corrupted files: " + nrBadFiles, nrBadFilesPos);
-    
+
     if (viewStats) {
       resultLines.add("");
       resultLines.add("-----   Performance  ----- : ");
-      resultLines.add("         Total MBytes read: " + size/MEGA);
-      resultLines.add("         Throughput mb/sec: " + (float)size * 1000.0 / (time * MEGA));
+      resultLines.add("         Total MBytes read: " + size / MEGA);
+      resultLines.add("         Throughput mb/sec: " + (float) size * 1000.0 / (time * MEGA));
       resultLines.add("    Average IO rate mb/sec: " + rate / 1000 / blocks);
-      resultLines.add("        Test exec time sec: " + (float)execTime / 1000);
+      resultLines.add("        Test exec time sec: " + (float) execTime / 1000);
     }
 
     PrintStream res = new PrintStream(
-                                      new FileOutputStream(
-                                                           new File(resFileName), true)); 
-    for(int i = 0; i < resultLines.size(); i++) {
+        new FileOutputStream(
+            new File(resFileName), true));
+    for (int i = 0; i < resultLines.size(); i++) {
       String cur = resultLines.get(i);
       LOG.info(cur);
       res.println(cur);

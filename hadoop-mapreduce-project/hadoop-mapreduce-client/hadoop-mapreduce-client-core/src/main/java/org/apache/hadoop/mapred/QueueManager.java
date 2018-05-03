@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -33,14 +33,14 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 
 import java.io.BufferedInputStream;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Writer;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.net.URL;
 
 
 /**
@@ -85,7 +85,7 @@ public class QueueManager {
   private static final Log LOG = LogFactory.getLog(QueueManager.class);
 
   // Map of a queue name and Queue object
-  private Map<String, Queue> leafQueues = new HashMap<String,Queue>();
+  private Map<String, Queue> leafQueues = new HashMap<String, Queue>();
   private Map<String, Queue> allQueues = new HashMap<String, Queue>();
   public static final String QUEUE_CONF_FILE_NAME = "mapred-queues.xml";
   static final String QUEUE_CONF_DEFAULT_FILE_NAME = "mapred-queues-default.xml";
@@ -95,7 +95,7 @@ public class QueueManager {
 
   //Resource in which queue acls are configured.
   private Queue root = null;
-  
+
   // represents if job and queue acls are enabled on the mapreduce cluster
   private boolean areAclsEnabled = false;
 
@@ -115,20 +115,20 @@ public class QueueManager {
    * @return Queue configuration parser
    */
   static QueueConfigurationParser getQueueConfigurationParser(
-    Configuration conf, boolean reloadConf, boolean areAclsEnabled) {
+      Configuration conf, boolean reloadConf, boolean areAclsEnabled) {
     if (conf != null && conf.get(
-      DeprecatedQueueConfigurationParser.MAPRED_QUEUE_NAMES_KEY) != null) {
+        DeprecatedQueueConfigurationParser.MAPRED_QUEUE_NAMES_KEY) != null) {
       if (reloadConf) {
         conf.reloadConfiguration();
       }
       return new DeprecatedQueueConfigurationParser(conf);
     } else {
       URL xmlInUrl =
-        Thread.currentThread().getContextClassLoader()
-          .getResource(QUEUE_CONF_FILE_NAME);
+          Thread.currentThread().getContextClassLoader()
+              .getResource(QUEUE_CONF_FILE_NAME);
       if (xmlInUrl == null) {
         xmlInUrl = Thread.currentThread().getContextClassLoader()
-          .getResource(QUEUE_CONF_DEFAULT_FILE_NAME);
+            .getResource(QUEUE_CONF_DEFAULT_FILE_NAME);
         assert xmlInUrl != null; // this should be in our jar
       }
       InputStream stream = null;
@@ -138,7 +138,7 @@ public class QueueManager {
             areAclsEnabled);
       } catch (IOException ioe) {
         throw new RuntimeException("Couldn't open queue configuration at " +
-                                   xmlInUrl, ioe);
+            xmlInUrl, ioe);
       } finally {
         IOUtils.closeStream(stream);
       }
@@ -189,7 +189,7 @@ public class QueueManager {
   /**
    * Initialize the queue-manager with the queue hierarchy specified by the
    * given {@link QueueConfigurationParser}.
-   * 
+   *
    * @param cp
    */
   private void initialize(QueueConfigurationParser cp) {
@@ -233,7 +233,7 @@ public class QueueManager {
    * @return true     if the operation is allowed, false otherwise.
    */
   public synchronized boolean hasAccess(
-    String queueName, QueueACL qACL, UserGroupInformation ugi) {
+      String queueName, QueueACL qACL, UserGroupInformation ugi) {
 
     Queue q = leafQueues.get(queueName);
 
@@ -242,7 +242,7 @@ public class QueueManager {
       return false;
     }
 
-    if(q.getChildren() != null && !q.getChildren().isEmpty()) {
+    if (q.getChildren() != null && !q.getChildren().isEmpty()) {
       LOG.info("Cannot submit job to parent queue " + q.getName());
       return false;
     }
@@ -253,7 +253,7 @@ public class QueueManager {
 
     if (LOG.isDebugEnabled()) {
       LOG.debug("Checking access for the acl " + toFullPropertyName(queueName,
-        qACL.getAclName()) + " for user " + ugi.getShortUserName());
+          qACL.getAclName()) + " for user " + ugi.getShortUserName());
     }
 
     AccessControlList acl = q.getAcls().get(
@@ -292,8 +292,8 @@ public class QueueManager {
    * @param queueInfo scheduling information for this queue.
    */
   public synchronized void setSchedulerInfo(
-    String queueName,
-    Object queueInfo) {
+      String queueName,
+      Object queueInfo) {
     if (allQueues.get(queueName) != null) {
       allQueues.get(queueName).setSchedulingInfo(queueInfo);
     }
@@ -330,12 +330,12 @@ public class QueueManager {
    * fire an admin command to reload queue configuration. If there is a
    * problem in reloading configuration, then this method guarantees that
    * existing queue configuration is untouched and in a consistent state.
-   * 
+   *
    * @param schedulerRefresher
    * @throws IOException when queue configuration file is invalid.
    */
   synchronized void refreshQueues(Configuration conf,
-      QueueRefresher schedulerRefresher)
+                                  QueueRefresher schedulerRefresher)
       throws IOException {
 
     // Create a new configuration parser using the passed conf object.
@@ -391,8 +391,8 @@ public class QueueManager {
 
   // this method is for internal use only
   public static final String toFullPropertyName(
-    String queue,
-    String property) {
+      String queue,
+      String property) {
     return QUEUE_CONF_PROPERTY_NAME_PREFIX + queue + "." + property;
   }
 
@@ -411,7 +411,7 @@ public class QueueManager {
       }
     }
     return queueInfoList.toArray(
-      new JobQueueInfo[queueInfoList.size()]);
+        new JobQueueInfo[queueInfoList.size()]);
   }
 
 
@@ -457,10 +457,10 @@ public class QueueManager {
    * @throws java.io.IOException
    */
   synchronized QueueAclsInfo[] getQueueAcls(UserGroupInformation ugi)
-    throws IOException {
+      throws IOException {
     //List of all QueueAclsInfo objects , this list is returned
     ArrayList<QueueAclsInfo> queueAclsInfolist =
-      new ArrayList<QueueAclsInfo>();
+        new ArrayList<QueueAclsInfo>();
     QueueACL[] qAcls = QueueACL.values();
     for (String queueName : leafQueues.keySet()) {
       QueueAclsInfo queueAclsInfo = null;
@@ -477,17 +477,15 @@ public class QueueManager {
         //There is atleast 1 operation supported for queue <queueName>
         //, hence initialize queueAclsInfo
         queueAclsInfo = new QueueAclsInfo(
-          queueName, operationsAllowed.toArray
+            queueName, operationsAllowed.toArray
             (new String[operationsAllowed.size()]));
         queueAclsInfolist.add(queueAclsInfo);
       }
     }
     return queueAclsInfolist.toArray(
-      new QueueAclsInfo[queueAclsInfolist.size()]);
+        new QueueAclsInfo[queueAclsInfolist.size()]);
   }
 
- 
- 
 
   /**
    * Return if ACLs are enabled for the Map/Reduce system
@@ -507,16 +505,16 @@ public class QueueManager {
     return root;
   }
 
-  
+
   /**
    * Dumps the configuration of hierarchy of queues
    * @param out the writer object to which dump is written
    * @throws IOException
    */
-  static void dumpConfiguration(Writer out,Configuration conf) throws IOException {
-    dumpConfiguration(out, null,conf);
+  static void dumpConfiguration(Writer out, Configuration conf) throws IOException {
+    dumpConfiguration(out, null, conf);
   }
-  
+
   /***
    * Dumps the configuration of hierarchy of queues with 
    * the xml file path given. It is to be used directly ONLY FOR TESTING.
@@ -525,12 +523,12 @@ public class QueueManager {
    * @throws IOException
    */
   static void dumpConfiguration(Writer out, String configFile,
-      Configuration conf) throws IOException {
+                                Configuration conf) throws IOException {
     if (conf != null && conf.get(DeprecatedQueueConfigurationParser.
         MAPRED_QUEUE_NAMES_KEY) != null) {
       return;
     }
-    
+
     JsonFactory dumpFactory = new JsonFactory();
     JsonGenerator dumpGenerator = dumpFactory.createJsonGenerator(out);
     QueueConfigurationParser parser;
@@ -540,14 +538,13 @@ public class QueueManager {
     }
     if (configFile != null && !"".equals(configFile)) {
       parser = new QueueConfigurationParser(configFile, aclsEnabled);
-    }
-    else {
+    } else {
       parser = getQueueConfigurationParser(null, false, aclsEnabled);
     }
     dumpGenerator.writeStartObject();
     dumpGenerator.writeFieldName("queues");
     dumpGenerator.writeStartArray();
-    dumpConfiguration(dumpGenerator,parser.getRoot().getChildren());
+    dumpConfiguration(dumpGenerator, parser.getRoot().getChildren());
     dumpGenerator.writeEndArray();
     dumpGenerator.writeEndObject();
     dumpGenerator.flush();
@@ -563,7 +560,7 @@ public class QueueManager {
    * @throws IOException
    */
   private static void dumpConfiguration(JsonGenerator dumpGenerator,
-      Set<Queue> rootQueues) throws JsonGenerationException, IOException {
+                                        Set<Queue> rootQueues) throws JsonGenerationException, IOException {
     for (Queue queue : rootQueues) {
       dumpGenerator.writeStartObject();
       dumpGenerator.writeStringField("name", queue.getName());
@@ -572,14 +569,14 @@ public class QueueManager {
       AccessControlList administerJobsList = null;
       if (queue.getAcls() != null) {
         submitJobList =
-          queue.getAcls().get(toFullPropertyName(queue.getName(),
-              QueueACL.SUBMIT_JOB.getAclName()));
+            queue.getAcls().get(toFullPropertyName(queue.getName(),
+                QueueACL.SUBMIT_JOB.getAclName()));
         administerJobsList =
-          queue.getAcls().get(toFullPropertyName(queue.getName(),
-              QueueACL.ADMINISTER_JOBS.getAclName()));
+            queue.getAcls().get(toFullPropertyName(queue.getName(),
+                QueueACL.ADMINISTER_JOBS.getAclName()));
       }
       String aclsSubmitJobValue = " ";
-      if (submitJobList != null ) {
+      if (submitJobList != null) {
         aclsSubmitJobValue = submitJobList.getAclString();
       }
       dumpGenerator.writeStringField("acl_submit_job", aclsSubmitJobValue);
@@ -592,11 +589,11 @@ public class QueueManager {
       dumpGenerator.writeFieldName("properties");
       dumpGenerator.writeStartArray();
       if (queue.getProperties() != null) {
-        for (Map.Entry<Object, Object>property :
-          queue.getProperties().entrySet()) {
+        for (Map.Entry<Object, Object> property :
+            queue.getProperties().entrySet()) {
           dumpGenerator.writeStartObject();
-          dumpGenerator.writeStringField("key", (String)property.getKey());
-          dumpGenerator.writeStringField("value", (String)property.getValue());
+          dumpGenerator.writeStringField("key", (String) property.getKey());
+          dumpGenerator.writeStringField("value", (String) property.getValue());
           dumpGenerator.writeEndObject();
         }
       }

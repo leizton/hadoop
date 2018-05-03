@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,24 +18,22 @@
 
 package org.apache.hadoop.mapreduce.lib.output;
 
-import java.io.*;
-import java.net.URI;
-
 import junit.framework.TestCase;
-
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.*;
-import org.apache.hadoop.io.*;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.FileUtil;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.RawLocalFileSystem;
+import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.UtilsForTests;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.JobContext;
-import org.apache.hadoop.mapreduce.JobStatus;
-import org.apache.hadoop.mapreduce.MRJobConfig;
-import org.apache.hadoop.mapreduce.RecordWriter;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.TaskAttemptID;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.task.JobContextImpl;
 import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
 
 
 public class TestMRCJCFileOutputCommitter extends TestCase {
@@ -53,7 +51,7 @@ public class TestMRCJCFileOutputCommitter extends TestCase {
 
   @SuppressWarnings("unchecked")
   private void writeOutput(RecordWriter theRecordWriter,
-      TaskAttemptContext context) throws IOException, InterruptedException {
+                           TaskAttemptContext context) throws IOException, InterruptedException {
     NullWritable nullWritable = NullWritable.get();
 
     try {
@@ -75,17 +73,17 @@ public class TestMRCJCFileOutputCommitter extends TestCase {
     FileSystem fs = outDir.getFileSystem(conf);
     fs.delete(outDir, true);
   }
-  
+
   @Override
   public void setUp() throws IOException {
     cleanup();
   }
-  
+
   @Override
   public void tearDown() throws IOException {
     cleanup();
   }
-  
+
   @SuppressWarnings("unchecked")
   public void testCommitter() throws Exception {
     Job job = Job.getInstance();
@@ -122,7 +120,7 @@ public class TestMRCJCFileOutputCommitter extends TestCase {
     assertEquals(output, expectedOutput.toString());
     FileUtil.fullyDelete(new File(outDir.toString()));
   }
-  
+
   public void testEmptyOutput() throws Exception {
     Job job = Job.getInstance();
     FileOutputFormat.setOutputPath(job, outDir);
@@ -141,7 +139,7 @@ public class TestMRCJCFileOutputCommitter extends TestCase {
     // do commit
     committer.commitTask(tContext);
     committer.commitJob(jContext);
-    
+
     FileUtil.fullyDelete(new File(outDir.toString()));
   }
 

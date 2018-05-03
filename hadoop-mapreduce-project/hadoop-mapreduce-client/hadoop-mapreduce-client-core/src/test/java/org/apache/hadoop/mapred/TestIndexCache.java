@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,22 +17,17 @@
  */
 package org.apache.hadoop.mapred;
 
+import junit.framework.TestCase;
+import org.apache.hadoop.fs.*;
+import org.apache.hadoop.mapreduce.server.tasktracker.TTConfig;
+import org.apache.hadoop.security.UserGroupInformation;
+
 import java.io.DataOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Random;
 import java.util.zip.CRC32;
 import java.util.zip.CheckedOutputStream;
-
-import org.apache.hadoop.fs.ChecksumException;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.security.UserGroupInformation;
-import org.apache.hadoop.mapreduce.server.tasktracker.TTConfig;
-
-import junit.framework.TestCase;
 
 public class TestIndexCache extends TestCase {
   private JobConf conf;
@@ -43,7 +38,7 @@ public class TestIndexCache extends TestCase {
   public void setUp() throws IOException {
     conf = new JobConf();
     fs = FileSystem.getLocal(conf).getRaw();
-    p =  new Path(System.getProperty("test.build.data", "/tmp"),
+    p = new Path(System.getProperty("test.build.data", "/tmp"),
         "cache").makeQualified(fs.getUri(), fs.getWorkingDirectory());
   }
 
@@ -64,20 +59,20 @@ public class TestIndexCache extends TestCase {
       Path f = new Path(p, Integer.toString(totalsize, 36));
       writeFile(fs, f, totalsize, partsPerMap);
       IndexRecord rec = cache.getIndexInformation(
-        Integer.toString(totalsize, 36), r.nextInt(partsPerMap), f,
-        UserGroupInformation.getCurrentUser().getShortUserName());
+          Integer.toString(totalsize, 36), r.nextInt(partsPerMap), f,
+          UserGroupInformation.getCurrentUser().getShortUserName());
       checkRecord(rec, totalsize);
     }
 
     // delete files, ensure cache retains all elem
     for (FileStatus stat : fs.listStatus(p)) {
-      fs.delete(stat.getPath(),true);
+      fs.delete(stat.getPath(), true);
     }
     for (int i = bytesPerFile; i < 1024 * 1024; i += bytesPerFile) {
       Path f = new Path(p, Integer.toString(i, 36));
       IndexRecord rec = cache.getIndexInformation(Integer.toString(i, 36),
-        r.nextInt(partsPerMap), f,
-        UserGroupInformation.getCurrentUser().getShortUserName());
+          r.nextInt(partsPerMap), f,
+          UserGroupInformation.getCurrentUser().getShortUserName());
       checkRecord(rec, i);
     }
 
@@ -93,14 +88,13 @@ public class TestIndexCache extends TestCase {
     boolean fnf = false;
     try {
       cache.getIndexInformation(Integer.toString(bytesPerFile, 36),
-        r.nextInt(partsPerMap), new Path(p, Integer.toString(bytesPerFile)),
-        UserGroupInformation.getCurrentUser().getShortUserName());
+          r.nextInt(partsPerMap), new Path(p, Integer.toString(bytesPerFile)),
+          UserGroupInformation.getCurrentUser().getShortUserName());
     } catch (IOException e) {
       if (e.getCause() == null ||
-          !(e.getCause()  instanceof FileNotFoundException)) {
+          !(e.getCause() instanceof FileNotFoundException)) {
         throw e;
-      }
-      else {
+      } else {
         fnf = true;
       }
     }
@@ -114,8 +108,8 @@ public class TestIndexCache extends TestCase {
       checkRecord(rec, i);
     }
     IndexRecord rec = cache.getIndexInformation(Integer.toString(totalsize, 36),
-      r.nextInt(partsPerMap), f,
-      UserGroupInformation.getCurrentUser().getShortUserName());
+        r.nextInt(partsPerMap), f,
+        UserGroupInformation.getCurrentUser().getShortUserName());
 
     checkRecord(rec, totalsize);
   }
@@ -143,7 +137,7 @@ public class TestIndexCache extends TestCase {
     dout.close();
     try {
       cache.getIndexInformation("badindex", 7, f,
-        UserGroupInformation.getCurrentUser().getShortUserName());
+          UserGroupInformation.getCurrentUser().getShortUserName());
       fail("Did not detect bad checksum");
     } catch (IOException e) {
       if (!(e.getCause() instanceof ChecksumException)) {
@@ -168,9 +162,9 @@ public class TestIndexCache extends TestCase {
 
     try {
       // Number of reducers equal to partsPerMap
-      cache.getIndexInformation("reduceEqualPartsPerMap", 
-               partsPerMap, // reduce number == partsPerMap
-               feq, UserGroupInformation.getCurrentUser().getShortUserName());
+      cache.getIndexInformation("reduceEqualPartsPerMap",
+          partsPerMap, // reduce number == partsPerMap
+          feq, UserGroupInformation.getCurrentUser().getShortUserName());
       fail("Number of reducers equal to partsPerMap did not fail");
     } catch (Exception e) {
       if (!(e instanceof IOException)) {
@@ -181,9 +175,9 @@ public class TestIndexCache extends TestCase {
     try {
       // Number of reducers more than partsPerMap
       cache.getIndexInformation(
-      "reduceMorePartsPerMap", 
-      partsPerMap + 1, // reduce number > partsPerMap
-      feq, UserGroupInformation.getCurrentUser().getShortUserName());
+          "reduceMorePartsPerMap",
+          partsPerMap + 1, // reduce number > partsPerMap
+          feq, UserGroupInformation.getCurrentUser().getShortUserName());
       fail("Number of reducers more than partsPerMap did not fail");
     } catch (Exception e) {
       if (!(e instanceof IOException)) {
@@ -207,10 +201,10 @@ public class TestIndexCache extends TestCase {
     final IndexCache cache = new IndexCache(conf);
 
     final Path big = new Path(p, "bigIndex");
-    final String user = 
-      UserGroupInformation.getCurrentUser().getShortUserName();
+    final String user =
+        UserGroupInformation.getCurrentUser().getShortUserName();
     writeFile(fs, big, bytesPerFile, partsPerMap);
-    
+
     // run multiple times
     for (int i = 0; i < 20; ++i) {
       Thread getInfoThread = new Thread() {
@@ -229,29 +223,29 @@ public class TestIndexCache extends TestCase {
           cache.removeMap("bigIndex");
         }
       };
-      if (i%2==0) {
+      if (i % 2 == 0) {
         getInfoThread.start();
-        removeMapThread.start();        
+        removeMapThread.start();
       } else {
-        removeMapThread.start();        
+        removeMapThread.start();
         getInfoThread.start();
       }
       getInfoThread.join();
       removeMapThread.join();
       assertEquals(true, cache.checkTotalMemoryUsed());
-    }      
+    }
   }
-  
+
   public void testCreateRace() throws Exception {
     fs.delete(p, true);
     conf.setInt(TTConfig.TT_INDEX_CACHE, 1);
     final int partsPerMap = 1000;
     final int bytesPerFile = partsPerMap * 24;
     final IndexCache cache = new IndexCache(conf);
-    
+
     final Path racy = new Path(p, "racyIndex");
-    final String user =  
-      UserGroupInformation.getCurrentUser().getShortUserName();
+    final String user =
+        UserGroupInformation.getCurrentUser().getShortUserName();
     writeFile(fs, racy, bytesPerFile, partsPerMap);
 
     // run multiple instances

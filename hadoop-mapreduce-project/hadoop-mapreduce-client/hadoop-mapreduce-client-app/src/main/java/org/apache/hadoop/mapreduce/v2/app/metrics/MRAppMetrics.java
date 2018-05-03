@@ -27,29 +27,47 @@ import org.apache.hadoop.metrics2.lib.MutableCounterInt;
 import org.apache.hadoop.metrics2.lib.MutableGaugeInt;
 import org.apache.hadoop.metrics2.source.JvmMetrics;
 
-@Metrics(about="MR App Metrics", context="mapred")
+@Metrics(about = "MR App Metrics", context = "mapred")
 public class MRAppMetrics {
-  @Metric MutableCounterInt jobsSubmitted;
-  @Metric MutableCounterInt jobsCompleted;
-  @Metric MutableCounterInt jobsFailed;
-  @Metric MutableCounterInt jobsKilled;
-  @Metric MutableGaugeInt jobsPreparing;
-  @Metric MutableGaugeInt jobsRunning;
+  @Metric
+  MutableCounterInt jobsSubmitted;
+  @Metric
+  MutableCounterInt jobsCompleted;
+  @Metric
+  MutableCounterInt jobsFailed;
+  @Metric
+  MutableCounterInt jobsKilled;
+  @Metric
+  MutableGaugeInt jobsPreparing;
+  @Metric
+  MutableGaugeInt jobsRunning;
 
-  @Metric MutableCounterInt mapsLaunched;
-  @Metric MutableCounterInt mapsCompleted;
-  @Metric MutableCounterInt mapsFailed;
-  @Metric MutableCounterInt mapsKilled;
-  @Metric MutableGaugeInt mapsRunning;
-  @Metric MutableGaugeInt mapsWaiting;
+  @Metric
+  MutableCounterInt mapsLaunched;
+  @Metric
+  MutableCounterInt mapsCompleted;
+  @Metric
+  MutableCounterInt mapsFailed;
+  @Metric
+  MutableCounterInt mapsKilled;
+  @Metric
+  MutableGaugeInt mapsRunning;
+  @Metric
+  MutableGaugeInt mapsWaiting;
 
-  @Metric MutableCounterInt reducesLaunched;
-  @Metric MutableCounterInt reducesCompleted;
-  @Metric MutableCounterInt reducesFailed;
-  @Metric MutableCounterInt reducesKilled;
-  @Metric MutableGaugeInt reducesRunning;
-  @Metric MutableGaugeInt reducesWaiting;
-  
+  @Metric
+  MutableCounterInt reducesLaunched;
+  @Metric
+  MutableCounterInt reducesCompleted;
+  @Metric
+  MutableCounterInt reducesFailed;
+  @Metric
+  MutableCounterInt reducesKilled;
+  @Metric
+  MutableGaugeInt reducesRunning;
+  @Metric
+  MutableGaugeInt reducesWaiting;
+
   public static MRAppMetrics create() {
     return create(DefaultMetricsSystem.instance());
   }

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,7 +25,7 @@ import org.apache.hadoop.io.Text;
  * represented as a key of dataType:operationType*measurementType and these
  * simple types can be combined (mainly in the reducer) using there given types
  * into a single operation output.
- * 
+ *
  * Combination is done based on the data types and the following convention is
  * followed (in the following order). If one is a string then the other will be
  * concated as a string with a ";" separator. If one is a double then the other
@@ -52,7 +52,7 @@ class OperationOutput {
   /**
    * Parses a given key according to the expected key format and forms the given
    * segments.
-   * 
+   *
    * @param key
    *          the key in expected dataType:operationType*measurementType format
    * @param value
@@ -92,7 +92,7 @@ class OperationOutput {
   }
 
   OperationOutput(OutputType dataType, String opType, String measurementType,
-      Object value) {
+                  Object value) {
     this.dataType = dataType;
     this.opType = opType;
     this.measurementType = measurementType;
@@ -102,14 +102,14 @@ class OperationOutput {
   /**
    * Merges according to the documented rules for merging. Only will merge if
    * measurement type and operation type is the same.
-   * 
+   *
    * @param o1
    *          the first object to merge with the second
    * @param o2
    *          the second object.
-   * 
+   *
    * @return OperationOutput merged output.
-   * 
+   *
    * @throws IllegalArgumentException
    *           if unable to merge due to incompatible formats/types
    */
@@ -178,7 +178,7 @@ class OperationOutput {
 
   /**
    * Formats the key for output
-   * 
+   *
    * @return String
    */
   private String getKeyString() {
@@ -193,7 +193,7 @@ class OperationOutput {
 
   /**
    * Retrieves the key in a hadoop text object
-   * 
+   *
    * @return Text text output
    */
   Text getKey() {
@@ -202,7 +202,7 @@ class OperationOutput {
 
   /**
    * Gets the output value in text format
-   * 
+   *
    * @return Text
    */
   Text getOutputValue() {
@@ -214,7 +214,7 @@ class OperationOutput {
   /**
    * Gets the object that represents this value (expected to match the output
    * data type)
-   * 
+   *
    * @return Object
    */
   Object getValue() {
@@ -230,7 +230,7 @@ class OperationOutput {
 
   /**
    * Gets the operation type this object represents.
-   * 
+   *
    * @return String
    */
   String getOperationType() {
@@ -239,7 +239,7 @@ class OperationOutput {
 
   /**
    * Gets the measurement type this object represents.
-   * 
+   *
    * @return String
    */
   String getMeasurementType() {

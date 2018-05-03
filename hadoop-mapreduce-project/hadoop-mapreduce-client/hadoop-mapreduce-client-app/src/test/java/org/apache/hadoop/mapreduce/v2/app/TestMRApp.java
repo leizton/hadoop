@@ -1,32 +1,22 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2.app;
-
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-
-import org.junit.Assert;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.MRJobConfig;
@@ -41,13 +31,7 @@ import org.apache.hadoop.mapreduce.v2.app.job.Job;
 import org.apache.hadoop.mapreduce.v2.app.job.JobStateInternal;
 import org.apache.hadoop.mapreduce.v2.app.job.Task;
 import org.apache.hadoop.mapreduce.v2.app.job.TaskAttempt;
-import org.apache.hadoop.mapreduce.v2.app.job.event.JobEvent;
-import org.apache.hadoop.mapreduce.v2.app.job.event.JobEventType;
-import org.apache.hadoop.mapreduce.v2.app.job.event.JobUpdatedNodesEvent;
-import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptEvent;
-import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptEventType;
-import org.apache.hadoop.mapreduce.v2.app.job.event.TaskEvent;
-import org.apache.hadoop.mapreduce.v2.app.job.event.TaskEventType;
+import org.apache.hadoop.mapreduce.v2.app.job.event.*;
 import org.apache.hadoop.mapreduce.v2.app.job.impl.JobImpl;
 import org.apache.hadoop.mapreduce.v2.app.job.impl.TaskAttemptImpl;
 import org.apache.hadoop.mapreduce.v2.app.launcher.ContainerLauncher;
@@ -59,7 +43,14 @@ import org.apache.hadoop.yarn.api.records.NodeReport;
 import org.apache.hadoop.yarn.api.records.NodeState;
 import org.apache.hadoop.yarn.event.EventHandler;
 import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
+import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+
+import static org.mockito.Mockito.*;
 
 /**
  * Tests the state machine of MR App.
@@ -73,7 +64,7 @@ public class TestMRApp {
     Job job = app.submit(new Configuration());
     app.waitForState(job, JobState.SUCCEEDED);
     app.verifyCompleted();
-    Assert.assertEquals(System.getProperty("user.name"),job.getUserName());
+    Assert.assertEquals(System.getProperty("user.name"), job.getUserName());
   }
 
   @Test
@@ -83,14 +74,14 @@ public class TestMRApp {
     app.waitForState(job, JobState.SUCCEEDED);
     app.verifyCompleted();
   }
-  
+
   @Test
-  public void testZeroMapReduces() throws Exception{
+  public void testZeroMapReduces() throws Exception {
     MRApp app = new MRApp(0, 0, true, this.getClass().getName(), true);
     Job job = app.submit(new Configuration());
     app.waitForState(job, JobState.SUCCEEDED);
   }
-  
+
   @Test
   public void testCommitPending() throws Exception {
     MRApp app = new MRApp(1, 0, false, this.getClass().getName(), true);
@@ -146,36 +137,36 @@ public class TestMRApp {
     Task mapTask1 = it.next();
     Task mapTask2 = it.next();
     Task reduceTask = it.next();
-    
+
     // all maps must be running
     app.waitForState(mapTask1, TaskState.RUNNING);
     app.waitForState(mapTask2, TaskState.RUNNING);
-    
+
     TaskAttempt task1Attempt = mapTask1.getAttempts().values().iterator().next();
     TaskAttempt task2Attempt = mapTask2.getAttempts().values().iterator().next();
-    
+
     //before sending the TA_DONE, event make sure attempt has come to 
     //RUNNING state
     app.waitForState(task1Attempt, TaskAttemptState.RUNNING);
     app.waitForState(task2Attempt, TaskAttemptState.RUNNING);
-    
+
     // reduces must be in NEW state
     Assert.assertEquals("Reduce Task state not correct",
         TaskState.NEW, reduceTask.getReport().getTaskState());
-    
+
     //send the done signal to the 1st map task
     app.getContext().getEventHandler().handle(
         new TaskAttemptEvent(
             mapTask1.getAttempts().values().iterator().next().getID(),
             TaskAttemptEventType.TA_DONE));
-    
+
     //wait for first map task to complete
     app.waitForState(mapTask1, TaskState.SUCCEEDED);
 
     //Once the first map completes, it will schedule the reduces
     //now reduce must be running
     app.waitForState(reduceTask, TaskState.RUNNING);
-    
+
     //send the done signal to 2nd map and the reduce to complete the job
     app.getContext().getEventHandler().handle(
         new TaskAttemptEvent(
@@ -185,10 +176,10 @@ public class TestMRApp {
         new TaskAttemptEvent(
             reduceTask.getAttempts().values().iterator().next().getID(),
             TaskAttemptEventType.TA_DONE));
-    
+
     app.waitForState(job, JobState.SUCCEEDED);
   }
-  
+
   /**
    * The test verifies that the AM re-runs maps that have run on bad nodes. It
    * also verifies that the AM records all success/killed events so that reduces
@@ -337,12 +328,12 @@ public class TestMRApp {
                 TaskAttemptEventType.TA_DONE));
     app.waitForState(reduceTask1, TaskState.SUCCEEDED);
     app.getContext()
-    .getEventHandler()
-    .handle(
-        new TaskAttemptEvent(task3Attempt.getID(),
-            TaskAttemptEventType.TA_KILL));
+        .getEventHandler()
+        .handle(
+            new TaskAttemptEvent(task3Attempt.getID(),
+                TaskAttemptEventType.TA_KILL));
     app.waitForState(reduceTask1, TaskState.SUCCEEDED);
-    
+
     TaskAttempt task4Attempt = reduceTask2.getAttempts().values().iterator()
         .next();
     app.getContext()
@@ -350,7 +341,7 @@ public class TestMRApp {
         .handle(
             new TaskAttemptEvent(task4Attempt.getID(),
                 TaskAttemptEventType.TA_DONE));
-    app.waitForState(reduceTask2, TaskState.SUCCEEDED);    
+    app.waitForState(reduceTask2, TaskState.SUCCEEDED);
 
     events = job.getTaskAttemptCompletionEvents(0, 100);
     Assert.assertEquals("Expecting 2 more completion events for reduce success",
@@ -405,7 +396,7 @@ public class TestMRApp {
 
     //send an reboot event
     app.getContext().getEventHandler().handle(new JobEvent(job.getID(),
-      JobEventType.JOB_AM_REBOOT));
+        JobEventType.JOB_AM_REBOOT));
 
     // return exteranl state as RUNNING since otherwise the JobClient will
     // prematurely exit.
@@ -430,7 +421,7 @@ public class TestMRApp {
 
     //send an reboot event
     app.getContext().getEventHandler().handle(new JobEvent(job.getID(),
-      JobEventType.JOB_AM_REBOOT));
+        JobEventType.JOB_AM_REBOOT));
 
     app.waitForInternalState((JobImpl) job, JobStateInternal.REBOOT);
     // return exteranl state as RUNNING if this is the last retry while
@@ -442,13 +433,13 @@ public class TestMRApp {
     private JobImpl spiedJob;
 
     private MRAppWithSpiedJob(int maps, int reduces, boolean autoComplete,
-        String testName, boolean cleanOnStart) {
+                              String testName, boolean cleanOnStart) {
       super(maps, reduces, autoComplete, testName, cleanOnStart);
     }
 
     @Override
-    protected Job createJob(Configuration conf, JobStateInternal forcedState, 
-        String diagnostic) {
+    protected Job createJob(Configuration conf, JobStateInternal forcedState,
+                            String diagnostic) {
       spiedJob = spy((JobImpl) super.createJob(conf, forcedState, diagnostic));
       ((AppContext) getContext()).getAllJobs().put(spiedJob.getID(), spiedJob);
       return spiedJob;
@@ -459,7 +450,7 @@ public class TestMRApp {
   public void testCountersOnJobFinish() throws Exception {
     MRAppWithSpiedJob app =
         new MRAppWithSpiedJob(1, 1, true, this.getClass().getName(), true);
-    JobImpl job = (JobImpl)app.submit(new Configuration());
+    JobImpl job = (JobImpl) app.submit(new Configuration());
     app.waitForState(job, JobState.SUCCEEDED);
     app.verifyCompleted();
     System.out.println(job.getAllCounters());
@@ -489,6 +480,7 @@ public class TestMRApp {
   }
 
   private Container containerObtainedByContainerLauncher;
+
   @Test
   public void testContainerPassThrough() throws Exception {
     MRApp app = new MRApp(0, 1, true, this.getClass().getName(), true) {
@@ -504,7 +496,9 @@ public class TestMRApp {
             super.handle(event);
           }
         };
-      };
+      }
+
+      ;
     };
     Job job = app.submit(new Configuration());
     app.waitForState(job, JobState.SUCCEEDED);
@@ -517,20 +511,20 @@ public class TestMRApp {
         (TaskAttemptImpl) taskAttempts.iterator().next();
     // Container from RM should pass through to the launcher. Container object
     // should be the same.
-   Assert.assertTrue(taskAttempt.container 
-     == containerObtainedByContainerLauncher);
+    Assert.assertTrue(taskAttempt.container
+        == containerObtainedByContainerLauncher);
   }
 
   private final class MRAppWithHistory extends MRApp {
     public MRAppWithHistory(int maps, int reduces, boolean autoComplete,
-        String testName, boolean cleanOnStart, int startCount) {
+                            String testName, boolean cleanOnStart, int startCount) {
       super(maps, reduces, autoComplete, testName, cleanOnStart, startCount);
     }
 
     @Override
     protected EventHandler<JobHistoryEvent> createJobHistoryHandler(
         AppContext context) {
-      JobHistoryEventHandler eventHandler = new JobHistoryEventHandler(context, 
+      JobHistoryEventHandler eventHandler = new JobHistoryEventHandler(context,
           getStartCount());
       return eventHandler;
     }

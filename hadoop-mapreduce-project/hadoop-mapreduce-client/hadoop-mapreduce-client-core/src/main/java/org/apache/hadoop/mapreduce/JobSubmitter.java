@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,40 +17,17 @@
  */
 package org.apache.hadoop.mapreduce;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.UnknownHostException;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
-
+import com.google.common.base.Charsets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileContext;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.FileUtil;
-import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.QueueACL;
-
-import static org.apache.hadoop.mapred.QueueManager.toFullPropertyName;
-
 import org.apache.hadoop.mapreduce.filecache.ClientDistributedCacheManager;
 import org.apache.hadoop.mapreduce.filecache.DistributedCache;
 import org.apache.hadoop.mapreduce.protocol.ClientProtocol;
@@ -67,7 +44,19 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import com.google.common.base.Charsets;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.UnknownHostException;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
+
+import static org.apache.hadoop.mapred.QueueManager.toFullPropertyName;
 
 @InterfaceAudience.Private
 @InterfaceStability.Unstable
@@ -79,12 +68,13 @@ class JobSubmitter {
   private ClientProtocol submitClient;
   private String submitHostName;
   private String submitHostAddress;
-  
-  JobSubmitter(FileSystem submitFs, ClientProtocol submitClient) 
-  throws IOException {
+
+  JobSubmitter(FileSystem submitFs, ClientProtocol submitClient)
+      throws IOException {
     this.submitClient = submitClient;
     this.jtFs = submitFs;
   }
+
   /*
    * see if two file systems are the same or not.
    */
@@ -97,13 +87,13 @@ class JobSubmitter {
     if (!srcUri.getScheme().equals(dstUri.getScheme())) {
       return false;
     }
-    String srcHost = srcUri.getHost();    
+    String srcHost = srcUri.getHost();
     String dstHost = dstUri.getHost();
     if ((srcHost != null) && (dstHost != null)) {
       try {
         srcHost = InetAddress.getByName(srcHost).getCanonicalHostName();
         dstHost = InetAddress.getByName(dstHost).getCanonicalHostName();
-      } catch(UnknownHostException ue) {
+      } catch (UnknownHostException ue) {
         return false;
       }
       if (!srcHost.equals(dstHost)) {
@@ -124,14 +114,14 @@ class JobSubmitter {
   // copies a file to the jobtracker filesystem and returns the path where it
   // was copied to
   private Path copyRemoteFiles(Path parentDir,
-      Path originalPath, Configuration conf, short replication) 
+                               Path originalPath, Configuration conf, short replication)
       throws IOException {
     //check if we do not need to copy the files
     // is jt using the same file system.
     // just checking for uri strings... doing no dns lookups 
     // to see if the filesystems are the same. This is not optimal.
     // but avoids name resolution.
-    
+
     FileSystem remoteFs = null;
     remoteFs = originalPath.getFileSystem(conf);
     if (compareFs(remoteFs, jtFs)) {
@@ -147,12 +137,12 @@ class JobSubmitter {
 
   // configures -files, -libjars and -archives.
   private void copyAndConfigureFiles(Job job, Path submitJobDir,
-      short replication) throws IOException {
+                                     short replication) throws IOException {
     Configuration conf = job.getConfiguration();
     if (!(conf.getBoolean(Job.USED_GENERIC_PARSER, false))) {
       LOG.warn("Hadoop command-line option parsing not performed. " +
-               "Implement the Tool interface and execute your application " +
-               "with ToolRunner to remedy this.");
+          "Implement the Tool interface and execute your application " +
+          "with ToolRunner to remedy this.");
     }
 
     // get all the command line arguments passed in by the user conf
@@ -173,7 +163,7 @@ class JobSubmitter {
     LOG.debug("default FileSystem: " + jtFs.getUri());
     if (jtFs.exists(submitJobDir)) {
       throw new IOException("Not submitting job. Job directory " + submitJobDir
-          +" already exists!! This is unexpected.Please check what's there in" +
+          + " already exists!! This is unexpected.Please check what's there in" +
           " that directory");
     }
     submitJobDir = jtFs.makeQualified(submitJobDir);
@@ -185,11 +175,11 @@ class JobSubmitter {
     Path libjarsDir = JobSubmissionFiles.getJobDistCacheLibjars(submitJobDir);
     // add all the command line files/ jars and archive
     // first copy them to jobtrackers filesystem 
-      
+
     if (files != null) {
       FileSystem.mkdirs(jtFs, filesDir, mapredSysPerms);
       String[] fileArr = files.split(",");
-      for (String tmpFile: fileArr) {
+      for (String tmpFile : fileArr) {
         URI tmpURI = null;
         try {
           tmpURI = new URI(tmpFile);
@@ -201,28 +191,28 @@ class JobSubmitter {
         try {
           URI pathURI = getPathURI(newPath, tmpURI.getFragment());
           DistributedCache.addCacheFile(pathURI, conf);
-        } catch(URISyntaxException ue) {
+        } catch (URISyntaxException ue) {
           //should not throw a uri exception 
           throw new IOException("Failed to create uri for " + tmpFile, ue);
         }
       }
     }
-      
+
     if (libjars != null) {
       FileSystem.mkdirs(jtFs, libjarsDir, mapredSysPerms);
       String[] libjarsArr = libjars.split(",");
-      for (String tmpjars: libjarsArr) {
+      for (String tmpjars : libjarsArr) {
         Path tmp = new Path(tmpjars);
         Path newPath = copyRemoteFiles(libjarsDir, tmp, conf, replication);
         DistributedCache.addFileToClassPath(
             new Path(newPath.toUri().getPath()), conf);
       }
     }
-      
+
     if (archives != null) {
-      FileSystem.mkdirs(jtFs, archivesDir, mapredSysPerms); 
+      FileSystem.mkdirs(jtFs, archivesDir, mapredSysPerms);
       String[] archivesArr = archives.split(",");
-      for (String tmpArchives: archivesArr) {
+      for (String tmpArchives : archivesArr) {
         URI tmpURI;
         try {
           tmpURI = new URI(tmpArchives);
@@ -231,11 +221,11 @@ class JobSubmitter {
         }
         Path tmp = new Path(tmpURI);
         Path newPath = copyRemoteFiles(archivesDir, tmp, conf,
-          replication);
+            replication);
         try {
           URI pathURI = getPathURI(newPath, tmpURI.getFragment());
           DistributedCache.addCacheArchive(pathURI, conf);
-        } catch(URISyntaxException ue) {
+        } catch (URISyntaxException ue) {
           //should not throw an uri excpetion
           throw new IOException("Failed to create uri for " + tmpArchives, ue);
         }
@@ -244,26 +234,26 @@ class JobSubmitter {
 
     if (jobJar != null) {   // copy jar to JobTracker's fs
       // use jar name if job is not named. 
-      if ("".equals(job.getJobName())){
+      if ("".equals(job.getJobName())) {
         job.setJobName(new Path(jobJar).getName());
       }
       Path jobJarPath = new Path(jobJar);
       URI jobJarURI = jobJarPath.toUri();
       // If the job jar is already in a global fs,
       // we don't need to copy it from local fs
-      if (     jobJarURI.getScheme() == null
-            || jobJarURI.getScheme().equals("file")) {
-        copyJar(jobJarPath, JobSubmissionFiles.getJobJar(submitJobDir), 
+      if (jobJarURI.getScheme() == null
+          || jobJarURI.getScheme().equals("file")) {
+        copyJar(jobJarPath, JobSubmissionFiles.getJobJar(submitJobDir),
             replication);
         job.setJar(JobSubmissionFiles.getJobJar(submitJobDir).toString());
       }
     } else {
-      LOG.warn("No job jar file set.  User classes may not be found. "+
-      "See Job or Job#setJar(String).");
+      LOG.warn("No job jar file set.  User classes may not be found. " +
+          "See Job or Job#setJar(String).");
     }
-    
+
     addLog4jToDistributedCache(job, submitJobDir);
-    
+
     //  set the timestamps of the archives and files
     //  set the public/private visibility of the archives and files
     ClientDistributedCacheManager.determineTimestampsAndCacheVisibilities(conf);
@@ -271,25 +261,25 @@ class JobSubmitter {
     ClientDistributedCacheManager.getDelegationTokens(conf, job
         .getCredentials());
   }
-  
+
   // copy user specified log4j.property file in local 
   // to HDFS with putting on distributed cache and adding its parent directory 
   // to classpath.
   @SuppressWarnings("deprecation")
   private void copyLog4jPropertyFile(Job job, Path submitJobDir,
-      short replication) throws IOException {
+                                     short replication) throws IOException {
     Configuration conf = job.getConfiguration();
 
     String file = validateFilePath(
         conf.get(MRJobConfig.MAPREDUCE_JOB_LOG4J_PROPERTIES_FILE), conf);
     LOG.debug("default FileSystem: " + jtFs.getUri());
-    FsPermission mapredSysPerms = 
-      new FsPermission(JobSubmissionFiles.JOB_DIR_PERMISSION);
+    FsPermission mapredSysPerms =
+        new FsPermission(JobSubmissionFiles.JOB_DIR_PERMISSION);
     if (!jtFs.exists(submitJobDir)) {
-      throw new IOException("Cannot find job submission directory! " 
+      throw new IOException("Cannot find job submission directory! "
           + "It should just be created, so something wrong here.");
     }
-    
+
     Path fileDir = JobSubmissionFiles.getJobLog4jFile(submitJobDir);
 
     // first copy local log4j.properties file to HDFS under submitJobDir
@@ -306,7 +296,7 @@ class JobSubmitter {
       DistributedCache.addFileToClassPath(new Path(newPath.toUri().getPath()), conf);
     }
   }
-  
+
   /**
    * takes input as a path string for file and verifies if it exist. 
    * It defaults for file:/// if the files specified do not have a scheme.
@@ -316,8 +306,8 @@ class JobSubmitter {
    * @param conf
    * @return
    */
-  private String validateFilePath(String file, Configuration conf) 
-      throws IOException  {
+  private String validateFilePath(String file, Configuration conf)
+      throws IOException {
     if (file == null) {
       return null;
     }
@@ -341,8 +331,7 @@ class JobSubmitter {
       }
       finalPath = path.makeQualified(localFs.getUri(),
           localFs.getWorkingDirectory()).toString();
-    }
-    else {
+    } else {
       // check if the file exists in this file system
       // we need to recreate this filesystem object to copy
       // these files to the file system ResourceManager is running
@@ -356,8 +345,8 @@ class JobSubmitter {
     }
     return finalPath;
   }
-  
-  private URI getPathURI(Path destPath, String fragment) 
+
+  private URI getPathURI(Path destPath, String fragment)
       throws URISyntaxException {
     URI pathURI = destPath.toUri();
     if (pathURI.getFragment() == null) {
@@ -369,24 +358,24 @@ class JobSubmitter {
     }
     return pathURI;
   }
-  
+
   private void copyJar(Path originalJarPath, Path submitJarFile,
-      short replication) throws IOException {
+                       short replication) throws IOException {
     jtFs.copyFromLocalFile(originalJarPath, submitJarFile);
     jtFs.setReplication(submitJarFile, replication);
     jtFs.setPermission(submitJarFile, new FsPermission(JobSubmissionFiles.JOB_FILE_PERMISSION));
   }
-  
+
   /**
    * configure the jobconf of the user with the command line options of 
    * -libjars, -files, -archives.
    * @param job
    * @throws IOException
    */
-  private void copyAndConfigureFiles(Job job, Path jobSubmitDir) 
-  throws IOException {
+  private void copyAndConfigureFiles(Job job, Path jobSubmitDir)
+      throws IOException {
     Configuration conf = job.getConfiguration();
-    short replication = (short)conf.getInt(Job.SUBMIT_REPLICATION, 10);
+    short replication = (short) conf.getInt(Job.SUBMIT_REPLICATION, 10);
     copyAndConfigureFiles(job, jobSubmitDir, replication);
 
     // Set the working directory
@@ -395,9 +384,10 @@ class JobSubmitter {
     }
 
   }
+
   /**
    * Internal method for submitting jobs to the system.
-   * 
+   *
    * <p>The job submission process involves:
    * <ol>
    *   <li>
@@ -425,8 +415,8 @@ class JobSubmitter {
    * @throws InterruptedException
    * @throws IOException
    */
-  JobStatus submitJobInternal(Job job, Cluster cluster) 
-  throws ClassNotFoundException, InterruptedException, IOException {
+  JobStatus submitJobInternal(Job job, Cluster cluster)
+      throws ClassNotFoundException, InterruptedException, IOException {
 
     //validate the jobs output specs 
     checkSpecs(job);
@@ -440,8 +430,8 @@ class JobSubmitter {
     if (ip != null) {
       submitHostAddress = ip.getHostAddress();
       submitHostName = ip.getHostName();
-      conf.set(MRJobConfig.JOB_SUBMITHOST,submitHostName);
-      conf.set(MRJobConfig.JOB_SUBMITHOSTADDR,submitHostAddress);
+      conf.set(MRJobConfig.JOB_SUBMITHOST, submitHostName);
+      conf.set(MRJobConfig.JOB_SUBMITHOSTADDR, submitHostAddress);
     }
     JobID jobId = submitClient.getNewJobID();
     job.setJobID(jobId);
@@ -450,25 +440,25 @@ class JobSubmitter {
     try {
       conf.set(MRJobConfig.USER_NAME,
           UserGroupInformation.getCurrentUser().getShortUserName());
-      conf.set("hadoop.http.filter.initializers", 
+      conf.set("hadoop.http.filter.initializers",
           "org.apache.hadoop.yarn.server.webproxy.amfilter.AmFilterInitializer");
       conf.set(MRJobConfig.MAPREDUCE_JOB_DIR, submitJobDir.toString());
-      LOG.debug("Configuring job " + jobId + " with " + submitJobDir 
+      LOG.debug("Configuring job " + jobId + " with " + submitJobDir
           + " as the submit dir");
       // get delegation token for the dir
       TokenCache.obtainTokensForNamenodes(job.getCredentials(),
-          new Path[] { submitJobDir }, conf);
-      
+          new Path[]{submitJobDir}, conf);
+
       populateTokenCache(conf, job.getCredentials());
 
       // generate a secret to authenticate shuffle transfers
       if (TokenCache.getShuffleSecretKey(job.getCredentials()) == null) {
         KeyGenerator keyGen;
         try {
-         
-          int keyLen = CryptoUtils.isShuffleEncrypted(conf) 
-              ? conf.getInt(MRJobConfig.MR_ENCRYPTED_INTERMEDIATE_DATA_KEY_SIZE_BITS, 
-                  MRJobConfig.DEFAULT_MR_ENCRYPTED_INTERMEDIATE_DATA_KEY_SIZE_BITS)
+
+          int keyLen = CryptoUtils.isShuffleEncrypted(conf)
+              ? conf.getInt(MRJobConfig.MR_ENCRYPTED_INTERMEDIATE_DATA_KEY_SIZE_BITS,
+              MRJobConfig.DEFAULT_MR_ENCRYPTED_INTERMEDIATE_DATA_KEY_SIZE_BITS)
               : SHUFFLE_KEY_LENGTH;
           keyGen = KeyGenerator.getInstance(SHUFFLE_KEYGEN_ALGORITHM);
           keyGen.init(keyLen);
@@ -481,12 +471,10 @@ class JobSubmitter {
       }
 
       copyAndConfigureFiles(job, submitJobDir);
-      
-      
 
-      
+
       Path submitJobFile = JobSubmissionFiles.getJobConfPath(submitJobDir);
-      
+
       // Create the splits for the job
       LOG.debug("Creating splits at " + jtFs.makeQualified(submitJobDir));
       int maps = writeSplits(job, submitJobDir);
@@ -528,7 +516,7 @@ class JobSubmitter {
 
       // Write job file to submit dir
       writeConf(conf, submitJobFile);
-      
+
       //
       // Now, actually submit the job (using the submit name)
       //
@@ -549,39 +537,39 @@ class JobSubmitter {
       }
     }
   }
-  
-  private void checkSpecs(Job job) throws ClassNotFoundException, 
+
+  private void checkSpecs(Job job) throws ClassNotFoundException,
       InterruptedException, IOException {
-    JobConf jConf = (JobConf)job.getConfiguration();
+    JobConf jConf = (JobConf) job.getConfiguration();
     // Check the output specification
-    if (jConf.getNumReduceTasks() == 0 ? 
+    if (jConf.getNumReduceTasks() == 0 ?
         jConf.getUseNewMapper() : jConf.getUseNewReducer()) {
       org.apache.hadoop.mapreduce.OutputFormat<?, ?> output =
-        ReflectionUtils.newInstance(job.getOutputFormatClass(),
-          job.getConfiguration());
+          ReflectionUtils.newInstance(job.getOutputFormatClass(),
+              job.getConfiguration());
       output.checkOutputSpecs(job);
     } else {
       jConf.getOutputFormat().checkOutputSpecs(jtFs, jConf);
     }
   }
-  
-  private void writeConf(Configuration conf, Path jobFile) 
+
+  private void writeConf(Configuration conf, Path jobFile)
       throws IOException {
     // Write job file to JobTracker's fs        
-    FSDataOutputStream out = 
-      FileSystem.create(jtFs, jobFile, 
-                        new FsPermission(JobSubmissionFiles.JOB_FILE_PERMISSION));
+    FSDataOutputStream out =
+        FileSystem.create(jtFs, jobFile,
+            new FsPermission(JobSubmissionFiles.JOB_FILE_PERMISSION));
     try {
       conf.writeXml(out);
     } finally {
       out.close();
     }
   }
-  
+
   private void printTokens(JobID jobId,
-      Credentials credentials) throws IOException {
+                           Credentials credentials) throws IOException {
     LOG.info("Submitting tokens for job: " + jobId);
-    for (Token<?> token: credentials.getAllTokens()) {
+    for (Token<?> token : credentials.getAllTokens()) {
       LOG.info(token);
     }
   }
@@ -592,7 +580,7 @@ class JobSubmitter {
       InterruptedException, ClassNotFoundException {
     Configuration conf = job.getConfiguration();
     InputFormat<?, ?> input =
-      ReflectionUtils.newInstance(job.getInputFormatClass(), conf);
+        ReflectionUtils.newInstance(job.getInputFormatClass(), conf);
 
     List<InputSplit> splits = input.getSplits(job);
     T[] array = (T[]) splits.toArray(new InputSplit[splits.size()]);
@@ -600,15 +588,15 @@ class JobSubmitter {
     // sort the splits into order based on size, so that the biggest
     // go first
     Arrays.sort(array, new SplitComparator());
-    JobSplitWriter.createSplitFiles(jobSubmitDir, conf, 
+    JobSplitWriter.createSplitFiles(jobSubmitDir, conf,
         jobSubmitDir.getFileSystem(conf), array);
     return array.length;
   }
-  
+
   private int writeSplits(org.apache.hadoop.mapreduce.JobContext job,
-      Path jobSubmitDir) throws IOException,
+                          Path jobSubmitDir) throws IOException,
       InterruptedException, ClassNotFoundException {
-    JobConf jConf = (JobConf)job.getConfiguration();
+    JobConf jConf = (JobConf) job.getConfiguration();
     int maps;
     if (jConf.getUseNewMapper()) {
       maps = writeNewSplits(job, jobSubmitDir);
@@ -617,12 +605,12 @@ class JobSubmitter {
     }
     return maps;
   }
-  
+
   //method to write splits for old api mapper.
-  private int writeOldSplits(JobConf job, Path jobSubmitDir) 
-  throws IOException {
+  private int writeOldSplits(JobConf job, Path jobSubmitDir)
+      throws IOException {
     org.apache.hadoop.mapred.InputSplit[] splits =
-    job.getInputFormat().getSplits(job, job.getNumMapTasks());
+        job.getInputFormat().getSplits(job, job.getNumMapTasks());
     // sort the splits into order based on size, so that the biggest
     // go first
     Arrays.sort(splits, new Comparator<org.apache.hadoop.mapred.InputSplit>() {
@@ -643,11 +631,11 @@ class JobSubmitter {
         }
       }
     });
-    JobSplitWriter.createSplitFiles(jobSubmitDir, job, 
+    JobSplitWriter.createSplitFiles(jobSubmitDir, job,
         jobSubmitDir.getFileSystem(job), splits);
     return splits.length;
   }
-  
+
   private static class SplitComparator implements Comparator<InputSplit> {
     @Override
     public int compare(InputSplit o1, InputSplit o2) {
@@ -668,13 +656,13 @@ class JobSubmitter {
       }
     }
   }
-  
+
   @SuppressWarnings("unchecked")
   private void readTokensFromFiles(Configuration conf, Credentials credentials)
-  throws IOException {
+      throws IOException {
     // add tokens and secrets coming from a token storage file
     String binaryTokenFilename =
-      conf.get("mapreduce.job.credentials.binary");
+        conf.get("mapreduce.job.credentials.binary");
     if (binaryTokenFilename != null) {
       Credentials binary = Credentials.readTokenStorageFile(
           FileSystem.getLocal(conf).makeQualified(
@@ -684,7 +672,7 @@ class JobSubmitter {
     }
     // add secret keys coming from a json file
     String tokensFileName = conf.get("mapreduce.job.credentials.json");
-    if(tokensFileName != null) {
+    if (tokensFileName != null) {
       LOG.info("loading user's secret keys from " + tokensFileName);
       String localFileName = new Path(tokensFileName).toUri().getPath();
 
@@ -692,10 +680,10 @@ class JobSubmitter {
       try {
         // read JSON
         ObjectMapper mapper = new ObjectMapper();
-        Map<String, String> nm = 
-          mapper.readValue(new File(localFileName), Map.class);
+        Map<String, String> nm =
+            mapper.readValue(new File(localFileName), Map.class);
 
-        for(Map.Entry<String, String> ent: nm.entrySet()) {
+        for (Map.Entry<String, String> ent : nm.entrySet()) {
           credentials.addSecretKey(new Text(ent.getKey()), ent.getValue()
               .getBytes(Charsets.UTF_8));
         }
@@ -704,22 +692,22 @@ class JobSubmitter {
       } catch (JsonParseException e) {
         json_error = true;
       }
-      if(json_error)
+      if (json_error)
         LOG.warn("couldn't parse Token Cache JSON file with user secret keys");
     }
   }
 
   //get secret keys and tokens and store them into TokenCache
-  private void populateTokenCache(Configuration conf, Credentials credentials) 
-  throws IOException{
+  private void populateTokenCache(Configuration conf, Credentials credentials)
+      throws IOException {
     readTokensFromFiles(conf, credentials);
     // add the delegation tokens from configuration
-    String [] nameNodes = conf.getStrings(MRJobConfig.JOB_NAMENODES);
-    LOG.debug("adding the following namenodes' delegation tokens:" + 
+    String[] nameNodes = conf.getStrings(MRJobConfig.JOB_NAMENODES);
+    LOG.debug("adding the following namenodes' delegation tokens:" +
         Arrays.toString(nameNodes));
-    if(nameNodes != null) {
-      Path [] ps = new Path[nameNodes.length];
-      for(int i=0; i< nameNodes.length; i++) {
+    if (nameNodes != null) {
+      Path[] ps = new Path[nameNodes.length];
+      for (int i = 0; i < nameNodes.length; i++) {
         ps[i] = new Path(nameNodes[i]);
       }
       TokenCache.obtainTokensForNamenodes(credentials, ps, conf);
@@ -762,14 +750,14 @@ class JobSubmitter {
       DistributedCache.addCacheArchive(uri, conf);
     }
   }
-  
+
   private void addLog4jToDistributedCache(Job job,
-      Path jobSubmitDir) throws IOException {
+                                          Path jobSubmitDir) throws IOException {
     Configuration conf = job.getConfiguration();
     String log4jPropertyFile =
         conf.get(MRJobConfig.MAPREDUCE_JOB_LOG4J_PROPERTIES_FILE, "");
     if (!log4jPropertyFile.isEmpty()) {
-      short replication = (short)conf.getInt(Job.SUBMIT_REPLICATION, 10);
+      short replication = (short) conf.getInt(Job.SUBMIT_REPLICATION, 10);
       copyLog4jPropertyFile(job, jobSubmitDir, replication);
 
       // Set the working directory

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,7 +30,7 @@ import org.apache.hadoop.mapreduce.JobID;
  */
 @InterfaceAudience.Private
 @InterfaceStability.Unstable
-public class JobFinishedEvent  implements HistoryEvent {
+public class JobFinishedEvent implements HistoryEvent {
 
   private JobFinished datum = null;
 
@@ -44,7 +44,7 @@ public class JobFinishedEvent  implements HistoryEvent {
   private Counters reduceCounters;
   private Counters totalCounters;
 
-  /** 
+  /**
    * Create an event to record successful job completion
    * @param id Job ID
    * @param finishTime Finish time of the job
@@ -57,10 +57,10 @@ public class JobFinishedEvent  implements HistoryEvent {
    * @param totalCounters Total Counters for the job
    */
   public JobFinishedEvent(JobID id, long finishTime,
-      int finishedMaps, int finishedReduces,
-      int failedMaps, int failedReduces,
-      Counters mapCounters, Counters reduceCounters,
-      Counters totalCounters) {
+                          int finishedMaps, int finishedReduces,
+                          int failedMaps, int failedReduces,
+                          Counters mapCounters, Counters reduceCounters,
+                          Counters totalCounters) {
     this.jobId = id;
     this.finishTime = finishTime;
     this.finishedMaps = finishedMaps;
@@ -72,7 +72,8 @@ public class JobFinishedEvent  implements HistoryEvent {
     this.totalCounters = totalCounters;
   }
 
-  JobFinishedEvent() {}
+  JobFinishedEvent() {
+  }
 
   public Object getDatum() {
     if (datum == null) {
@@ -85,7 +86,7 @@ public class JobFinishedEvent  implements HistoryEvent {
       datum.failedReduces = failedReduces;
       datum.mapCounters = EventWriter.toAvro(mapCounters, "MAP_COUNTERS");
       datum.reduceCounters = EventWriter.toAvro(reduceCounters,
-        "REDUCE_COUNTERS");
+          "REDUCE_COUNTERS");
       datum.totalCounters = EventWriter.toAvro(totalCounters, "TOTAL_COUNTERS");
     }
     return datum;
@@ -109,25 +110,45 @@ public class JobFinishedEvent  implements HistoryEvent {
   }
 
   /** Get the Job ID */
-  public JobID getJobid() { return jobId; }
+  public JobID getJobid() {
+    return jobId;
+  }
+
   /** Get the job finish time */
-  public long getFinishTime() { return finishTime; }
+  public long getFinishTime() {
+    return finishTime;
+  }
+
   /** Get the number of finished maps for the job */
-  public int getFinishedMaps() { return finishedMaps; }
+  public int getFinishedMaps() {
+    return finishedMaps;
+  }
+
   /** Get the number of finished reducers for the job */
-  public int getFinishedReduces() { return finishedReduces; }
+  public int getFinishedReduces() {
+    return finishedReduces;
+  }
+
   /** Get the number of failed maps for the job */
-  public int getFailedMaps() { return failedMaps; }
+  public int getFailedMaps() {
+    return failedMaps;
+  }
+
   /** Get the number of failed reducers for the job */
-  public int getFailedReduces() { return failedReduces; }
+  public int getFailedReduces() {
+    return failedReduces;
+  }
+
   /** Get the counters for the job */
   public Counters getTotalCounters() {
     return totalCounters;
   }
+
   /** Get the Map counters for the job */
   public Counters getMapCounters() {
     return mapCounters;
   }
+
   /** Get the reduce counters for the job */
   public Counters getReduceCounters() {
     return reduceCounters;

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,10 +17,6 @@
  */
 
 package org.apache.hadoop.mapreduce.security;
-
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -39,6 +35,10 @@ import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.security.token.TokenIdentifier;
 
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+
 
 /**
  * This class provides user facing APIs for transferring secrets from
@@ -49,21 +49,21 @@ import org.apache.hadoop.security.token.TokenIdentifier;
 @InterfaceAudience.Public
 @InterfaceStability.Evolving
 public class TokenCache {
-  
+
   private static final Log LOG = LogFactory.getLog(TokenCache.class);
 
-  
+
   /**
    * auxiliary method to get user's secret keys..
    * @param alias
    * @return secret key from the storage
    */
   public static byte[] getSecretKey(Credentials credentials, Text alias) {
-    if(credentials == null)
+    if (credentials == null)
       return null;
     return credentials.getSecretKey(alias);
   }
-  
+
   /**
    * Convenience method to obtain delegation tokens from namenodes 
    * corresponding to the paths passed.
@@ -73,7 +73,7 @@ public class TokenCache {
    * @throws IOException
    */
   public static void obtainTokensForNamenodes(Credentials credentials,
-      Path[] ps, Configuration conf) throws IOException {
+                                              Path[] ps, Configuration conf) throws IOException {
     if (!UserGroupInformation.isSecurityEnabled()) {
       return;
     }
@@ -91,9 +91,9 @@ public class TokenCache {
   }
 
   static void obtainTokensForNamenodesInternal(Credentials credentials,
-      Path[] ps, Configuration conf) throws IOException {
+                                               Path[] ps, Configuration conf) throws IOException {
     Set<FileSystem> fsSet = new HashSet<FileSystem>();
-    for(Path p: ps) {
+    for (Path p : ps) {
       fsSet.add(p.getFileSystem(conf));
     }
     for (FileSystem fs : fsSet) {
@@ -109,8 +109,8 @@ public class TokenCache {
    * @param conf
    * @throws IOException
    */
-  static void obtainTokensForNamenodesInternal(FileSystem fs, 
-      Credentials credentials, Configuration conf) throws IOException {
+  static void obtainTokensForNamenodesInternal(FileSystem fs,
+                                               Credentials credentials, Configuration conf) throws IOException {
     String delegTokenRenewer = Master.getMasterPrincipal(conf);
     if (delegTokenRenewer == null || delegTokenRenewer.length() == 0) {
       throw new IOException(
@@ -119,10 +119,10 @@ public class TokenCache {
     mergeBinaryTokens(credentials, conf);
 
     final Token<?> tokens[] = fs.addDelegationTokens(delegTokenRenewer,
-                                                     credentials);
+        credentials);
     if (tokens != null) {
       for (Token<?> token : tokens) {
-        LOG.info("Got dt for " + fs.getUri() + "; "+token);
+        LOG.info("Got dt for " + fs.getUri() + "; " + token);
       }
     }
   }
@@ -144,7 +144,7 @@ public class TokenCache {
       creds.mergeAll(binary);
     }
   }
-  
+
   /**
    * file name used on HDFS for generated job token
    */
@@ -158,7 +158,7 @@ public class TokenCache {
   public static final String JOB_TOKENS_FILENAME = "mapreduce.job.jobTokenFile";
   private static final Text JOB_TOKEN = new Text("JobToken");
   private static final Text SHUFFLE_TOKEN = new Text("MapReduceShuffleToken");
-  
+
   /**
    * load job token from a file
    * @deprecated Use {@link Credentials#readTokenStorageFile} instead,
@@ -169,20 +169,20 @@ public class TokenCache {
   @InterfaceAudience.Private
   @Deprecated
   public static Credentials loadTokens(String jobTokenFile, JobConf conf)
-  throws IOException {
-    Path localJobTokenFile = new Path ("file:///" + jobTokenFile);
+      throws IOException {
+    Path localJobTokenFile = new Path("file:///" + jobTokenFile);
 
     Credentials ts = Credentials.readTokenStorageFile(localJobTokenFile, conf);
 
-    if(LOG.isDebugEnabled()) {
-      LOG.debug("Task: Loaded jobTokenFile from: "+
-          localJobTokenFile.toUri().getPath() 
-          +"; num of sec keys  = " + ts.numberOfSecretKeys() +
-          " Number of tokens " +  ts.numberOfTokens());
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Task: Loaded jobTokenFile from: " +
+          localJobTokenFile.toUri().getPath()
+          + "; num of sec keys  = " + ts.numberOfSecretKeys() +
+          " Number of tokens " + ts.numberOfTokens());
     }
     return ts;
   }
-  
+
   /**
    * load job token from a file
    * @deprecated Use {@link Credentials#readTokenStorageFile} instead,
@@ -196,18 +196,19 @@ public class TokenCache {
       throws IOException {
     return loadTokens(jobTokenFile, new JobConf(conf));
   }
-  
+
   /**
    * store job token
    * @param t
    */
   @InterfaceAudience.Private
-  public static void setJobToken(Token<? extends TokenIdentifier> t, 
-      Credentials credentials) {
+  public static void setJobToken(Token<? extends TokenIdentifier> t,
+                                 Credentials credentials) {
     credentials.addToken(JOB_TOKEN, t);
   }
+
   /**
-   * 
+   *
    * @return job token
    */
   @SuppressWarnings("unchecked")
@@ -234,10 +235,9 @@ public class TokenCache {
    */
   @InterfaceAudience.Private
   @Deprecated
-  public static
-      Token<?> getDelegationToken(
-          Credentials credentials, String namenode) {
+  public static Token<?> getDelegationToken(
+      Credentials credentials, String namenode) {
     return (Token<?>) credentials.getToken(new Text(
-      namenode));
+        namenode));
   }
 }

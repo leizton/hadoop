@@ -1,30 +1,22 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapred;
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -55,16 +47,24 @@ import org.apache.hadoop.service.CompositeService;
 import org.apache.hadoop.util.StringInterner;
 import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 /**
  * This class is responsible for talking to the task umblical.
  * It also converts all the old data structures
  * to yarn data structures.
- * 
+ *
  * This class HAS to be in this package to access package private 
  * methods/classes.
  */
 @SuppressWarnings({"unchecked"})
-public class TaskAttemptListenerImpl extends CompositeService 
+public class TaskAttemptListenerImpl extends CompositeService
     implements TaskUmbilicalProtocol, TaskAttemptListener {
 
   private static final JvmTask TASK_FOR_INVALID_JVM = new JvmTask(null, true);
@@ -78,16 +78,16 @@ public class TaskAttemptListenerImpl extends CompositeService
   private long commitWindowMs;
   private InetSocketAddress address;
   private ConcurrentMap<WrappedJvmID, org.apache.hadoop.mapred.Task>
-    jvmIDToActiveAttemptMap
+      jvmIDToActiveAttemptMap
       = new ConcurrentHashMap<WrappedJvmID, org.apache.hadoop.mapred.Task>();
   private Set<WrappedJvmID> launchedJVMs = Collections
-      .newSetFromMap(new ConcurrentHashMap<WrappedJvmID, Boolean>()); 
-  
+      .newSetFromMap(new ConcurrentHashMap<WrappedJvmID, Boolean>());
+
   private JobTokenSecretManager jobTokenSecretManager = null;
-  
+
   public TaskAttemptListenerImpl(AppContext context,
-      JobTokenSecretManager jobTokenSecretManager,
-      RMHeartbeatHandler rmHeartbeatHandler) {
+                                 JobTokenSecretManager jobTokenSecretManager,
+                                 RMHeartbeatHandler rmHeartbeatHandler) {
     super(TaskAttemptListenerImpl.class.getName());
     this.context = context;
     this.jobTokenSecretManager = jobTokenSecretManager;
@@ -96,10 +96,10 @@ public class TaskAttemptListenerImpl extends CompositeService
 
   @Override
   protected void serviceInit(Configuration conf) throws Exception {
-   registerHeartbeatHandler(conf);
-   commitWindowMs = conf.getLong(MRJobConfig.MR_AM_COMMIT_WINDOW_MS,
-       MRJobConfig.DEFAULT_MR_AM_COMMIT_WINDOW_MS);
-   super.serviceInit(conf);
+    registerHeartbeatHandler(conf);
+    commitWindowMs = conf.getLong(MRJobConfig.MR_AM_COMMIT_WINDOW_MS,
+        MRJobConfig.DEFAULT_MR_AM_COMMIT_WINDOW_MS);
+    super.serviceInit(conf);
   }
 
   @Override
@@ -109,27 +109,27 @@ public class TaskAttemptListenerImpl extends CompositeService
   }
 
   protected void registerHeartbeatHandler(Configuration conf) {
-    taskHeartbeatHandler = new TaskHeartbeatHandler(context.getEventHandler(), 
-        context.getClock(), conf.getInt(MRJobConfig.MR_AM_TASK_LISTENER_THREAD_COUNT, 
-            MRJobConfig.DEFAULT_MR_AM_TASK_LISTENER_THREAD_COUNT));
+    taskHeartbeatHandler = new TaskHeartbeatHandler(context.getEventHandler(),
+        context.getClock(), conf.getInt(MRJobConfig.MR_AM_TASK_LISTENER_THREAD_COUNT,
+        MRJobConfig.DEFAULT_MR_AM_TASK_LISTENER_THREAD_COUNT));
     addService(taskHeartbeatHandler);
   }
 
   protected void startRpcServer() {
     Configuration conf = getConfig();
     try {
-      server = 
+      server =
           new RPC.Builder(conf).setProtocol(TaskUmbilicalProtocol.class)
-            .setInstance(this).setBindAddress("0.0.0.0")
-            .setPort(0).setNumHandlers(
-                conf.getInt(MRJobConfig.MR_AM_TASK_LISTENER_THREAD_COUNT, 
-                    MRJobConfig.DEFAULT_MR_AM_TASK_LISTENER_THREAD_COUNT))
-                    .setVerbose(false).setSecretManager(jobTokenSecretManager)
-                    .build();
-      
+              .setInstance(this).setBindAddress("0.0.0.0")
+              .setPort(0).setNumHandlers(
+              conf.getInt(MRJobConfig.MR_AM_TASK_LISTENER_THREAD_COUNT,
+                  MRJobConfig.DEFAULT_MR_AM_TASK_LISTENER_THREAD_COUNT))
+              .setVerbose(false).setSecretManager(jobTokenSecretManager)
+              .build();
+
       // Enable service authorization?
       if (conf.getBoolean(
-          CommonConfigurationKeysPublic.HADOOP_SECURITY_AUTHORIZATION, 
+          CommonConfigurationKeysPublic.HADOOP_SECURITY_AUTHORIZATION,
           false)) {
         refreshServiceAcls(conf, new MRAMPolicyProvider());
       }
@@ -143,8 +143,8 @@ public class TaskAttemptListenerImpl extends CompositeService
     }
   }
 
-  void refreshServiceAcls(Configuration configuration, 
-      PolicyProvider policyProvider) {
+  void refreshServiceAcls(Configuration configuration,
+                          PolicyProvider policyProvider) {
     this.server.refreshServiceAcl(configuration, policyProvider);
   }
 
@@ -167,7 +167,7 @@ public class TaskAttemptListenerImpl extends CompositeService
 
   /**
    * Child checking whether it can commit.
-   * 
+   *
    * <br/>
    * Commit is a two-phased protocol. First the attempt informs the
    * ApplicationMaster that it is
@@ -201,7 +201,7 @@ public class TaskAttemptListenerImpl extends CompositeService
   /**
    * TaskAttempt is reporting that it is in commit_pending and it is waiting for
    * the commit Response
-   * 
+   *
    * <br/>
    * Commit it a two-phased protocol. First the attempt informs the
    * ApplicationMaster that it is
@@ -211,7 +211,7 @@ public class TaskAttemptListenerImpl extends CompositeService
    */
   @Override
   public void commitPending(TaskAttemptID taskAttemptID, TaskStatus taskStatsu)
-          throws IOException, InterruptedException {
+      throws IOException, InterruptedException {
     LOG.info("Commit-pending state update from " + taskAttemptID.toString());
     // An attempt is asking if it can commit its output. This can be decided
     // only by the task which is managing the multiple attempts. So redirect the
@@ -222,7 +222,7 @@ public class TaskAttemptListenerImpl extends CompositeService
     taskHeartbeatHandler.progressing(attemptID);
     //Ignorable TaskStatus? - since a task will send a LastStatusUpdate
     context.getEventHandler().handle(
-        new TaskAttemptEvent(attemptID, 
+        new TaskAttemptEvent(attemptID,
             TaskAttemptEventType.TA_COMMIT_PENDING));
   }
 
@@ -281,13 +281,13 @@ public class TaskAttemptListenerImpl extends CompositeService
     // TODO: shouldReset is never used. See TT. Ask for Removal.
     boolean shouldReset = false;
     org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId attemptID =
-      TypeConverter.toYarn(taskAttemptID);
+        TypeConverter.toYarn(taskAttemptID);
     TaskCompletionEvent[] events =
         context.getJob(attemptID.getTaskId().getJobId()).getMapAttemptCompletionEvents(
             startIndex, maxEvents);
 
     taskHeartbeatHandler.progressing(attemptID);
-    
+
     return new MapTaskCompletionEventsUpdate(events, shouldReset);
   }
 
@@ -301,13 +301,13 @@ public class TaskAttemptListenerImpl extends CompositeService
 
   @Override
   public void reportDiagnosticInfo(TaskAttemptID taskAttemptID, String diagnosticInfo)
- throws IOException {
+      throws IOException {
     diagnosticInfo = StringInterner.weakIntern(diagnosticInfo);
     LOG.info("Diagnostics report from " + taskAttemptID.toString() + ": "
         + diagnosticInfo);
 
     org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId attemptID =
-      TypeConverter.toYarn(taskAttemptID);
+        TypeConverter.toYarn(taskAttemptID);
     taskHeartbeatHandler.progressing(attemptID);
 
     // This is mainly used for cases where we want to propagate exception traces
@@ -322,7 +322,7 @@ public class TaskAttemptListenerImpl extends CompositeService
 
   @Override
   public boolean statusUpdate(TaskAttemptID taskAttemptID,
-      TaskStatus taskStatus) throws IOException, InterruptedException {
+                              TaskStatus taskStatus) throws IOException, InterruptedException {
     org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId yarnAttemptID =
         TypeConverter.toYarn(taskAttemptID);
     taskHeartbeatHandler.progressing(yarnAttemptID);
@@ -341,7 +341,7 @@ public class TaskAttemptListenerImpl extends CompositeService
     // that is the primary storage format inside the AM to avoid multiple
     // conversions and unnecessary heap usage.
     taskAttemptStatus.counters = new org.apache.hadoop.mapreduce.Counters(
-      taskStatus.getCounters());
+        taskStatus.getCounters());
 
     // Map Finish time set by the task (map only)
     if (taskStatus.getIsMap() && taskStatus.getMapFinishTime() != 0) {
@@ -360,20 +360,20 @@ public class TaskAttemptListenerImpl extends CompositeService
 
     // Not Setting the task state. Used by speculation - will be set in TaskAttemptImpl
     //taskAttemptStatus.taskState =  TypeConverter.toYarn(taskStatus.getRunState());
-    
+
     //set the fetch failures
-    if (taskStatus.getFetchFailedMaps() != null 
+    if (taskStatus.getFetchFailedMaps() != null
         && taskStatus.getFetchFailedMaps().size() > 0) {
-      taskAttemptStatus.fetchFailedMaps = 
-        new ArrayList<org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId>();
+      taskAttemptStatus.fetchFailedMaps =
+          new ArrayList<org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId>();
       for (TaskAttemptID failedMapId : taskStatus.getFetchFailedMaps()) {
         taskAttemptStatus.fetchFailedMaps.add(
             TypeConverter.toYarn(failedMapId));
       }
     }
 
- // Task sends the information about the nextRecordRange to the TT
-    
+    // Task sends the information about the nextRecordRange to the TT
+
 //    TODO: The following are not needed here, but needed to be set somewhere inside AppMaster.
 //    taskStatus.getRunState(); // Set by the TT/JT. Transform into a state TODO
 //    taskStatus.getStartTime(); // Used to be set by the TaskTracker. This should be set by getTask().
@@ -411,7 +411,7 @@ public class TaskAttemptListenerImpl extends CompositeService
 
     JVMId jvmId = context.jvmId;
     LOG.info("JVM with ID : " + jvmId + " asked for a task");
-    
+
     JvmTask jvmTask = null;
     // TODO: Is it an authorized container to get a task? Otherwise return null.
 
@@ -478,7 +478,7 @@ public class TaskAttemptListenerImpl extends CompositeService
     // Remove from launchedJVMs before jvmIDToActiveAttemptMap to avoid
     // synchronization issue with getTask(). getTask should be checking
     // jvmIDToActiveAttemptMap before it checks launchedJVMs.
- 
+
     // remove the mappings if not already removed
     launchedJVMs.remove(jvmID);
     jvmIDToActiveAttemptMap.remove(jvmID);
@@ -489,8 +489,8 @@ public class TaskAttemptListenerImpl extends CompositeService
 
   @Override
   public ProtocolSignature getProtocolSignature(String protocol,
-      long clientVersion, int clientMethodsHash) throws IOException {
-    return ProtocolSignature.getProtocolSignature(this, 
+                                                long clientVersion, int clientMethodsHash) throws IOException {
+    return ProtocolSignature.getProtocolSignature(this,
         protocol, clientVersion, clientMethodsHash);
   }
 }

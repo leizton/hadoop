@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,9 +18,10 @@
 
 package org.apache.hadoop.mapred.pipes;
 
-import java.io.IOException;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.WritableComparable;
+
+import java.io.IOException;
 
 /**
  * The interface for the messages that can come up from the child. All of these
@@ -34,7 +35,7 @@ interface UpwardProtocol<K extends WritableComparable, V extends Writable> {
    * @throws IOException
    */
   void output(K key, V value) throws IOException;
-  
+
   /**
    * Map functions where the application has defined a partition function
    * output records along with their partition.
@@ -43,36 +44,36 @@ interface UpwardProtocol<K extends WritableComparable, V extends Writable> {
    * @param value the record's value
    * @throws IOException
    */
-  void partitionedOutput(int reduce, K key, 
+  void partitionedOutput(int reduce, K key,
                          V value) throws IOException;
-  
+
   /**
    * Update the task's status message
    * @param msg the string to display to the user
    * @throws IOException
    */
   void status(String msg) throws IOException;
-  
+
   /**
    * Report making progress (and the current progress)
    * @param progress the current progress (0.0 to 1.0)
    * @throws IOException
    */
   void progress(float progress) throws IOException;
-  
+
   /**
    * Report that the application has finished processing all inputs 
    * successfully.
    * @throws IOException
    */
   void done() throws IOException;
-  
+
   /**
    * Report that the application or more likely communication failed.
    * @param e
    */
   void failed(Throwable e);
-  
+
   /**
    * Register a counter with the given id and group/name.
    * @param group counter group
@@ -80,7 +81,7 @@ interface UpwardProtocol<K extends WritableComparable, V extends Writable> {
    * @throws IOException
    */
   void registerCounter(int id, String group, String name) throws IOException;
-  
+
   /**
    * Increment the value of a registered counter.
    * @param id counter id of the registered counter

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,17 +18,15 @@
 
 package org.apache.hadoop.mapreduce.jobhistory;
 
+import org.apache.avro.util.Utf8;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
+import org.apache.hadoop.mapred.ProgressSplitsBlock;
 import org.apache.hadoop.mapred.TaskStatus;
 import org.apache.hadoop.mapreduce.Counters;
 import org.apache.hadoop.mapreduce.TaskAttemptID;
 import org.apache.hadoop.mapreduce.TaskID;
 import org.apache.hadoop.mapreduce.TaskType;
-
-import org.apache.hadoop.mapred.ProgressSplitsBlock;
-
-import org.apache.avro.util.Utf8;
 
 /**
  * Event to record unsuccessful (Killed/Failed) completion of task attempts
@@ -56,7 +54,7 @@ public class TaskAttemptUnsuccessfulCompletionEvent implements HistoryEvent {
   int[] physMemKbytes;
   private static final Counters EMPTY_COUNTERS = new Counters();
 
-  /** 
+  /**
    * Create an event to record the unsuccessful completion of attempts
    * @param id Attempt ID
    * @param taskType Type of the task
@@ -73,10 +71,10 @@ public class TaskAttemptUnsuccessfulCompletionEvent implements HistoryEvent {
    *        virtual memory and physical memory.  
    */
   public TaskAttemptUnsuccessfulCompletionEvent
-       (TaskAttemptID id, TaskType taskType,
-        String status, long finishTime,
-        String hostname, int port, String rackName,
-        String error, Counters counters, int[][] allSplits) {
+  (TaskAttemptID id, TaskType taskType,
+   String status, long finishTime,
+   String hostname, int port, String rackName,
+   String error, Counters counters, int[][] allSplits) {
     this.attemptId = id;
     this.taskType = taskType;
     this.status = status;
@@ -97,7 +95,7 @@ public class TaskAttemptUnsuccessfulCompletionEvent implements HistoryEvent {
         ProgressSplitsBlock.arrayGetPhysMemKbytes(allSplits);
   }
 
-  /** 
+  /**
    * @deprecated please use the constructor with an additional
    *              argument, an array of splits arrays instead.  See
    *              {@link org.apache.hadoop.mapred.ProgressSplitsBlock}
@@ -112,13 +110,13 @@ public class TaskAttemptUnsuccessfulCompletionEvent implements HistoryEvent {
    * @param error Error string
    */
   public TaskAttemptUnsuccessfulCompletionEvent
-       (TaskAttemptID id, TaskType taskType,
-        String status, long finishTime, 
-        String hostname, String error) {
+  (TaskAttemptID id, TaskType taskType,
+   String status, long finishTime,
+   String hostname, String error) {
     this(id, taskType, status, finishTime, hostname, -1, "",
         error, EMPTY_COUNTERS, null);
   }
-  
+
   public TaskAttemptUnsuccessfulCompletionEvent
       (TaskAttemptID id, TaskType taskType,
        String status, long finishTime,
@@ -128,10 +126,11 @@ public class TaskAttemptUnsuccessfulCompletionEvent implements HistoryEvent {
         rackName, error, EMPTY_COUNTERS, null);
   }
 
-  TaskAttemptUnsuccessfulCompletionEvent() {}
+  TaskAttemptUnsuccessfulCompletionEvent() {
+  }
 
   public Object getDatum() {
-    if(datum == null) {
+    if (datum == null) {
       datum = new TaskAttemptUnsuccessfulCompletion();
       datum.taskid = new Utf8(attemptId.getTaskID().toString());
       datum.taskType = new Utf8(taskType.name());
@@ -158,12 +157,11 @@ public class TaskAttemptUnsuccessfulCompletionEvent implements HistoryEvent {
     }
     return datum;
   }
-  
-  
-  
+
+
   public void setDatum(Object odatum) {
     this.datum =
-        (TaskAttemptUnsuccessfulCompletion)odatum;
+        (TaskAttemptUnsuccessfulCompletion) odatum;
     this.attemptId =
         TaskAttemptID.forName(datum.attemptId.toString());
     this.taskType =
@@ -190,60 +188,80 @@ public class TaskAttemptUnsuccessfulCompletionEvent implements HistoryEvent {
   public TaskID getTaskId() {
     return attemptId.getTaskID();
   }
+
   /** Get the task type */
   public TaskType getTaskType() {
     return TaskType.valueOf(taskType.toString());
   }
+
   /** Get the attempt id */
   public TaskAttemptID getTaskAttemptId() {
     return attemptId;
   }
+
   /** Get the finish time */
-  public long getFinishTime() { return finishTime; }
+  public long getFinishTime() {
+    return finishTime;
+  }
+
   /** Get the name of the host where the attempt executed */
-  public String getHostname() { return hostname; }
+  public String getHostname() {
+    return hostname;
+  }
+
   /** Get the rpc port for the host where the attempt executed */
-  public int getPort() { return port; }
-  
+  public int getPort() {
+    return port;
+  }
+
   /** Get the rack name of the node where the attempt ran */
   public String getRackName() {
     return rackName == null ? null : rackName.toString();
   }
-  
+
   /** Get the error string */
-  public String getError() { return error.toString(); }
+  public String getError() {
+    return error.toString();
+  }
+
   /** Get the task status */
   public String getTaskStatus() {
     return status.toString();
   }
+
   /** Get the counters */
-  Counters getCounters() { return counters; }
+  Counters getCounters() {
+    return counters;
+  }
+
   /** Get the event type */
   public EventType getEventType() {
     // Note that the task type can be setup/map/reduce/cleanup but the 
     // attempt-type can only be map/reduce.
     // find out if the task failed or got killed
     boolean failed = TaskStatus.State.FAILED.toString().equals(getTaskStatus());
-    return getTaskId().getTaskType() == TaskType.MAP 
-           ? (failed 
-              ? EventType.MAP_ATTEMPT_FAILED
-              : EventType.MAP_ATTEMPT_KILLED)
-           : (failed
-              ? EventType.REDUCE_ATTEMPT_FAILED
-              : EventType.REDUCE_ATTEMPT_KILLED);
+    return getTaskId().getTaskType() == TaskType.MAP
+        ? (failed
+        ? EventType.MAP_ATTEMPT_FAILED
+        : EventType.MAP_ATTEMPT_KILLED)
+        : (failed
+        ? EventType.REDUCE_ATTEMPT_FAILED
+        : EventType.REDUCE_ATTEMPT_KILLED);
   }
-
 
 
   public int[] getClockSplits() {
     return clockSplits;
   }
+
   public int[] getCpuUsages() {
     return cpuUsages;
   }
+
   public int[] getVMemKbytes() {
     return vMemKbytes;
   }
+
   public int[] getPhysMemKbytes() {
     return physMemKbytes;
   }

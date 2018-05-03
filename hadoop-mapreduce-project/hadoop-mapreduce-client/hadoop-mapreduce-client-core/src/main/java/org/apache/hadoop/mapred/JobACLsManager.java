@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,9 +16,6 @@
  * limitations under the License.
  */
 package org.apache.hadoop.mapred;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -29,6 +26,9 @@ import org.apache.hadoop.mapreduce.MRConfig;
 import org.apache.hadoop.security.AccessControlException;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.authorize.AccessControlList;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @InterfaceAudience.Private
 public class JobACLsManager {
@@ -50,7 +50,7 @@ public class JobACLsManager {
    * Construct the jobACLs from the configuration so that they can be kept in
    * the memory. If authorization is disabled on the JT, nothing is constructed
    * and an empty map is returned.
-   * 
+   *
    * @return JobACL to AccessControlList map.
    */
   public Map<JobACL, AccessControlList> constructJobACLs(Configuration conf) {
@@ -77,16 +77,16 @@ public class JobACLsManager {
   }
 
   /**
-    * Is the calling user an admin for the mapreduce cluster
-    * i.e. member of mapreduce.cluster.administrators
-    * @return true, if user is an admin
-    */
-   boolean isMRAdmin(UserGroupInformation callerUGI) {
-     if (adminAcl.isUserAllowed(callerUGI)) {
-       return true;
-     }
-     return false;
-   }
+   * Is the calling user an admin for the mapreduce cluster
+   * i.e. member of mapreduce.cluster.administrators
+   * @return true, if user is an admin
+   */
+  boolean isMRAdmin(UserGroupInformation callerUGI) {
+    if (adminAcl.isUserAllowed(callerUGI)) {
+      return true;
+    }
+    return false;
+  }
 
   /**
    * If authorization is enabled, checks whether the user (in the callerUGI)
@@ -104,7 +104,7 @@ public class JobACLsManager {
    * @throws AccessControlException
    */
   public boolean checkAccess(UserGroupInformation callerUGI,
-      JobACL jobOperation, String jobOwner, AccessControlList jobACL) {
+                             JobACL jobOperation, String jobOwner, AccessControlList jobACL) {
 
     if (LOG.isDebugEnabled()) {
       LOG.debug("checkAccess job acls, jobOwner: " + jobOwner + " jobacl: "

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,14 +17,6 @@
  */
 
 package org.apache.hadoop.mapreduce;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.security.PrivilegedExceptionAction;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ServiceLoader;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -44,16 +36,28 @@ import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.token.SecretManager.InvalidToken;
 import org.apache.hadoop.security.token.Token;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.security.PrivilegedExceptionAction;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ServiceLoader;
+
 /**
  * Provides a way to access information about the map/reduce cluster.
  */
 @InterfaceAudience.Public
 @InterfaceStability.Evolving
 public class Cluster {
-  
+
   @InterfaceStability.Evolving
-  public static enum JobTrackerStatus {INITIALIZING, RUNNING};
-  
+  public static enum JobTrackerStatus {
+    INITIALIZING, RUNNING
+  }
+
+  ;
+
   private ClientProtocolProvider clientProtocolProvider;
   private ClientProtocol client;
   private UserGroupInformation ugi;
@@ -66,22 +70,22 @@ public class Cluster {
 
   private static ServiceLoader<ClientProtocolProvider> frameworkLoader =
       ServiceLoader.load(ClientProtocolProvider.class);
-  
+
   static {
     ConfigUtil.loadResources();
   }
-  
+
   public Cluster(Configuration conf) throws IOException {
     this(null, conf);
   }
 
-  public Cluster(InetSocketAddress jobTrackAddr, Configuration conf) 
+  public Cluster(InetSocketAddress jobTrackAddr, Configuration conf)
       throws IOException {
     this.conf = conf;
     this.ugi = UserGroupInformation.getCurrentUser();
     initialize(jobTrackAddr, conf);
   }
-  
+
   private void initialize(InetSocketAddress jobTrackAddr, Configuration conf)
       throws IOException {
 
@@ -89,7 +93,7 @@ public class Cluster {
       for (ClientProtocolProvider provider : frameworkLoader) {
         LOG.debug("Trying ClientProtocolProvider : "
             + provider.getClass().getName());
-        ClientProtocol clientProtocol = null; 
+        ClientProtocol clientProtocol = null;
         try {
           if (jobTrackAddr == null) {
             clientProtocol = provider.create(conf);
@@ -103,13 +107,11 @@ public class Cluster {
             LOG.debug("Picked " + provider.getClass().getName()
                 + " as the ClientProtocolProvider");
             break;
-          }
-          else {
+          } else {
             LOG.debug("Cannot pick " + provider.getClass().getName()
                 + " as the ClientProtocolProvider - returned null protocol");
           }
-        } 
-        catch (Exception e) {
+        } catch (Exception e) {
           LOG.info("Failed to use " + provider.getClass().getName()
               + " due to error: " + e.getMessage());
         }
@@ -127,11 +129,11 @@ public class Cluster {
   ClientProtocol getClient() {
     return client;
   }
-  
+
   Configuration getConf() {
     return conf;
   }
-  
+
   /**
    * Close the <code>Cluster</code>.
    */
@@ -149,12 +151,12 @@ public class Cluster {
 
   /**
    * Get the file system where job-specific files are stored
-   * 
+   *
    * @return object of FileSystem
    * @throws IOException
    * @throws InterruptedException
    */
-  public synchronized FileSystem getFileSystem() 
+  public synchronized FileSystem getFileSystem()
       throws IOException, InterruptedException {
     if (this.fs == null) {
       try {
@@ -173,7 +175,7 @@ public class Cluster {
 
   /**
    * Get job corresponding to jobid.
-   * 
+   *
    * @param jobId
    * @return object of {@link Job}
    * @throws IOException
@@ -197,10 +199,10 @@ public class Cluster {
     }
     return null;
   }
-  
+
   /**
    * Get all the queues in cluster.
-   * 
+   *
    * @return array of {@link QueueInfo}
    * @throws IOException
    * @throws InterruptedException
@@ -208,16 +210,16 @@ public class Cluster {
   public QueueInfo[] getQueues() throws IOException, InterruptedException {
     return client.getQueues();
   }
-  
+
   /**
    * Get queue information for the specified name.
-   * 
+   *
    * @param name queuename
    * @return object of {@link QueueInfo}
    * @throws IOException
    * @throws InterruptedException
    */
-  public QueueInfo getQueue(String name) 
+  public QueueInfo getQueue(String name)
       throws IOException, InterruptedException {
     return client.getQueue(name);
   }
@@ -237,7 +239,7 @@ public class Cluster {
 
   /**
    * Get current cluster status.
-   * 
+   *
    * @return object of {@link ClusterMetrics}
    * @throws IOException
    * @throws InterruptedException
@@ -245,34 +247,34 @@ public class Cluster {
   public ClusterMetrics getClusterStatus() throws IOException, InterruptedException {
     return client.getClusterMetrics();
   }
-  
+
   /**
    * Get all active trackers in the cluster.
-   * 
+   *
    * @return array of {@link TaskTrackerInfo}
    * @throws IOException
    * @throws InterruptedException
    */
-  public TaskTrackerInfo[] getActiveTaskTrackers() 
-      throws IOException, InterruptedException  {
+  public TaskTrackerInfo[] getActiveTaskTrackers()
+      throws IOException, InterruptedException {
     return client.getActiveTrackers();
   }
-  
+
   /**
    * Get blacklisted trackers.
-   * 
+   *
    * @return array of {@link TaskTrackerInfo}
    * @throws IOException
    * @throws InterruptedException
    */
-  public TaskTrackerInfo[] getBlackListedTaskTrackers() 
-      throws IOException, InterruptedException  {
+  public TaskTrackerInfo[] getBlackListedTaskTrackers()
+      throws IOException, InterruptedException {
     return client.getBlacklistedTrackers();
   }
-  
+
   /**
    * Get all the jobs in cluster.
-   * 
+   *
    * @return array of {@link Job}
    * @throws IOException
    * @throws InterruptedException
@@ -296,7 +298,7 @@ public class Cluster {
   /**
    * Grab the jobtracker system directory path where 
    * job-specific files will  be placed.
-   * 
+   *
    * @return the system directory where job-specific files are to be placed.
    */
   public Path getSystemDir() throws IOException, InterruptedException {
@@ -305,11 +307,11 @@ public class Cluster {
     }
     return sysDir;
   }
-  
+
   /**
    * Grab the jobtracker's view of the staging directory path where 
    * job-specific files will  be placed.
-   * 
+   *
    * @return the staging directory where job-specific files are to be placed.
    */
   public Path getStagingAreaDir() throws IOException, InterruptedException {
@@ -328,13 +330,13 @@ public class Cluster {
    * @throws IOException
    * @throws InterruptedException
    */
-  public String getJobHistoryUrl(JobID jobId) throws IOException, 
-    InterruptedException {
+  public String getJobHistoryUrl(JobID jobId) throws IOException,
+      InterruptedException {
     if (jobHistoryDir == null) {
       jobHistoryDir = new Path(client.getJobHistoryDir());
     }
     return new Path(jobHistoryDir, jobId.toString() + "_"
-                    + ugi.getShortUserName()).toString();
+        + ugi.getShortUserName()).toString();
   }
 
   /**
@@ -342,8 +344,8 @@ public class Cluster {
    * @return array of QueueAclsInfo object for current user.
    * @throws IOException
    */
-  public QueueAclsInfo[] getQueueAclsForCurrentUser() 
-      throws IOException, InterruptedException  {
+  public QueueAclsInfo[] getQueueAclsForCurrentUser()
+      throws IOException, InterruptedException {
     return client.getQueueAclsForCurrentUser();
   }
 
@@ -355,21 +357,21 @@ public class Cluster {
   public QueueInfo[] getRootQueues() throws IOException, InterruptedException {
     return client.getRootQueues();
   }
-  
+
   /**
    * Returns immediate children of queueName.
    * @param queueName
    * @return array of JobQueueInfo which are children of queueName
    * @throws IOException
    */
-  public QueueInfo[] getChildQueues(String queueName) 
+  public QueueInfo[] getChildQueues(String queueName)
       throws IOException, InterruptedException {
     return client.getChildQueues(queueName);
   }
-  
+
   /**
    * Get the JobTracker's status.
-   * 
+   *
    * @return {@link JobTrackerStatus} of the JobTracker
    * @throws IOException
    * @throws InterruptedException
@@ -378,7 +380,7 @@ public class Cluster {
       InterruptedException {
     return client.getJobTrackerStatus();
   }
-  
+
   /**
    * Get the tasktracker expiry interval for the cluster
    * @return the expiry interval in msec
@@ -394,8 +396,8 @@ public class Cluster {
    * @return the new token
    * @throws IOException
    */
-  public Token<DelegationTokenIdentifier> 
-      getDelegationToken(Text renewer) throws IOException, InterruptedException{
+  public Token<DelegationTokenIdentifier>
+  getDelegationToken(Text renewer) throws IOException, InterruptedException {
     // client has already set the service
     return client.getDelegationToken(renewer);
   }
@@ -409,8 +411,8 @@ public class Cluster {
    * @deprecated Use {@link Token#renew} instead
    */
   public long renewDelegationToken(Token<DelegationTokenIdentifier> token
-                                   ) throws InvalidToken, IOException,
-                                            InterruptedException {
+  ) throws InvalidToken, IOException,
+      InterruptedException {
     return token.renew(getConf());
   }
 
@@ -421,8 +423,8 @@ public class Cluster {
    * @deprecated Use {@link Token#cancel} instead
    */
   public void cancelDelegationToken(Token<DelegationTokenIdentifier> token
-                                    ) throws IOException,
-                                             InterruptedException {
+  ) throws IOException,
+      InterruptedException {
     token.cancel(getConf());
   }
 

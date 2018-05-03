@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,34 +17,41 @@
  */
 package org.apache.hadoop.examples.pi;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.examples.pi.math.ArithmeticProgression;
 import org.apache.hadoop.examples.pi.math.Summation;
 import org.apache.hadoop.io.WritableComparable;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+
 /** A Writable class for Summation */
 public final class SummationWritable implements WritableComparable<SummationWritable>, Container<Summation> {
   private Summation sigma;
 
-  public SummationWritable() {}
-  
-  SummationWritable(Summation sigma) {this.sigma = sigma;}
+  public SummationWritable() {
+  }
+
+  SummationWritable(Summation sigma) {
+    this.sigma = sigma;
+  }
 
   /** {@inheritDoc} */
   @Override
-  public String toString() {return getClass().getSimpleName() + sigma;}
+  public String toString() {
+    return getClass().getSimpleName() + sigma;
+  }
 
   /** {@inheritDoc} */
   @Override
-  public Summation getElement() {return sigma;}
+  public Summation getElement() {
+    return sigma;
+  }
 
   /** Read sigma from conf */
   public static Summation read(Class<?> clazz, Configuration conf) {
-    return Summation.valueOf(conf.get(clazz.getSimpleName() + ".sigma")); 
+    return Summation.valueOf(conf.get(clazz.getSimpleName() + ".sigma"));
   }
 
   /** Write sigma to conf */
@@ -64,7 +71,7 @@ public final class SummationWritable implements WritableComparable<SummationWrit
   public void readFields(DataInput in) throws IOException {
     final ArithmeticProgression N = ArithmeticProgressionWritable.read(in);
     final ArithmeticProgression E = ArithmeticProgressionWritable.read(in);
-    sigma = new Summation(N, E); 
+    sigma = new Summation(N, E);
 
     if (in.readBoolean()) {
       sigma.setValue(in.readDouble());
@@ -103,11 +110,11 @@ public final class SummationWritable implements WritableComparable<SummationWrit
     if (this == obj)
       return true;
     else if (obj != null && obj instanceof SummationWritable) {
-      final SummationWritable that = (SummationWritable)obj;
+      final SummationWritable that = (SummationWritable) obj;
       return this.compareTo(that) == 0;
     }
-    throw new IllegalArgumentException(obj == null? "obj == null":
-      "obj.getClass()=" + obj.getClass());
+    throw new IllegalArgumentException(obj == null ? "obj == null" :
+        "obj.getClass()=" + obj.getClass());
   }
 
   /** Not supported */
@@ -126,7 +133,7 @@ public final class SummationWritable implements WritableComparable<SummationWrit
 
     /** Write ArithmeticProgression to DataOutput */
     private static void write(ArithmeticProgression ap, DataOutput out
-        ) throws IOException {
+    ) throws IOException {
       out.writeChar(ap.symbol);
       out.writeLong(ap.value);
       out.writeLong(ap.delta);

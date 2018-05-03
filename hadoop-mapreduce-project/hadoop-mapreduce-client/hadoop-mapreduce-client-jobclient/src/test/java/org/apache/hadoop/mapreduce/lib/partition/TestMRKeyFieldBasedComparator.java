@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,8 +17,6 @@
  */
 
 package org.apache.hadoop.mapreduce.lib.partition;
-
-import java.io.*;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileUtil;
@@ -33,10 +31,15 @@ import org.apache.hadoop.mapreduce.MapReduceTestUtil;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.map.InverseMapper;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
 
 public class TestMRKeyFieldBasedComparator extends HadoopTestCase {
   Configuration conf;
-  
+
   String line1 = "123 -123 005120 123.9 0.01 0.18 010 10.0 4444.1 011 011 234";
   String line2 = "134 -12 005100 123.10 -1.01 0.19 02 10.1 4444";
 
@@ -45,19 +48,19 @@ public class TestMRKeyFieldBasedComparator extends HadoopTestCase {
     conf = createJobConf();
     conf.set(MRJobConfig.MAP_OUTPUT_KEY_FIELD_SEPERATOR, " ");
   }
-  
-  private void testComparator(String keySpec, int expect) 
+
+  private void testComparator(String keySpec, int expect)
       throws Exception {
     String root = System.getProperty("test.build.data", "/tmp");
     Path inDir = new Path(root, "test_cmp/in");
     Path outDir = new Path(root, "test_cmp/out");
-    
+
     conf.set("mapreduce.partition.keycomparator.options", keySpec);
     conf.set("mapreduce.partition.keypartitioner.options", "-k1.1,1.1");
     conf.set(MRJobConfig.MAP_OUTPUT_KEY_FIELD_SEPERATOR, " ");
 
     Job job = MapReduceTestUtil.createJob(conf, inDir, outDir, 1, 1,
-                line1 +"\n" + line2 + "\n"); 
+        line1 + "\n" + line2 + "\n");
     job.setMapperClass(InverseMapper.class);
     job.setReducerClass(Reducer.class);
     job.setOutputKeyClass(Text.class);
@@ -93,7 +96,7 @@ public class TestMRKeyFieldBasedComparator extends HadoopTestCase {
       reader.close();
     }
   }
-  
+
   public void testBasicUnixComparator() throws Exception {
     testComparator("-k1,1n", 1);
     testComparator("-k2,2n", 1);
@@ -106,20 +109,20 @@ public class TestMRKeyFieldBasedComparator extends HadoopTestCase {
     testComparator("-k7,7n", 2);
     testComparator("-k8,8n", 1);
     testComparator("-k9,9", 2);
-    testComparator("-k11,11",2);
-    testComparator("-k10,10",2);
-    
+    testComparator("-k11,11", 2);
+    testComparator("-k10,10", 2);
+
     testWithoutMRJob("-k9,9", 1);
-    
+
     testWithoutMRJob("-k9n", 1);
   }
-  
+
   byte[] line1_bytes = line1.getBytes();
   byte[] line2_bytes = line2.getBytes();
 
   public void testWithoutMRJob(String keySpec, int expect) throws Exception {
-    KeyFieldBasedComparator<Void, Void> keyFieldCmp = 
-      new KeyFieldBasedComparator<Void, Void>();
+    KeyFieldBasedComparator<Void, Void> keyFieldCmp =
+        new KeyFieldBasedComparator<Void, Void>();
     conf.set("mapreduce.partition.keycomparator.options", keySpec);
     keyFieldCmp.setConf(conf);
     int result = keyFieldCmp.compare(line1_bytes, 0, line1_bytes.length,

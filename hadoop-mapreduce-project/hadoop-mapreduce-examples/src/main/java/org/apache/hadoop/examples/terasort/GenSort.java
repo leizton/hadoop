@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,6 +17,8 @@
  */
 package org.apache.hadoop.examples.terasort;
 
+import org.apache.hadoop.util.PureJavaCrc32;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -24,9 +26,7 @@ import java.io.PrintStream;
 import java.math.BigInteger;
 import java.util.zip.Checksum;
 
-import org.apache.hadoop.util.PureJavaCrc32;
-
-/** 
+/**
  * A single process data generator for the terasort data. Based on gensort.c 
  * version 1.1 (3 Mar 2009) from Chris Nyberg <chris.nyberg@ordinal.com>.
  */
@@ -36,12 +36,12 @@ public class GenSort {
    * Generate a "binary" record suitable for all sort benchmarks *except* 
    * PennySort.
    */
-  static void generateRecord(byte[] recBuf, Unsigned16 rand, 
-                                     Unsigned16 recordNumber) {
+  static void generateRecord(byte[] recBuf, Unsigned16 rand,
+                             Unsigned16 recordNumber) {
     /* generate the 10-byte key using the high 10 bytes of the 128-bit
      * random number
      */
-    for(int i=0; i < 10; ++i) {
+    for (int i = 0; i < 10; ++i) {
       recBuf[i] = rand.getByte(i);
     }
 
@@ -63,9 +63,9 @@ public class GenSort {
     recBuf[47] = (byte) 0xBB;
 
     /* add 48 bytes of filler based on low 48 bits of random number */
-    for(int i=0; i < 12; ++i) {
-      recBuf[48+i*4] = recBuf[49+i*4] = recBuf[50+i*4] = recBuf[51+i*4] =
-        (byte) rand.getHexDigit(20 + i);
+    for (int i = 0; i < 12; ++i) {
+      recBuf[48 + i * 4] = recBuf[49 + i * 4] = recBuf[50 + i * 4] = recBuf[51 + i * 4] =
+          (byte) rand.getHexDigit(20 + i);
     }
 
     /* add 4 bytes of "break" data */
@@ -78,8 +78,8 @@ public class GenSort {
 
   private static BigInteger makeBigInteger(long x) {
     byte[] data = new byte[8];
-    for(int i=0; i < 8; ++i) {
-      data[i] = (byte) (x >>> (56 - 8*i));
+    for (int i = 0; i < 8; ++i) {
+      data[i] = (byte) (x >>> (56 - 8 * i));
     }
     return new BigInteger(1, data);
   }
@@ -90,7 +90,7 @@ public class GenSort {
    * Generate an ascii record suitable for all sort benchmarks including 
    * PennySort.
    */
-  static void generateAsciiRecord(byte[] recBuf, Unsigned16 rand, 
+  static void generateAsciiRecord(byte[] recBuf, Unsigned16 rand,
                                   Unsigned16 recordNumber) {
 
     /* generate the 10-byte ascii key using mostly the high 64 bits.
@@ -103,22 +103,22 @@ public class GenSort {
       temp = bigTemp.divide(NINETY_FIVE).longValue();
     } else {
       recBuf[0] = (byte) (' ' + (temp % 95));
-      temp /= 95;      
+      temp /= 95;
     }
-    for(int i=1; i < 8; ++i) {
+    for (int i = 1; i < 8; ++i) {
       recBuf[i] = (byte) (' ' + (temp % 95));
-      temp /= 95;      
+      temp /= 95;
     }
     temp = rand.getLow8();
     if (temp < 0) {
       BigInteger bigTemp = makeBigInteger(temp);
       recBuf[8] = (byte) (' ' + (bigTemp.mod(NINETY_FIVE).longValue()));
-      temp = bigTemp.divide(NINETY_FIVE).longValue();      
+      temp = bigTemp.divide(NINETY_FIVE).longValue();
     } else {
       recBuf[8] = (byte) (' ' + (temp % 95));
       temp /= 95;
     }
-    recBuf[9] = (byte)(' ' + (temp % 95));
+    recBuf[9] = (byte) (' ' + (temp % 95));
 
     /* add 2 bytes of "break" */
     recBuf[10] = ' ';
@@ -136,15 +136,15 @@ public class GenSort {
     recBuf[45] = ' ';
 
     /* add 52 bytes of filler based on low 48 bits of random number */
-    for(int i=0; i < 13; ++i) {
-      recBuf[46+i*4] = recBuf[47+i*4] = recBuf[48+i*4] = recBuf[49+i*4] =
-        (byte) rand.getHexDigit(19 + i);
+    for (int i = 0; i < 13; ++i) {
+      recBuf[46 + i * 4] = recBuf[47 + i * 4] = recBuf[48 + i * 4] = recBuf[49 + i * 4] =
+          (byte) rand.getHexDigit(19 + i);
     }
 
     /* add 2 bytes of "break" data */
-    recBuf[98] = '\r';	/* nice for Windows */
+    recBuf[98] = '\r';  /* nice for Windows */
     recBuf[99] = '\n';
-}
+  }
 
 
   private static void usage() {
@@ -155,7 +155,7 @@ public class GenSort {
     out.println("          sort benchmarks.  Without this flag, binary records will be");
     out.println("          generated that contain the highest density of randomness in");
     out.println("          the 10-byte key.");
-    out.println( "-c        Calculate the sum of the crc32 checksums of each of the");
+    out.println("-c        Calculate the sum of the crc32 checksums of each of the");
     out.println("          generated records and send it to standard error.");
     out.println("-bN       Set the beginning record generated to N. By default the");
     out.println("          first record generated is record 0.");
@@ -176,7 +176,7 @@ public class GenSort {
                                    Unsigned16 firstRecordNumber,
                                    Unsigned16 recordsToGenerate,
                                    Unsigned16 checksum
-                                   ) throws IOException {
+  ) throws IOException {
     byte[] row = new byte[100];
     Unsigned16 recordNumber = new Unsigned16(firstRecordNumber);
     Unsigned16 lastRecordNumber = new Unsigned16(firstRecordNumber);
@@ -202,7 +202,7 @@ public class GenSort {
       out.write(row);
     }
   }
-                                   
+
   public static void main(String[] args) throws Exception {
     Unsigned16 startingRecord = new Unsigned16();
     Unsigned16 numberOfRecords;
@@ -211,7 +211,7 @@ public class GenSort {
     Unsigned16 checksum = null;
 
     int i;
-    for(i=0; i < args.length; ++i) {
+    for (i = 0; i < args.length; ++i) {
       String arg = args[i];
       int argLength = arg.length();
       if (argLength >= 1 && arg.charAt(0) == '-') {
@@ -219,17 +219,17 @@ public class GenSort {
           usage();
         }
         switch (arg.charAt(1)) {
-        case 'a':
-          useAscii = true;
-          break;
-        case 'b':
-          startingRecord = Unsigned16.fromDecimal(arg.substring(2));
-          break;
-        case 'c':
-          checksum = new Unsigned16();
-          break;
-        default:
-          usage();
+          case 'a':
+            useAscii = true;
+            break;
+          case 'b':
+            startingRecord = Unsigned16.fromDecimal(arg.substring(2));
+            break;
+          case 'c':
+            checksum = new Unsigned16();
+            break;
+          default:
+            usage();
         }
       } else {
         break;
@@ -239,7 +239,7 @@ public class GenSort {
       usage();
     }
     numberOfRecords = Unsigned16.fromDecimal(args[i]);
-    out = new FileOutputStream(args[i+1]);
+    out = new FileOutputStream(args[i + 1]);
 
     outputRecords(out, useAscii, startingRecord, numberOfRecords, checksum);
     out.close();

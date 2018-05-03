@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,12 +18,12 @@
 
 package org.apache.hadoop.fs.slive;
 
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.slive.OperationOutput.OutputType;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
-
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.slive.OperationOutput.OutputType;
 
 /**
  * An operation provides these abstractions and if it desires to perform any
@@ -48,7 +48,7 @@ abstract class Operation {
 
   /**
    * Gets the configuration object this class is using
-   * 
+   *
    * @return ConfigExtractor
    */
   protected ConfigExtractor getConfig() {
@@ -57,7 +57,7 @@ abstract class Operation {
 
   /**
    * Gets the random number generator to use for this operation
-   * 
+   *
    * @return Random
    */
   protected Random getRandom() {
@@ -66,7 +66,7 @@ abstract class Operation {
 
   /**
    * Gets the type of operation that this class belongs to
-   * 
+   *
    * @return String
    */
   String getType() {
@@ -75,7 +75,7 @@ abstract class Operation {
 
   /**
    * Gets the path finding/generating instance that this class is using
-   * 
+   *
    * @return PathFinder
    */
   protected PathFinder getFinder() {
@@ -84,7 +84,7 @@ abstract class Operation {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see java.lang.Object#toString()
    */
   public String toString() {
@@ -94,10 +94,10 @@ abstract class Operation {
   /**
    * This run() method simply sets up the default output container and adds in a
    * data member to keep track of the number of operations that occurred
-   * 
+   *
    * @param fs
    *          FileSystem object to perform operations with
-   * 
+   *
    * @return List of operation outputs to be collected and output in the overall
    *         map reduce operation (or empty or null if none)
    */

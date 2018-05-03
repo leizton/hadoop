@@ -1,43 +1,42 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2.jobhistory;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.mapreduce.JobID;
+import org.apache.hadoop.mapreduce.TypeConverter;
+import org.apache.hadoop.mapreduce.v2.api.records.JobId;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.apache.hadoop.mapreduce.JobID;
-import org.apache.hadoop.mapreduce.TypeConverter;
-import org.apache.hadoop.mapreduce.v2.api.records.JobId;
-
 public class FileNameIndexUtils {
 
   static final int JOB_NAME_TRIM_LENGTH = 50;
-  
+
   // Sanitize job history file for predictable parsing
   static final String DELIMITER = "-";
   static final String DELIMITER_ESCAPE = "%2D";
-  
+
   private static final Log LOG = LogFactory.getLog(FileNameIndexUtils.class);
 
   // Job history file names need to be backwards compatible
@@ -55,7 +54,7 @@ public class FileNameIndexUtils {
 
   /**
    * Constructs the job history file name from the JobIndexInfo.
-   * 
+   *
    * @param indexInfo the index info.
    * @return the done job history filename.
    */
@@ -64,35 +63,35 @@ public class FileNameIndexUtils {
     //JobId
     sb.append(escapeDelimiters(TypeConverter.fromYarn(indexInfo.getJobId()).toString()));
     sb.append(DELIMITER);
-    
+
     //SubmitTime
     sb.append(indexInfo.getSubmitTime());
     sb.append(DELIMITER);
-    
+
     //UserName
     sb.append(escapeDelimiters(getUserName(indexInfo)));
     sb.append(DELIMITER);
-    
+
     //JobName
     sb.append(escapeDelimiters(trimJobName(getJobName(indexInfo))));
     sb.append(DELIMITER);
-    
+
     //FinishTime
     sb.append(indexInfo.getFinishTime());
     sb.append(DELIMITER);
-    
+
     //NumMaps
     sb.append(indexInfo.getNumMaps());
     sb.append(DELIMITER);
-    
+
     //NumReduces
     sb.append(indexInfo.getNumReduces());
     sb.append(DELIMITER);
-    
+
     //JobStatus
     sb.append(indexInfo.getJobStatus());
     sb.append(DELIMITER);
-    
+
     //QueueName
     sb.append(escapeDelimiters(getQueueName(indexInfo)));
     sb.append(DELIMITER);
@@ -103,20 +102,20 @@ public class FileNameIndexUtils {
     sb.append(JobHistoryUtils.JOB_HISTORY_FILE_EXTENSION);
     return encodeJobHistoryFileName(sb.toString());
   }
-  
+
   /**
    * Parses the provided job history file name to construct a
    * JobIndexInfo object which is returned.
-   * 
+   *
    * @param jhFileName the job history filename.
    * @return a JobIndexInfo object built from the filename.
    */
   public static JobIndexInfo getIndexInfo(String jhFileName) throws IOException {
     String fileName = jhFileName.substring(0, jhFileName.indexOf(JobHistoryUtils.JOB_HISTORY_FILE_EXTENSION));
     JobIndexInfo indexInfo = new JobIndexInfo();
-    
+
     String[] jobDetails = fileName.split(DELIMITER);
-    
+
     JobID oldJobId = JobID.forName(decodeJobHistoryFileName(jobDetails[JOB_ID_INDEX]));
     JobId jobId = TypeConverter.toYarn(oldJobId);
     indexInfo.setJobId(jobId);
@@ -167,14 +166,14 @@ public class FileNameIndexUtils {
       indexInfo.setQueueName(
           decodeJobHistoryFileName(jobDetails[QUEUE_NAME_INDEX]));
 
-      try{
+      try {
         if (jobDetails.length <= JOB_START_TIME_INDEX) {
           indexInfo.setJobStartTime(indexInfo.getSubmitTime());
         } else {
           indexInfo.setJobStartTime(
               Long.parseLong(decodeJobHistoryFileName(jobDetails[JOB_START_TIME_INDEX])));
         }
-      } catch (NumberFormatException e){
+      } catch (NumberFormatException e) {
         LOG.warn("Unable to parse start time from job history file "
             + jhFileName + " : " + e);
       }
@@ -182,21 +181,21 @@ public class FileNameIndexUtils {
       LOG.warn("Parsing job history file with partial data encoded into name: "
           + jhFileName);
     }
-    
+
     return indexInfo;
   }
 
-  
+
   /**
    * Helper function to encode the URL of the filename of the job-history 
    * log file.
-   * 
+   *
    * @param logFileName file name of the job-history file
    * @return URL encoded filename
    * @throws IOException
    */
   public static String encodeJobHistoryFileName(String logFileName)
-  throws IOException {
+      throws IOException {
     String replacementDelimiterEscape = null;
 
     // Temporarily protect the escape delimiters from encoding
@@ -223,17 +222,17 @@ public class FileNameIndexUtils {
 
     return encodedFileName;
   }
-  
+
   /**
    * Helper function to decode the URL of the filename of the job-history 
    * log file.
-   * 
+   *
    * @param logFileName file name of the job-history file
    * @return URL decoded filename
    * @throws IOException
    */
   public static String decodeJobHistoryFileName(String logFileName)
-  throws IOException {
+      throws IOException {
     String decodedFileName = null;
     try {
       decodedFileName = URLDecoder.decode(logFileName, "UTF-8");
@@ -245,7 +244,7 @@ public class FileNameIndexUtils {
     }
     return decodedFileName;
   }
-  
+
   static String nonOccursString(String logFileName) {
     int adHocIndex = 0;
 
@@ -257,11 +256,11 @@ public class FileNameIndexUtils {
 
     return unfoundString + "q";
   }
-  
+
   private static String getUserName(JobIndexInfo indexInfo) {
     return getNonEmptyString(indexInfo.getUser());
   }
-  
+
   private static String getJobName(JobIndexInfo indexInfo) {
     return getNonEmptyString(indexInfo.getJobName());
   }
@@ -271,14 +270,14 @@ public class FileNameIndexUtils {
   }
 
   //TODO Maybe handle default values for longs and integers here?
-  
+
   private static String getNonEmptyString(String in) {
     if (in == null || in.length() == 0) {
       in = "NA";
     }
     return in;
   }
-  
+
   private static String escapeDelimiters(String escapee) {
     return escapee.replaceAll(DELIMITER, DELIMITER_ESCAPE);
   }

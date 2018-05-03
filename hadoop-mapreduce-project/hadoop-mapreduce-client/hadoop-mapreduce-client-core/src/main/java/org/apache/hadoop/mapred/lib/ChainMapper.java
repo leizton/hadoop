@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -124,17 +124,17 @@ public class ChainMapper implements Mapper {
    * <code>JobConf(boolean loadDefaults)</code> constructor with FALSE.
    */
   public static <K1, V1, K2, V2> void addMapper(JobConf job,
-                           Class<? extends Mapper<K1, V1, K2, V2>> klass,
-                           Class<? extends K1> inputKeyClass,
-                           Class<? extends V1> inputValueClass,
-                           Class<? extends K2> outputKeyClass,
-                           Class<? extends V2> outputValueClass,
-                           boolean byValue, JobConf mapperConf) {
+                                                Class<? extends Mapper<K1, V1, K2, V2>> klass,
+                                                Class<? extends K1> inputKeyClass,
+                                                Class<? extends V1> inputValueClass,
+                                                Class<? extends K2> outputKeyClass,
+                                                Class<? extends V2> outputValueClass,
+                                                boolean byValue, JobConf mapperConf) {
     job.setMapperClass(ChainMapper.class);
     job.setMapOutputKeyClass(outputKeyClass);
     job.setMapOutputValueClass(outputValueClass);
     Chain.addMapper(true, job, klass, inputKeyClass, inputValueClass,
-                    outputKeyClass, outputValueClass, byValue, mapperConf);
+        outputKeyClass, outputValueClass, byValue, mapperConf);
   }
 
   private Chain chain;
@@ -165,7 +165,7 @@ public class ChainMapper implements Mapper {
     Mapper mapper = chain.getFirstMap();
     if (mapper != null) {
       mapper.map(key, value, chain.getMapperCollector(0, output, reporter),
-                 reporter);
+          reporter);
     }
   }
 

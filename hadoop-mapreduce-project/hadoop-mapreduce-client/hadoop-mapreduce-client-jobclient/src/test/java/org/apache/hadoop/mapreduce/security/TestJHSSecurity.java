@@ -1,32 +1,22 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.security;
-
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.security.PrivilegedAction;
-import java.security.PrivilegedExceptionAction;
-
-import org.junit.Assert;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -55,12 +45,21 @@ import org.apache.hadoop.yarn.util.Records;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.junit.Assert;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.security.PrivilegedAction;
+import java.security.PrivilegedExceptionAction;
+
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class TestJHSSecurity {
 
   private static final Log LOG = LogFactory.getLog(TestJHSSecurity.class);
-  
+
   @Test
   public void testDelegationToken() throws IOException, InterruptedException {
 
@@ -70,14 +69,14 @@ public class TestJHSSecurity {
     final YarnConfiguration conf = new YarnConfiguration(new JobConf());
     // Just a random principle
     conf.set(JHAdminConfig.MR_HISTORY_PRINCIPAL,
-      "RandomOrc/localhost@apache.org");
+        "RandomOrc/localhost@apache.org");
 
     conf.set(CommonConfigurationKeysPublic.HADOOP_SECURITY_AUTHENTICATION,
-      "kerberos");
+        "kerberos");
     UserGroupInformation.setConfiguration(conf);
-    
+
     final long initialInterval = 10000l;
-    final long maxLifetime= 20000l;
+    final long maxLifetime = 20000l;
     final long renewInterval = 10000l;
 
     JobHistoryServer jobHistoryServer = null;
@@ -87,23 +86,25 @@ public class TestJHSSecurity {
       jobHistoryServer = new JobHistoryServer() {
         protected void doSecureLogin(Configuration conf) throws IOException {
           // no keytab based login
-        };
+        }
+
+        ;
 
         @Override
         protected JHSDelegationTokenSecretManager createJHSSecretManager(
             Configuration conf, HistoryServerStateStoreService store) {
-          return new JHSDelegationTokenSecretManager(initialInterval, 
+          return new JHSDelegationTokenSecretManager(initialInterval,
               maxLifetime, renewInterval, 3600000, store);
         }
 
         @Override
         protected HistoryClientService createHistoryClientService() {
-          return new HistoryClientService(historyContext, 
-            this.jhsDTSecretManager) {
+          return new HistoryClientService(historyContext,
+              this.jhsDTSecretManager) {
             @Override
             protected void initializeWebApp(Configuration conf) {
               // Don't need it, skip.;
-              }
+            }
           };
         }
       };
@@ -117,7 +118,7 @@ public class TestJHSSecurity {
       UserGroupInformation loggedInUser = UserGroupInformation
           .createRemoteUser("testrenewer@APACHE.ORG");
       Assert.assertEquals("testrenewer", loggedInUser.getShortUserName());
-   // Default realm is APACHE.ORG
+      // Default realm is APACHE.ORG
       loggedInUser.setAuthenticationMethod(AuthenticationMethod.KERBEROS);
 
 
@@ -138,32 +139,32 @@ public class TestJHSSecurity {
       } catch (IOException e) {
         Assert.assertEquals("Unknown job job_123456_0001", e.getMessage());
       }
-      
-   // Renew after 50% of token age.
-      while(System.currentTimeMillis() < tokenFetchTime + initialInterval / 2) {
+
+      // Renew after 50% of token age.
+      while (System.currentTimeMillis() < tokenFetchTime + initialInterval / 2) {
         Thread.sleep(500l);
       }
       long nextExpTime = renewDelegationToken(loggedInUser, hsService, token);
       long renewalTime = System.currentTimeMillis();
       LOG.info("Renewed token at: " + renewalTime + ", NextExpiryTime: "
           + nextExpTime);
-      
+
       // Wait for first expiry, but before renewed expiry.
       while (System.currentTimeMillis() > tokenFetchTime + initialInterval
           && System.currentTimeMillis() < nextExpTime) {
         Thread.sleep(500l);
       }
       Thread.sleep(50l);
-      
+
       // Valid token because of renewal.
       try {
         clientUsingDT.getJobReport(jobReportRequest);
       } catch (IOException e) {
         Assert.assertEquals("Unknown job job_123456_0001", e.getMessage());
       }
-      
+
       // Wait for expiry.
-      while(System.currentTimeMillis() < renewalTime + renewInterval) {
+      while (System.currentTimeMillis() < renewalTime + renewInterval) {
         Thread.sleep(500l);
       }
       Thread.sleep(50l);
@@ -175,7 +176,7 @@ public class TestJHSSecurity {
       } catch (IOException e) {
         assertTrue(e.getCause().getMessage().contains("is expired"));
       }
-      
+
       // Test cancellation
       // Stop the existing proxy, start another.
       if (clientUsingDT != null) {
@@ -186,12 +187,12 @@ public class TestJHSSecurity {
           loggedInUser.getShortUserName());
       tokenFetchTime = System.currentTimeMillis();
       LOG.info("Got delegation token at: " + tokenFetchTime);
- 
+
       // Now try talking to HSService using the delegation token
       clientUsingDT = getMRClientProtocol(token, jobHistoryServer
           .getClientService().getBindAddress(), "loginuser2", conf);
 
-      
+
       try {
         clientUsingDT.getJobReport(jobReportRequest);
       } catch (IOException e) {
@@ -206,8 +207,8 @@ public class TestJHSSecurity {
       if (clientUsingDT != null) {
 //        RPC.stopProxy(clientUsingDT);
         clientUsingDT = null;
-      } 
-      
+      }
+
       // Creating a new connection.
       clientUsingDT = getMRClientProtocol(token, jobHistoryServer
           .getClientService().getBindAddress(), "loginuser2", conf);
@@ -220,7 +221,6 @@ public class TestJHSSecurity {
       }
 
 
-      
     } finally {
       jobHistoryServer.stop();
     }
@@ -247,7 +247,7 @@ public class TestJHSSecurity {
   }
 
   private long renewDelegationToken(final UserGroupInformation loggedInUser,
-      final MRClientProtocol hsService, final Token dToken)
+                                    final MRClientProtocol hsService, final Token dToken)
       throws IOException, InterruptedException {
     long nextExpTime = loggedInUser.doAs(new PrivilegedExceptionAction<Long>() {
 
@@ -263,7 +263,7 @@ public class TestJHSSecurity {
   }
 
   private void cancelDelegationToken(final UserGroupInformation loggedInUser,
-      final MRClientProtocol hsService, final Token dToken)
+                                     final MRClientProtocol hsService, final Token dToken)
       throws IOException, InterruptedException {
 
     loggedInUser.doAs(new PrivilegedExceptionAction<Void>() {
@@ -279,7 +279,7 @@ public class TestJHSSecurity {
   }
 
   private MRClientProtocol getMRClientProtocol(Token token,
-      final InetSocketAddress hsAddress, String user, final Configuration conf) {
+                                               final InetSocketAddress hsAddress, String user, final Configuration conf) {
     UserGroupInformation ugi = UserGroupInformation.createRemoteUser(user);
     ugi.addToken(ConverterUtils.convertFromYarn(token, hsAddress));
 

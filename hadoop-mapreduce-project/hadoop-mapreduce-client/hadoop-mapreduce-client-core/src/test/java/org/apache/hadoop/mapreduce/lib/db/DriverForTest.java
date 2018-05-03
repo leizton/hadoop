@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,15 +17,7 @@
  */
 package org.apache.hadoop.mapreduce.lib.db;
 
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.Driver;
-import java.sql.DriverPropertyInfo;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -34,7 +26,7 @@ import static org.mockito.Mockito.*;
 
 /**
  * class emulates a connection to database
- * 
+ *
  */
 public class DriverForTest implements Driver {
 
@@ -51,7 +43,7 @@ public class DriverForTest implements Driver {
       when(metadata.getDatabaseProductName()).thenReturn("Test");
       when(connection.getMetaData()).thenReturn(metadata);
 
-      PreparedStatement reparedStatement0= mock(PreparedStatement.class);
+      PreparedStatement reparedStatement0 = mock(PreparedStatement.class);
       when(connection.prepareStatement(anyString())).thenReturn(
           reparedStatement0);
 
@@ -75,7 +67,7 @@ public class DriverForTest implements Driver {
 
   @Override
   public Connection connect(String arg0, Properties arg1) throws SQLException {
-   
+
     return getConnection();
   }
 
@@ -100,13 +92,13 @@ public class DriverForTest implements Driver {
   public boolean jdbcCompliant() {
     return true;
   }
-  
+
   public Logger getParentLogger() throws SQLFeatureNotSupportedException {
     throw new SQLFeatureNotSupportedException();
   }
 
-  private interface FakeConnection extends Connection{
+  private interface FakeConnection extends Connection {
     public void setSessionTimeZone(String arg);
   }
-  
+
 }

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,8 +16,6 @@
  * limitations under the License.
  */
 package org.apache.hadoop.mapreduce.lib.input;
-
-import java.io.IOException;
 
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
@@ -31,6 +29,8 @@ import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
+import java.io.IOException;
+
 /**
  * InputFormat reading keys, values from SequenceFiles in binary (raw)
  * format.
@@ -38,13 +38,13 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 @InterfaceAudience.Public
 @InterfaceStability.Stable
 public class SequenceFileAsBinaryInputFormat
-    extends SequenceFileInputFormat<BytesWritable,BytesWritable> {
+    extends SequenceFileInputFormat<BytesWritable, BytesWritable> {
 
   public SequenceFileAsBinaryInputFormat() {
     super();
   }
 
-  public RecordReader<BytesWritable,BytesWritable> createRecordReader(
+  public RecordReader<BytesWritable, BytesWritable> createRecordReader(
       InputSplit split, TaskAttemptContext context)
       throws IOException {
     return new SequenceFileAsBinaryRecordReader();
@@ -54,7 +54,7 @@ public class SequenceFileAsBinaryInputFormat
    * Read records from a SequenceFile as binary (raw) bytes.
    */
   public static class SequenceFileAsBinaryRecordReader
-      extends RecordReader<BytesWritable,BytesWritable> {
+      extends RecordReader<BytesWritable, BytesWritable> {
     private SequenceFile.Reader in;
     private long start;
     private long end;
@@ -64,29 +64,29 @@ public class SequenceFileAsBinaryInputFormat
     private BytesWritable key = null;
     private BytesWritable value = null;
 
-    public void initialize(InputSplit split, TaskAttemptContext context) 
+    public void initialize(InputSplit split, TaskAttemptContext context)
         throws IOException, InterruptedException {
-      Path path = ((FileSplit)split).getPath();
+      Path path = ((FileSplit) split).getPath();
       Configuration conf = context.getConfiguration();
       FileSystem fs = path.getFileSystem(conf);
       this.in = new SequenceFile.Reader(fs, path, conf);
-      this.end = ((FileSplit)split).getStart() + split.getLength();
-      if (((FileSplit)split).getStart() > in.getPosition()) {
-        in.sync(((FileSplit)split).getStart());    // sync to start
+      this.end = ((FileSplit) split).getStart() + split.getLength();
+      if (((FileSplit) split).getStart() > in.getPosition()) {
+        in.sync(((FileSplit) split).getStart());    // sync to start
       }
       this.start = in.getPosition();
       vbytes = in.createValueBytes();
       done = start >= end;
     }
-    
+
     @Override
-    public BytesWritable getCurrentKey() 
+    public BytesWritable getCurrentKey()
         throws IOException, InterruptedException {
       return key;
     }
-    
+
     @Override
-    public BytesWritable getCurrentValue() 
+    public BytesWritable getCurrentValue()
         throws IOException, InterruptedException {
       return value;
     }
@@ -146,8 +146,8 @@ public class SequenceFileAsBinaryInputFormat
       if (end == start) {
         return 0.0f;
       } else {
-        return Math.min(1.0f, (float)((in.getPosition() - start) /
-                                      (double)(end - start)));
+        return Math.min(1.0f, (float) ((in.getPosition() - start) /
+            (double) (end - start)));
       }
     }
   }

@@ -5,9 +5,9 @@
  * licenses this file to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -16,10 +16,6 @@
  */
 
 package org.apache.hadoop.mapreduce.v2.security;
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.security.PrivilegedAction;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -39,6 +35,10 @@ import org.apache.hadoop.security.token.TokenRenewer;
 import org.apache.hadoop.yarn.ipc.YarnRPC;
 import org.apache.hadoop.yarn.util.Records;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.security.PrivilegedAction;
+
 @InterfaceAudience.Private
 public class MRDelegationTokenRenewer extends TokenRenewer {
 
@@ -56,8 +56,8 @@ public class MRDelegationTokenRenewer extends TokenRenewer {
 
     org.apache.hadoop.yarn.api.records.Token dToken =
         org.apache.hadoop.yarn.api.records.Token.newInstance(
-          token.getIdentifier(), token.getKind().toString(),
-          token.getPassword(), token.getService().toString());
+            token.getIdentifier(), token.getKind().toString(),
+            token.getPassword(), token.getService().toString());
 
     MRClientProtocol histProxy = instantiateHistoryProxy(conf,
         SecurityUtil.getTokenServiceAddr(token));
@@ -78,8 +78,8 @@ public class MRDelegationTokenRenewer extends TokenRenewer {
 
     org.apache.hadoop.yarn.api.records.Token dToken =
         org.apache.hadoop.yarn.api.records.Token.newInstance(
-          token.getIdentifier(), token.getKind().toString(),
-          token.getPassword(), token.getService().toString());
+            token.getIdentifier(), token.getKind().toString(),
+            token.getPassword(), token.getService().toString());
 
     MRClientProtocol histProxy = instantiateHistoryProxy(conf,
         SecurityUtil.getTokenServiceAddr(token));
@@ -103,7 +103,7 @@ public class MRDelegationTokenRenewer extends TokenRenewer {
   }
 
   protected MRClientProtocol instantiateHistoryProxy(final Configuration conf,
-      final InetSocketAddress hsAddress) throws IOException {
+                                                     final InetSocketAddress hsAddress) throws IOException {
 
     if (LOG.isDebugEnabled()) {
       LOG.debug("Connecting to MRHistoryServer at: " + hsAddress);

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,29 +17,28 @@
  */
 package org.apache.hadoop.mapred;
 
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.Writer;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Arrays;
-
+import com.google.common.base.Charsets;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.mapreduce.JobStatus;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
-import com.google.common.base.Charsets;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * <code>JobQueueClient</code> is interface provided to the user in order to get
  * JobQueue related information from the {@link JobTracker}
- * 
+ *
  * It provides the facility to list the JobQueues present and ability to view
  * the list of jobs within a specific JobQueue
- * 
+ *
  **/
 
 class JobQueueClient extends Configured implements Tool {
@@ -94,7 +93,7 @@ class JobQueueClient extends Configured implements Tool {
       displayUsage(cmd);
       return exitcode;
     }
-    
+
     JobConf conf = new JobConf(getConf());
     init(conf);
     if (displayQueueList) {
@@ -113,16 +112,16 @@ class JobQueueClient extends Configured implements Tool {
     return exitcode;
   }
 
-// format and print information about the passed in job queue.
+  // format and print information about the passed in job queue.
   void printJobQueueInfo(JobQueueInfo jobQueueInfo, Writer writer)
-    throws IOException {
+      throws IOException {
     printJobQueueInfo(jobQueueInfo, writer, "");
   }
 
   // format and print information about the passed in job queue.
   @SuppressWarnings("deprecation")
   void printJobQueueInfo(JobQueueInfo jobQueueInfo, Writer writer,
-    String prefix) throws IOException {
+                         String prefix) throws IOException {
     if (jobQueueInfo == null) {
       writer.write("No queue found.\n");
       writer.flush();
@@ -138,12 +137,12 @@ class JobQueueClient extends Configured implements Tool {
     List<JobQueueInfo> childQueues = jobQueueInfo.getChildren();
     if (childQueues != null && childQueues.size() > 0) {
       for (int i = 0; i < childQueues.size(); i++) {
-	  printJobQueueInfo(childQueues.get(i), writer, "    " + prefix);
+        printJobQueueInfo(childQueues.get(i), writer, "    " + prefix);
       }
     }
     writer.flush();
   }
-  
+
   private void displayQueueList() throws IOException {
     JobQueueInfo[] rootQueues = jc.getRootQueues();
     for (JobQueueInfo queue : rootQueues) {
@@ -151,7 +150,7 @@ class JobQueueClient extends Configured implements Tool {
           System.out, Charsets.UTF_8)));
     }
   }
-  
+
   /**
    * Expands the hierarchy of queues and gives the list of all queues in 
    * depth-first order
@@ -163,25 +162,25 @@ class JobQueueClient extends Configured implements Tool {
     for (JobQueueInfo queue : rootQueues) {
       allQueues.add(queue);
       if (queue.getChildren() != null) {
-        JobQueueInfo[] childQueues 
-          = queue.getChildren().toArray(new JobQueueInfo[0]);
+        JobQueueInfo[] childQueues
+            = queue.getChildren().toArray(new JobQueueInfo[0]);
         allQueues.addAll(expandQueueList(childQueues));
       }
     }
     return allQueues;
   }
- 
+
   /**
    * Method used to display information pertaining to a Single JobQueue
    * registered with the {@link QueueManager}. Display of the Jobs is determine
    * by the boolean
-   * 
+   *
    * @throws IOException, InterruptedException
    */
   private void displayQueueInfo(String queue, boolean showJobs)
       throws IOException, InterruptedException {
     JobQueueInfo jobQueueInfo = jc.getQueueInfo(queue);
-    
+
     if (jobQueueInfo == null) {
       System.out.println("Queue \"" + queue + "\" does not exist.");
       return;
@@ -196,7 +195,7 @@ class JobQueueClient extends Configured implements Tool {
       jc.displayJobList(jobs);
     }
   }
-   
+
   private void displayQueueAclsInfoForCurrentUser() throws IOException {
     QueueAclsInfo[] queueAclsInfoList = jc.getQueueAclsForCurrentUser();
     UserGroupInformation ugi = UserGroupInformation.getCurrentUser();

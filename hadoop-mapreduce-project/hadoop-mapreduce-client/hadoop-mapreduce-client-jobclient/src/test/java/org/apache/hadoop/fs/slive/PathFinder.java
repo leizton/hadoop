@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,9 +18,9 @@
 
 package org.apache.hadoop.fs.slive;
 
-import java.util.Random;
-
 import org.apache.hadoop.fs.Path;
+
+import java.util.Random;
 
 /**
  * Class which generates a file or directory path using a simple random
@@ -49,7 +49,7 @@ class PathFinder {
    * This function uses a simple recursive algorithm to generate a path name
    * using the current id % limitPerDir and using current id / limitPerDir to
    * form the rest of the tree segments
-   * 
+   *
    * @param curId
    *          the current id to use for determining the current directory id %
    *          per directory limit and then used for determining the next segment
@@ -67,12 +67,12 @@ class PathFinder {
     }
     String name = "";
     switch (type) {
-    case FILE:
-      name = FILE_PREFIX + new Integer(curId % limitPerDir).toString();
-      break;
-    case DIRECTORY:
-      name = DIR_PREFIX + new Integer(curId % limitPerDir).toString();
-      break;
+      case FILE:
+        name = FILE_PREFIX + new Integer(curId % limitPerDir).toString();
+        break;
+      case DIRECTORY:
+        name = DIR_PREFIX + new Integer(curId % limitPerDir).toString();
+        break;
     }
     Path base = getPath((curId / limitPerDir), limitPerDir, Type.DIRECTORY);
     return new Path(base, name);
@@ -81,7 +81,7 @@ class PathFinder {
   /**
    * Gets a file path using the given configuration provided total files and
    * files per directory
-   * 
+   *
    * @return path
    */
   Path getFile() {
@@ -94,7 +94,7 @@ class PathFinder {
   /**
    * Gets a directory path using the given configuration provided total files
    * and files per directory
-   * 
+   *
    * @return path
    */
   Path getDirectory() {

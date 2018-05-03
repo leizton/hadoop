@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,13 +18,14 @@
 
 package org.apache.hadoop.mapred;
 
-import java.io.IOException;
-import java.io.OutputStream; 
-import java.io.FilterOutputStream;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.util.DataChecksum;
+
+import java.io.FilterOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+
 /**
  * A Checksum output stream.
  * Checksum for the contents of the file is calculated and
@@ -53,7 +54,7 @@ public class IFileOutputStream extends FilterOutputStream {
         Integer.MAX_VALUE);
     barray = new byte[sum.getChecksumSize()];
   }
-  
+
   @Override
   public void close() throws IOException {
     if (closed) {
@@ -75,7 +76,7 @@ public class IFileOutputStream extends FilterOutputStream {
     }
     finished = true;
     sum.writeValue(barray, 0, false);
-    out.write (barray, 0, sum.getChecksumSize());
+    out.write(barray, 0, sum.getChecksumSize());
     out.flush();
   }
 
@@ -84,14 +85,14 @@ public class IFileOutputStream extends FilterOutputStream {
    */
   @Override
   public void write(byte[] b, int off, int len) throws IOException {
-    sum.update(b, off,len);
-    out.write(b,off,len);
+    sum.update(b, off, len);
+    out.write(b, off, len);
   }
- 
+
   @Override
   public void write(int b) throws IOException {
     barray[0] = (byte) (b & 0xFF);
-    write(barray,0,1);
+    write(barray, 0, 1);
   }
 
 }

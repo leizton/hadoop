@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,14 +17,14 @@
  */
 package org.apache.hadoop.mapreduce;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
+
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 
 /**
  * Information about TaskTracker.
@@ -36,9 +36,10 @@ public class TaskTrackerInfo implements Writable {
   boolean isBlacklisted = false;
   String reasonForBlacklist = "";
   String blacklistReport = "";
-  
+
   public TaskTrackerInfo() {
   }
+
   // construct an active tracker
   public TaskTrackerInfo(String name) {
     this.name = name;
@@ -46,7 +47,7 @@ public class TaskTrackerInfo implements Writable {
 
   // construct blacklisted tracker
   public TaskTrackerInfo(String name, String reasonForBlacklist,
-      String report) {
+                         String report) {
     this.name = name;
     this.isBlacklisted = true;
     this.reasonForBlacklist = reasonForBlacklist;
@@ -55,13 +56,13 @@ public class TaskTrackerInfo implements Writable {
 
   /**
    * Gets the tasktracker's name.
-   * 
+   *
    * @return tracker's name.
    */
   public String getTaskTrackerName() {
     return name;
   }
-  
+
   /**
    * Whether tracker is blacklisted
    * @return true if tracker is blacklisted
@@ -70,10 +71,10 @@ public class TaskTrackerInfo implements Writable {
   public boolean isBlacklisted() {
     return isBlacklisted;
   }
-  
+
   /**
    * Gets the reason for which the tasktracker was blacklisted.
-   * 
+   *
    * @return reason which tracker was blacklisted
    */
   public String getReasonForBlacklist() {
@@ -82,13 +83,13 @@ public class TaskTrackerInfo implements Writable {
 
   /**
    * Gets a descriptive report about why the tasktracker was blacklisted.
-   * 
+   *
    * @return report describing why the tasktracker was blacklisted.
    */
   public String getBlacklistReport() {
     return blacklistReport;
   }
-  
+
   @Override
   public void readFields(DataInput in) throws IOException {
     name = Text.readString(in);

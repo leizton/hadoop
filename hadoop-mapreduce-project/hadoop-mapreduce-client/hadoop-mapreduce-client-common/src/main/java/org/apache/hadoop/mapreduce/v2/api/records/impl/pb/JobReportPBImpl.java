@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,33 +19,28 @@
 package org.apache.hadoop.mapreduce.v2.api.records.impl.pb;
 
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.hadoop.mapreduce.v2.api.records.AMInfo;
 import org.apache.hadoop.mapreduce.v2.api.records.JobId;
 import org.apache.hadoop.mapreduce.v2.api.records.JobReport;
 import org.apache.hadoop.mapreduce.v2.api.records.JobState;
-import org.apache.hadoop.mapreduce.v2.proto.MRProtos.AMInfoProto;
-import org.apache.hadoop.mapreduce.v2.proto.MRProtos.JobIdProto;
-import org.apache.hadoop.mapreduce.v2.proto.MRProtos.JobReportProto;
-import org.apache.hadoop.mapreduce.v2.proto.MRProtos.JobReportProtoOrBuilder;
-import org.apache.hadoop.mapreduce.v2.proto.MRProtos.JobStateProto;
+import org.apache.hadoop.mapreduce.v2.proto.MRProtos.*;
 import org.apache.hadoop.mapreduce.v2.util.MRProtoUtils;
 import org.apache.hadoop.yarn.api.records.impl.pb.ProtoBase;
 
+import java.util.ArrayList;
+import java.util.List;
 
-    
+
 public class JobReportPBImpl extends ProtoBase<JobReportProto> implements
     JobReport {
   JobReportProto proto = JobReportProto.getDefaultInstance();
   JobReportProto.Builder builder = null;
   boolean viaProto = false;
-  
+
   private JobId jobId = null;
   private List<AMInfo> amInfos = null;
-  
-  
+
+
   public JobReportPBImpl() {
     builder = JobReportProto.newBuilder();
   }
@@ -54,9 +49,9 @@ public class JobReportPBImpl extends ProtoBase<JobReportProto> implements
     this.proto = proto;
     viaProto = true;
   }
-  
+
   public synchronized JobReportProto getProto() {
-      mergeLocalToProto();
+    mergeLocalToProto();
     proto = viaProto ? proto : builder.build();
     viaProto = true;
     return proto;
@@ -72,7 +67,7 @@ public class JobReportPBImpl extends ProtoBase<JobReportProto> implements
   }
 
   private synchronized void mergeLocalToProto() {
-    if (viaProto) 
+    if (viaProto)
       maybeInitBuilder();
     mergeLocalToBuilder();
     proto = builder.build();
@@ -85,8 +80,8 @@ public class JobReportPBImpl extends ProtoBase<JobReportProto> implements
     }
     viaProto = false;
   }
-    
-  
+
+
   @Override
   public synchronized JobId getJobId() {
     JobReportProtoOrBuilder p = viaProto ? proto : builder;
@@ -103,10 +98,11 @@ public class JobReportPBImpl extends ProtoBase<JobReportProto> implements
   @Override
   public synchronized void setJobId(JobId jobId) {
     maybeInitBuilder();
-    if (jobId == null) 
+    if (jobId == null)
       builder.clearJobId();
     this.jobId = jobId;
   }
+
   @Override
   public synchronized JobState getJobState() {
     JobReportProtoOrBuilder p = viaProto ? proto : builder;
@@ -125,6 +121,7 @@ public class JobReportPBImpl extends ProtoBase<JobReportProto> implements
     }
     builder.setJobState(convertToProtoFormat(jobState));
   }
+
   @Override
   public synchronized float getMapProgress() {
     JobReportProtoOrBuilder p = viaProto ? proto : builder;
@@ -136,6 +133,7 @@ public class JobReportPBImpl extends ProtoBase<JobReportProto> implements
     maybeInitBuilder();
     builder.setMapProgress((mapProgress));
   }
+
   @Override
   public synchronized float getReduceProgress() {
     JobReportProtoOrBuilder p = viaProto ? proto : builder;
@@ -147,6 +145,7 @@ public class JobReportPBImpl extends ProtoBase<JobReportProto> implements
     maybeInitBuilder();
     builder.setReduceProgress((reduceProgress));
   }
+
   @Override
   public synchronized float getCleanupProgress() {
     JobReportProtoOrBuilder p = viaProto ? proto : builder;
@@ -158,6 +157,7 @@ public class JobReportPBImpl extends ProtoBase<JobReportProto> implements
     maybeInitBuilder();
     builder.setCleanupProgress((cleanupProgress));
   }
+
   @Override
   public synchronized float getSetupProgress() {
     JobReportProtoOrBuilder p = viaProto ? proto : builder;
@@ -193,6 +193,7 @@ public class JobReportPBImpl extends ProtoBase<JobReportProto> implements
     maybeInitBuilder();
     builder.setStartTime((startTime));
   }
+
   @Override
   public synchronized long getFinishTime() {
     JobReportProtoOrBuilder p = viaProto ? proto : builder;
@@ -252,7 +253,7 @@ public class JobReportPBImpl extends ProtoBase<JobReportProto> implements
     maybeInitBuilder();
     builder.setDiagnostics(diagnostics);
   }
-  
+
   @Override
   public synchronized String getJobFile() {
     JobReportProtoOrBuilder p = viaProto ? proto : builder;
@@ -264,13 +265,13 @@ public class JobReportPBImpl extends ProtoBase<JobReportProto> implements
     maybeInitBuilder();
     builder.setJobFile(jobFile);
   }
-  
+
   @Override
   public synchronized List<AMInfo> getAMInfos() {
     initAMInfos();
     return this.amInfos;
   }
-  
+
   @Override
   public synchronized void setAMInfos(List<AMInfo> amInfos) {
     maybeInitBuilder();
@@ -283,15 +284,15 @@ public class JobReportPBImpl extends ProtoBase<JobReportProto> implements
     this.amInfos.clear();
     this.amInfos.addAll(amInfos);
   }
-  
-  
+
+
   private synchronized void initAMInfos() {
     if (this.amInfos != null) {
       return;
     }
     JobReportProtoOrBuilder p = viaProto ? proto : builder;
     List<AMInfoProto> list = p.getAmInfosList();
-    
+
     this.amInfos = new ArrayList<AMInfo>();
 
     for (AMInfoProto amInfoProto : list) {
@@ -314,7 +315,7 @@ public class JobReportPBImpl extends ProtoBase<JobReportProto> implements
   }
 
   private AMInfoProto convertToProtoFormat(AMInfo t) {
-    return ((AMInfoPBImpl)t).getProto();
+    return ((AMInfoPBImpl) t).getProto();
   }
 
   private JobIdPBImpl convertFromProtoFormat(JobIdProto p) {
@@ -322,7 +323,7 @@ public class JobReportPBImpl extends ProtoBase<JobReportProto> implements
   }
 
   private JobIdProto convertToProtoFormat(JobId t) {
-    return ((JobIdPBImpl)t).getProto();
+    return ((JobIdPBImpl) t).getProto();
   }
 
   private JobStateProto convertToProtoFormat(JobState e) {

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,8 +18,6 @@
 
 package org.apache.hadoop.mapreduce.lib.input;
 
-import java.io.IOException;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.io.LongWritable;
@@ -27,6 +25,8 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
+
+import java.io.IOException;
 
 /**
  * Input format that is a <code>CombineFileInputFormat</code>-equivalent for
@@ -37,11 +37,11 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 @InterfaceAudience.Public
 @InterfaceStability.Stable
 public class CombineTextInputFormat
-  extends CombineFileInputFormat<LongWritable,Text> {
-  public RecordReader<LongWritable,Text> createRecordReader(InputSplit split,
-    TaskAttemptContext context) throws IOException {
-    return new CombineFileRecordReader<LongWritable,Text>(
-      (CombineFileSplit)split, context, TextRecordReaderWrapper.class);
+    extends CombineFileInputFormat<LongWritable, Text> {
+  public RecordReader<LongWritable, Text> createRecordReader(InputSplit split,
+                                                             TaskAttemptContext context) throws IOException {
+    return new CombineFileRecordReader<LongWritable, Text>(
+        (CombineFileSplit) split, context, TextRecordReaderWrapper.class);
   }
 
   /**
@@ -54,11 +54,11 @@ public class CombineTextInputFormat
    * @see TextInputFormat
    */
   private static class TextRecordReaderWrapper
-    extends CombineFileRecordReaderWrapper<LongWritable,Text> {
+      extends CombineFileRecordReaderWrapper<LongWritable, Text> {
     // this constructor signature is required by CombineFileRecordReader
     public TextRecordReaderWrapper(CombineFileSplit split,
-      TaskAttemptContext context, Integer idx)
-      throws IOException, InterruptedException {
+                                   TaskAttemptContext context, Integer idx)
+        throws IOException, InterruptedException {
       super(new TextInputFormat(), split, context, idx);
     }
   }

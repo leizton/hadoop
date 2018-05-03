@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,12 +18,6 @@
 
 package org.apache.hadoop.mapred.join;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.fs.Path;
@@ -32,6 +26,12 @@ import org.apache.hadoop.mapred.InputFormat;
 import org.apache.hadoop.mapred.InputSplit;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.Reporter;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * An InputFormat capable of performing joins over a set of data sources sorted
@@ -50,12 +50,13 @@ import org.apache.hadoop.mapred.Reporter;
 @InterfaceAudience.Public
 @InterfaceStability.Stable
 public class CompositeInputFormat<K extends WritableComparable>
-      implements ComposableInputFormat<K,TupleWritable> {
+    implements ComposableInputFormat<K, TupleWritable> {
 
   // expression parse tree to which IF requests are proxied
   private Parser.Node root;
 
-  public CompositeInputFormat() { }
+  public CompositeInputFormat() {
+  }
 
 
   /**
@@ -97,14 +98,14 @@ public class CompositeInputFormat<K extends WritableComparable>
    */
   private void addUserIdentifiers(JobConf job) throws IOException {
     Pattern x = Pattern.compile("^mapred\\.join\\.define\\.(\\w+)$");
-    for (Map.Entry<String,String> kv : job) {
+    for (Map.Entry<String, String> kv : job) {
       Matcher m = x.matcher(kv.getKey());
       if (m.matches()) {
         try {
           Parser.CNode.addIdentifier(m.group(1),
               job.getClass(m.group(0), null, ComposableRecordReader.class));
         } catch (NoSuchMethodException e) {
-          throw (IOException)new IOException(
+          throw (IOException) new IOException(
               "Invalid define for " + m.group(1)).initCause(e);
         }
       }
@@ -128,7 +129,7 @@ public class CompositeInputFormat<K extends WritableComparable>
    * Mandating TupleWritable isn't strictly correct.
    */
   @SuppressWarnings("unchecked") // child types unknown
-  public ComposableRecordReader<K,TupleWritable> getRecordReader(
+  public ComposableRecordReader<K, TupleWritable> getRecordReader(
       InputSplit split, JobConf job, Reporter reporter) throws IOException {
     setFormat(job);
     return root.getRecordReader(split, job, reporter);
@@ -149,7 +150,7 @@ public class CompositeInputFormat<K extends WritableComparable>
    * {@code <op>(tbl(<inf>,<p1>),tbl(<inf>,<p2>),...,tbl(<inf>,<pn>)) }
    */
   public static String compose(String op, Class<? extends InputFormat> inf,
-      String... path) {
+                               String... path) {
     final String infname = inf.getName();
     StringBuffer ret = new StringBuffer(op + '(');
     for (String p : path) {
@@ -166,7 +167,7 @@ public class CompositeInputFormat<K extends WritableComparable>
    * {@code <op>(tbl(<inf>,<p1>),tbl(<inf>,<p2>),...,tbl(<inf>,<pn>)) }
    */
   public static String compose(String op, Class<? extends InputFormat> inf,
-      Path... path) {
+                               Path... path) {
     ArrayList<String> tmp = new ArrayList<String>(path.length);
     for (Path p : path) {
       tmp.add(p.toString());
@@ -175,7 +176,7 @@ public class CompositeInputFormat<K extends WritableComparable>
   }
 
   private static StringBuffer compose(String inf, String path,
-      StringBuffer sb) {
+                                      StringBuffer sb) {
     sb.append("tbl(" + inf + ",\"");
     sb.append(path);
     sb.append("\")");

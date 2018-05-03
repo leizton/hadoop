@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,20 +17,11 @@
  */
 package org.apache.hadoop.mapreduce.tools;
 
-import static org.junit.Assert.*;
-
-import org.apache.hadoop.mapreduce.Cluster;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.JobID;
-import org.apache.hadoop.mapreduce.TaskReport;
-import org.apache.hadoop.mapreduce.TaskType;
+import org.apache.hadoop.mapreduce.*;
 import org.junit.Test;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.doReturn;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.*;
 
 public class TestCLI {
   private static String jobIdStr = "job_1015298225799_0015";
@@ -49,17 +40,17 @@ public class TestCLI {
         getTaskReports(jobId, TaskType.REDUCE));
     when(mockCluster.getJob(jobId)).thenReturn(job);
 
-    int retCode_MAP = cli.run(new String[] { "-list-attempt-ids", jobIdStr,
-        "MAP", "running" });
+    int retCode_MAP = cli.run(new String[]{"-list-attempt-ids", jobIdStr,
+        "MAP", "running"});
     // testing case insensitive behavior
-    int retCode_map = cli.run(new String[] { "-list-attempt-ids", jobIdStr,
-        "map", "running" });
+    int retCode_map = cli.run(new String[]{"-list-attempt-ids", jobIdStr,
+        "map", "running"});
 
-    int retCode_REDUCE = cli.run(new String[] { "-list-attempt-ids", jobIdStr,
-        "REDUCE", "running" });
+    int retCode_REDUCE = cli.run(new String[]{"-list-attempt-ids", jobIdStr,
+        "REDUCE", "running"});
 
-    int retCode_completed = cli.run(new String[] { "-list-attempt-ids",
-        jobIdStr, "REDUCE", "completed" });
+    int retCode_completed = cli.run(new String[]{"-list-attempt-ids",
+        jobIdStr, "REDUCE", "completed"});
 
     assertEquals("MAP is a valid input,exit code should be 0", 0, retCode_MAP);
     assertEquals("map is a valid input,exit code should be 0", 0, retCode_map);
@@ -83,14 +74,14 @@ public class TestCLI {
     doReturn(mockCluster).when(cli).createCluster();
     when(mockCluster.getJob(jobId)).thenReturn(job);
 
-    int retCode_JOB_SETUP = cli.run(new String[] { "-list-attempt-ids",
-        jobIdStr, "JOB_SETUP", "running" });
+    int retCode_JOB_SETUP = cli.run(new String[]{"-list-attempt-ids",
+        jobIdStr, "JOB_SETUP", "running"});
 
-    int retCode_JOB_CLEANUP = cli.run(new String[] { "-list-attempt-ids",
-        jobIdStr, "JOB_CLEANUP", "running" });
+    int retCode_JOB_CLEANUP = cli.run(new String[]{"-list-attempt-ids",
+        jobIdStr, "JOB_CLEANUP", "running"});
 
-    int retCode_invalidTaskState = cli.run(new String[] { "-list-attempt-ids",
-        jobIdStr, "REDUCE", "complete" });
+    int retCode_invalidTaskState = cli.run(new String[]{"-list-attempt-ids",
+        jobIdStr, "REDUCE", "complete"});
 
     assertEquals("JOB_SETUP is an invalid input,exit code should be -1", -1,
         retCode_JOB_SETUP);
@@ -102,6 +93,6 @@ public class TestCLI {
   }
 
   private TaskReport[] getTaskReports(JobID jobId, TaskType type) {
-    return new TaskReport[] { new TaskReport(), new TaskReport() };
+    return new TaskReport[]{new TaskReport(), new TaskReport()};
   }
 }

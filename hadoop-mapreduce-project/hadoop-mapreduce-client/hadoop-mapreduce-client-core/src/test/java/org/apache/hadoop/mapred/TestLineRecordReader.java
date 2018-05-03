@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,9 +18,12 @@
 
 package org.apache.hadoop.mapred;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,12 +31,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 
-import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
-import org.junit.Test;
+import static org.junit.Assert.*;
 
 public class TestLineRecordReader {
 
@@ -52,7 +50,7 @@ public class TestLineRecordReader {
 
     // read the data without splitting to count the records
     FileSplit split = new FileSplit(testFilePath, 0, testFileSize,
-        (String[])null);
+        (String[]) null);
     LineRecordReader reader = new LineRecordReader(conf, split);
     LongWritable key = new LongWritable();
     Text value = new Text();
@@ -63,20 +61,20 @@ public class TestLineRecordReader {
     reader.close();
 
     // count the records in the first split
-    split = new FileSplit(testFilePath, 0, firstSplitLength, (String[])null);
+    split = new FileSplit(testFilePath, 0, firstSplitLength, (String[]) null);
     reader = new LineRecordReader(conf, split);
     int numRecordsFirstSplit = 0;
-    while (reader.next(key,  value)) {
+    while (reader.next(key, value)) {
       ++numRecordsFirstSplit;
     }
     reader.close();
 
     // count the records in the second split
     split = new FileSplit(testFilePath, firstSplitLength,
-        testFileSize - firstSplitLength, (String[])null);
+        testFileSize - firstSplitLength, (String[]) null);
     reader = new LineRecordReader(conf, split);
     int numRecordsRemainingSplits = 0;
-    while (reader.next(key,  value)) {
+    while (reader.next(key, value)) {
       ++numRecordsRemainingSplits;
     }
     reader.close();
@@ -169,7 +167,7 @@ public class TestLineRecordReader {
     }
 
     assertTrue("Invalid test data. Doesn't have a large enough record",
-               hasLargeRecord);
+        hasLargeRecord);
   }
 
   @Test
@@ -205,7 +203,7 @@ public class TestLineRecordReader {
 
     // read the data and check whether BOM is skipped
     FileSplit split = new FileSplit(testFilePath, 0, testFileSize,
-        (String[])null);
+        (String[]) null);
     LineRecordReader reader = new LineRecordReader(conf, split);
     LongWritable key = new LongWritable();
     Text value = new Text();

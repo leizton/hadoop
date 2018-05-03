@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,15 +28,14 @@ import org.apache.hadoop.mapreduce.v2.proto.MRServiceProtos.GetTaskAttemptReport
 import org.apache.hadoop.yarn.api.records.impl.pb.ProtoBase;
 
 
-    
 public class GetTaskAttemptReportResponsePBImpl extends ProtoBase<GetTaskAttemptReportResponseProto> implements GetTaskAttemptReportResponse {
   GetTaskAttemptReportResponseProto proto = GetTaskAttemptReportResponseProto.getDefaultInstance();
   GetTaskAttemptReportResponseProto.Builder builder = null;
   boolean viaProto = false;
-  
+
   private TaskAttemptReport taskAttemptReport = null;
-  
-  
+
+
   public GetTaskAttemptReportResponsePBImpl() {
     builder = GetTaskAttemptReportResponseProto.newBuilder();
   }
@@ -45,9 +44,9 @@ public class GetTaskAttemptReportResponsePBImpl extends ProtoBase<GetTaskAttempt
     this.proto = proto;
     viaProto = true;
   }
-  
+
   public GetTaskAttemptReportResponseProto getProto() {
-      mergeLocalToProto();
+    mergeLocalToProto();
     proto = viaProto ? proto : builder.build();
     viaProto = true;
     return proto;
@@ -60,7 +59,7 @@ public class GetTaskAttemptReportResponsePBImpl extends ProtoBase<GetTaskAttempt
   }
 
   private void mergeLocalToProto() {
-    if (viaProto) 
+    if (viaProto)
       maybeInitBuilder();
     mergeLocalToBuilder();
     proto = builder.build();
@@ -73,8 +72,8 @@ public class GetTaskAttemptReportResponsePBImpl extends ProtoBase<GetTaskAttempt
     }
     viaProto = false;
   }
-    
-  
+
+
   @Override
   public TaskAttemptReport getTaskAttemptReport() {
     GetTaskAttemptReportResponseProtoOrBuilder p = viaProto ? proto : builder;
@@ -84,14 +83,14 @@ public class GetTaskAttemptReportResponsePBImpl extends ProtoBase<GetTaskAttempt
     if (!p.hasTaskAttemptReport()) {
       return null;
     }
-    this.taskAttemptReport =  convertFromProtoFormat(p.getTaskAttemptReport());
+    this.taskAttemptReport = convertFromProtoFormat(p.getTaskAttemptReport());
     return this.taskAttemptReport;
   }
 
   @Override
   public void setTaskAttemptReport(TaskAttemptReport taskAttemptReport) {
     maybeInitBuilder();
-    if (taskAttemptReport == null) 
+    if (taskAttemptReport == null)
       builder.clearTaskAttemptReport();
     this.taskAttemptReport = taskAttemptReport;
   }
@@ -101,9 +100,8 @@ public class GetTaskAttemptReportResponsePBImpl extends ProtoBase<GetTaskAttempt
   }
 
   private TaskAttemptReportProto convertToProtoFormat(TaskAttemptReport t) {
-    return ((TaskAttemptReportPBImpl)t).getProto();
+    return ((TaskAttemptReportPBImpl) t).getProto();
   }
 
 
-
-}  
+}

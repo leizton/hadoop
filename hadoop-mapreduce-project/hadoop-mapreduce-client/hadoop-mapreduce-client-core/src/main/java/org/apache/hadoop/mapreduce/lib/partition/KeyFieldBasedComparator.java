@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,19 +18,19 @@
 
 package org.apache.hadoop.mapreduce.lib.partition;
 
-import java.util.List;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparator;
 import org.apache.hadoop.io.WritableUtils;
-import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.MRJobConfig;
 import org.apache.hadoop.mapreduce.lib.partition.KeyFieldHelper.KeyDescription;
+
+import java.util.List;
 
 
 /**
@@ -50,19 +50,19 @@ import org.apache.hadoop.mapreduce.lib.partition.KeyFieldHelper.KeyDescription;
  */
 @InterfaceAudience.Public
 @InterfaceStability.Stable
-public class KeyFieldBasedComparator<K, V> extends WritableComparator 
+public class KeyFieldBasedComparator<K, V> extends WritableComparator
     implements Configurable {
   private KeyFieldHelper keyFieldHelper = new KeyFieldHelper();
   public static String COMPARATOR_OPTIONS = "mapreduce.partition.keycomparator.options";
-  private static final byte NEGATIVE = (byte)'-';
-  private static final byte ZERO = (byte)'0';
-  private static final byte DECIMAL = (byte)'.';
+  private static final byte NEGATIVE = (byte) '-';
+  private static final byte ZERO = (byte) '0';
+  private static final byte DECIMAL = (byte) '.';
   private Configuration conf;
 
   public void setConf(Configuration conf) {
     this.conf = conf;
     String option = conf.get(COMPARATOR_OPTIONS);
-    String keyFieldSeparator = conf.get(MRJobConfig.MAP_OUTPUT_KEY_FIELD_SEPERATOR,"\t");
+    String keyFieldSeparator = conf.get(MRJobConfig.MAP_OUTPUT_KEY_FIELD_SEPERATOR, "\t");
     keyFieldHelper.setKeyFieldSeparator(keyFieldSeparator);
     keyFieldHelper.parseOption(option);
   }
@@ -70,46 +70,46 @@ public class KeyFieldBasedComparator<K, V> extends WritableComparator
   public Configuration getConf() {
     return conf;
   }
-  
+
   public KeyFieldBasedComparator() {
     super(Text.class);
   }
-    
+
   public int compare(byte[] b1, int s1, int l1,
-      byte[] b2, int s2, int l2) {
+                     byte[] b2, int s2, int l2) {
     int n1 = WritableUtils.decodeVIntSize(b1[s1]);
     int n2 = WritableUtils.decodeVIntSize(b2[s2]);
-    List <KeyDescription> allKeySpecs = keyFieldHelper.keySpecs();
+    List<KeyDescription> allKeySpecs = keyFieldHelper.keySpecs();
 
     if (allKeySpecs.size() == 0) {
       return compareBytes(b1, s1 + n1, l1 - n1, b2, s2 + n2, l2 - n2);
     }
-    
-    int []lengthIndicesFirst = 
-      keyFieldHelper.getWordLengths(b1, s1 + n1, s1 + l1);
-    int []lengthIndicesSecond = 
-      keyFieldHelper.getWordLengths(b2, s2 + n2, s2 + l2);
-    
+
+    int[] lengthIndicesFirst =
+        keyFieldHelper.getWordLengths(b1, s1 + n1, s1 + l1);
+    int[] lengthIndicesSecond =
+        keyFieldHelper.getWordLengths(b2, s2 + n2, s2 + l2);
+
     for (KeyDescription keySpec : allKeySpecs) {
       int startCharFirst = keyFieldHelper.getStartOffset(b1, s1 + n1, s1 + l1,
-        lengthIndicesFirst, keySpec);
-      int endCharFirst = keyFieldHelper.getEndOffset(b1, s1 + n1, s1 + l1, 
-        lengthIndicesFirst, keySpec);
+          lengthIndicesFirst, keySpec);
+      int endCharFirst = keyFieldHelper.getEndOffset(b1, s1 + n1, s1 + l1,
+          lengthIndicesFirst, keySpec);
       int startCharSecond = keyFieldHelper.getStartOffset(b2, s2 + n2, s2 + l2,
-        lengthIndicesSecond, keySpec);
-      int endCharSecond = keyFieldHelper.getEndOffset(b2, s2 + n2, s2 + l2, 
-        lengthIndicesSecond, keySpec);
+          lengthIndicesSecond, keySpec);
+      int endCharSecond = keyFieldHelper.getEndOffset(b2, s2 + n2, s2 + l2,
+          lengthIndicesSecond, keySpec);
       int result;
-      if ((result = compareByteSequence(b1, startCharFirst, endCharFirst, b2, 
+      if ((result = compareByteSequence(b1, startCharFirst, endCharFirst, b2,
           startCharSecond, endCharSecond, keySpec)) != 0) {
         return result;
       }
     }
     return 0;
   }
-  
-  private int compareByteSequence(byte[] first, int start1, int end1, 
-      byte[] second, int start2, int end2, KeyDescription key) {
+
+  private int compareByteSequence(byte[] first, int start1, int end1,
+                                  byte[] second, int start2, int end2, KeyDescription key) {
     if (start1 == -1) {
       if (key.reverse) {
         return 1;
@@ -118,27 +118,27 @@ public class KeyFieldBasedComparator<K, V> extends WritableComparator
     }
     if (start2 == -1) {
       if (key.reverse) {
-        return -1; 
+        return -1;
       }
       return 1;
     }
     int compareResult = 0;
     if (!key.numeric) {
-      compareResult = compareBytes(first, start1, end1-start1 + 1, second,
-        start2, end2 - start2 + 1);
+      compareResult = compareBytes(first, start1, end1 - start1 + 1, second,
+          start2, end2 - start2 + 1);
     }
     if (key.numeric) {
-      compareResult = numericalCompare (first, start1, end1, second, start2,
-        end2);
+      compareResult = numericalCompare(first, start1, end1, second, start2,
+          end2);
     }
     if (key.reverse) {
       return -compareResult;
     }
     return compareResult;
   }
-  
-  private int numericalCompare (byte[] a, int start1, int end1, 
-      byte[] b, int start2, int end2) {
+
+  private int numericalCompare(byte[] a, int start1, int end1,
+                               byte[] b, int start2, int end2) {
     int i = start1;
     int j = start2;
     int mul = 1;
@@ -154,7 +154,7 @@ public class KeyFieldBasedComparator<K, V> extends WritableComparator
     if (first_b == NEGATIVE) {
       if (first_a != NEGATIVE) {
         //check for cases like 0.0 and -0.0 (they should be declared equal)
-        return -oneNegativeCompare(b, start2+1, end2, a, start1, end1);
+        return -oneNegativeCompare(b, start2 + 1, end2, a, start1, end1);
       }
       j++;
     }
@@ -175,14 +175,15 @@ public class KeyFieldBasedComparator<K, V> extends WritableComparator
       }
       j++;
     }
-    
+
     //skip over equal characters and stopping at the first nondigit char
     //The nondigit character could be '.'
     while (i <= end1 && j <= end2) {
       if (!isdigit(a[i]) || a[i] != b[j]) {
         break;
       }
-      i++; j++;
+      i++;
+      j++;
     }
     if (i <= end1) {
       first_a = a[i];
@@ -193,12 +194,12 @@ public class KeyFieldBasedComparator<K, V> extends WritableComparator
     //store the result of the difference. This could be final result if the
     //number of digits in the mantissa is the same in both the numbers 
     int firstResult = first_a - first_b;
-    
+
     //check whether we hit a decimal in the earlier scan
     if ((first_a == DECIMAL && (!isdigit(first_b) || j > end2)) ||
-            (first_b == DECIMAL && (!isdigit(first_a) || i > end1))) {
-      return ((mul < 0) ? -decimalCompare(a, i, end1, b, j, end2) : 
-        decimalCompare(a, i, end1, b, j, end2));
+        (first_b == DECIMAL && (!isdigit(first_a) || i > end1))) {
+      return ((mul < 0) ? -decimalCompare(a, i, end1, b, j, end2) :
+          decimalCompare(a, i, end1, b, j, end2));
     }
     //check the number of digits in the mantissa of the numbers
     int numRemainDigits_a = 0;
@@ -218,19 +219,21 @@ public class KeyFieldBasedComparator<K, V> extends WritableComparator
       } else break;
     }
     int ret = numRemainDigits_a - numRemainDigits_b;
-    if (ret == 0) { 
+    if (ret == 0) {
       return ((mul < 0) ? -firstResult : firstResult);
     } else {
       return ((mul < 0) ? -ret : ret);
     }
   }
+
   private boolean isdigit(byte b) {
     if ('0' <= b && b <= '9') {
       return true;
     }
     return false;
   }
-  private int decimalCompare(byte[] a, int i, int end1, 
+
+  private int decimalCompare(byte[] a, int i, int end1,
                              byte[] b, int j, int end2) {
     if (i > end1) {
       //if a[] has nothing remaining
@@ -254,12 +257,13 @@ public class KeyFieldBasedComparator<K, V> extends WritableComparator
           }
           return 0;
         }
-        i++; j++;
+        i++;
+        j++;
       }
       if (i > end1 && j > end2) {
         return 0;
       }
-        
+
       if (i > end1) {
         //check whether there is a non-ZERO digit after potentially
         //a number of ZEROs (e.g., a=.4444, b=.444400004)
@@ -270,16 +274,14 @@ public class KeyFieldBasedComparator<K, V> extends WritableComparator
         //a number of ZEROs (e.g., b=.4444, a=.444400004)
         return decimalCompare1(a, i, end1);
       }
-    }
-    else if (a[i] == DECIMAL) {
+    } else if (a[i] == DECIMAL) {
       return decimalCompare1(a, ++i, end1);
-    }
-    else if (b[j] == DECIMAL) {
+    } else if (b[j] == DECIMAL) {
       return -decimalCompare1(b, ++j, end2);
     }
     return 0;
   }
-  
+
   private int decimalCompare1(byte[] a, int i, int end) {
     while (i <= end) {
       if (a[i] == ZERO) {
@@ -294,9 +296,9 @@ public class KeyFieldBasedComparator<K, V> extends WritableComparator
     }
     return 0;
   }
-  
-  private int oneNegativeCompare(byte[] a, int start1, int end1, 
-      byte[] b, int start2, int end2) {
+
+  private int oneNegativeCompare(byte[] a, int start1, int end1,
+                                 byte[] b, int start2, int end2) {
     //here a[] is negative and b[] is positive
     //We have to ascertain whether the number contains any digits.
     //If it does, then it is a smaller number for sure. If not,
@@ -315,7 +317,7 @@ public class KeyFieldBasedComparator<K, V> extends WritableComparator
     //they should compare equal
     return 0;
   }
-  
+
   private boolean isZero(byte a[], int start, int end) {
     //check for zeros in the significand part as well as the decimal part
     //note that we treat the non-digit characters as ZERO
@@ -331,7 +333,7 @@ public class KeyFieldBasedComparator<K, V> extends WritableComparator
       i++;
     }
 
-    if (i != (end+1) && a[i++] == DECIMAL) {
+    if (i != (end + 1) && a[i++] == DECIMAL) {
       //we check the decimal part for being a ZERO
       while (i <= end) {
         if (a[i] != ZERO) {
@@ -345,9 +347,10 @@ public class KeyFieldBasedComparator<K, V> extends WritableComparator
     }
     return true;
   }
+
   /**
    * Set the {@link KeyFieldBasedComparator} options used to compare keys.
-   * 
+   *
    * @param keySpec the key specification of the form -k pos1[,pos2], where,
    *  pos is of the form f[.c][opts], where f is the number
    *  of the key field to use, and c is the number of the first character from
@@ -363,7 +366,7 @@ public class KeyFieldBasedComparator<K, V> extends WritableComparator
   public static void setKeyFieldComparatorOptions(Job job, String keySpec) {
     job.getConfiguration().set(COMPARATOR_OPTIONS, keySpec);
   }
-  
+
   /**
    * Get the {@link KeyFieldBasedComparator} options
    */

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,13 +18,13 @@
 
 package org.apache.hadoop.mapreduce.lib.aggregate;
 
-import java.util.ArrayList;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.WritableComparable;
+
+import java.util.ArrayList;
 
 /**
  * This abstract class implements some common functionalities of the
@@ -33,13 +33,12 @@ import org.apache.hadoop.io.WritableComparable;
 @InterfaceAudience.Public
 @InterfaceStability.Stable
 public class ValueAggregatorJobBase<K1 extends WritableComparable<?>,
-                                             V1 extends Writable>
-{
+    V1 extends Writable> {
   public static final String DESCRIPTOR = "mapreduce.aggregate.descriptor";
-  public static final String DESCRIPTOR_NUM = 
-    "mapreduce.aggregate.descriptor.num";
+  public static final String DESCRIPTOR_NUM =
+      "mapreduce.aggregate.descriptor.num";
   public static final String USER_JAR = "mapreduce.aggregate.user.jar.file";
-  
+
   protected static ArrayList<ValueAggregatorDescriptor> aggregatorDescriptorList = null;
 
   public static void setup(Configuration job) {
@@ -63,8 +62,8 @@ public class ValueAggregatorJobBase<K1 extends WritableComparable<?>,
   protected static ArrayList<ValueAggregatorDescriptor> getAggregatorDescriptors(
       Configuration conf) {
     int num = conf.getInt(DESCRIPTOR_NUM, 0);
-    ArrayList<ValueAggregatorDescriptor> retv = 
-      new ArrayList<ValueAggregatorDescriptor>(num);
+    ArrayList<ValueAggregatorDescriptor> retv =
+        new ArrayList<ValueAggregatorDescriptor>(num);
     for (int i = 0; i < num; i++) {
       String spec = conf.get(DESCRIPTOR + "." + i);
       ValueAggregatorDescriptor ad = getValueAggregatorDescriptor(spec, conf);

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,7 +17,12 @@
  */
 package org.apache.hadoop.mapred;
 
-import static org.apache.hadoop.mapred.MapTask.MAP_OUTPUT_INDEX_RECORD_LENGTH;
+import org.apache.hadoop.classification.InterfaceAudience;
+import org.apache.hadoop.classification.InterfaceStability;
+import org.apache.hadoop.fs.*;
+import org.apache.hadoop.io.IOUtils;
+import org.apache.hadoop.io.SecureIOUtils;
+import org.apache.hadoop.util.PureJavaCrc32;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,16 +32,7 @@ import java.util.zip.CheckedInputStream;
 import java.util.zip.CheckedOutputStream;
 import java.util.zip.Checksum;
 
-import org.apache.hadoop.classification.InterfaceAudience;
-import org.apache.hadoop.classification.InterfaceStability;
-import org.apache.hadoop.fs.ChecksumException;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IOUtils;
-import org.apache.hadoop.io.SecureIOUtils;
-import org.apache.hadoop.util.PureJavaCrc32;
+import static org.apache.hadoop.mapred.MapTask.MAP_OUTPUT_INDEX_RECORD_LENGTH;
 
 @InterfaceAudience.LimitedPrivate({"MapReduce"})
 @InterfaceStability.Unstable
@@ -58,7 +54,7 @@ public class SpillRecord {
   }
 
   public SpillRecord(Path indexFileName, JobConf job, String expectedIndexOwner)
-    throws IOException {
+      throws IOException {
     this(indexFileName, job, new PureJavaCrc32(), expectedIndexOwner);
   }
 
@@ -79,10 +75,10 @@ public class SpillRecord {
         crc.reset();
         CheckedInputStream chk = new CheckedInputStream(in, crc);
         IOUtils.readFully(chk, buf.array(), 0, size);
-        
+
         if (chk.getChecksum().getValue() != in.readLong()) {
           throw new ChecksumException("Checksum error reading spill index: " +
-                                indexFileName, -1);
+              indexFileName, -1);
         }
       } else {
         IOUtils.readFully(in, buf.array(), 0, size);
@@ -106,7 +102,7 @@ public class SpillRecord {
   public IndexRecord getIndex(int partition) {
     final int pos = partition * MapTask.MAP_OUTPUT_INDEX_RECORD_LENGTH / 8;
     return new IndexRecord(entries.get(pos), entries.get(pos + 1),
-                           entries.get(pos + 2));
+        entries.get(pos + 2));
   }
 
   /**

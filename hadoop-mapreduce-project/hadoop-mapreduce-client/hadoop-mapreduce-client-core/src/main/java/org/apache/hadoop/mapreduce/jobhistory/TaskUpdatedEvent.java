@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,13 +18,10 @@
 
 package org.apache.hadoop.mapreduce.jobhistory;
 
-import java.io.IOException;
-
+import org.apache.avro.util.Utf8;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.mapreduce.TaskID;
-
-import org.apache.avro.util.Utf8;
 
 /**
  * Event to record updates to a task
@@ -45,15 +42,27 @@ public class TaskUpdatedEvent implements HistoryEvent {
     datum.finishTime = finishTime;
   }
 
-  TaskUpdatedEvent() {}
+  TaskUpdatedEvent() {
+  }
 
-  public Object getDatum() { return datum; }
-  public void setDatum(Object datum) { this.datum = (TaskUpdated)datum; }
+  public Object getDatum() {
+    return datum;
+  }
+
+  public void setDatum(Object datum) {
+    this.datum = (TaskUpdated) datum;
+  }
 
   /** Get the task ID */
-  public TaskID getTaskId() { return TaskID.forName(datum.taskid.toString()); }
+  public TaskID getTaskId() {
+    return TaskID.forName(datum.taskid.toString());
+  }
+
   /** Get the task finish time */
-  public long getFinishTime() { return datum.finishTime; }
+  public long getFinishTime() {
+    return datum.finishTime;
+  }
+
   /** Get the event type */
   public EventType getEventType() {
     return EventType.TASK_UPDATED;

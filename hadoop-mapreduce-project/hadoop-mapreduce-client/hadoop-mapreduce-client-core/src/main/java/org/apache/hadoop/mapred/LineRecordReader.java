@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,9 +18,8 @@
 
 package org.apache.hadoop.mapred;
 
-import java.io.IOException;
-import java.io.InputStream;
-
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
@@ -30,16 +29,12 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.Seekable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.compress.CodecPool;
-import org.apache.hadoop.io.compress.CompressionCodec;
-import org.apache.hadoop.io.compress.CompressionCodecFactory;
-import org.apache.hadoop.io.compress.Decompressor;
-import org.apache.hadoop.io.compress.SplitCompressionInputStream;
-import org.apache.hadoop.io.compress.SplittableCompressionCodec;
+import org.apache.hadoop.io.compress.*;
 import org.apache.hadoop.mapreduce.lib.input.CompressedSplitLineReader;
 import org.apache.hadoop.mapreduce.lib.input.SplitLineReader;
-import org.apache.commons.logging.LogFactory;
-import org.apache.commons.logging.Log;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Treats keys as offset in file and value as line. 
@@ -48,7 +43,7 @@ import org.apache.commons.logging.Log;
 @InterfaceStability.Unstable
 public class LineRecordReader implements RecordReader<LongWritable, Text> {
   private static final Log LOG
-    = LogFactory.getLog(LineRecordReader.class.getName());
+      = LogFactory.getLog(LineRecordReader.class.getName());
 
   private CompressionCodecFactory compressionCodecs = null;
   private long start;
@@ -70,33 +65,38 @@ public class LineRecordReader implements RecordReader<LongWritable, Text> {
     LineReader(InputStream in) {
       super(in);
     }
+
     LineReader(InputStream in, int bufferSize) {
       super(in, bufferSize);
     }
+
     public LineReader(InputStream in, Configuration conf) throws IOException {
       super(in, conf);
     }
+
     LineReader(InputStream in, byte[] recordDelimiter) {
       super(in, recordDelimiter);
     }
+
     LineReader(InputStream in, int bufferSize, byte[] recordDelimiter) {
       super(in, bufferSize, recordDelimiter);
     }
+
     public LineReader(InputStream in, Configuration conf,
-        byte[] recordDelimiter) throws IOException {
+                      byte[] recordDelimiter) throws IOException {
       super(in, conf, recordDelimiter);
     }
   }
 
-  public LineRecordReader(Configuration job, 
+  public LineRecordReader(Configuration job,
                           FileSplit split) throws IOException {
     this(job, split, null);
   }
 
   public LineRecordReader(Configuration job, FileSplit split,
-      byte[] recordDelimiter) throws IOException {
+                          byte[] recordDelimiter) throws IOException {
     this.maxLineLength = job.getInt(org.apache.hadoop.mapreduce.lib.input.
-      LineRecordReader.MAX_LINE_LENGTH, Integer.MAX_VALUE);
+        LineRecordReader.MAX_LINE_LENGTH, Integer.MAX_VALUE);
     start = split.getStart();
     end = start + split.getLength();
     final Path file = split.getPath();
@@ -110,9 +110,9 @@ public class LineRecordReader implements RecordReader<LongWritable, Text> {
       decompressor = CodecPool.getDecompressor(codec);
       if (codec instanceof SplittableCompressionCodec) {
         final SplitCompressionInputStream cIn =
-          ((SplittableCompressionCodec)codec).createInputStream(
-            fileIn, decompressor, start, end,
-            SplittableCompressionCodec.READ_MODE.BYBLOCK);
+            ((SplittableCompressionCodec) codec).createInputStream(
+                fileIn, decompressor, start, end,
+                SplittableCompressionCodec.READ_MODE.BYBLOCK);
         in = new CompressedSplitLineReader(cIn, job, recordDelimiter);
         start = cIn.getAdjustedStart();
         end = cIn.getAdjustedEnd();
@@ -142,49 +142,49 @@ public class LineRecordReader implements RecordReader<LongWritable, Text> {
   }
 
   public LineRecordReader(InputStream in, long offset, long endOffset,
-      int maxLineLength, byte[] recordDelimiter) {
+                          int maxLineLength, byte[] recordDelimiter) {
     this.maxLineLength = maxLineLength;
     this.in = new SplitLineReader(in, recordDelimiter);
     this.start = offset;
     this.pos = offset;
-    this.end = endOffset;    
+    this.end = endOffset;
     filePosition = null;
   }
 
   public LineRecordReader(InputStream in, long offset, long endOffset,
                           Configuration job)
-    throws IOException{
+      throws IOException {
     this(in, offset, endOffset, job, null);
   }
 
-  public LineRecordReader(InputStream in, long offset, long endOffset, 
+  public LineRecordReader(InputStream in, long offset, long endOffset,
                           Configuration job, byte[] recordDelimiter)
-    throws IOException{
+      throws IOException {
     this.maxLineLength = job.getInt(org.apache.hadoop.mapreduce.lib.input.
-      LineRecordReader.MAX_LINE_LENGTH, Integer.MAX_VALUE);
+        LineRecordReader.MAX_LINE_LENGTH, Integer.MAX_VALUE);
     this.in = new SplitLineReader(in, job, recordDelimiter);
     this.start = offset;
     this.pos = offset;
-    this.end = endOffset;    
+    this.end = endOffset;
     filePosition = null;
   }
 
   public LongWritable createKey() {
     return new LongWritable();
   }
-  
+
   public Text createValue() {
     return new Text();
   }
-  
+
   private boolean isCompressedInput() {
     return (codec != null);
   }
 
   private int maxBytesToConsume(long pos) {
     return isCompressedInput()
-      ? Integer.MAX_VALUE
-      : (int) Math.max(Math.min(Integer.MAX_VALUE, end - pos), maxLineLength);
+        ? Integer.MAX_VALUE
+        : (int) Math.max(Math.min(Integer.MAX_VALUE, end - pos), maxLineLength);
   }
 
   private long getFilePosition() throws IOException {
@@ -213,8 +213,8 @@ public class LineRecordReader implements RecordReader<LongWritable, Text> {
     pos += newSize;
     int textLength = value.getLength();
     byte[] textBytes = value.getBytes();
-    if ((textLength >= 3) && (textBytes[0] == (byte)0xEF) &&
-        (textBytes[1] == (byte)0xBB) && (textBytes[2] == (byte)0xBF)) {
+    if ((textLength >= 3) && (textBytes[0] == (byte) 0xEF) &&
+        (textBytes[1] == (byte) 0xBB) && (textBytes[2] == (byte) 0xBF)) {
       // find UTF-8 BOM, strip it.
       LOG.info("Found UTF-8 BOM and skipped it");
       textLength -= 3;
@@ -232,7 +232,7 @@ public class LineRecordReader implements RecordReader<LongWritable, Text> {
 
   /** Read a line. */
   public synchronized boolean next(LongWritable key, Text value)
-    throws IOException {
+      throws IOException {
 
     // We always read one extra line, which lies outside the upper
     // split limit i.e. (end - 1)
@@ -268,11 +268,11 @@ public class LineRecordReader implements RecordReader<LongWritable, Text> {
     if (start == end) {
       return 0.0f;
     } else {
-      return Math.min(1.0f, (getFilePosition() - start) / (float)(end - start));
+      return Math.min(1.0f, (getFilePosition() - start) / (float) (end - start));
     }
   }
-  
-  public  synchronized long getPos() throws IOException {
+
+  public synchronized long getPos() throws IOException {
     return pos;
   }
 

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,9 +18,9 @@
 package org.apache.hadoop.mapred;
 
 import junit.framework.TestCase;
-import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hdfs.MiniDFSCluster;
 
 import java.io.IOException;
 import java.util.Map;
@@ -70,7 +70,7 @@ public abstract class ClusterMapReduceTestCase extends TestCase {
    * @throws Exception if the cluster could not be started
    */
   protected synchronized void startCluster(boolean reformatDFS, Properties props)
-          throws Exception {
+      throws Exception {
     if (dfsCluster == null) {
       JobConf conf = new JobConf();
       if (props != null) {
@@ -79,7 +79,7 @@ public abstract class ClusterMapReduceTestCase extends TestCase {
         }
       }
       dfsCluster = new MiniDFSCluster.Builder(conf).numDataNodes(2)
-      .format(reformatDFS).racks(null).build();
+          .format(reformatDFS).racks(null).build();
 
       ConfigurableMiniMRCluster.setConfiguration(props);
       //noinspection deprecation
@@ -98,7 +98,7 @@ public abstract class ClusterMapReduceTestCase extends TestCase {
     public ConfigurableMiniMRCluster(int numTaskTrackers, String namenode,
                                      int numDir, JobConf conf)
         throws Exception {
-      super(0,0, numTaskTrackers, namenode, numDir, null, null, null, conf);
+      super(0, 0, numTaskTrackers, namenode, numDir, null, null, null, conf);
     }
 
     public JobConf createJobConf() {
@@ -151,7 +151,7 @@ public abstract class ClusterMapReduceTestCase extends TestCase {
    * TestCases should use this Filesystem instance.
    *
    * @return the filesystem used by Hadoop.
-   * @throws IOException 
+   * @throws IOException
    */
   protected FileSystem getFileSystem() throws IOException {
     return dfsCluster.getFileSystem();

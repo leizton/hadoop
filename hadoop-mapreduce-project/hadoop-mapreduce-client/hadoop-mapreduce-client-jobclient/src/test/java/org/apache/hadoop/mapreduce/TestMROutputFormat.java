@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,18 +18,18 @@
 
 package org.apache.hadoop.mapreduce;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapred.JobConf;
 import org.junit.Test;
+
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.assertTrue;
 
@@ -47,11 +47,11 @@ public class TestMROutputFormat {
     job.waitForCompletion(true);
     assertTrue(job.isSuccessful());
   }
-  
+
   public static class TestMapper
-  extends Mapper<IntWritable, IntWritable, IntWritable, IntWritable> {
-    public void map(IntWritable key, IntWritable value, Context context) 
-    throws IOException, InterruptedException {
+      extends Mapper<IntWritable, IntWritable, IntWritable, IntWritable> {
+    public void map(IntWritable key, IntWritable value, Context context)
+        throws IOException, InterruptedException {
       context.write(key, value);
     }
   }
@@ -66,7 +66,7 @@ class TestInputFormat extends InputFormat<IntWritable, IntWritable> {
     return new RecordReader<IntWritable, IntWritable>() {
 
       private boolean done = false;
-      
+
       @Override
       public void close() throws IOException {
       }
@@ -74,18 +74,18 @@ class TestInputFormat extends InputFormat<IntWritable, IntWritable> {
       @Override
       public IntWritable getCurrentKey() throws IOException,
           InterruptedException {
-	return new IntWritable(0);
+        return new IntWritable(0);
       }
 
       @Override
       public IntWritable getCurrentValue() throws IOException,
           InterruptedException {
-	return new IntWritable(0);
+        return new IntWritable(0);
       }
 
       @Override
       public float getProgress() throws IOException, InterruptedException {
-	return done ? 0 : 1;
+        return done ? 0 : 1;
       }
 
       @Override
@@ -95,18 +95,18 @@ class TestInputFormat extends InputFormat<IntWritable, IntWritable> {
 
       @Override
       public boolean nextKeyValue() throws IOException, InterruptedException {
-	if (!done) {
-	  done = true;
-	  return true;
-	}
-	return false;
+        if (!done) {
+          done = true;
+          return true;
+        }
+        return false;
       }
     };
   }
 
   @Override
   public List<InputSplit> getSplits(JobContext context) throws IOException,
-      InterruptedException {    
+      InterruptedException {
     List<InputSplit> list = new ArrayList<InputSplit>();
     list.add(new TestInputSplit());
     return list;
@@ -114,16 +114,16 @@ class TestInputFormat extends InputFormat<IntWritable, IntWritable> {
 }
 
 class TestInputSplit extends InputSplit implements Writable {
-  
+
   @Override
   public long getLength() throws IOException, InterruptedException {
-	return 1;
+    return 1;
   }
 
   @Override
   public String[] getLocations() throws IOException, InterruptedException {
-	String[] hosts = {"localhost"};
-	return hosts;
+    String[] hosts = {"localhost"};
+    return hosts;
   }
 
   @Override
@@ -132,15 +132,15 @@ class TestInputSplit extends InputSplit implements Writable {
 
   @Override
   public void write(DataOutput out) throws IOException {
-  }	
+  }
 }
 
-class TestOutputFormat extends OutputFormat<IntWritable, IntWritable> 
-implements Configurable {
+class TestOutputFormat extends OutputFormat<IntWritable, IntWritable>
+    implements Configurable {
 
   public static final String TEST_CONFIG_NAME = "mapred.test.jobsubmission";
   private Configuration conf;
-  
+
   @Override
   public void checkOutputSpecs(JobContext context) throws IOException,
       InterruptedException {
@@ -163,7 +163,7 @@ implements Configurable {
       @Override
       public boolean needsTaskCommit(TaskAttemptContext taskContext)
           throws IOException {
-	return false;
+        return false;
       }
 
       @Override
@@ -184,23 +184,23 @@ implements Configurable {
 
       @Override
       public void close(TaskAttemptContext context) throws IOException,
-          InterruptedException {	
+          InterruptedException {
       }
 
       @Override
       public void write(IntWritable key, IntWritable value) throws IOException,
-          InterruptedException {	
+          InterruptedException {
       }
-    }; 
+    };
   }
-  
+
   @Override
   public Configuration getConf() {
-      return conf;
+    return conf;
   }
 
   @Override
   public void setConf(Configuration conf) {
-      this.conf = conf;        
+    this.conf = conf;
   }
 }

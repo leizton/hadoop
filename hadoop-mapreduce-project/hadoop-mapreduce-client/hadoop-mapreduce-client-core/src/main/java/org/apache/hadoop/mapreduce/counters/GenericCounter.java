@@ -18,15 +18,15 @@
 
 package org.apache.hadoop.mapreduce.counters;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.mapreduce.Counter;
 import org.apache.hadoop.util.StringInterner;
+
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 
 /**
  * A generic counter implementation
@@ -53,7 +53,8 @@ public class GenericCounter extends AbstractCounter {
     this.value = value;
   }
 
-  @Override @Deprecated
+  @Override
+  @Deprecated
   public synchronized void setDisplayName(String displayName) {
     this.displayName = displayName;
   }
@@ -61,7 +62,7 @@ public class GenericCounter extends AbstractCounter {
   @Override
   public synchronized void readFields(DataInput in) throws IOException {
     name = StringInterner.weakIntern(Text.readString(in));
-    displayName = in.readBoolean() ? 
+    displayName = in.readBoolean() ?
         StringInterner.weakIntern(Text.readString(in)) : name;
     value = WritableUtils.readVLong(in);
   }
@@ -72,7 +73,7 @@ public class GenericCounter extends AbstractCounter {
   @Override
   public synchronized void write(DataOutput out) throws IOException {
     Text.writeString(out, name);
-    boolean distinctDisplayName = ! name.equals(displayName);
+    boolean distinctDisplayName = !name.equals(displayName);
     out.writeBoolean(distinctDisplayName);
     if (distinctDisplayName) {
       Text.writeString(out, displayName);

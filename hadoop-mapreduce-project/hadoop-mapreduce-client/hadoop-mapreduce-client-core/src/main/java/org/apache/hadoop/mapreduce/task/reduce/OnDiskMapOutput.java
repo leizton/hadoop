@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,30 +17,24 @@
  */
 package org.apache.hadoop.mapreduce.task.reduce;
 
+import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.classification.InterfaceAudience;
+import org.apache.hadoop.classification.InterfaceStability;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IOUtils;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapred.MapOutputFile;
+import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapreduce.CryptoUtils;
+import org.apache.hadoop.mapreduce.TaskAttemptID;
+import org.apache.hadoop.mapreduce.task.reduce.MergeManagerImpl.CompressAwarePath;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
-import org.apache.hadoop.classification.InterfaceAudience;
-import org.apache.hadoop.classification.InterfaceStability;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-
-import org.apache.hadoop.io.IOUtils;
-
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.Reporter;
-import org.apache.hadoop.mapred.MapOutputFile;
-
-import org.apache.hadoop.mapreduce.TaskAttemptID;
-import org.apache.hadoop.mapreduce.CryptoUtils;
-import org.apache.hadoop.mapreduce.task.reduce.MergeManagerImpl.CompressAwarePath;
-
-import com.google.common.annotations.VisibleForTesting;
 
 @InterfaceAudience.Private
 @InterfaceStability.Unstable
@@ -50,11 +44,11 @@ class OnDiskMapOutput<K, V> extends MapOutput<K, V> {
   private final Path tmpOutputPath;
   private final Path outputPath;
   private final MergeManagerImpl<K, V> merger;
-  private final OutputStream disk; 
+  private final OutputStream disk;
   private long compressedSize;
 
   public OnDiskMapOutput(TaskAttemptID mapId, TaskAttemptID reduceId,
-                         MergeManagerImpl<K,V> merger, long size,
+                         MergeManagerImpl<K, V> merger, long size,
                          JobConf conf,
                          MapOutputFile mapOutputFile,
                          int fetcher, boolean primaryMapOutput)
@@ -66,11 +60,11 @@ class OnDiskMapOutput<K, V> extends MapOutput<K, V> {
 
   @VisibleForTesting
   OnDiskMapOutput(TaskAttemptID mapId, TaskAttemptID reduceId,
-                         MergeManagerImpl<K,V> merger, long size,
-                         JobConf conf,
-                         MapOutputFile mapOutputFile,
-                         int fetcher, boolean primaryMapOutput,
-                         FileSystem fs, Path outputPath) throws IOException {
+                  MergeManagerImpl<K, V> merger, long size,
+                  JobConf conf,
+                  MapOutputFile mapOutputFile,
+                  int fetcher, boolean primaryMapOutput,
+                  FileSystem fs, Path outputPath) throws IOException {
     super(mapId, size, primaryMapOutput);
     this.fs = fs;
     this.merger = merger;
@@ -97,8 +91,8 @@ class OnDiskMapOutput<K, V> extends MapOutput<K, V> {
       while (bytesLeft > 0) {
         int n = input.read(buf, 0, (int) Math.min(bytesLeft, BYTES_TO_READ));
         if (n < 0) {
-          throw new IOException("read past end of stream reading " + 
-                                getMapId());
+          throw new IOException("read past end of stream reading " +
+              getMapId());
         }
         disk.write(buf, 0, n);
         bytesLeft -= n;
@@ -106,8 +100,8 @@ class OnDiskMapOutput<K, V> extends MapOutput<K, V> {
         reporter.progress();
       }
 
-      LOG.info("Read " + (compressedLength - bytesLeft) + 
-               " bytes from map-output for " + getMapId());
+      LOG.info("Read " + (compressedLength - bytesLeft) +
+          " bytes from map-output for " + getMapId());
 
       disk.close();
     } catch (IOException ioe) {
@@ -121,10 +115,10 @@ class OnDiskMapOutput<K, V> extends MapOutput<K, V> {
     // Sanity check
     if (bytesLeft != 0) {
       throw new IOException("Incomplete map output received for " +
-                            getMapId() + " from " +
-                            host.getHostName() + " (" + 
-                            bytesLeft + " bytes missing of " + 
-                            compressedLength + ")");
+          getMapId() + " from " +
+          host.getHostName() + " (" +
+          bytesLeft + " bytes missing of " +
+          compressedLength + ")");
     }
     this.compressedSize = compressedLength;
   }
@@ -136,7 +130,7 @@ class OnDiskMapOutput<K, V> extends MapOutput<K, V> {
         getSize(), this.compressedSize);
     merger.closeOnDiskFile(compressAwarePath);
   }
-  
+
   @Override
   public void abort() {
     try {

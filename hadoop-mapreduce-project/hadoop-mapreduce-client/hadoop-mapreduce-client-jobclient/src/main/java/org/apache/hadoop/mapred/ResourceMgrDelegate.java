@@ -1,30 +1,24 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapred;
 
-import java.io.IOException;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
@@ -32,37 +26,17 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.ClusterMetrics;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.JobID;
 import org.apache.hadoop.mapreduce.JobStatus;
-import org.apache.hadoop.mapreduce.MRJobConfig;
 import org.apache.hadoop.mapreduce.QueueAclsInfo;
 import org.apache.hadoop.mapreduce.QueueInfo;
-import org.apache.hadoop.mapreduce.TaskTrackerInfo;
-import org.apache.hadoop.mapreduce.TypeConverter;
 import org.apache.hadoop.mapreduce.v2.util.MRApps;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.yarn.api.ApplicationClientProtocol;
-import org.apache.hadoop.yarn.api.protocolrecords.ReservationDeleteRequest;
-import org.apache.hadoop.yarn.api.protocolrecords.ReservationDeleteResponse;
-import org.apache.hadoop.yarn.api.protocolrecords.ReservationSubmissionRequest;
-import org.apache.hadoop.yarn.api.protocolrecords.ReservationSubmissionResponse;
-import org.apache.hadoop.yarn.api.protocolrecords.ReservationUpdateRequest;
-import org.apache.hadoop.yarn.api.protocolrecords.ReservationUpdateResponse;
-import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
-import org.apache.hadoop.yarn.api.records.ApplicationAttemptReport;
-import org.apache.hadoop.yarn.api.records.ApplicationId;
-import org.apache.hadoop.yarn.api.records.ApplicationReport;
-import org.apache.hadoop.yarn.api.records.ApplicationSubmissionContext;
-import org.apache.hadoop.yarn.api.records.ContainerId;
-import org.apache.hadoop.yarn.api.records.ContainerReport;
-import org.apache.hadoop.yarn.api.records.NodeId;
-import org.apache.hadoop.yarn.api.records.NodeReport;
-import org.apache.hadoop.yarn.api.records.NodeState;
-import org.apache.hadoop.yarn.api.records.QueueUserACLInfo;
-import org.apache.hadoop.yarn.api.records.YarnApplicationState;
-import org.apache.hadoop.yarn.api.records.YarnClusterMetrics;
+import org.apache.hadoop.yarn.api.protocolrecords.*;
+import org.apache.hadoop.yarn.api.records.*;
 import org.apache.hadoop.yarn.client.ClientRMProxy;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.client.api.YarnClientApplication;
@@ -71,11 +45,12 @@ import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.security.AMRMTokenIdentifier;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.io.IOException;
+import java.util.*;
 
 public class ResourceMgrDelegate extends YarnClient {
   private static final Log LOG = LogFactory.getLog(ResourceMgrDelegate.class);
-      
+
   private YarnConfiguration conf;
   private ApplicationSubmissionContext application;
   private ApplicationId applicationId;
@@ -166,7 +141,7 @@ public class ResourceMgrDelegate extends YarnClient {
     }
     return rmDTService;
   }
-  
+
   @SuppressWarnings("rawtypes")
   public Token getDelegationToken(Text renewer) throws IOException,
       InterruptedException {
@@ -193,7 +168,7 @@ public class ResourceMgrDelegate extends YarnClient {
   }
 
   public QueueInfo getQueue(String queueName) throws IOException,
-  InterruptedException {
+      InterruptedException {
     try {
       org.apache.hadoop.yarn.api.records.QueueInfo queueInfo =
           client.getQueueInfo(queueName);
@@ -208,7 +183,7 @@ public class ResourceMgrDelegate extends YarnClient {
       InterruptedException {
     try {
       return TypeConverter.fromYarnQueueUserAclsInfo(client
-        .getQueueAclsInfo());
+          .getQueueAclsInfo());
     } catch (YarnException e) {
       throw new IOException(e);
     }
@@ -235,7 +210,7 @@ public class ResourceMgrDelegate extends YarnClient {
       InterruptedException {
     try {
       return TypeConverter.fromYarnQueueInfo(client.getChildQueueInfos(parent),
-        this.conf);
+          this.conf);
     } catch (YarnException e) {
       throw new IOException(e);
     }
@@ -243,8 +218,8 @@ public class ResourceMgrDelegate extends YarnClient {
 
   public String getStagingAreaDir() throws IOException, InterruptedException {
 //    Path path = new Path(MRJobConstants.JOB_SUBMIT_DIR);
-    String user = 
-      UserGroupInformation.getCurrentUser().getShortUserName();
+    String user =
+        UserGroupInformation.getCurrentUser().getShortUserName();
     Path path = MRApps.getStagingAreaDir(conf, user);
     LOG.debug("getStagingAreaDir: dir=" + path);
     return path.toString();
@@ -256,13 +231,13 @@ public class ResourceMgrDelegate extends YarnClient {
     //FileContext.getFileContext(conf).delete(sysDir, true);
     return sysDir.toString();
   }
-  
+
 
   public long getTaskTrackerExpiryInterval() throws IOException,
       InterruptedException {
     return 0;
   }
-  
+
   public void setJobPriority(JobID arg0, String arg1) throws IOException,
       InterruptedException {
     return;
@@ -285,8 +260,8 @@ public class ResourceMgrDelegate extends YarnClient {
 
   @Override
   public ApplicationId
-      submitApplication(ApplicationSubmissionContext appContext)
-          throws YarnException, IOException {
+  submitApplication(ApplicationSubmissionContext appContext)
+      throws YarnException, IOException {
     return client.submitApplication(appContext);
   }
 
@@ -303,8 +278,8 @@ public class ResourceMgrDelegate extends YarnClient {
   }
 
   @Override
-  public Token<AMRMTokenIdentifier> getAMRMToken(ApplicationId appId) 
-    throws YarnException, IOException {
+  public Token<AMRMTokenIdentifier> getAMRMToken(ApplicationId appId)
+      throws YarnException, IOException {
     throw new UnsupportedOperationException();
   }
 

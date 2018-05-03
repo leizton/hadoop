@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,21 +18,7 @@
 
 package org.apache.hadoop.mapred;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.DataOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Properties;
-import java.util.concurrent.TimeoutException;
-
+import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -41,25 +27,22 @@ import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.DFSTestUtil;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.apache.hadoop.hdfs.server.namenode.NameNode;
-import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.io.SequenceFile;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.Writable;
-import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.WritableComparable;
+import org.apache.hadoop.io.*;
 import org.apache.hadoop.io.SequenceFile.CompressionType;
 import org.apache.hadoop.mapred.SortValidator.RecordStatsChecker.NonSplitableSequenceFileInputFormat;
 import org.apache.hadoop.mapred.lib.IdentityMapper;
 import org.apache.hadoop.mapred.lib.IdentityReducer;
 import org.apache.hadoop.mapreduce.Cluster.JobTrackerStatus;
-import org.apache.hadoop.mapreduce.server.jobtracker.JTConfig;
 import org.apache.hadoop.util.StringUtils;
 
-import org.apache.commons.logging.Log;
+import java.io.*;
+import java.text.DecimalFormat;
+import java.util.*;
+import java.util.concurrent.TimeoutException;
 
-/** 
+/**
  * Utilities used in unit test.
- *  
+ *
  */
 public class UtilsForTests {
 
@@ -204,6 +187,7 @@ public class UtilsForTests {
   }
 
   static char[] space;
+
   static {
     space = new char[300];
     Arrays.fill(space, '\u0020');
@@ -216,7 +200,7 @@ public class UtilsForTests {
     }
     return new String(space, 0, len);
   }
-  
+
   /**
    * Gets job status from the jobtracker given the jobclient and the job id
    */
@@ -229,7 +213,7 @@ public class UtilsForTests {
     }
     return null;
   }
-  
+
   /**
    * A utility that waits for specified amount of time
    */
@@ -238,9 +222,10 @@ public class UtilsForTests {
       synchronized (waitLock) {
         waitLock.wait(duration);
       }
-    } catch (InterruptedException ie) {}
+    } catch (InterruptedException ie) {
+    }
   }
-  
+
   /**
    * Wait for the jobtracker to be RUNNING.
    */
@@ -253,10 +238,11 @@ public class UtilsForTests {
           status = jobClient.getClusterStatus();
         }
         break; // means that the jt is ready
-      } catch (IOException ioe) {}
+      } catch (IOException ioe) {
+      }
     }
   }
-  
+
   /**
    * Waits until all the jobs at the jobtracker complete.
    */
@@ -279,7 +265,7 @@ public class UtilsForTests {
       }
     }
   }
-  
+
   /**
    * Configure a waiting job
    */
@@ -287,7 +273,7 @@ public class UtilsForTests {
                                       Path outputPath, int numMaps, int numRed,
                                       String jobName, String mapSignalFilename,
                                       String redSignalFilename)
-  throws IOException {
+      throws IOException {
     jobConf.setJobName(jobName);
     jobConf.setInputFormat(NonSplitableSequenceFileInputFormat.class);
     jobConf.setOutputFormat(SequenceFileOutputFormat.class);
@@ -308,16 +294,16 @@ public class UtilsForTests {
   /**
    * Commonly used map and reduce classes 
    */
-  
-  /** 
+
+  /**
    * Map is a Mapper that just waits for a file to be created on the dfs. The 
    * file creation is a signal to the mappers and hence acts as a waiting job. 
    */
 
-  static class WaitingMapper 
-  extends MapReduceBase 
-  implements Mapper<WritableComparable, Writable, 
-                    WritableComparable, Writable> {
+  static class WaitingMapper
+      extends MapReduceBase
+      implements Mapper<WritableComparable, Writable,
+      WritableComparable, Writable> {
 
     FileSystem fs = null;
     Path signal;
@@ -331,7 +317,7 @@ public class UtilsForTests {
     public boolean shouldWait(int id) {
       return true;
     }
-    
+
     /**
      * Returns a signal file on which the map task should wait. By default all 
      * the maps wait on a single file passed as test.mapred.map.waiting.target.
@@ -340,14 +326,14 @@ public class UtilsForTests {
     public Path getSignalFile(int id) {
       return signal;
     }
-    
+
     /** The waiting function.  The map exits once it gets a signal. Here the 
      * signal is the file existence. 
      */
-    public void map(WritableComparable key, Writable val, 
+    public void map(WritableComparable key, Writable val,
                     OutputCollector<WritableComparable, Writable> output,
                     Reporter reporter)
-    throws IOException {
+        throws IOException {
       if (shouldWait(id)) {
         if (fs != null) {
           while (!fs.exists(getSignalFile(id))) {
@@ -358,7 +344,7 @@ public class UtilsForTests {
               }
             } catch (InterruptedException ie) {
               System.out.println("Interrupted while the map was waiting for "
-                                 + " the signal.");
+                  + " the signal.");
               break;
             }
           }
@@ -380,7 +366,7 @@ public class UtilsForTests {
       }
     }
   }
-  
+
   /** Only the later half of the maps wait for the signal while the rest 
    * complete immediately.
    */
@@ -390,26 +376,26 @@ public class UtilsForTests {
       return id >= (totalMaps / 2);
     }
   }
-  
-  /** 
+
+  /**
    * Reduce that just waits for a file to be created on the dfs. The 
    * file creation is a signal to the reduce.
    */
 
-  static class WaitingReducer extends MapReduceBase 
-  implements Reducer<WritableComparable, Writable, 
-                     WritableComparable, Writable> {
+  static class WaitingReducer extends MapReduceBase
+      implements Reducer<WritableComparable, Writable,
+      WritableComparable, Writable> {
 
     FileSystem fs = null;
     Path signal;
-    
+
     /** The waiting function.  The reduce exits once it gets a signal. Here the
      * signal is the file existence. 
      */
-    public void reduce(WritableComparable key, Iterator<Writable> val, 
+    public void reduce(WritableComparable key, Iterator<Writable> val,
                        OutputCollector<WritableComparable, Writable> output,
                        Reporter reporter)
-    throws IOException {
+        throws IOException {
       if (fs != null) {
         while (!fs.exists(signal)) {
           try {
@@ -419,7 +405,7 @@ public class UtilsForTests {
             }
           } catch (InterruptedException ie) {
             System.out.println("Interrupted while the map was waiting for the"
-                               + " signal.");
+                + " signal.");
             break;
           }
         }
@@ -437,51 +423,51 @@ public class UtilsForTests {
       }
     }
   }
-  
+
   static String getTaskSignalParameter(boolean isMap) {
-    return isMap 
-           ? "test.mapred.map.waiting.target" 
-           : "test.mapred.reduce.waiting.target";
+    return isMap
+        ? "test.mapred.map.waiting.target"
+        : "test.mapred.reduce.waiting.target";
   }
-  
+
   /**
    * Signal the maps/reduces to start.
    */
-  static void signalTasks(MiniDFSCluster dfs, FileSystem fileSys, 
-                          String mapSignalFile, 
-                          String reduceSignalFile, int replication) 
+  static void signalTasks(MiniDFSCluster dfs, FileSystem fileSys,
+                          String mapSignalFile,
+                          String reduceSignalFile, int replication)
       throws IOException, TimeoutException {
     try {
-      writeFile(dfs.getNameNode(), fileSys.getConf(), new Path(mapSignalFile), 
-                (short)replication);
-      writeFile(dfs.getNameNode(), fileSys.getConf(), new Path(reduceSignalFile), (short)replication);
+      writeFile(dfs.getNameNode(), fileSys.getConf(), new Path(mapSignalFile),
+          (short) replication);
+      writeFile(dfs.getNameNode(), fileSys.getConf(), new Path(reduceSignalFile), (short) replication);
     } catch (InterruptedException ie) {
       // Ignore
     }
   }
-  
+
   /**
    * Signal the maps/reduces to start.
    */
-  static void signalTasks(MiniDFSCluster dfs, FileSystem fileSys, 
-                          boolean isMap, String mapSignalFile, 
+  static void signalTasks(MiniDFSCluster dfs, FileSystem fileSys,
+                          boolean isMap, String mapSignalFile,
                           String reduceSignalFile)
       throws IOException, TimeoutException {
     try {
       //  signal the maps to complete
       writeFile(dfs.getNameNode(), fileSys.getConf(),
-                isMap 
-                ? new Path(mapSignalFile)
-                : new Path(reduceSignalFile), (short)1);
+          isMap
+              ? new Path(mapSignalFile)
+              : new Path(reduceSignalFile), (short) 1);
     } catch (InterruptedException ie) {
       // Ignore
     }
   }
-  
+
   static String getSignalFile(Path dir) {
     return (new Path(dir, "signal")).toString();
   }
-  
+
   static String getMapSignalFile(Path dir) {
     return (new Path(dir, "map-signal")).toString();
   }
@@ -489,44 +475,47 @@ public class UtilsForTests {
   static String getReduceSignalFile(Path dir) {
     return (new Path(dir, "reduce-signal")).toString();
   }
-  
-  static void writeFile(NameNode namenode, Configuration conf, Path name, 
+
+  static void writeFile(NameNode namenode, Configuration conf, Path name,
                         short replication)
       throws IOException, TimeoutException, InterruptedException {
     FileSystem fileSys = FileSystem.get(conf);
-    SequenceFile.Writer writer = 
-      SequenceFile.createWriter(fileSys, conf, name, 
-                                BytesWritable.class, BytesWritable.class,
-                                CompressionType.NONE);
+    SequenceFile.Writer writer =
+        SequenceFile.createWriter(fileSys, conf, name,
+            BytesWritable.class, BytesWritable.class,
+            CompressionType.NONE);
     writer.append(new BytesWritable(), new BytesWritable());
     writer.close();
     fileSys.setReplication(name, replication);
     DFSTestUtil.waitReplication(fileSys, name, replication);
   }
-  
+
   // Input formats
+
   /**
    * A custom input format that creates virtual inputs of a single string
    * for each map. 
    */
   public static class RandomInputFormat implements InputFormat<Text, Text> {
-    
-    public InputSplit[] getSplits(JobConf job, 
+
+    public InputSplit[] getSplits(JobConf job,
                                   int numSplits) throws IOException {
       InputSplit[] result = new InputSplit[numSplits];
       Path outDir = FileOutputFormat.getOutputPath(job);
-      for(int i=0; i < result.length; ++i) {
+      for (int i = 0; i < result.length; ++i) {
         result[i] = new FileSplit(new Path(outDir, "dummy-split-" + i),
-                                  0, 1, (String[])null);
+            0, 1, (String[]) null);
       }
       return result;
     }
 
     static class RandomRecordReader implements RecordReader<Text, Text> {
       Path name;
+
       public RandomRecordReader(Path p) {
         name = p;
       }
+
       public boolean next(Text key, Text value) {
         if (name != null) {
           key.set(name.getName());
@@ -535,48 +524,54 @@ public class UtilsForTests {
         }
         return false;
       }
+
       public Text createKey() {
         return new Text();
       }
+
       public Text createValue() {
         return new Text();
       }
+
       public long getPos() {
         return 0;
       }
-      public void close() {}
+
+      public void close() {
+      }
+
       public float getProgress() {
         return 0.0f;
       }
     }
 
     public RecordReader<Text, Text> getRecordReader(InputSplit split,
-                                                    JobConf job, 
-                                                    Reporter reporter) 
-    throws IOException {
+                                                    JobConf job,
+                                                    Reporter reporter)
+        throws IOException {
       return new RandomRecordReader(((FileSplit) split).getPath());
     }
   }
 
   // Start a job and return its RunningJob object
   static RunningJob runJob(JobConf conf, Path inDir, Path outDir)
-                    throws IOException {
+      throws IOException {
     return runJob(conf, inDir, outDir, conf.getNumMapTasks(), conf.getNumReduceTasks());
   }
 
   // Start a job and return its RunningJob object
-  static RunningJob runJob(JobConf conf, Path inDir, Path outDir, int numMaps, 
+  static RunningJob runJob(JobConf conf, Path inDir, Path outDir, int numMaps,
                            int numReds) throws IOException {
 
     String input = "The quick brown fox\n" + "has many silly\n"
-                   + "red fox sox\n";
-    
+        + "red fox sox\n";
+
     // submit the job and wait for it to complete
     return runJob(conf, inDir, outDir, numMaps, numReds, input);
   }
-  
+
   // Start a job with the specified input and return its RunningJob object
-  static RunningJob runJob(JobConf conf, Path inDir, Path outDir, int numMaps, 
+  static RunningJob runJob(JobConf conf, Path inDir, Path outDir, int numMaps,
                            int numReds, String input) throws IOException {
     FileSystem fs = FileSystem.get(conf);
     if (fs.exists(outDir)) {
@@ -585,12 +580,12 @@ public class UtilsForTests {
     if (!fs.exists(inDir)) {
       fs.mkdirs(inDir);
     }
-    
+
     for (int i = 0; i < numMaps; ++i) {
       DataOutputStream file = fs.create(new Path(inDir, "part-" + i));
       file.writeBytes(input);
       file.close();
-    }    
+    }
 
     conf.setInputFormat(TextInputFormat.class);
     conf.setOutputKeyClass(LongWritable.class);
@@ -609,11 +604,11 @@ public class UtilsForTests {
 
   // Run a job that will be succeeded and wait until it completes
   public static RunningJob runJobSucceed(JobConf conf, Path inDir, Path outDir)
-         throws IOException {
+      throws IOException {
     conf.setJobName("test-job-succeed");
     conf.setMapperClass(IdentityMapper.class);
     conf.setReducerClass(IdentityReducer.class);
-    
+
     RunningJob job = UtilsForTests.runJob(conf, inDir, outDir);
     long sleepCount = 0;
     while (!job.isComplete()) {
@@ -633,12 +628,12 @@ public class UtilsForTests {
 
   // Run a job that will be failed and wait until it completes
   public static RunningJob runJobFail(JobConf conf, Path inDir, Path outDir)
-         throws IOException {
+      throws IOException {
     conf.setJobName("test-job-fail");
     conf.setMapperClass(FailMapper.class);
     conf.setReducerClass(IdentityReducer.class);
     conf.setMaxMapAttempts(1);
-    
+
     RunningJob job = UtilsForTests.runJob(conf, inDir, outDir);
     long sleepCount = 0;
     while (!job.isComplete()) {
@@ -657,13 +652,13 @@ public class UtilsForTests {
   }
 
   // Run a job that will be killed and wait until it completes
-  public static RunningJob runJobKill(JobConf conf,  Path inDir, Path outDir)
-         throws IOException {
+  public static RunningJob runJobKill(JobConf conf, Path inDir, Path outDir)
+      throws IOException {
 
     conf.setJobName("test-job-kill");
     conf.setMapperClass(KillMapper.class);
     conf.setReducerClass(IdentityReducer.class);
-    
+
     RunningJob job = UtilsForTests.runJob(conf, inDir, outDir);
     long sleepCount = 0;
     while (job.getJobState() != JobStatus.RUNNING) {
@@ -693,7 +688,7 @@ public class UtilsForTests {
 
     return job;
   }
-  
+
   /**
    * Cleans up files/dirs inline. CleanupQueue deletes in a separate thread
    * asynchronously.
@@ -723,10 +718,10 @@ public class UtilsForTests {
       }
     }
   }
-  
+
   static class FakeClock extends Clock {
     long time = 0;
-    
+
     public void advance(long millis) {
       time += millis;
     }
@@ -736,12 +731,13 @@ public class UtilsForTests {
       return time;
     }
   }
+
   // Mapper that fails
   static class FailMapper extends MapReduceBase implements
       Mapper<WritableComparable, Writable, WritableComparable, Writable> {
 
     public void map(WritableComparable key, Writable value,
-        OutputCollector<WritableComparable, Writable> out, Reporter reporter)
+                    OutputCollector<WritableComparable, Writable> out, Reporter reporter)
         throws IOException {
       //NOTE- the next line is required for the TestDebugScript test to succeed
       System.err.println("failing map");
@@ -755,7 +751,7 @@ public class UtilsForTests {
       Mapper<WritableComparable, Writable, WritableComparable, Writable> {
 
     public void map(WritableComparable key, Writable value,
-        OutputCollector<WritableComparable, Writable> out, Reporter reporter)
+                    OutputCollector<WritableComparable, Writable> out, Reporter reporter)
         throws IOException {
 
       try {
@@ -771,7 +767,7 @@ public class UtilsForTests {
     Configuration config = new Configuration(false);
     FileOutputStream fos = new FileOutputStream(configFile);
 
-    for (Enumeration<?> e = confProps.propertyNames(); e.hasMoreElements();) {
+    for (Enumeration<?> e = confProps.propertyNames(); e.hasMoreElements(); ) {
       String key = (String) e.nextElement();
       config.set(key, confProps.getProperty(key));
     }
@@ -788,11 +784,11 @@ public class UtilsForTests {
    * @return returns the DataOutputStream
    */
   public static DataOutputStream
-      createTmpFileDFS(FileSystem dfs, Path URIPATH,
-      FsPermission permission, String input) throws Exception {
+  createTmpFileDFS(FileSystem dfs, Path URIPATH,
+                   FsPermission permission, String input) throws Exception {
     //Creating the path with the file
     DataOutputStream file =
-      FileSystem.create(dfs, URIPATH, permission);
+        FileSystem.create(dfs, URIPATH, permission);
     file.writeBytes(input);
     file.close();
     return file;
@@ -804,7 +800,7 @@ public class UtilsForTests {
    * @return String The FQDN of the tasktracker
    * @throws Exception
    */
-  public static String getFQDNofTT (String taskTrackerLong) throws Exception {
+  public static String getFQDNofTT(String taskTrackerLong) throws Exception {
     //Getting the exact FQDN of the tasktracker from the tasktracker string.
     String[] firstSplit = taskTrackerLong.split("_");
     String tmpOutput = firstSplit[1];

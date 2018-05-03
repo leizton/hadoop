@@ -1,34 +1,24 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2.app.rm;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
-
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
@@ -39,24 +29,23 @@ import org.apache.hadoop.mapreduce.v2.app.AppContext;
 import org.apache.hadoop.mapreduce.v2.app.client.ClientService;
 import org.apache.hadoop.yarn.api.protocolrecords.AllocateRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.AllocateResponse;
-import org.apache.hadoop.yarn.api.records.ContainerId;
-import org.apache.hadoop.yarn.api.records.Priority;
-import org.apache.hadoop.yarn.api.records.Resource;
-import org.apache.hadoop.yarn.api.records.ResourceBlacklistRequest;
-import org.apache.hadoop.yarn.api.records.ResourceRequest;
+import org.apache.hadoop.yarn.api.records.*;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
 import org.apache.hadoop.yarn.factories.RecordFactory;
 import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /**
  * Keeps the data structures to send container requests to RM.
  */
 public abstract class RMContainerRequestor extends RMCommunicator {
-  
+
   private static final Log LOG = LogFactory.getLog(RMContainerRequestor.class);
 
   protected int lastResponseID;
@@ -71,7 +60,7 @@ public abstract class RMContainerRequestor extends RMCommunicator {
   //Key->Resource Capability
   //Value->ResourceRequest
   private final Map<Priority, Map<String, Map<Resource, ResourceRequest>>>
-  remoteRequestsTable =
+      remoteRequestsTable =
       new TreeMap<Priority, Map<String, Map<Resource, ResourceRequest>>>();
 
   // use custom comparator to make sure ResourceRequest objects differing only in 
@@ -136,8 +125,8 @@ public abstract class RMContainerRequestor extends RMCommunicator {
     }
 
     public ContainerRequest(TaskAttemptId attemptID,
-        Resource capability, String[] hosts, String[] racks,
-        Priority priority, long requestTimeMs) {
+                            Resource capability, String[] hosts, String[] racks,
+                            Priority priority, long requestTimeMs) {
       this.attemptID = attemptID;
       this.capability = capability;
       this.hosts = hosts;
@@ -145,7 +134,7 @@ public abstract class RMContainerRequestor extends RMCommunicator {
       this.priority = priority;
       this.requestTimeMs = requestTimeMs;
     }
-    
+
     public String toString() {
       StringBuilder sb = new StringBuilder();
       sb.append("AttemptId[").append(attemptID).append("]");
@@ -158,11 +147,11 @@ public abstract class RMContainerRequestor extends RMCommunicator {
   @Override
   protected void serviceInit(Configuration conf) throws Exception {
     super.serviceInit(conf);
-    nodeBlacklistingEnabled = 
-      conf.getBoolean(MRJobConfig.MR_AM_JOB_NODE_BLACKLISTING_ENABLE, true);
+    nodeBlacklistingEnabled =
+        conf.getBoolean(MRJobConfig.MR_AM_JOB_NODE_BLACKLISTING_ENABLE, true);
     LOG.info("nodeBlacklistingEnabled:" + nodeBlacklistingEnabled);
-    maxTaskFailuresPerNode = 
-      conf.getInt(MRJobConfig.MAX_TASK_FAILURES_PER_TRACKER, 3);
+    maxTaskFailuresPerNode =
+        conf.getInt(MRJobConfig.MAX_TASK_FAILURES_PER_TRACKER, 3);
     blacklistDisablePercent =
         conf.getInt(
             MRJobConfig.MR_AM_IGNORE_BLACKLISTING_BLACKLISTED_NODE_PERECENT,
@@ -183,8 +172,8 @@ public abstract class RMContainerRequestor extends RMCommunicator {
             new ArrayList<String>(blacklistRemovals));
     AllocateRequest allocateRequest =
         AllocateRequest.newInstance(lastResponseID,
-          super.getApplicationProgress(), new ArrayList<ResourceRequest>(ask),
-          new ArrayList<ContainerId>(release), blacklistRequest);
+            super.getApplicationProgress(), new ArrayList<ResourceRequest>(ask),
+            new ArrayList<ContainerId>(release), blacklistRequest);
     AllocateResponse allocateResponse = scheduler.allocate(allocateRequest);
     lastResponseID = allocateResponse.getResponseId();
     availableResources = allocateResponse.getAvailableResources();
@@ -207,7 +196,7 @@ public abstract class RMContainerRequestor extends RMCommunicator {
     if (blacklistAdditions.size() > 0 || blacklistRemovals.size() > 0) {
       LOG.info("Update the blacklist for " + applicationId +
           ": blacklistAdditions=" + blacklistAdditions.size() +
-          " blacklistRemovals=" +  blacklistRemovals.size());
+          " blacklistRemovals=" + blacklistRemovals.size());
     }
     blacklistAdditions.clear();
     blacklistRemovals.clear();
@@ -240,7 +229,7 @@ public abstract class RMContainerRequestor extends RMCommunicator {
     }
     if (blacklistDisablePercent != -1
         && (blacklistedNodeCount != blacklistedNodes.size() ||
-            clusterNmCount != lastClusterNmCount)) {
+        clusterNmCount != lastClusterNmCount)) {
       blacklistedNodeCount = blacklistedNodes.size();
       if (clusterNmCount == 0) {
         LOG.info("KnownNode Count at 0. Not computing ignoreBlacklisting");
@@ -266,7 +255,7 @@ public abstract class RMContainerRequestor extends RMCommunicator {
       }
     }
   }
-  
+
   protected void containerFailedOnHost(String hostName) {
     if (!nodeBlacklistingEnabled) {
       return;
@@ -291,8 +280,8 @@ public abstract class RMContainerRequestor extends RMCommunicator {
       LOG.info("Blacklisted host " + hostName);
 
       //remove all the requests corresponding to this hostname
-      for (Map<String, Map<Resource, ResourceRequest>> remoteRequests 
-          : remoteRequestsTable.values()){
+      for (Map<String, Map<Resource, ResourceRequest>> remoteRequests
+          : remoteRequestsTable.values()) {
         //remove from host if no pending allocations
         boolean foundAll = true;
         Map<Resource, ResourceRequest> reqMap = remoteRequests.get(hostName);
@@ -305,8 +294,8 @@ public abstract class RMContainerRequestor extends RMCommunicator {
               // specified for the blacklisted host to be 0.
               ResourceRequest zeroedRequest =
                   ResourceRequest.newInstance(req.getPriority(),
-                    req.getResourceName(), req.getCapability(),
-                    req.getNumContainers(), req.getRelaxLocality());
+                      req.getResourceName(), req.getCapability(),
+                      req.getNumContainers(), req.getRelaxLocality());
 
               zeroedRequest.setNumContainers(0);
               // to be sent to RM on next heartbeat
@@ -335,14 +324,14 @@ public abstract class RMContainerRequestor extends RMCommunicator {
   protected Resource getAvailableResources() {
     return availableResources;
   }
-  
+
   protected void addContainerReq(ContainerRequest req) {
     // Create resource requests
     for (String host : req.hosts) {
       // Data-local
       if (!isNodeBlacklisted(host)) {
         addResourceRequest(req.priority, host, req.capability);
-      }      
+      }
     }
 
     // Nothing Rack-local for now
@@ -359,18 +348,18 @@ public abstract class RMContainerRequestor extends RMCommunicator {
     for (String hostName : req.hosts) {
       decResourceRequest(req.priority, hostName, req.capability);
     }
-    
+
     for (String rack : req.racks) {
       decResourceRequest(req.priority, rack, req.capability);
     }
-   
+
     decResourceRequest(req.priority, ResourceRequest.ANY, req.capability);
   }
 
   private void addResourceRequest(Priority priority, String resourceName,
-      Resource capability) {
+                                  Resource capability) {
     Map<String, Map<Resource, ResourceRequest>> remoteRequests =
-      this.remoteRequestsTable.get(priority);
+        this.remoteRequestsTable.get(priority);
     if (remoteRequests == null) {
       remoteRequests = new HashMap<String, Map<Resource, ResourceRequest>>();
       this.remoteRequestsTable.put(priority, remoteRequests);
@@ -405,9 +394,9 @@ public abstract class RMContainerRequestor extends RMCommunicator {
   }
 
   private void decResourceRequest(Priority priority, String resourceName,
-      Resource capability) {
+                                  Resource capability) {
     Map<String, Map<Resource, ResourceRequest>> remoteRequests =
-      this.remoteRequestsTable.get(priority);
+        this.remoteRequestsTable.get(priority);
     Map<Resource, ResourceRequest> reqMap = remoteRequests.get(resourceName);
     if (reqMap == null) {
       // as we modify the resource requests by filtering out blacklisted hosts 
@@ -428,12 +417,12 @@ public abstract class RMContainerRequestor extends RMCommunicator {
           + remoteRequest.getNumContainers() + " #asks=" + ask.size());
     }
 
-    if(remoteRequest.getNumContainers() > 0) {
+    if (remoteRequest.getNumContainers() > 0) {
       // based on blacklisting comments above we can end up decrementing more 
       // than requested. so guard for that.
-      remoteRequest.setNumContainers(remoteRequest.getNumContainers() -1);
+      remoteRequest.setNumContainers(remoteRequest.getNumContainers() - 1);
     }
-    
+
     if (remoteRequest.getNumContainers() == 0) {
       reqMap.remove(capability);
       if (reqMap.size() == 0) {
@@ -455,41 +444,41 @@ public abstract class RMContainerRequestor extends RMCommunicator {
           + remoteRequest.getNumContainers() + " #asks=" + ask.size());
     }
   }
-  
+
   private void addResourceRequestToAsk(ResourceRequest remoteRequest) {
     // because objects inside the resource map can be deleted ask can end up 
     // containing an object that matches new resource object but with different
     // numContainers. So exisintg values must be replaced explicitly
-    if(ask.contains(remoteRequest)) {
+    if (ask.contains(remoteRequest)) {
       ask.remove(remoteRequest);
     }
-    ask.add(remoteRequest);    
+    ask.add(remoteRequest);
   }
 
   protected void release(ContainerId containerId) {
     release.add(containerId);
   }
-  
+
   protected boolean isNodeBlacklisted(String hostname) {
     if (!nodeBlacklistingEnabled || ignoreBlacklisting.get()) {
       return false;
     }
     return blacklistedNodes.contains(hostname);
   }
-  
+
   protected ContainerRequest getFilteredContainerRequest(ContainerRequest orig) {
     ArrayList<String> newHosts = new ArrayList<String>();
     for (String host : orig.hosts) {
       if (!isNodeBlacklisted(host)) {
-        newHosts.add(host);      
+        newHosts.add(host);
       }
     }
     String[] hosts = newHosts.toArray(new String[newHosts.size()]);
     ContainerRequest newReq = new ContainerRequest(orig.attemptID, orig.capability,
-        hosts, orig.racks, orig.priority); 
+        hosts, orig.racks, orig.priority);
     return newReq;
   }
-  
+
   public Set<String> getBlacklistedNodes() {
     return blacklistedNodes;
   }

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,7 +19,8 @@
 package org.apache.hadoop.mapred;
 
 import org.junit.Test;
-import static org.junit.Assert.*;
+
+import static org.junit.Assert.assertEquals;
 
 public class TestTaskPerformanceSplits {
   @Test
@@ -51,9 +52,9 @@ public class TestTaskPerformanceSplits {
     assertEquals("Bad interpolation in cumulative segment 7", 2201, results[7]);
 
     status.extend(0.0D, 0);
-    status.extend(1.0D/16.0D, 300); // + 75 for bucket 0
-    status.extend(3.0D/16.0D, 700); // + 200 for 0, +300 for 1
-    status.extend(7.0D/16.0D, 2300); // + 450 for 1, + 1500 for 2, + 1050 for 3
+    status.extend(1.0D / 16.0D, 300); // + 75 for bucket 0
+    status.extend(3.0D / 16.0D, 700); // + 200 for 0, +300 for 1
+    status.extend(7.0D / 16.0D, 2300); // + 450 for 1, + 1500 for 2, + 1050 for 3
     status.extend(1.0D, 1400);  // +1125 for 3, +2100 for 4, +1900 for 5,
     ;                           // +1700 for 6, +1500 for 7
 

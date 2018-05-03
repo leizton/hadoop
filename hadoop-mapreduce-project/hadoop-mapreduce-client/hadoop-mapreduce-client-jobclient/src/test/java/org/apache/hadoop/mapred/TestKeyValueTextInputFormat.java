@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,25 +18,32 @@
 
 package org.apache.hadoop.mapred;
 
-import java.io.*;
-import java.util.*;
 import junit.framework.TestCase;
-
-import org.apache.commons.logging.*;
-import org.apache.hadoop.fs.*;
-import org.apache.hadoop.io.*;
-import org.apache.hadoop.io.compress.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.compress.CompressionCodec;
+import org.apache.hadoop.io.compress.GzipCodec;
 import org.apache.hadoop.util.LineReader;
 import org.apache.hadoop.util.ReflectionUtils;
 
+import java.io.*;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.List;
+import java.util.Random;
+
 public class TestKeyValueTextInputFormat extends TestCase {
   private static final Log LOG =
-    LogFactory.getLog(TestKeyValueTextInputFormat.class.getName());
+      LogFactory.getLog(TestKeyValueTextInputFormat.class.getName());
 
   private static int MAX_LENGTH = 10000;
-  
+
   private static JobConf defaultConf = new JobConf();
-  private static FileSystem localFs = null; 
+  private static FileSystem localFs = null;
+
   static {
     try {
       localFs = FileSystem.getLocal(defaultConf);
@@ -44,19 +51,20 @@ public class TestKeyValueTextInputFormat extends TestCase {
       throw new RuntimeException("init failure", e);
     }
   }
-  private static Path workDir = 
-    new Path(new Path(System.getProperty("test.build.data", "."), "data"),
-             "TestKeyValueTextInputFormat");
-  
+
+  private static Path workDir =
+      new Path(new Path(System.getProperty("test.build.data", "."), "data"),
+          "TestKeyValueTextInputFormat");
+
   public void testFormat() throws Exception {
     JobConf job = new JobConf();
     Path file = new Path(workDir, "test.txt");
 
     // A reporter that does nothing
     Reporter reporter = Reporter.NULL;
-    
+
     int seed = new Random().nextInt();
-    LOG.info("seed = "+seed);
+    LOG.info("seed = " + seed);
     Random random = new Random(seed);
 
     localFs.delete(workDir, true);
@@ -64,7 +72,7 @@ public class TestKeyValueTextInputFormat extends TestCase {
 
     // for a variety of lengths
     for (int length = 0; length < MAX_LENGTH;
-         length+= random.nextInt(MAX_LENGTH/10)+1) {
+         length += random.nextInt(MAX_LENGTH / 10) + 1) {
 
       LOG.debug("creating; entries = " + length);
 
@@ -72,7 +80,7 @@ public class TestKeyValueTextInputFormat extends TestCase {
       Writer writer = new OutputStreamWriter(localFs.create(file));
       try {
         for (int i = 0; i < length; i++) {
-          writer.write(Integer.toString(i*2));
+          writer.write(Integer.toString(i * 2));
           writer.write("\t");
           writer.write(Integer.toString(i));
           writer.write("\n");
@@ -85,7 +93,7 @@ public class TestKeyValueTextInputFormat extends TestCase {
       KeyValueTextInputFormat format = new KeyValueTextInputFormat();
       format.configure(job);
       for (int i = 0; i < 3; i++) {
-        int numSplits = random.nextInt(MAX_LENGTH/20)+1;
+        int numSplits = random.nextInt(MAX_LENGTH / 20) + 1;
         LOG.debug("splitting: requesting = " + numSplits);
         InputSplit[] splits = format.getSplits(job, numSplits);
         LOG.debug("splitting: got =        " + splits.length);
@@ -93,11 +101,11 @@ public class TestKeyValueTextInputFormat extends TestCase {
         // check each split
         BitSet bits = new BitSet(length);
         for (int j = 0; j < splits.length; j++) {
-          LOG.debug("split["+j+"]= " + splits[j]);
+          LOG.debug("split[" + j + "]= " + splits[j]);
           RecordReader<Text, Text> reader =
-            format.getRecordReader(splits[j], job, reporter);
+              format.getRecordReader(splits[j], job, reporter);
           Class readerClass = reader.getClass();
-          assertEquals("reader class is KeyValueLineRecordReader.", KeyValueLineRecordReader.class, readerClass);        
+          assertEquals("reader class is KeyValueLineRecordReader.", KeyValueLineRecordReader.class, readerClass);
 
           Text key = reader.createKey();
           Class keyClass = key.getClass();
@@ -111,15 +119,15 @@ public class TestKeyValueTextInputFormat extends TestCase {
               int v = Integer.parseInt(value.toString());
               LOG.debug("read " + v);
               if (bits.get(v)) {
-                LOG.warn("conflict with " + v + 
-                         " in split " + j +
-                         " at position "+reader.getPos());
+                LOG.warn("conflict with " + v +
+                    " in split " + j +
+                    " at position " + reader.getPos());
               }
               assertFalse("Key in multiple partitions.", bits.get(v));
               bits.set(v);
               count++;
             }
-            LOG.debug("splits["+j+"]="+splits[j]+" count=" + count);
+            LOG.debug("splits[" + j + "]=" + splits[j] + " count=" + count);
           } finally {
             reader.close();
           }
@@ -129,12 +137,13 @@ public class TestKeyValueTextInputFormat extends TestCase {
 
     }
   }
+
   private LineReader makeStream(String str) throws IOException {
     return new LineReader(new ByteArrayInputStream
-                                           (str.getBytes("UTF-8")), 
-                                           defaultConf);
+        (str.getBytes("UTF-8")),
+        defaultConf);
   }
-  
+
   public void testUTF8() throws Exception {
     LineReader in = null;
 
@@ -143,7 +152,7 @@ public class TestKeyValueTextInputFormat extends TestCase {
       Text line = new Text();
       in.readLine(line);
       assertEquals("readLine changed utf8 characters",
-                   "abcd\u20acbdcd\u20ac", line.toString());
+          "abcd\u20acbdcd\u20ac", line.toString());
       in = makeStream("abc\u200axyz");
       in.readLine(line);
       assertEquals("split on fake newline", "abc\u200axyz", line.toString());
@@ -178,8 +187,8 @@ public class TestKeyValueTextInputFormat extends TestCase {
       }
     }
   }
-  
-  private static void writeFile(FileSystem fs, Path name, 
+
+  private static void writeFile(FileSystem fs, Path name,
                                 CompressionCodec codec,
                                 String contents) throws IOException {
     OutputStream stm;
@@ -191,11 +200,11 @@ public class TestKeyValueTextInputFormat extends TestCase {
     stm.write(contents.getBytes());
     stm.close();
   }
-  
+
   private static final Reporter voidReporter = Reporter.NULL;
-  
-  private static List<Text> readSplit(KeyValueTextInputFormat format, 
-                                      InputSplit split, 
+
+  private static List<Text> readSplit(KeyValueTextInputFormat format,
+                                      InputSplit split,
                                       JobConf job) throws IOException {
     List<Text> result = new ArrayList<Text>();
     RecordReader<Text, Text> reader = null;
@@ -207,15 +216,15 @@ public class TestKeyValueTextInputFormat extends TestCase {
       while (reader.next(key, value)) {
         result.add(value);
         value = (Text) reader.createValue();
-      }   
+      }
     } finally {
       if (reader != null) {
         reader.close();
-      }   
-    }   
+      }
+    }
     return result;
   }
-  
+
   /**
    * Test using the gzip codec for reading
    */
@@ -224,10 +233,10 @@ public class TestKeyValueTextInputFormat extends TestCase {
     CompressionCodec gzip = new GzipCodec();
     ReflectionUtils.setConf(gzip, job);
     localFs.delete(workDir, true);
-    writeFile(localFs, new Path(workDir, "part1.txt.gz"), gzip, 
-              "line-1\tthe quick\nline-2\tbrown\nline-3\tfox jumped\nline-4\tover\nline-5\t the lazy\nline-6\t dog\n");
+    writeFile(localFs, new Path(workDir, "part1.txt.gz"), gzip,
+        "line-1\tthe quick\nline-2\tbrown\nline-3\tfox jumped\nline-4\tover\nline-5\t the lazy\nline-6\t dog\n");
     writeFile(localFs, new Path(workDir, "part2.txt.gz"), gzip,
-              "line-1\tthis is a test\nline-1\tof gzip\n");
+        "line-1\tthis is a test\nline-1\tof gzip\n");
     FileInputFormat.setInputPaths(job, workDir);
     KeyValueTextInputFormat format = new KeyValueTextInputFormat();
     format.configure(job);
@@ -243,12 +252,12 @@ public class TestKeyValueTextInputFormat extends TestCase {
     assertEquals("splits[0][5]", " dog", results.get(5).toString());
     results = readSplit(format, splits[1], job);
     assertEquals("splits[1] length", 2, results.size());
-    assertEquals("splits[1][0]", "this is a test", 
-                 results.get(0).toString());    
-    assertEquals("splits[1][1]", "of gzip", 
-                 results.get(1).toString());    
+    assertEquals("splits[1][0]", "this is a test",
+        results.get(0).toString());
+    assertEquals("splits[1][1]", "of gzip",
+        results.get(1).toString());
   }
-  
+
   public static void main(String[] args) throws Exception {
     new TestKeyValueTextInputFormat().testFormat();
   }

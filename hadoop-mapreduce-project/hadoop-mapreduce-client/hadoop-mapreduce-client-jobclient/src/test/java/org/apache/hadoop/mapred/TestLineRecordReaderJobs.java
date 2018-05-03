@@ -5,9 +5,9 @@
  * licenses this file to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the
  * License. You may obtain a copy of the License at
- * 
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -17,18 +17,18 @@
 
 package org.apache.hadoop.mapred;
 
-import static org.junit.Assert.assertEquals;
-
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.lib.IdentityMapper;
 import org.apache.hadoop.mapred.lib.IdentityReducer;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+
+import static org.junit.Assert.assertEquals;
 
 public class TestLineRecordReaderJobs {
 
@@ -39,7 +39,7 @@ public class TestLineRecordReaderJobs {
 
   /**
    * Writes the input test file
-   * 
+   *
    * @param conf
    * @throws IOException
    */
@@ -53,7 +53,7 @@ public class TestLineRecordReaderJobs {
 
   /**
    * Reads the output file into a string
-   * 
+   *
    * @param conf
    * @return
    * @throws IOException
@@ -66,7 +66,7 @@ public class TestLineRecordReaderJobs {
 
   /**
    * Creates and runs an MR job
-   * 
+   *
    * @param conf
    * @throws IOException
    * @throws InterruptedException
@@ -86,7 +86,7 @@ public class TestLineRecordReaderJobs {
   /**
    * Test the case when a custom record delimiter is specified using the
    * textinputformat.record.delimiter configuration property
-   * 
+   *
    * @throws IOException
    * @throws InterruptedException
    * @throws ClassNotFoundException
@@ -110,7 +110,7 @@ public class TestLineRecordReaderJobs {
   /**
    * Test the default behavior when the textinputformat.record.delimiter
    * configuration property is not specified
-   * 
+   *
    * @throws IOException
    * @throws InterruptedException
    * @throws ClassNotFoundException

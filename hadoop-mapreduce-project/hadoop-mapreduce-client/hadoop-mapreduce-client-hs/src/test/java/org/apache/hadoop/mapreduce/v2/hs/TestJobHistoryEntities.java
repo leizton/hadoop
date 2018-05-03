@@ -1,43 +1,27 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.apache.hadoop.mapreduce.v2.hs;
-
-import static org.junit.Assert.assertEquals;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.JobACLsManager;
 import org.apache.hadoop.mapred.TaskCompletionEvent;
-import org.apache.hadoop.mapreduce.v2.api.records.JobId;
-import org.apache.hadoop.mapreduce.v2.api.records.JobReport;
-import org.apache.hadoop.mapreduce.v2.api.records.JobState;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptReport;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptState;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskReport;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskState;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskType;
+import org.apache.hadoop.mapreduce.v2.api.records.*;
 import org.apache.hadoop.mapreduce.v2.app.job.Task;
 import org.apache.hadoop.mapreduce.v2.app.job.TaskAttempt;
 import org.apache.hadoop.mapreduce.v2.hs.HistoryFileManager.HistoryFileInfo;
@@ -47,8 +31,14 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @RunWith(value = Parameterized.class)
 public class TestJobHistoryEntities {
@@ -61,11 +51,11 @@ public class TestJobHistoryEntities {
   private boolean loadTasks;
   private JobId jobId = MRBuilderUtils.newJobId(1329348432655l, 1, 1);
   Path fulleHistoryPath =
-    new Path(this.getClass().getClassLoader().getResource(historyFileName)
-        .getFile());
+      new Path(this.getClass().getClassLoader().getResource(historyFileName)
+          .getFile());
   Path fullConfPath =
-    new Path(this.getClass().getClassLoader().getResource(confFileName)
-        .getFile());
+      new Path(this.getClass().getClassLoader().getResource(confFileName)
+          .getFile());
   private CompletedJob completedJob;
 
   public TestJobHistoryEntities(boolean loadTasks) throws Exception {
@@ -75,20 +65,20 @@ public class TestJobHistoryEntities {
   @Parameters
   public static Collection<Object[]> data() {
     List<Object[]> list = new ArrayList<Object[]>(2);
-    list.add(new Object[] { true });
-    list.add(new Object[] { false });
+    list.add(new Object[]{true});
+    list.add(new Object[]{false});
     return list;
   }
 
   /* Verify some expected values based on the history file */
-  @Test (timeout=100000)
+  @Test(timeout = 100000)
   public void testCompletedJob() throws Exception {
     HistoryFileInfo info = mock(HistoryFileInfo.class);
     when(info.getConfFile()).thenReturn(fullConfPath);
     //Re-initialize to verify the delayed load.
     completedJob =
-      new CompletedJob(conf, jobId, fulleHistoryPath, loadTasks, "user",
-          info, jobAclsManager);
+        new CompletedJob(conf, jobId, fulleHistoryPath, loadTasks, "user",
+            info, jobAclsManager);
     //Verify tasks loaded based on loadTask parameter.
     assertEquals(loadTasks, completedJob.tasksLoaded.get());
     assertEquals(1, completedJob.getAMInfos().size());
@@ -105,22 +95,22 @@ public class TestJobHistoryEntities {
     assertEquals("user", jobReport.getUser());
     assertEquals(JobState.SUCCEEDED, jobReport.getJobState());
   }
-  
-  @Test (timeout=10000)
+
+  @Test(timeout = 10000)
   public void testCompletedTask() throws Exception {
     HistoryFileInfo info = mock(HistoryFileInfo.class);
     when(info.getConfFile()).thenReturn(fullConfPath);
     completedJob =
-      new CompletedJob(conf, jobId, fulleHistoryPath, loadTasks, "user",
-          info, jobAclsManager);
+        new CompletedJob(conf, jobId, fulleHistoryPath, loadTasks, "user",
+            info, jobAclsManager);
     TaskId mt1Id = MRBuilderUtils.newTaskId(jobId, 0, TaskType.MAP);
     TaskId rt1Id = MRBuilderUtils.newTaskId(jobId, 0, TaskType.REDUCE);
-    
+
     Map<TaskId, Task> mapTasks = completedJob.getTasks(TaskType.MAP);
     Map<TaskId, Task> reduceTasks = completedJob.getTasks(TaskType.REDUCE);
     assertEquals(10, mapTasks.size());
     assertEquals(2, reduceTasks.size());
-    
+
     Task mt1 = mapTasks.get(mt1Id);
     assertEquals(1, mt1.getAttempts().size());
     assertEquals(TaskState.SUCCEEDED, mt1.getState());
@@ -135,21 +125,21 @@ public class TestJobHistoryEntities {
     assertEquals(rt1Id, rt1Report.getTaskId());
   }
 
-  @Test (timeout=10000)
+  @Test(timeout = 10000)
   public void testCompletedTaskAttempt() throws Exception {
     HistoryFileInfo info = mock(HistoryFileInfo.class);
     when(info.getConfFile()).thenReturn(fullConfPath);
     completedJob =
-      new CompletedJob(conf, jobId, fulleHistoryPath, loadTasks, "user",
-          info, jobAclsManager);
+        new CompletedJob(conf, jobId, fulleHistoryPath, loadTasks, "user",
+            info, jobAclsManager);
     TaskId mt1Id = MRBuilderUtils.newTaskId(jobId, 0, TaskType.MAP);
     TaskId rt1Id = MRBuilderUtils.newTaskId(jobId, 0, TaskType.REDUCE);
     TaskAttemptId mta1Id = MRBuilderUtils.newTaskAttemptId(mt1Id, 0);
     TaskAttemptId rta1Id = MRBuilderUtils.newTaskAttemptId(rt1Id, 0);
-    
+
     Task mt1 = completedJob.getTask(mt1Id);
     Task rt1 = completedJob.getTask(rt1Id);
-    
+
     TaskAttempt mta1 = mt1.getAttempt(mta1Id);
     assertEquals(TaskAttemptState.SUCCEEDED, mta1.getState());
     assertEquals("localhost:45454", mta1.getAssignedContainerMgrAddress());
@@ -159,7 +149,7 @@ public class TestJobHistoryEntities {
     assertEquals("localhost", mta1Report.getNodeManagerHost());
     assertEquals(45454, mta1Report.getNodeManagerPort());
     assertEquals(9999, mta1Report.getNodeManagerHttpPort());
-    
+
     TaskAttempt rta1 = rt1.getAttempt(rta1Id);
     assertEquals(TaskAttemptState.SUCCEEDED, rta1.getState());
     assertEquals("localhost:45454", rta1.getAssignedContainerMgrAddress());
@@ -170,42 +160,43 @@ public class TestJobHistoryEntities {
     assertEquals(45454, rta1Report.getNodeManagerPort());
     assertEquals(9999, rta1Report.getNodeManagerHttpPort());
   }
+
   /**
    * Simple test of some methods of CompletedJob
    * @throws Exception
    */
-  @Test (timeout=30000)
-  public void testGetTaskAttemptCompletionEvent() throws Exception{
+  @Test(timeout = 30000)
+  public void testGetTaskAttemptCompletionEvent() throws Exception {
     HistoryFileInfo info = mock(HistoryFileInfo.class);
     when(info.getConfFile()).thenReturn(fullConfPath);
     completedJob =
-      new CompletedJob(conf, jobId, fulleHistoryPath, loadTasks, "user",
-          info, jobAclsManager);
-    TaskCompletionEvent[] events= completedJob.getMapAttemptCompletionEvents(0,1000);
-    assertEquals(10, completedJob.getMapAttemptCompletionEvents(0,10).length);
-    int currentEventId=0;
+        new CompletedJob(conf, jobId, fulleHistoryPath, loadTasks, "user",
+            info, jobAclsManager);
+    TaskCompletionEvent[] events = completedJob.getMapAttemptCompletionEvents(0, 1000);
+    assertEquals(10, completedJob.getMapAttemptCompletionEvents(0, 10).length);
+    int currentEventId = 0;
     for (TaskCompletionEvent taskAttemptCompletionEvent : events) {
-      int eventId= taskAttemptCompletionEvent.getEventId();
-      assertTrue(eventId>=currentEventId);
-      currentEventId=eventId;
+      int eventId = taskAttemptCompletionEvent.getEventId();
+      assertTrue(eventId >= currentEventId);
+      currentEventId = eventId;
     }
-    assertNull(completedJob.loadConfFile() );
+    assertNull(completedJob.loadConfFile());
     // job name
-    assertEquals("Sleep job",completedJob.getName());
+    assertEquals("Sleep job", completedJob.getName());
     // queue name
-    assertEquals("default",completedJob.getQueueName());
+    assertEquals("default", completedJob.getQueueName());
     // progress
-    assertEquals(1.0, completedJob.getProgress(),0.001);
+    assertEquals(1.0, completedJob.getProgress(), 0.001);
     // 12 rows in answer
-    assertEquals(12,completedJob.getTaskAttemptCompletionEvents(0,1000).length);
+    assertEquals(12, completedJob.getTaskAttemptCompletionEvents(0, 1000).length);
     // select first 10 rows
-    assertEquals(10,completedJob.getTaskAttemptCompletionEvents(0,10).length);
+    assertEquals(10, completedJob.getTaskAttemptCompletionEvents(0, 10).length);
     // select 5-10 rows include 5th
-    assertEquals(7,completedJob.getTaskAttemptCompletionEvents(5,10).length);
+    assertEquals(7, completedJob.getTaskAttemptCompletionEvents(5, 10).length);
 
     // without errors
-    assertEquals(1,completedJob.getDiagnostics().size());
-    assertEquals("",completedJob.getDiagnostics().get(0));
+    assertEquals(1, completedJob.getDiagnostics().size());
+    assertEquals("", completedJob.getDiagnostics().get(0));
 
     assertEquals(0, completedJob.getJobACLs().size());
 

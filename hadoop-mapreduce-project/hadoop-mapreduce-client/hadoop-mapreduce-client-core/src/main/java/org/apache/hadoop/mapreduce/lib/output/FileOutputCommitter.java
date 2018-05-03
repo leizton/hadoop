@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,8 +17,6 @@
  */
 
 package org.apache.hadoop.mapreduce.lib.output;
-
-import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -29,12 +27,9 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
-import org.apache.hadoop.mapreduce.JobContext;
-import org.apache.hadoop.mapreduce.JobStatus;
-import org.apache.hadoop.mapreduce.MRJobConfig;
-import org.apache.hadoop.mapreduce.OutputCommitter;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.TaskAttemptID;
+import org.apache.hadoop.mapreduce.*;
+
+import java.io.IOException;
 
 /** An {@link OutputCommitter} that commits files specified 
  * in job output directory i.e. ${mapreduce.output.fileoutputformat.outputdir}.
@@ -44,7 +39,7 @@ import org.apache.hadoop.mapreduce.TaskAttemptID;
 public class FileOutputCommitter extends OutputCommitter {
   private static final Log LOG = LogFactory.getLog(FileOutputCommitter.class);
 
-  /** 
+  /**
    * Name of directory where pending data is placed.  Data that has not been
    * committed yet.
    */
@@ -57,8 +52,8 @@ public class FileOutputCommitter extends OutputCommitter {
   @Deprecated
   protected static final String TEMP_DIR_NAME = PENDING_DIR_NAME;
   public static final String SUCCEEDED_FILE_NAME = "_SUCCESS";
-  public static final String SUCCESSFUL_JOB_OUTPUT_DIR_MARKER = 
-    "mapreduce.fileoutputcommitter.marksuccessfuljobs";
+  public static final String SUCCESSFUL_JOB_OUTPUT_DIR_MARKER =
+      "mapreduce.fileoutputcommitter.marksuccessfuljobs";
   private Path outputPath = null;
   private Path workPath = null;
 
@@ -69,14 +64,14 @@ public class FileOutputCommitter extends OutputCommitter {
    * @param context the task's context
    * @throws IOException
    */
-  public FileOutputCommitter(Path outputPath, 
+  public FileOutputCommitter(Path outputPath,
                              TaskAttemptContext context) throws IOException {
-    this(outputPath, (JobContext)context);
+    this(outputPath, (JobContext) context);
     if (outputPath != null) {
       workPath = getTaskAttemptPath(context, outputPath);
     }
   }
-  
+
   /**
    * Create a file output committer
    * @param outputPath the job's output path, or null if you want the output
@@ -85,14 +80,14 @@ public class FileOutputCommitter extends OutputCommitter {
    * @throws IOException
    */
   @Private
-  public FileOutputCommitter(Path outputPath, 
+  public FileOutputCommitter(Path outputPath,
                              JobContext context) throws IOException {
     if (outputPath != null) {
       FileSystem fs = outputPath.getFileSystem(context.getConfiguration());
       this.outputPath = fs.makeQualified(outputPath);
     }
   }
-  
+
   /**
    * @return the path where final output of the job should be placed.  This
    * could also be considered the committed application attempt path.
@@ -100,14 +95,14 @@ public class FileOutputCommitter extends OutputCommitter {
   private Path getOutputPath() {
     return this.outputPath;
   }
-  
+
   /**
    * @return true if we have an output path set, else false.
    */
   private boolean hasOutputPath() {
     return this.outputPath != null;
   }
-  
+
   /**
    * @return the path where the output of pending job attempts are
    * stored.
@@ -115,7 +110,7 @@ public class FileOutputCommitter extends OutputCommitter {
   private Path getPendingJobAttemptsPath() {
     return getPendingJobAttemptsPath(getOutputPath());
   }
-  
+
   /**
    * Get the location of pending job attempts.
    * @param out the base output directory.
@@ -124,7 +119,7 @@ public class FileOutputCommitter extends OutputCommitter {
   private static Path getPendingJobAttemptsPath(Path out) {
     return new Path(out, PENDING_DIR_NAME);
   }
-  
+
   /**
    * Get the Application Attempt Id for this job
    * @param context the context to look in
@@ -134,7 +129,7 @@ public class FileOutputCommitter extends OutputCommitter {
     return context.getConfiguration().getInt(
         MRJobConfig.APPLICATION_ATTEMPT_ID, 0);
   }
-  
+
   /**
    * Compute the path where the output of a given job attempt will be placed. 
    * @param context the context of the job.  This is used to get the
@@ -144,7 +139,7 @@ public class FileOutputCommitter extends OutputCommitter {
   public Path getJobAttemptPath(JobContext context) {
     return getJobAttemptPath(context, getOutputPath());
   }
-  
+
   /**
    * Compute the path where the output of a given job attempt will be placed. 
    * @param context the context of the job.  This is used to get the
@@ -155,7 +150,7 @@ public class FileOutputCommitter extends OutputCommitter {
   public static Path getJobAttemptPath(JobContext context, Path out) {
     return getJobAttemptPath(getAppAttemptId(context), out);
   }
-  
+
   /**
    * Compute the path where the output of a given job attempt will be placed. 
    * @param appAttemptId the ID of the application attempt for this job.
@@ -164,7 +159,7 @@ public class FileOutputCommitter extends OutputCommitter {
   protected Path getJobAttemptPath(int appAttemptId) {
     return getJobAttemptPath(appAttemptId, getOutputPath());
   }
-  
+
   /**
    * Compute the path where the output of a given job attempt will be placed. 
    * @param appAttemptId the ID of the application attempt for this job.
@@ -173,7 +168,7 @@ public class FileOutputCommitter extends OutputCommitter {
   private static Path getJobAttemptPath(int appAttemptId, Path out) {
     return new Path(getPendingJobAttemptsPath(out), String.valueOf(appAttemptId));
   }
-  
+
   /**
    * Compute the path where the output of pending task attempts are stored.
    * @param context the context of the job with pending tasks. 
@@ -182,7 +177,7 @@ public class FileOutputCommitter extends OutputCommitter {
   private Path getPendingTaskAttemptsPath(JobContext context) {
     return getPendingTaskAttemptsPath(context, getOutputPath());
   }
-  
+
   /**
    * Compute the path where the output of pending task attempts are stored.
    * @param context the context of the job with pending tasks. 
@@ -191,32 +186,32 @@ public class FileOutputCommitter extends OutputCommitter {
   private static Path getPendingTaskAttemptsPath(JobContext context, Path out) {
     return new Path(getJobAttemptPath(context, out), PENDING_DIR_NAME);
   }
-  
+
   /**
    * Compute the path where the output of a task attempt is stored until
    * that task is committed.
-   * 
+   *
    * @param context the context of the task attempt.
    * @return the path where a task attempt should be stored.
    */
   public Path getTaskAttemptPath(TaskAttemptContext context) {
-    return new Path(getPendingTaskAttemptsPath(context), 
+    return new Path(getPendingTaskAttemptsPath(context),
         String.valueOf(context.getTaskAttemptID()));
   }
-  
+
   /**
    * Compute the path where the output of a task attempt is stored until
    * that task is committed.
-   * 
+   *
    * @param context the context of the task attempt.
    * @param out The output path to put things in.
    * @return the path where a task attempt should be stored.
    */
   public static Path getTaskAttemptPath(TaskAttemptContext context, Path out) {
-    return new Path(getPendingTaskAttemptsPath(context, out), 
+    return new Path(getPendingTaskAttemptsPath(context, out),
         String.valueOf(context.getTaskAttemptID()));
   }
-  
+
   /**
    * Compute the path where the output of a committed task is stored until
    * the entire job is committed.
@@ -227,11 +222,11 @@ public class FileOutputCommitter extends OutputCommitter {
   public Path getCommittedTaskPath(TaskAttemptContext context) {
     return getCommittedTaskPath(getAppAttemptId(context), context);
   }
-  
+
   public static Path getCommittedTaskPath(TaskAttemptContext context, Path out) {
     return getCommittedTaskPath(getAppAttemptId(context), context, out);
   }
-  
+
   /**
    * Compute the path where the output of a committed task is stored until the
    * entire job is committed for a specific application attempt.
@@ -243,32 +238,32 @@ public class FileOutputCommitter extends OutputCommitter {
     return new Path(getJobAttemptPath(appAttemptId),
         String.valueOf(context.getTaskAttemptID().getTaskID()));
   }
-  
+
   private static Path getCommittedTaskPath(int appAttemptId, TaskAttemptContext context, Path out) {
     return new Path(getJobAttemptPath(appAttemptId, out),
         String.valueOf(context.getTaskAttemptID().getTaskID()));
   }
-  
+
   private static class CommittedTaskFilter implements PathFilter {
     @Override
     public boolean accept(Path path) {
       return !PENDING_DIR_NAME.equals(path.getName());
     }
   }
-  
+
   /**
    * Get a list of all paths where output from committed tasks are stored.
    * @param context the context of the current job
    * @return the list of these Paths/FileStatuses. 
    * @throws IOException
    */
-  private FileStatus[] getAllCommittedTaskPaths(JobContext context) 
-    throws IOException {
+  private FileStatus[] getAllCommittedTaskPaths(JobContext context)
+      throws IOException {
     Path jobAttemptPath = getJobAttemptPath(context);
     FileSystem fs = jobAttemptPath.getFileSystem(context.getConfiguration());
     return fs.listStatus(jobAttemptPath, new CommittedTaskFilter());
   }
-  
+
   /**
    * Get the directory that the task should write results into.
    * @return the work directory
@@ -295,7 +290,7 @@ public class FileOutputCommitter extends OutputCommitter {
       LOG.warn("Output Path is null in setupJob()");
     }
   }
-  
+
   /**
    * The job has completed so move all committed tasks to the final output dir.
    * Delete the temporary directory, including all of the work directories.
@@ -306,7 +301,7 @@ public class FileOutputCommitter extends OutputCommitter {
     if (hasOutputPath()) {
       Path finalOutput = getOutputPath();
       FileSystem fs = finalOutput.getFileSystem(context.getConfiguration());
-      for(FileStatus stat: getAllCommittedTaskPaths(context)) {
+      for (FileStatus stat : getAllCommittedTaskPaths(context)) {
         mergePaths(fs, stat, finalOutput);
       }
 
@@ -332,43 +327,43 @@ public class FileOutputCommitter extends OutputCommitter {
    * @throws IOException on any error
    */
   private static void mergePaths(FileSystem fs, final FileStatus from,
-      final Path to)
-    throws IOException {
-     LOG.debug("Merging data from "+from+" to "+to);
-     if(from.isFile()) {
-       if(fs.exists(to)) {
-         if(!fs.delete(to, true)) {
-           throw new IOException("Failed to delete "+to);
-         }
-       }
+                                 final Path to)
+      throws IOException {
+    LOG.debug("Merging data from " + from + " to " + to);
+    if (from.isFile()) {
+      if (fs.exists(to)) {
+        if (!fs.delete(to, true)) {
+          throw new IOException("Failed to delete " + to);
+        }
+      }
 
-       if(!fs.rename(from.getPath(), to)) {
-         throw new IOException("Failed to rename "+from+" to "+to);
-       }
-     } else if(from.isDirectory()) {
-       if(fs.exists(to)) {
-         FileStatus toStat = fs.getFileStatus(to);
-         if(!toStat.isDirectory()) {
-           if(!fs.delete(to, true)) {
-             throw new IOException("Failed to delete "+to);
-           }
-           if(!fs.rename(from.getPath(), to)) {
-             throw new IOException("Failed to rename "+from+" to "+to);
-           }
-         } else {
-           //It is a directory so merge everything in the directories
-           for(FileStatus subFrom: fs.listStatus(from.getPath())) {
-             Path subTo = new Path(to, subFrom.getPath().getName());
-             mergePaths(fs, subFrom, subTo);
-           }
-         }
-       } else {
-         //it does not exist just rename
-         if(!fs.rename(from.getPath(), to)) {
-           throw new IOException("Failed to rename "+from+" to "+to);
-         }
-       }
-     }
+      if (!fs.rename(from.getPath(), to)) {
+        throw new IOException("Failed to rename " + from + " to " + to);
+      }
+    } else if (from.isDirectory()) {
+      if (fs.exists(to)) {
+        FileStatus toStat = fs.getFileStatus(to);
+        if (!toStat.isDirectory()) {
+          if (!fs.delete(to, true)) {
+            throw new IOException("Failed to delete " + to);
+          }
+          if (!fs.rename(from.getPath(), to)) {
+            throw new IOException("Failed to rename " + from + " to " + to);
+          }
+        } else {
+          //It is a directory so merge everything in the directories
+          for (FileStatus subFrom : fs.listStatus(from.getPath())) {
+            Path subTo = new Path(to, subFrom.getPath().getName());
+            mergePaths(fs, subFrom, subTo);
+          }
+        }
+      } else {
+        //it does not exist just rename
+        if (!fs.rename(from.getPath(), to)) {
+          throw new IOException("Failed to rename " + from + " to " + to);
+        }
+      }
+    }
   }
 
   @Override
@@ -389,12 +384,12 @@ public class FileOutputCommitter extends OutputCommitter {
    * @param context the job's context
    */
   @Override
-  public void abortJob(JobContext context, JobStatus.State state) 
-  throws IOException {
+  public void abortJob(JobContext context, JobStatus.State state)
+      throws IOException {
     // delete the _temporary folder
     cleanupJob(context);
   }
-  
+
   /**
    * No task setup required.
    */
@@ -410,33 +405,33 @@ public class FileOutputCommitter extends OutputCommitter {
    * @param context the task context
    */
   @Override
-  public void commitTask(TaskAttemptContext context) 
-  throws IOException {
+  public void commitTask(TaskAttemptContext context)
+      throws IOException {
     commitTask(context, null);
   }
 
   @Private
-  public void commitTask(TaskAttemptContext context, Path taskAttemptPath) 
-  throws IOException {
+  public void commitTask(TaskAttemptContext context, Path taskAttemptPath)
+      throws IOException {
     TaskAttemptID attemptId = context.getTaskAttemptID();
     if (hasOutputPath()) {
       context.progress();
-      if(taskAttemptPath == null) {
+      if (taskAttemptPath == null) {
         taskAttemptPath = getTaskAttemptPath(context);
       }
       Path committedTaskPath = getCommittedTaskPath(context);
       FileSystem fs = taskAttemptPath.getFileSystem(context.getConfiguration());
       if (fs.exists(taskAttemptPath)) {
-        if(fs.exists(committedTaskPath)) {
-          if(!fs.delete(committedTaskPath, true)) {
+        if (fs.exists(committedTaskPath)) {
+          if (!fs.delete(committedTaskPath, true)) {
             throw new IOException("Could not delete " + committedTaskPath);
           }
         }
-        if(!fs.rename(taskAttemptPath, committedTaskPath)) {
+        if (!fs.rename(taskAttemptPath, committedTaskPath)) {
           throw new IOException("Could not rename " + taskAttemptPath + " to "
               + committedTaskPath);
         }
-        LOG.info("Saved output of task '" + attemptId + "' to " + 
+        LOG.info("Saved output of task '" + attemptId + "' to " +
             committedTaskPath);
       } else {
         LOG.warn("No Output found for " + attemptId);
@@ -448,7 +443,7 @@ public class FileOutputCommitter extends OutputCommitter {
 
   /**
    * Delete the work directory
-   * @throws IOException 
+   * @throws IOException
    */
   @Override
   public void abortTask(TaskAttemptContext context) throws IOException {
@@ -457,14 +452,14 @@ public class FileOutputCommitter extends OutputCommitter {
 
   @Private
   public void abortTask(TaskAttemptContext context, Path taskAttemptPath) throws IOException {
-    if (hasOutputPath()) { 
+    if (hasOutputPath()) {
       context.progress();
-      if(taskAttemptPath == null) {
+      if (taskAttemptPath == null) {
         taskAttemptPath = getTaskAttemptPath(context);
       }
       FileSystem fs = taskAttemptPath.getFileSystem(context.getConfiguration());
-      if(!fs.delete(taskAttemptPath, true)) {
-        LOG.warn("Could not delete "+taskAttemptPath);
+      if (!fs.delete(taskAttemptPath, true)) {
+        LOG.warn("Could not delete " + taskAttemptPath);
       }
     } else {
       LOG.warn("Output Path is null in abortTask()");
@@ -477,15 +472,15 @@ public class FileOutputCommitter extends OutputCommitter {
    */
   @Override
   public boolean needsTaskCommit(TaskAttemptContext context
-                                 ) throws IOException {
+  ) throws IOException {
     return needsTaskCommit(context, null);
   }
 
   @Private
   public boolean needsTaskCommit(TaskAttemptContext context, Path taskAttemptPath
-    ) throws IOException {
-    if(hasOutputPath()) {
-      if(taskAttemptPath == null) {
+  ) throws IOException {
+    if (hasOutputPath()) {
+      if (taskAttemptPath == null) {
         taskAttemptPath = getTaskAttemptPath(context);
       }
       FileSystem fs = taskAttemptPath.getFileSystem(context.getConfiguration());
@@ -499,16 +494,16 @@ public class FileOutputCommitter extends OutputCommitter {
   public boolean isRecoverySupported() {
     return true;
   }
-  
+
   @Override
   public void recoverTask(TaskAttemptContext context)
       throws IOException {
-    if(hasOutputPath()) {
+    if (hasOutputPath()) {
       context.progress();
       TaskAttemptID attemptId = context.getTaskAttemptID();
       int previousAttempt = getAppAttemptId(context) - 1;
       if (previousAttempt < 0) {
-        throw new IOException ("Cannot recover task output for first attempt...");
+        throw new IOException("Cannot recover task output for first attempt...");
       }
 
       Path committedTaskPath = getCommittedTaskPath(context);
@@ -516,24 +511,24 @@ public class FileOutputCommitter extends OutputCommitter {
           previousAttempt, context);
       FileSystem fs = committedTaskPath.getFileSystem(context.getConfiguration());
 
-      LOG.debug("Trying to recover task from " + previousCommittedTaskPath 
+      LOG.debug("Trying to recover task from " + previousCommittedTaskPath
           + " into " + committedTaskPath);
       if (fs.exists(previousCommittedTaskPath)) {
-        if(fs.exists(committedTaskPath)) {
-          if(!fs.delete(committedTaskPath, true)) {
-            throw new IOException("Could not delete "+committedTaskPath);
+        if (fs.exists(committedTaskPath)) {
+          if (!fs.delete(committedTaskPath, true)) {
+            throw new IOException("Could not delete " + committedTaskPath);
           }
         }
         //Rename can fail if the parent directory does not yet exist.
         Path committedParent = committedTaskPath.getParent();
         fs.mkdirs(committedParent);
-        if(!fs.rename(previousCommittedTaskPath, committedTaskPath)) {
+        if (!fs.rename(previousCommittedTaskPath, committedTaskPath)) {
           throw new IOException("Could not rename " + previousCommittedTaskPath +
               " to " + committedTaskPath);
         }
         LOG.info("Saved output of " + attemptId + " to " + committedTaskPath);
       } else {
-        LOG.warn(attemptId+" had no output to recover.");
+        LOG.warn(attemptId + " had no output to recover.");
       }
     } else {
       LOG.warn("Output Path is null in recoverTask()");

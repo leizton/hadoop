@@ -1,41 +1,37 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2.app.speculate;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.mapreduce.MRJobConfig;
+import org.apache.hadoop.mapreduce.v2.api.records.*;
+import org.apache.hadoop.mapreduce.v2.app.AppContext;
+import org.apache.hadoop.mapreduce.v2.app.job.Job;
+import org.apache.hadoop.mapreduce.v2.app.job.Task;
+import org.apache.hadoop.mapreduce.v2.app.job.TaskAttempt;
+import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptStatusUpdateEvent.TaskAttemptStatus;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.mapreduce.MRJobConfig;
-import org.apache.hadoop.mapreduce.v2.app.AppContext;
-import org.apache.hadoop.mapreduce.v2.app.job.Job;
-import org.apache.hadoop.mapreduce.v2.app.job.Task;
-import org.apache.hadoop.mapreduce.v2.app.job.TaskAttempt;
-import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptStatusUpdateEvent.TaskAttemptStatus;
-import org.apache.hadoop.mapreduce.v2.api.records.JobId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptState;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskType;
 
 abstract class StartEndTimesBase implements TaskRuntimeEstimator {
   static final float MINIMUM_COMPLETE_PROPORTION_TO_SPECULATE
@@ -68,7 +64,7 @@ abstract class StartEndTimesBase implements TaskRuntimeEstimator {
 
   @Override
   public void enrollAttempt(TaskAttemptStatus status, long timestamp) {
-    startTimes.put(status.id,timestamp);
+    startTimes.put(status.id, timestamp);
   }
 
   @Override
@@ -90,7 +86,7 @@ abstract class StartEndTimesBase implements TaskRuntimeEstimator {
       mapperStatistics.put(job, new DataStatistics());
       reducerStatistics.put(job, new DataStatistics());
       slowTaskRelativeTresholds.put
-          (job, conf.getFloat(MRJobConfig.SPECULATIVE_SLOWTASK_THRESHOLD,1.0f));
+          (job, conf.getFloat(MRJobConfig.SPECULATIVE_SLOWTASK_THRESHOLD, 1.0f));
     }
   }
 
@@ -109,10 +105,10 @@ abstract class StartEndTimesBase implements TaskRuntimeEstimator {
     }
 
     return task.getType() == TaskType.MAP
-            ? mapperStatistics.get(job)
-            : task.getType() == TaskType.REDUCE
-                ? reducerStatistics.get(job)
-                : null;
+        ? mapperStatistics.get(job)
+        : task.getType() == TaskType.REDUCE
+        ? reducerStatistics.get(job)
+        : null;
   }
 
   @Override
@@ -127,21 +123,21 @@ abstract class StartEndTimesBase implements TaskRuntimeEstimator {
 
     int completedTasksOfType
         = type == TaskType.MAP
-            ? job.getCompletedMaps() : job.getCompletedReduces();
+        ? job.getCompletedMaps() : job.getCompletedReduces();
 
     int totalTasksOfType
         = type == TaskType.MAP
-            ? job.getTotalMaps() : job.getTotalReduces();
+        ? job.getTotalMaps() : job.getTotalReduces();
 
     if (completedTasksOfType < MINIMUM_COMPLETE_NUMBER_TO_SPECULATE
-        || (((float)completedTasksOfType) / totalTasksOfType)
-              < MINIMUM_COMPLETE_PROPORTION_TO_SPECULATE ) {
+        || (((float) completedTasksOfType) / totalTasksOfType)
+        < MINIMUM_COMPLETE_PROPORTION_TO_SPECULATE) {
       return Long.MAX_VALUE;
     }
 
-    long result =  statistics == null
+    long result = statistics == null
         ? Long.MAX_VALUE
-        : (long)statistics.outlier(slowTaskRelativeTresholds.get(job));
+        : (long) statistics.outlier(slowTaskRelativeTresholds.get(job));
     return result;
   }
 
@@ -153,7 +149,7 @@ abstract class StartEndTimesBase implements TaskRuntimeEstimator {
       return -1L;
     }
 
-    return (long)statistics.mean();
+    return (long) statistics.mean();
   }
 
   @Override
@@ -176,7 +172,7 @@ abstract class StartEndTimesBase implements TaskRuntimeEstimator {
 
     Long boxedStart = startTimes.get(attemptID);
     long start = boxedStart == null ? Long.MIN_VALUE : boxedStart;
-    
+
     TaskAttempt taskAttempt = task.getAttempt(attemptID);
 
     if (taskAttempt.getState() == TaskAttemptState.SUCCEEDED) {
@@ -199,7 +195,7 @@ abstract class StartEndTimesBase implements TaskRuntimeEstimator {
           long duration = finish - start;
 
           DataStatistics statistics
-          = dataStatisticsForTask(taskID);
+              = dataStatisticsForTask(taskID);
 
           if (statistics != null) {
             statistics.add(duration);

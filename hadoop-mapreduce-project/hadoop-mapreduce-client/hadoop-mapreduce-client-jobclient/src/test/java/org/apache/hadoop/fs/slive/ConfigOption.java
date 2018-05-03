@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -41,16 +41,16 @@ class ConfigOption<T> extends Option {
 
   static final ConfigOption<Integer> OPS = new ConfigOption<Integer>(
       "ops", true, "Max number of operations per map", SLIVE_PREFIX
-          + ".map.ops", 1000);
+      + ".map.ops", 1000);
 
   static final ConfigOption<Integer> DURATION = new ConfigOption<Integer>(
       "duration", true,
       "Duration of a map task in seconds (MAX_INT for no limit)", SLIVE_PREFIX
-          + ".duration", Integer.MAX_VALUE);
+      + ".duration", Integer.MAX_VALUE);
 
   static final ConfigOption<Boolean> EXIT_ON_ERROR = new ConfigOption<Boolean>(
       "exitOnError", false, "Exit on first error", SLIVE_PREFIX
-          + ".exit.on.error", false);
+      + ".exit.on.error", false);
 
   static final ConfigOption<Integer> FILES = new ConfigOption<Integer>(
       "files", true, "Max total number of files",
@@ -70,11 +70,11 @@ class ConfigOption<T> extends Option {
 
   static final ConfigOption<Short> REPLICATION_AM = new ConfigOption<Short>(
       "replication", true, "Min,max value for replication amount", SLIVE_PREFIX
-          + ".file.replication", (short) 3);
+      + ".file.replication", (short) 3);
 
   static final ConfigOption<Long> BLOCK_SIZE = new ConfigOption<Long>(
       "blockSize", true, "Min,max for dfs file block size", SLIVE_PREFIX
-          + ".block.size", 64L * Constants.MEGABYTES);
+      + ".block.size", 64L * Constants.MEGABYTES);
 
   static final ConfigOption<Long> READ_SIZE = new ConfigOption<Long>(
       "readSize", true,
@@ -84,7 +84,7 @@ class ConfigOption<T> extends Option {
   static final ConfigOption<Long> WRITE_SIZE = new ConfigOption<Long>(
       "writeSize", true,
       "Min,max for size to write (min=max=MAX_LONG=blocksize)", SLIVE_PREFIX
-          + ".op.write.size", null);
+      + ".op.write.size", null);
 
   static final ConfigOption<Long> SLEEP_TIME = new ConfigOption<Long>(
       "sleep",
@@ -95,7 +95,7 @@ class ConfigOption<T> extends Option {
   static final ConfigOption<Long> APPEND_SIZE = new ConfigOption<Long>(
       "appendSize", true,
       "Min,max for size to append (min=max=MAX_LONG=blocksize)", SLIVE_PREFIX
-          + ".op.append.size", null);
+      + ".op.append.size", null);
 
   static final ConfigOption<Long> RANDOM_SEED = new ConfigOption<Long>(
       "seed", true, "Random number seed", SLIVE_PREFIX + ".seed", null);
@@ -126,7 +126,7 @@ class ConfigOption<T> extends Option {
   private T defaultValue;
 
   ConfigOption(String cliOption, boolean hasArg, String description,
-      String cfgOption, T def) {
+               String cfgOption, T def) {
     super(cliOption, hasArg, description);
     this.cfgOption = cfgOption;
     this.defaultValue = def;

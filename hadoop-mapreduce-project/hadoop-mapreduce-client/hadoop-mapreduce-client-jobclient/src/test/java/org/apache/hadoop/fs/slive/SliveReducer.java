@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,18 +18,14 @@
 
 package org.apache.hadoop.fs.slive;
 
-import java.io.IOException;
-import java.util.Iterator;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.MapReduceBase;
-import org.apache.hadoop.mapred.OutputCollector;
-import org.apache.hadoop.mapred.Reducer;
-import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapred.*;
 import org.apache.hadoop.util.StringUtils;
+
+import java.io.IOException;
+import java.util.Iterator;
 
 /**
  * The slive reducer which iterates over the given input values and merges them
@@ -44,7 +40,7 @@ public class SliveReducer extends MapReduceBase implements
 
   /**
    * Logs to the given reporter and logs to the internal logger at info level
-   * 
+   *
    * @param r
    *          the reporter to set status on
    * @param msg
@@ -57,7 +53,7 @@ public class SliveReducer extends MapReduceBase implements
 
   /**
    * Fetches the config this object uses
-   * 
+   *
    * @return ConfigExtractor
    */
   private ConfigExtractor getConfig() {
@@ -66,14 +62,14 @@ public class SliveReducer extends MapReduceBase implements
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.apache.hadoop.mapred.Reducer#reduce(java.lang.Object,
    * java.util.Iterator, org.apache.hadoop.mapred.OutputCollector,
    * org.apache.hadoop.mapred.Reporter)
    */
   @Override // Reducer
   public void reduce(Text key, Iterator<Text> values,
-      OutputCollector<Text, Text> output, Reporter reporter) throws IOException {
+                     OutputCollector<Text, Text> output, Reporter reporter) throws IOException {
     OperationOutput collector = null;
     int reduceAm = 0;
     int errorAm = 0;
@@ -109,7 +105,7 @@ public class SliveReducer extends MapReduceBase implements
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.apache.hadoop.mapred.MapReduceBase#configure(org.apache.hadoop.mapred
    * .JobConf)

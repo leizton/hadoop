@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -56,7 +56,7 @@ public class TestMultipleOutputs extends HadoopTestCase {
     // Hack for local FS that does not have the concept of a 'mounting point'
     if (isLocalFS()) {
       String localPathRoot = System.getProperty("test.build.data", "/tmp")
-        .replace(' ', '+');
+          .replace(' ', '+');
       dir = new Path(localPathRoot, dir);
     }
     return dir;
@@ -83,7 +83,7 @@ public class TestMultipleOutputs extends HadoopTestCase {
     fs.delete(rootDir, true);
     super.tearDown();
   }
-  
+
   protected void _testMOWithJavaSerialization(boolean withCounters) throws Exception {
     Path inDir = getDir(IN_DIR);
     Path outDir = getDir(OUT_DIR);
@@ -105,8 +105,8 @@ public class TestMultipleOutputs extends HadoopTestCase {
     conf.setJobName("mo");
 
     conf.set("io.serializations",
-    "org.apache.hadoop.io.serializer.JavaSerialization," +
-    "org.apache.hadoop.io.serializer.WritableSerialization");
+        "org.apache.hadoop.io.serializer.JavaSerialization," +
+            "org.apache.hadoop.io.serializer.WritableSerialization");
 
     conf.setInputFormat(TextInputFormat.class);
 
@@ -116,11 +116,11 @@ public class TestMultipleOutputs extends HadoopTestCase {
 
     conf.setOutputKeyClass(Long.class);
     conf.setOutputValueClass(String.class);
-    
+
     conf.setOutputFormat(TextOutputFormat.class);
 
     MultipleOutputs.addNamedOutput(conf, "text", TextOutputFormat.class,
-      Long.class, String.class);
+        Long.class, String.class);
 
     MultipleOutputs.setCountersEnabled(conf, withCounters);
 
@@ -141,7 +141,7 @@ public class TestMultipleOutputs extends HadoopTestCase {
     FileStatus[] statuses = fs.listStatus(outDir);
     for (FileStatus status : statuses) {
       if (status.getPath().getName().equals("text-m-00000") ||
-        status.getPath().getName().equals("text-r-00000")) {
+          status.getPath().getName().equals("text-r-00000")) {
         namedOutputCount++;
       }
     }
@@ -149,8 +149,8 @@ public class TestMultipleOutputs extends HadoopTestCase {
 
     // assert TextOutputFormat files correctness
     BufferedReader reader = new BufferedReader(
-      new InputStreamReader(fs.open(
-        new Path(FileOutputFormat.getOutputPath(conf), "text-r-00000"))));
+        new InputStreamReader(fs.open(
+            new Path(FileOutputFormat.getOutputPath(conf), "text-r-00000"))));
     int count = 0;
     String line = reader.readLine();
     while (line != null) {
@@ -162,11 +162,10 @@ public class TestMultipleOutputs extends HadoopTestCase {
     assertFalse(count == 0);
 
     Counters.Group counters =
-      job.getCounters().getGroup(MultipleOutputs.class.getName());
+        job.getCounters().getGroup(MultipleOutputs.class.getName());
     if (!withCounters) {
       assertEquals(0, counters.size());
-    }
-    else {
+    } else {
       assertEquals(1, counters.size());
       assertEquals(2, counters.getCounter("text"));
     }
@@ -199,9 +198,9 @@ public class TestMultipleOutputs extends HadoopTestCase {
     conf.setOutputFormat(TextOutputFormat.class);
 
     MultipleOutputs.addNamedOutput(conf, "text", TextOutputFormat.class,
-      LongWritable.class, Text.class);
+        LongWritable.class, Text.class);
     MultipleOutputs.addMultiNamedOutput(conf, "sequence",
-      SequenceFileOutputFormat.class, LongWritable.class, Text.class);
+        SequenceFileOutputFormat.class, LongWritable.class, Text.class);
 
     MultipleOutputs.setCountersEnabled(conf, withCounters);
 
@@ -222,14 +221,14 @@ public class TestMultipleOutputs extends HadoopTestCase {
     FileStatus[] statuses = fs.listStatus(outDir);
     for (FileStatus status : statuses) {
       if (status.getPath().getName().equals("text-m-00000") ||
-        status.getPath().getName().equals("text-m-00001") ||
-        status.getPath().getName().equals("text-r-00000") ||
-        status.getPath().getName().equals("sequence_A-m-00000") ||
-        status.getPath().getName().equals("sequence_A-m-00001") ||
-        status.getPath().getName().equals("sequence_B-m-00000") ||
-        status.getPath().getName().equals("sequence_B-m-00001") ||
-        status.getPath().getName().equals("sequence_B-r-00000") ||
-        status.getPath().getName().equals("sequence_C-r-00000")) {
+          status.getPath().getName().equals("text-m-00001") ||
+          status.getPath().getName().equals("text-r-00000") ||
+          status.getPath().getName().equals("sequence_A-m-00000") ||
+          status.getPath().getName().equals("sequence_A-m-00001") ||
+          status.getPath().getName().equals("sequence_B-m-00000") ||
+          status.getPath().getName().equals("sequence_B-m-00001") ||
+          status.getPath().getName().equals("sequence_B-r-00000") ||
+          status.getPath().getName().equals("sequence_C-r-00000")) {
         namedOutputCount++;
       }
     }
@@ -237,8 +236,8 @@ public class TestMultipleOutputs extends HadoopTestCase {
 
     // assert TextOutputFormat files correctness
     BufferedReader reader = new BufferedReader(
-      new InputStreamReader(fs.open(
-        new Path(FileOutputFormat.getOutputPath(conf), "text-r-00000"))));
+        new InputStreamReader(fs.open(
+            new Path(FileOutputFormat.getOutputPath(conf), "text-r-00000"))));
     int count = 0;
     String line = reader.readLine();
     while (line != null) {
@@ -251,8 +250,8 @@ public class TestMultipleOutputs extends HadoopTestCase {
 
     // assert SequenceOutputFormat files correctness
     SequenceFile.Reader seqReader =
-      new SequenceFile.Reader(fs, new Path(FileOutputFormat.getOutputPath(conf),
-        "sequence_B-r-00000"), conf);
+        new SequenceFile.Reader(fs, new Path(FileOutputFormat.getOutputPath(conf),
+            "sequence_B-r-00000"), conf);
 
     assertEquals(LongWritable.class, seqReader.getKeyClass());
     assertEquals(Text.class, seqReader.getValueClass());
@@ -268,11 +267,10 @@ public class TestMultipleOutputs extends HadoopTestCase {
     assertFalse(count == 0);
 
     Counters.Group counters =
-      job.getCounters().getGroup(MultipleOutputs.class.getName());
+        job.getCounters().getGroup(MultipleOutputs.class.getName());
     if (!withCounters) {
       assertEquals(0, counters.size());
-    }
-    else {
+    } else {
       assertEquals(4, counters.size());
       assertEquals(4, counters.getCounter("text"));
       assertEquals(2, counters.getCounter("sequence_A"));
@@ -285,7 +283,7 @@ public class TestMultipleOutputs extends HadoopTestCase {
 
   @SuppressWarnings({"unchecked"})
   public static class MOMap implements Mapper<LongWritable, Text, LongWritable,
-    Text> {
+      Text> {
 
     private MultipleOutputs mos;
 
@@ -296,15 +294,15 @@ public class TestMultipleOutputs extends HadoopTestCase {
     public void map(LongWritable key, Text value,
                     OutputCollector<LongWritable, Text> output,
                     Reporter reporter)
-      throws IOException {
+        throws IOException {
       if (!value.toString().equals("a")) {
         output.collect(key, value);
       } else {
         mos.getCollector("text", reporter).collect(key, new Text("text"));
         mos.getCollector("sequence", "A", reporter).collect(key,
-          new Text("sequence"));
+            new Text("sequence"));
         mos.getCollector("sequence", "B", reporter).collect(key,
-          new Text("sequence"));
+            new Text("sequence"));
       }
     }
 
@@ -315,7 +313,7 @@ public class TestMultipleOutputs extends HadoopTestCase {
 
   @SuppressWarnings({"unchecked"})
   public static class MOReduce implements Reducer<LongWritable, Text,
-    LongWritable, Text> {
+      LongWritable, Text> {
 
     private MultipleOutputs mos;
 
@@ -326,7 +324,7 @@ public class TestMultipleOutputs extends HadoopTestCase {
     public void reduce(LongWritable key, Iterator<Text> values,
                        OutputCollector<LongWritable, Text> output,
                        Reporter reporter)
-      throws IOException {
+        throws IOException {
       while (values.hasNext()) {
         Text value = values.next();
         if (!value.toString().equals("b")) {
@@ -334,9 +332,9 @@ public class TestMultipleOutputs extends HadoopTestCase {
         } else {
           mos.getCollector("text", reporter).collect(key, new Text("text"));
           mos.getCollector("sequence", "B", reporter).collect(key,
-            new Text("sequence"));
+              new Text("sequence"));
           mos.getCollector("sequence", "C", reporter).collect(key,
-            new Text("sequence"));
+              new Text("sequence"));
         }
       }
     }
@@ -345,10 +343,10 @@ public class TestMultipleOutputs extends HadoopTestCase {
       mos.close();
     }
   }
-  
+
   @SuppressWarnings({"unchecked"})
   public static class MOJavaSerDeMap implements Mapper<LongWritable, Text, Long,
-    String> {
+      String> {
 
     private MultipleOutputs mos;
 
@@ -359,7 +357,7 @@ public class TestMultipleOutputs extends HadoopTestCase {
     public void map(LongWritable key, Text value,
                     OutputCollector<Long, String> output,
                     Reporter reporter)
-      throws IOException {
+        throws IOException {
       if (!value.toString().equals("a")) {
         output.collect(key.get(), value.toString());
       } else {
@@ -374,7 +372,7 @@ public class TestMultipleOutputs extends HadoopTestCase {
 
   @SuppressWarnings({"unchecked"})
   public static class MOJavaSerDeReduce implements Reducer<Long, String,
-    Long, String> {
+      Long, String> {
 
     private MultipleOutputs mos;
 
@@ -385,7 +383,7 @@ public class TestMultipleOutputs extends HadoopTestCase {
     public void reduce(Long key, Iterator<String> values,
                        OutputCollector<Long, String> output,
                        Reporter reporter)
-      throws IOException {
+        throws IOException {
       while (values.hasNext()) {
         String value = values.next();
         if (!value.equals("b")) {

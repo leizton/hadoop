@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,25 +24,11 @@ import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.FileInputFormat;
-import org.apache.hadoop.mapred.FileOutputFormat;
-import org.apache.hadoop.mapred.HadoopTestCase;
-import org.apache.hadoop.mapred.JobClient;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.JobContext;
-import org.apache.hadoop.mapred.RunningJob;
-import org.apache.hadoop.mapred.TextInputFormat;
-import org.apache.hadoop.mapred.TextOutputFormat;
-import org.apache.hadoop.mapred.Utils;
+import org.apache.hadoop.mapred.*;
 import org.junit.After;
 import org.junit.Test;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 
 
 public class TestKeyFieldBasedComparator extends HadoopTestCase {
@@ -50,10 +36,10 @@ public class TestKeyFieldBasedComparator extends HadoopTestCase {
   private static final File TEST_DIR = new File(
       System.getProperty("test.build.data",
           System.getProperty("java.io.tmpdir")),
-          "TestKeyFieldBasedComparator-lib");
+      "TestKeyFieldBasedComparator-lib");
   JobConf conf;
   JobConf localConf;
-  
+
   String line1 = "123 -123 005120 123.9 0.01 0.18 010 10.0 4444.1 011 011 234";
   String line2 = "134 -12 005100 123.10 -1.01 0.19 02 10.1 4444";
 
@@ -103,13 +89,13 @@ public class TestKeyFieldBasedComparator extends HadoopTestCase {
     while (!r_job.isComplete()) {
       Thread.sleep(1000);
     }
-    
+
     if (!r_job.isSuccessful()) {
       fail("Oops! The job broke due to an unexpected error");
     }
     Path[] outputFiles = FileUtil.stat2Paths(
         getFileSystem().listStatus(outDir,
-        new Utils.OutputFileUtils.OutputFilesFilter()));
+            new Utils.OutputFileUtils.OutputFilesFilter()));
     if (outputFiles.length > 0) {
       InputStream is = getFileSystem().open(outputFiles[0]);
       BufferedReader reader = new BufferedReader(new InputStreamReader(is));
@@ -149,12 +135,12 @@ public class TestKeyFieldBasedComparator extends HadoopTestCase {
     configure("-k7,7n", 2);
     configure("-k8,8n", 1);
     configure("-k9,9", 2);
-    configure("-k11,11",2);
-    configure("-k10,10",2);
-    
+    configure("-k11,11", 2);
+    configure("-k10,10", 2);
+
     localTestWithoutMRJob("-k9,9", 1);
   }
-  
+
   byte[] line1_bytes = line1.getBytes();
   byte[] line2_bytes = line2.getBytes();
 

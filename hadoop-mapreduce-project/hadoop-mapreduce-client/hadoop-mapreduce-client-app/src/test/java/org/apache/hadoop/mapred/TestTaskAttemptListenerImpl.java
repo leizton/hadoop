@@ -1,48 +1,28 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.apache.hadoop.mapred;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.IOException;
-import java.util.Arrays;
-
 import junit.framework.Assert;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.TaskType;
 import org.apache.hadoop.mapreduce.TypeConverter;
 import org.apache.hadoop.mapreduce.security.token.JobTokenSecretManager;
-import org.apache.hadoop.mapreduce.v2.api.records.JobId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptCompletionEvent;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptCompletionEventStatus;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskId;
+import org.apache.hadoop.mapreduce.v2.api.records.*;
 import org.apache.hadoop.mapreduce.v2.app.AppContext;
 import org.apache.hadoop.mapreduce.v2.app.TaskHeartbeatHandler;
 import org.apache.hadoop.mapreduce.v2.app.job.Job;
@@ -53,23 +33,30 @@ import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
 import org.apache.hadoop.yarn.util.SystemClock;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.util.Arrays;
+
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
+
 public class TestTaskAttemptListenerImpl {
   public static class MockTaskAttemptListenerImpl extends TaskAttemptListenerImpl {
 
     public MockTaskAttemptListenerImpl(AppContext context,
-        JobTokenSecretManager jobTokenSecretManager,
-        RMHeartbeatHandler rmHeartbeatHandler) {
+                                       JobTokenSecretManager jobTokenSecretManager,
+                                       RMHeartbeatHandler rmHeartbeatHandler) {
       super(context, jobTokenSecretManager, rmHeartbeatHandler);
     }
-    
+
     public MockTaskAttemptListenerImpl(AppContext context,
-        JobTokenSecretManager jobTokenSecretManager,
-        RMHeartbeatHandler rmHeartbeatHandler,
-        TaskHeartbeatHandler hbHandler) {
+                                       JobTokenSecretManager jobTokenSecretManager,
+                                       RMHeartbeatHandler rmHeartbeatHandler,
+                                       TaskHeartbeatHandler hbHandler) {
       super(context, jobTokenSecretManager, rmHeartbeatHandler);
       this.taskHeartbeatHandler = hbHandler;
     }
-    
+
     @Override
     protected void registerHeartbeatHandler(Configuration conf) {
       //Empty
@@ -79,33 +66,33 @@ public class TestTaskAttemptListenerImpl {
     protected void startRpcServer() {
       //Empty
     }
-    
+
     @Override
     protected void stopRpcServer() {
       //Empty
     }
   }
-  
-  @Test  (timeout=5000)
+
+  @Test(timeout = 5000)
   public void testGetTask() throws IOException {
     AppContext appCtx = mock(AppContext.class);
-    JobTokenSecretManager secret = mock(JobTokenSecretManager.class); 
+    JobTokenSecretManager secret = mock(JobTokenSecretManager.class);
     RMHeartbeatHandler rmHeartbeatHandler =
         mock(RMHeartbeatHandler.class);
     TaskHeartbeatHandler hbHandler = mock(TaskHeartbeatHandler.class);
-    MockTaskAttemptListenerImpl listener = 
-      new MockTaskAttemptListenerImpl(appCtx, secret,
-          rmHeartbeatHandler, hbHandler);
+    MockTaskAttemptListenerImpl listener =
+        new MockTaskAttemptListenerImpl(appCtx, secret,
+            rmHeartbeatHandler, hbHandler);
     Configuration conf = new Configuration();
     listener.init(conf);
     listener.start();
-    JVMId id = new JVMId("foo",1, true, 1);
+    JVMId id = new JVMId("foo", 1, true, 1);
     WrappedJvmID wid = new WrappedJvmID(id.getJobId(), id.isMap, id.getId());
 
     // Verify ask before registration.
     //The JVM ID has not been registered yet so we should kill it.
     JvmContext context = new JvmContext();
-    context.jvmId = id; 
+    context.jvmId = id;
     JvmTask result = listener.getTask(context);
     assertNotNull(result);
     assertTrue(result.shouldDie);
@@ -158,7 +145,7 @@ public class TestTaskAttemptListenerImpl {
 
   }
 
-  @Test (timeout=5000)
+  @Test(timeout = 5000)
   public void testJVMId() {
 
     JVMId jvmid = new JVMId("test", 1, true, 2);
@@ -167,22 +154,22 @@ public class TestTaskAttemptListenerImpl {
     assertEquals(0, jvmid.compareTo(jvmid1));
   }
 
-  @Test (timeout=10000)
+  @Test(timeout = 10000)
   public void testGetMapCompletionEvents() throws IOException {
     TaskAttemptCompletionEvent[] empty = {};
     TaskAttemptCompletionEvent[] taskEvents = {
         createTce(0, true, TaskAttemptCompletionEventStatus.OBSOLETE),
         createTce(1, false, TaskAttemptCompletionEventStatus.FAILED),
         createTce(2, true, TaskAttemptCompletionEventStatus.SUCCEEDED),
-        createTce(3, false, TaskAttemptCompletionEventStatus.FAILED) };
-    TaskAttemptCompletionEvent[] mapEvents = { taskEvents[0], taskEvents[2] };
+        createTce(3, false, TaskAttemptCompletionEventStatus.FAILED)};
+    TaskAttemptCompletionEvent[] mapEvents = {taskEvents[0], taskEvents[2]};
     Job mockJob = mock(Job.class);
     when(mockJob.getTaskAttemptCompletionEvents(0, 100))
-      .thenReturn(taskEvents);
+        .thenReturn(taskEvents);
     when(mockJob.getTaskAttemptCompletionEvents(0, 2))
-      .thenReturn(Arrays.copyOfRange(taskEvents, 0, 2));
+        .thenReturn(Arrays.copyOfRange(taskEvents, 0, 2));
     when(mockJob.getTaskAttemptCompletionEvents(2, 100))
-      .thenReturn(Arrays.copyOfRange(taskEvents, 2, 4));
+        .thenReturn(Arrays.copyOfRange(taskEvents, 2, 4));
     when(mockJob.getMapAttemptCompletionEvents(0, 100)).thenReturn(
         TypeConverter.fromYarn(mapEvents));
     when(mockJob.getMapAttemptCompletionEvents(0, 2)).thenReturn(
@@ -198,11 +185,11 @@ public class TestTaskAttemptListenerImpl {
     final TaskHeartbeatHandler hbHandler = mock(TaskHeartbeatHandler.class);
     TaskAttemptListenerImpl listener =
         new MockTaskAttemptListenerImpl(appCtx, secret, rmHeartbeatHandler) {
-      @Override
-      protected void registerHeartbeatHandler(Configuration conf) {
-        taskHeartbeatHandler = hbHandler;
-      }
-    };
+          @Override
+          protected void registerHeartbeatHandler(Configuration conf) {
+            taskHeartbeatHandler = hbHandler;
+          }
+        };
     Configuration conf = new Configuration();
     listener.init(conf);
     listener.start();
@@ -219,7 +206,7 @@ public class TestTaskAttemptListenerImpl {
   }
 
   private static TaskAttemptCompletionEvent createTce(int eventId,
-      boolean isMap, TaskAttemptCompletionEventStatus status) {
+                                                      boolean isMap, TaskAttemptCompletionEventStatus status) {
     JobId jid = MRBuilderUtils.newJobId(12345, 1, 1);
     TaskId tid = MRBuilderUtils.newTaskId(jid, 0,
         isMap ? org.apache.hadoop.mapreduce.v2.api.records.TaskType.MAP
@@ -234,7 +221,7 @@ public class TestTaskAttemptListenerImpl {
     return tce;
   }
 
-  @Test (timeout=10000)
+  @Test(timeout = 10000)
   public void testCommitWindow() throws IOException {
     SystemClock clock = new SystemClock();
 
@@ -252,11 +239,11 @@ public class TestTaskAttemptListenerImpl {
     final TaskHeartbeatHandler hbHandler = mock(TaskHeartbeatHandler.class);
     TaskAttemptListenerImpl listener =
         new MockTaskAttemptListenerImpl(appCtx, secret, rmHeartbeatHandler) {
-      @Override
-      protected void registerHeartbeatHandler(Configuration conf) {
-        taskHeartbeatHandler = hbHandler;
-      }
-    };
+          @Override
+          protected void registerHeartbeatHandler(Configuration conf) {
+            taskHeartbeatHandler = hbHandler;
+          }
+        };
 
     Configuration conf = new Configuration();
     listener.init(conf);

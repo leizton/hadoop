@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -49,8 +49,8 @@ public class TestMRMultipleOutputs extends HadoopTestCase {
     _testMOWithJavaSerialization(true);
   }
 
-  private static String localPathRoot = 
-    System.getProperty("test.build.data", "/tmp");
+  private static String localPathRoot =
+      System.getProperty("test.build.data", "/tmp");
   private static final Path ROOT_DIR = new Path(localPathRoot, "testing/mo");
   private static final Path IN_DIR = new Path(ROOT_DIR, "input");
   private static final Path OUT_DIR = new Path(ROOT_DIR, "output");
@@ -70,25 +70,25 @@ public class TestMRMultipleOutputs extends HadoopTestCase {
     fs.delete(ROOT_DIR, true);
     super.tearDown();
   }
-  
+
   protected void _testMOWithJavaSerialization(boolean withCounters) throws Exception {
     String input = "a\nb\nc\nd\ne\nc\nd\ne";
 
     Configuration conf = createJobConf();
     conf.set("io.serializations",
-    	    "org.apache.hadoop.io.serializer.JavaSerialization," +
-    	    "org.apache.hadoop.io.serializer.WritableSerialization");
+        "org.apache.hadoop.io.serializer.JavaSerialization," +
+            "org.apache.hadoop.io.serializer.WritableSerialization");
 
     Job job = MapReduceTestUtil.createJob(conf, IN_DIR, OUT_DIR, 2, 1, input);
 
     job.setJobName("mo");
     MultipleOutputs.addNamedOutput(job, TEXT, TextOutputFormat.class,
-      Long.class, String.class);
+        Long.class, String.class);
 
     MultipleOutputs.setCountersEnabled(job, withCounters);
 
     job.setSortComparatorClass(JavaSerializationComparator.class);
-    
+
     job.setMapOutputKeyClass(Long.class);
     job.setMapOutputValueClass(String.class);
 
@@ -124,8 +124,8 @@ public class TestMRMultipleOutputs extends HadoopTestCase {
 
     // assert TextOutputFormat files correctness
     BufferedReader reader = new BufferedReader(
-      new InputStreamReader(fs.open(
-        new Path(FileOutputFormat.getOutputPath(job), "text-r-00000"))));
+        new InputStreamReader(fs.open(
+            new Path(FileOutputFormat.getOutputPath(job), "text-r-00000"))));
     int count = 0;
     String line = reader.readLine();
     while (line != null) {
@@ -138,7 +138,7 @@ public class TestMRMultipleOutputs extends HadoopTestCase {
 
     if (withCounters) {
       CounterGroup counters =
-        job.getCounters().getGroup(MultipleOutputs.class.getName());
+          job.getCounters().getGroup(MultipleOutputs.class.getName());
       assertEquals(6, counters.size());
       assertEquals(4, counters.findCounter(TEXT).getValue());
       assertEquals(2, counters.findCounter("a").getValue());
@@ -157,9 +157,9 @@ public class TestMRMultipleOutputs extends HadoopTestCase {
 
     job.setJobName("mo");
     MultipleOutputs.addNamedOutput(job, TEXT, TextOutputFormat.class,
-      LongWritable.class, Text.class);
+        LongWritable.class, Text.class);
     MultipleOutputs.addNamedOutput(job, SEQUENCE,
-      SequenceFileOutputFormat.class, IntWritable.class, Text.class);
+        SequenceFileOutputFormat.class, IntWritable.class, Text.class);
 
     MultipleOutputs.setCountersEnabled(job, withCounters);
 
@@ -198,8 +198,8 @@ public class TestMRMultipleOutputs extends HadoopTestCase {
 
     // assert TextOutputFormat files correctness
     BufferedReader reader = new BufferedReader(
-      new InputStreamReader(fs.open(
-        new Path(FileOutputFormat.getOutputPath(job), "text-r-00000"))));
+        new InputStreamReader(fs.open(
+            new Path(FileOutputFormat.getOutputPath(job), "text-r-00000"))));
     int count = 0;
     String line = reader.readLine();
     while (line != null) {
@@ -209,11 +209,11 @@ public class TestMRMultipleOutputs extends HadoopTestCase {
     }
     reader.close();
     assertFalse(count == 0);
-    
+
     // assert SequenceOutputFormat files correctness
     SequenceFile.Reader seqReader =
-      new SequenceFile.Reader(fs, new Path(FileOutputFormat.getOutputPath(job),
-        "sequence_B-r-00000"), conf);
+        new SequenceFile.Reader(fs, new Path(FileOutputFormat.getOutputPath(job),
+            "sequence_B-r-00000"), conf);
 
     assertEquals(IntWritable.class, seqReader.getKeyClass());
     assertEquals(Text.class, seqReader.getValueClass());
@@ -230,7 +230,7 @@ public class TestMRMultipleOutputs extends HadoopTestCase {
 
     if (withCounters) {
       CounterGroup counters =
-        job.getCounters().getGroup(MultipleOutputs.class.getName());
+          job.getCounters().getGroup(MultipleOutputs.class.getName());
       assertEquals(9, counters.size());
       assertEquals(4, counters.findCounter(TEXT).getValue());
       assertEquals(2, counters.findCounter(SEQUENCE + "_A").getValue());
@@ -246,7 +246,7 @@ public class TestMRMultipleOutputs extends HadoopTestCase {
 
   @SuppressWarnings("unchecked")
   public static class MOMap extends Mapper<LongWritable, Text, LongWritable,
-    Text> {
+      Text> {
 
     private MultipleOutputs mos;
 
@@ -260,13 +260,13 @@ public class TestMRMultipleOutputs extends HadoopTestCase {
       if (value.toString().equals("a")) {
         mos.write(TEXT, key, new Text(TEXT));
         mos.write(SEQUENCE, new IntWritable(1), new Text(SEQUENCE),
-          (SEQUENCE + "_A"));
+            (SEQUENCE + "_A"));
         mos.write(SEQUENCE, new IntWritable(2), new Text(SEQUENCE),
-          (SEQUENCE + "_B"));
+            (SEQUENCE + "_B"));
       }
     }
 
-    public void cleanup(Context context) 
+    public void cleanup(Context context)
         throws IOException, InterruptedException {
       mos.close();
     }
@@ -274,16 +274,16 @@ public class TestMRMultipleOutputs extends HadoopTestCase {
 
   @SuppressWarnings("unchecked")
   public static class MOReduce extends Reducer<LongWritable, Text,
-    LongWritable, Text> {
+      LongWritable, Text> {
 
     private MultipleOutputs mos;
-    
+
     public void setup(Context context) {
       mos = new MultipleOutputs(context);
-   }
+    }
 
-    public void reduce(LongWritable key, Iterable<Text> values, 
-        Context context) throws IOException, InterruptedException {
+    public void reduce(LongWritable key, Iterable<Text> values,
+                       Context context) throws IOException, InterruptedException {
       for (Text value : values) {
         mos.write(key, value, value.toString());
         if (!value.toString().equals("b")) {
@@ -291,21 +291,21 @@ public class TestMRMultipleOutputs extends HadoopTestCase {
         } else {
           mos.write(TEXT, key, new Text(TEXT));
           mos.write(SEQUENCE, new IntWritable(2), new Text(SEQUENCE),
-            (SEQUENCE + "_B"));
+              (SEQUENCE + "_B"));
           mos.write(SEQUENCE, new IntWritable(3), new Text(SEQUENCE),
-            (SEQUENCE + "_C"));
+              (SEQUENCE + "_C"));
         }
       }
     }
 
-    public void cleanup(Context context) 
+    public void cleanup(Context context)
         throws IOException, InterruptedException {
       mos.close();
     }
   }
 
   public static class MOJavaSerDeMap extends Mapper<LongWritable, Text, Long,
-    String> {
+      String> {
 
     private MultipleOutputs<Long, String> mos;
 
@@ -321,23 +321,23 @@ public class TestMRMultipleOutputs extends HadoopTestCase {
       }
     }
 
-    public void cleanup(Context context) 
+    public void cleanup(Context context)
         throws IOException, InterruptedException {
       mos.close();
     }
   }
 
   public static class MOJavaSerDeReduce extends Reducer<Long, String,
-    Long, String> {
+      Long, String> {
 
     private MultipleOutputs<Long, String> mos;
-    
+
     public void setup(Context context) {
       mos = new MultipleOutputs<Long, String>(context);
-   }
+    }
 
-    public void reduce(Long key, Iterable<String> values, 
-        Context context) throws IOException, InterruptedException {
+    public void reduce(Long key, Iterable<String> values,
+                       Context context) throws IOException, InterruptedException {
       for (String value : values) {
         mos.write(key, value, value.toString());
         if (!value.toString().equals("b")) {
@@ -348,7 +348,7 @@ public class TestMRMultipleOutputs extends HadoopTestCase {
       }
     }
 
-    public void cleanup(Context context) 
+    public void cleanup(Context context)
         throws IOException, InterruptedException {
       mos.close();
     }

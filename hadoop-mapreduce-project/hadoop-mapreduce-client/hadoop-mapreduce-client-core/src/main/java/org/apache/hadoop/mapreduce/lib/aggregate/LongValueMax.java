@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,22 +18,22 @@
 
 package org.apache.hadoop.mapreduce.lib.aggregate;
 
-import java.util.ArrayList;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
+
+import java.util.ArrayList;
 
 /**
  * This class implements a value aggregator that maintain the maximum of 
  * a sequence of long values.
- * 
+ *
  */
 @InterfaceAudience.Public
 @InterfaceStability.Stable
 public class LongValueMax implements ValueAggregator<String> {
 
   long maxVal = Long.MIN_VALUE;
-    
+
   /**
    *  the default constructor
    *
@@ -44,10 +44,10 @@ public class LongValueMax implements ValueAggregator<String> {
 
   /**
    * add a value to the aggregator
-   * 
+   *
    * @param val
    *          an object whose string representation represents a long value.
-   * 
+   *
    */
   public void addNextValue(Object val) {
     long newVal = Long.parseLong(val.toString());
@@ -55,32 +55,33 @@ public class LongValueMax implements ValueAggregator<String> {
       this.maxVal = newVal;
     }
   }
-    
+
   /**
    * add a value to the aggregator
-   * 
+   *
    * @param newVal
    *          a long value.
-   * 
+   *
    */
   public void addNextValue(long newVal) {
     if (this.maxVal < newVal) {
       this.maxVal = newVal;
-    };
+    }
+    ;
   }
-    
+
   /**
    * @return the aggregated value
    */
   public long getVal() {
     return this.maxVal;
   }
-    
+
   /**
    * @return the string representation of the aggregated value
    */
   public String getReport() {
-    return ""+maxVal;
+    return "" + maxVal;
   }
 
   /**
@@ -96,7 +97,8 @@ public class LongValueMax implements ValueAggregator<String> {
    *         expected to be used by the a combiner.
    */
   public ArrayList<String> getCombinerOutput() {
-    ArrayList<String> retv = new ArrayList<String>(1);;
+    ArrayList<String> retv = new ArrayList<String>(1);
+    ;
     retv.add("" + maxVal);
     return retv;
   }

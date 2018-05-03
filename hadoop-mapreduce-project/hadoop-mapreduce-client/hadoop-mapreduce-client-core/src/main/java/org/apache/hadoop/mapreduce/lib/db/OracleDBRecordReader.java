@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,16 +18,16 @@
 
 package org.apache.hadoop.mapreduce.lib.db;
 
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.lang.reflect.Method;
-
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  * A RecordReader that reads records from an Oracle SQL table.
@@ -41,9 +41,9 @@ public class OracleDBRecordReader<T extends DBWritable> extends DBRecordReader<T
 
   private static final Log LOG = LogFactory.getLog(OracleDBRecordReader.class);
 
-  public OracleDBRecordReader(DBInputFormat.DBInputSplit split, 
-      Class<T> inputClass, Configuration conf, Connection conn, DBConfiguration dbConfig,
-      String cond, String [] fields, String table) throws SQLException {
+  public OracleDBRecordReader(DBInputFormat.DBInputSplit split,
+                              Class<T> inputClass, Configuration conf, Connection conn, DBConfiguration dbConfig,
+                              String cond, String[] fields, String table) throws SQLException {
     super(split, inputClass, conf, conn, dbConfig, cond, fields, table);
     setSessionTimeZone(conf, conn);
   }
@@ -54,19 +54,19 @@ public class OracleDBRecordReader<T extends DBWritable> extends DBRecordReader<T
     DBConfiguration dbConf = getDBConf();
     String conditions = getConditions();
     String tableName = getTableName();
-    String [] fieldNames = getFieldNames();
+    String[] fieldNames = getFieldNames();
 
     // Oracle-specific codepath to use rownum instead of LIMIT/OFFSET.
-    if(dbConf.getInputQuery() == null) {
+    if (dbConf.getInputQuery() == null) {
       query.append("SELECT ");
-  
+
       for (int i = 0; i < fieldNames.length; i++) {
         query.append(fieldNames[i]);
-        if (i != fieldNames.length -1) {
+        if (i != fieldNames.length - 1) {
           query.append(", ");
         }
       }
-  
+
       query.append(" FROM ").append(tableName);
       if (conditions != null && conditions.length() > 0)
         query.append(" WHERE ").append(conditions);
@@ -78,10 +78,10 @@ public class OracleDBRecordReader<T extends DBWritable> extends DBRecordReader<T
       //PREBUILT QUERY
       query.append(dbConf.getInputQuery());
     }
-        
+
     try {
       DBInputFormat.DBInputSplit split = getSplit();
-      if (split.getLength() > 0){
+      if (split.getLength() > 0) {
         String querystring = query.toString();
 
         query = new StringBuilder();
@@ -92,7 +92,7 @@ public class OracleDBRecordReader<T extends DBWritable> extends DBRecordReader<T
       }
     } catch (IOException ex) {
       // ignore, will not throw.
-    }		      
+    }
 
     return query.toString();
   }
@@ -104,14 +104,14 @@ public class OracleDBRecordReader<T extends DBWritable> extends DBRecordReader<T
    * @param conn The connection to alter the timezone properties of.
    */
   public static void setSessionTimeZone(Configuration conf,
-      Connection conn) throws SQLException {
+                                        Connection conn) throws SQLException {
     // need to use reflection to call the method setSessionTimeZone on
     // the OracleConnection class because oracle specific java libraries are
     // not accessible in this context.
     Method method;
     try {
       method = conn.getClass().getMethod(
-              "setSessionTimeZone", new Class [] {String.class});
+          "setSessionTimeZone", new Class[]{String.class});
     } catch (Exception ex) {
       LOG.error("Could not find method setSessionTimeZone in " + conn.getClass().getName(), ex);
       // rethrow SQLException
@@ -129,7 +129,7 @@ public class OracleDBRecordReader<T extends DBWritable> extends DBRecordReader<T
       LOG.info("Time zone has been set to " + clientTimeZone);
     } catch (Exception ex) {
       LOG.warn("Time zone " + clientTimeZone +
-               " could not be set on Oracle database.");
+          " could not be set on Oracle database.");
       LOG.warn("Setting default time zone: GMT");
       try {
         // "GMT" timezone is guaranteed to exist.

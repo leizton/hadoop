@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,18 +17,6 @@
  */
 
 package org.apache.hadoop.fs.slive;
-
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -45,16 +33,22 @@ import org.apache.hadoop.mapred.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
 /**
  * Slive test entry point + main program
- * 
+ *
  * This program will output a help message given -help which can be used to
  * determine the program options and configuration which will affect the program
  * runtime. The program will take these options, either from configuration or
  * command line and process them (and merge) and then establish a job which will
  * thereafter run a set of mappers & reducers and then the output of the
  * reduction will be reported on.
- * 
+ *
  * The number of maps is specified by "slive.maps".
  * The number of reduces is specified by "slive.reduces".
  */
@@ -92,7 +86,7 @@ public class SliveTest implements Tool {
     try {
       ConfigMerger cfgMerger = new ConfigMerger();
       Configuration cfg = cfgMerger.getMerged(parsedOpts,
-                                              new Configuration(base));
+          new Configuration(base));
       if (cfg != null) {
         config = new ConfigExtractor(cfg);
       }
@@ -148,7 +142,7 @@ public class SliveTest implements Tool {
 
   /**
    * Checks if a string is a boolean or not and what type
-   * 
+   *
    * @param val
    *          val to check
    * @return boolean
@@ -170,7 +164,7 @@ public class SliveTest implements Tool {
    * that the correct input format is set, the mapper and and reducer class and
    * the input and output keys and value classes along with any other job
    * configuration.
-   * 
+   *
    * @param config
    * @return JobConf representing the job to be ran
    * @throws IOException
@@ -193,10 +187,10 @@ public class SliveTest implements Tool {
 
   /**
    * Runs the job given the provided config
-   * 
+   *
    * @param config
    *          the config to run the job with
-   * 
+   *
    * @throws IOException
    *           if can not run the given job
    */
@@ -210,10 +204,10 @@ public class SliveTest implements Tool {
    * contents and then split up by operation output and sort by operation type
    * and then for each operation type it will generate a report to the specified
    * result file and the console.
-   * 
+   *
    * @param cfg
    *          the config specifying the files and output
-   * 
+   *
    * @throws Exception
    *           if files can not be opened/closed/read or invalid format
    */
@@ -227,8 +221,8 @@ public class SliveTest implements Tool {
     try {
       List<OperationOutput> noOperations = new ArrayList<OperationOutput>();
       Map<String, List<OperationOutput>> splitTypes = new TreeMap<String, List<OperationOutput>>();
-      for(FileStatus fn : reduceFiles) {
-        if(!fn.getPath().getName().startsWith("part")) continue;
+      for (FileStatus fn : reduceFiles) {
+        if (!fn.getPath().getName().startsWith("part")) continue;
         fileReader = new BufferedReader(new InputStreamReader(
             new DataInputStream(fs.open(fn.getPath()))));
         String line;
@@ -284,10 +278,10 @@ public class SliveTest implements Tool {
 
   /**
    * Cleans up the base directory by removing it
-   * 
+   *
    * @param cfg
    *          ConfigExtractor which has location of base directory
-   * 
+   *
    * @throws IOException
    */
   private void cleanup(ConfigExtractor cfg) throws IOException {
@@ -304,7 +298,7 @@ public class SliveTest implements Tool {
    * then merges those options and then dumps those options and the runs the
    * corresponding map/reduce job that those operations represent and then
    * writes the report for the output of the run that occurred.
-   * 
+   *
    * @param args
    *          command line options
    */

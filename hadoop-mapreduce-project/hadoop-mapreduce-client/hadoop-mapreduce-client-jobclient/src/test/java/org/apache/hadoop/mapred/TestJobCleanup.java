@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,13 +18,8 @@
 
 package org.apache.hadoop.mapred;
 
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.IOException;
-
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
-
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
@@ -36,6 +31,11 @@ import org.apache.hadoop.mapreduce.v2.jobhistory.JHAdminConfig;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
+
 import static org.junit.Assert.*;
 
 /**
@@ -66,9 +66,9 @@ public class TestJobCleanup {
     conf.set("mapred.job.tracker.http.address", "127.0.0.1:0");
     conf.set("mapred.task.tracker.http.address", "127.0.0.1:0");
     conf.set(JHAdminConfig.MR_HISTORY_INTERMEDIATE_DONE_DIR, TEST_ROOT_DIR +
-      "/intermediate");
+        "/intermediate");
     conf.set(org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter
-      .SUCCESSFUL_JOB_OUTPUT_DIR_MARKER, "true");
+        .SUCCESSFUL_JOB_OUTPUT_DIR_MARKER, "true");
 
     mr = new MiniMRCluster(1, "file:///", 1, null, null, conf);
     inDir = new Path(TEST_ROOT_DIR, "test-input");
@@ -106,12 +106,12 @@ public class TestJobCleanup {
       FileSystem fs = outputPath.getFileSystem(conf);
       fs.create(new Path(outputPath, CUSTOM_CLEANUP_FILE_NAME)).close();
     }
-    
+
     @Override
     public void commitJob(JobContext context) throws IOException {
       cleanupJob(context);
     }
-    
+
     @Override
     public void abortJob(JobContext context, int i) throws IOException {
       cleanupJob(context);
@@ -139,7 +139,7 @@ public class TestJobCleanup {
   }
 
   private void configureJob(JobConf jc, String jobName, int maps, int reds,
-      Path outDir) {
+                            Path outDir) {
     jc.setJobName(jobName);
     jc.setInputFormat(TextInputFormat.class);
     jc.setOutputKeyClass(LongWritable.class);
@@ -154,7 +154,7 @@ public class TestJobCleanup {
 
   // run a job with 1 map and let it run to completion
   private void testSuccessfulJob(String filename,
-      Class<? extends OutputCommitter> committer, String[] exclude)
+                                 Class<? extends OutputCommitter> committer, String[] exclude)
       throws IOException {
     JobConf jc = mr.createJobConf();
     Path outDir = getNewOutputDir();
@@ -181,7 +181,7 @@ public class TestJobCleanup {
 
   // run a job for which all the attempts simply fail.
   private void testFailedJob(String fileName,
-      Class<? extends OutputCommitter> committer, String[] exclude)
+                             Class<? extends OutputCommitter> committer, String[] exclude)
       throws IOException {
     JobConf jc = mr.createJobConf();
     Path outDir = getNewOutputDir();
@@ -213,7 +213,7 @@ public class TestJobCleanup {
 
   // run a job which gets stuck in mapper and kill it.
   private void testKilledJob(String fileName,
-      Class<? extends OutputCommitter> committer, String[] exclude)
+                             Class<? extends OutputCommitter> committer, String[] exclude)
       throws IOException {
     JobConf jc = mr.createJobConf();
     Path outDir = getNewOutputDir();
@@ -266,15 +266,15 @@ public class TestJobCleanup {
   public void testDefaultCleanupAndAbort() throws IOException {
     // check with a successful job
     testSuccessfulJob(FileOutputCommitter.SUCCEEDED_FILE_NAME,
-        FileOutputCommitter.class, new String[] {});
+        FileOutputCommitter.class, new String[]{});
 
     // check with a failed job
     testFailedJob(null, FileOutputCommitter.class,
-        new String[] { FileOutputCommitter.SUCCEEDED_FILE_NAME });
+        new String[]{FileOutputCommitter.SUCCEEDED_FILE_NAME});
 
     // check default abort job kill
     testKilledJob(null, FileOutputCommitter.class,
-        new String[] { FileOutputCommitter.SUCCEEDED_FILE_NAME });
+        new String[]{FileOutputCommitter.SUCCEEDED_FILE_NAME});
   }
 
   /**
@@ -286,18 +286,18 @@ public class TestJobCleanup {
   public void testCustomAbort() throws IOException {
     // check with a successful job
     testSuccessfulJob(FileOutputCommitter.SUCCEEDED_FILE_NAME,
-        CommitterWithCustomAbort.class, new String[] { ABORT_FAILED_FILE_NAME,
-            ABORT_KILLED_FILE_NAME });
+        CommitterWithCustomAbort.class, new String[]{ABORT_FAILED_FILE_NAME,
+            ABORT_KILLED_FILE_NAME});
 
     // check with a failed job
     testFailedJob(ABORT_FAILED_FILE_NAME, CommitterWithCustomAbort.class,
-        new String[] { FileOutputCommitter.SUCCEEDED_FILE_NAME,
-            ABORT_KILLED_FILE_NAME });
+        new String[]{FileOutputCommitter.SUCCEEDED_FILE_NAME,
+            ABORT_KILLED_FILE_NAME});
 
     // check with a killed job
     testKilledJob(ABORT_KILLED_FILE_NAME, CommitterWithCustomAbort.class,
-        new String[] { FileOutputCommitter.SUCCEEDED_FILE_NAME,
-            ABORT_FAILED_FILE_NAME });
+        new String[]{FileOutputCommitter.SUCCEEDED_FILE_NAME,
+            ABORT_FAILED_FILE_NAME});
   }
 
   /**
@@ -308,18 +308,18 @@ public class TestJobCleanup {
   @Test
   public void testCustomCleanup() throws IOException {
     // check with a successful job
-     testSuccessfulJob(CUSTOM_CLEANUP_FILE_NAME,
-     CommitterWithCustomDeprecatedCleanup.class,
-     new String[] {});
+    testSuccessfulJob(CUSTOM_CLEANUP_FILE_NAME,
+        CommitterWithCustomDeprecatedCleanup.class,
+        new String[]{});
 
-     // check with a failed job
-     testFailedJob(CUSTOM_CLEANUP_FILE_NAME,
-     CommitterWithCustomDeprecatedCleanup.class,
-     new String[] {FileOutputCommitter.SUCCEEDED_FILE_NAME});
+    // check with a failed job
+    testFailedJob(CUSTOM_CLEANUP_FILE_NAME,
+        CommitterWithCustomDeprecatedCleanup.class,
+        new String[]{FileOutputCommitter.SUCCEEDED_FILE_NAME});
 
-     // check with a killed job
-     testKilledJob(TestJobCleanup.CUSTOM_CLEANUP_FILE_NAME,
-     CommitterWithCustomDeprecatedCleanup.class,
-     new String[] {FileOutputCommitter.SUCCEEDED_FILE_NAME});
+    // check with a killed job
+    testKilledJob(TestJobCleanup.CUSTOM_CLEANUP_FILE_NAME,
+        CommitterWithCustomDeprecatedCleanup.class,
+        new String[]{FileOutputCommitter.SUCCEEDED_FILE_NAME});
   }
 }

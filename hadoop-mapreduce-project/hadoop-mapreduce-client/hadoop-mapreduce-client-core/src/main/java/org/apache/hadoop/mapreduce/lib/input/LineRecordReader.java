@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,8 +18,8 @@
 
 package org.apache.hadoop.mapreduce.lib.input;
 
-import java.io.IOException;
-
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
@@ -29,17 +29,12 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.Seekable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.compress.CodecPool;
-import org.apache.hadoop.io.compress.CompressionCodec;
-import org.apache.hadoop.io.compress.SplitCompressionInputStream;
-import org.apache.hadoop.io.compress.SplittableCompressionCodec;
-import org.apache.hadoop.io.compress.CompressionCodecFactory;
-import org.apache.hadoop.io.compress.Decompressor;
+import org.apache.hadoop.io.compress.*;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.commons.logging.LogFactory;
-import org.apache.commons.logging.Log;
+
+import java.io.IOException;
 
 /**
  * Treats keys as offset in file and value as line. 
@@ -48,8 +43,8 @@ import org.apache.commons.logging.Log;
 @InterfaceStability.Evolving
 public class LineRecordReader extends RecordReader<LongWritable, Text> {
   private static final Log LOG = LogFactory.getLog(LineRecordReader.class);
-  public static final String MAX_LINE_LENGTH = 
-    "mapreduce.input.linerecordreader.line.maxlength";
+  public static final String MAX_LINE_LENGTH =
+      "mapreduce.input.linerecordreader.line.maxlength";
 
   private long start;
   private long pos;
@@ -83,16 +78,16 @@ public class LineRecordReader extends RecordReader<LongWritable, Text> {
     // open the file and seek to the start of the split
     final FileSystem fs = file.getFileSystem(job);
     fileIn = fs.open(file);
-    
+
     CompressionCodec codec = new CompressionCodecFactory(job).getCodec(file);
-    if (null!=codec) {
-      isCompressedInput = true;	
+    if (null != codec) {
+      isCompressedInput = true;
       decompressor = CodecPool.getDecompressor(codec);
       if (codec instanceof SplittableCompressionCodec) {
         final SplitCompressionInputStream cIn =
-          ((SplittableCompressionCodec)codec).createInputStream(
-            fileIn, decompressor, start, end,
-            SplittableCompressionCodec.READ_MODE.BYBLOCK);
+            ((SplittableCompressionCodec) codec).createInputStream(
+                fileIn, decompressor, start, end,
+                SplittableCompressionCodec.READ_MODE.BYBLOCK);
         in = new CompressedSplitLineReader(cIn, job,
             this.recordDelimiterBytes);
         start = cIn.getAdjustedStart();
@@ -116,12 +111,12 @@ public class LineRecordReader extends RecordReader<LongWritable, Text> {
     }
     this.pos = start;
   }
-  
+
 
   private int maxBytesToConsume(long pos) {
     return isCompressedInput
-      ? Integer.MAX_VALUE
-      : (int) Math.max(Math.min(Integer.MAX_VALUE, end - pos), maxLineLength);
+        ? Integer.MAX_VALUE
+        : (int) Math.max(Math.min(Integer.MAX_VALUE, end - pos), maxLineLength);
   }
 
   private long getFilePosition() throws IOException {
@@ -150,8 +145,8 @@ public class LineRecordReader extends RecordReader<LongWritable, Text> {
     pos += newSize;
     int textLength = value.getLength();
     byte[] textBytes = value.getBytes();
-    if ((textLength >= 3) && (textBytes[0] == (byte)0xEF) &&
-        (textBytes[1] == (byte)0xBB) && (textBytes[2] == (byte)0xBF)) {
+    if ((textLength >= 3) && (textBytes[0] == (byte) 0xEF) &&
+        (textBytes[1] == (byte) 0xBB) && (textBytes[2] == (byte) 0xBF)) {
       // find UTF-8 BOM, strip it.
       LOG.info("Found UTF-8 BOM and skipped it");
       textLength -= 3;
@@ -191,8 +186,8 @@ public class LineRecordReader extends RecordReader<LongWritable, Text> {
       }
 
       // line too long. try again
-      LOG.info("Skipped line of size " + newSize + " at pos " + 
-               (pos - newSize));
+      LOG.info("Skipped line of size " + newSize + " at pos " +
+          (pos - newSize));
     }
     if (newSize == 0) {
       key = null;
@@ -220,10 +215,10 @@ public class LineRecordReader extends RecordReader<LongWritable, Text> {
     if (start == end) {
       return 0.0f;
     } else {
-      return Math.min(1.0f, (getFilePosition() - start) / (float)(end - start));
+      return Math.min(1.0f, (getFilePosition() - start) / (float) (end - start));
     }
   }
-  
+
   public synchronized void close() throws IOException {
     try {
       if (in != null) {

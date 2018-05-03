@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,32 +18,21 @@
 
 package org.apache.hadoop.mapreduce.lib.output;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.net.URI;
-
 import junit.framework.TestCase;
-
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.FileUtil;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.RawLocalFileSystem;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.MapFile;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.JobContext;
-import org.apache.hadoop.mapreduce.JobStatus;
-import org.apache.hadoop.mapreduce.MRJobConfig;
-import org.apache.hadoop.mapreduce.RecordWriter;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.TaskAttemptID;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.task.JobContextImpl;
 import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.URI;
 
 @SuppressWarnings("unchecked")
 public class TestFileOutputCommitter extends TestCase {
@@ -59,25 +48,25 @@ public class TestFileOutputCommitter extends TestCase {
   private Text val1 = new Text("val1");
   private Text val2 = new Text("val2");
 
-  
+
   private static void cleanup() throws IOException {
     Configuration conf = new Configuration();
     FileSystem fs = outDir.getFileSystem(conf);
     fs.delete(outDir, true);
   }
-  
+
   @Override
   public void setUp() throws IOException {
     cleanup();
   }
-  
+
   @Override
   public void tearDown() throws IOException {
     cleanup();
   }
-  
+
   private void writeOutput(RecordWriter theRecordWriter,
-      TaskAttemptContext context) throws IOException, InterruptedException {
+                           TaskAttemptContext context) throws IOException, InterruptedException {
     NullWritable nullWritable = NullWritable.get();
 
     try {
@@ -95,20 +84,20 @@ public class TestFileOutputCommitter extends TestCase {
   }
 
   private void writeMapFileOutput(RecordWriter theRecordWriter,
-      TaskAttemptContext context) throws IOException, InterruptedException {
+                                  TaskAttemptContext context) throws IOException, InterruptedException {
     try {
       int key = 0;
-      for (int i = 0 ; i < 10; ++i) {
+      for (int i = 0; i < 10; ++i) {
         key = i;
-        Text val = (i%2 == 1) ? val1 : val2;
+        Text val = (i % 2 == 1) ? val1 : val2;
         theRecordWriter.write(new LongWritable(key),
-            val);        
+            val);
       }
     } finally {
       theRecordWriter.close(context);
     }
   }
-  
+
   public void testRecovery() throws Exception {
     Job job = Job.getInstance();
     FileOutputFormat.setOutputPath(job, outDir);
@@ -133,8 +122,8 @@ public class TestFileOutputCommitter extends TestCase {
     Path jobTempDir1 = committer.getCommittedTaskPath(tContext);
     File jtd = new File(jobTempDir1.toUri().getPath());
     assertTrue(jtd.exists());
-    validateContent(jtd);    
-    
+    validateContent(jtd);
+
     //now while running the second app attempt, 
     //recover the task output from first attempt
     Configuration conf2 = job.getConfiguration();
@@ -146,11 +135,11 @@ public class TestFileOutputCommitter extends TestCase {
     committer2.setupJob(tContext2);
     Path jobTempDir2 = committer2.getCommittedTaskPath(tContext2);
     File jtd2 = new File(jobTempDir2.toUri().getPath());
-    
+
     committer2.recoverTask(tContext2);
     assertTrue(jtd2.exists());
     validateContent(jtd2);
-    
+
     committer2.commitJob(jContext2);
     validateContent(outDir);
     FileUtil.fullyDelete(new File(outDir.toString()));
@@ -159,10 +148,10 @@ public class TestFileOutputCommitter extends TestCase {
   private void validateContent(Path dir) throws IOException {
     validateContent(new File(dir.toUri().getPath()));
   }
-  
+
   private void validateContent(File dir) throws IOException {
     File expectedFile = new File(dir, partFile);
-    assertTrue("Could not find "+expectedFile, expectedFile.exists());
+    assertTrue("Could not find " + expectedFile, expectedFile.exists());
     StringBuffer expectedOutput = new StringBuffer();
     expectedOutput.append(key1).append('\t').append(val1).append("\n");
     expectedOutput.append(val1).append("\n");
@@ -178,26 +167,25 @@ public class TestFileOutputCommitter extends TestCase {
       FileSystem fs, Path dir) throws IOException {
     // map output is a directory with index and data files
     Path expectedMapDir = new Path(dir, partFile);
-    assert(fs.getFileStatus(expectedMapDir).isDirectory());    
+    assert (fs.getFileStatus(expectedMapDir).isDirectory());
     FileStatus[] files = fs.listStatus(expectedMapDir);
     int fileCount = 0;
-    boolean dataFileFound = false; 
-    boolean indexFileFound = false; 
+    boolean dataFileFound = false;
+    boolean indexFileFound = false;
     for (FileStatus f : files) {
       if (f.isFile()) {
         ++fileCount;
         if (f.getPath().getName().equals(MapFile.INDEX_FILE_NAME)) {
           indexFileFound = true;
-        }
-        else if (f.getPath().getName().equals(MapFile.DATA_FILE_NAME)) {
+        } else if (f.getPath().getName().equals(MapFile.DATA_FILE_NAME)) {
           dataFileFound = true;
         }
       }
     }
-    assert(fileCount > 0);
-    assert(dataFileFound && indexFileFound);
+    assert (fileCount > 0);
+    assert (dataFileFound && indexFileFound);
   }
-  
+
   public void testCommitter() throws Exception {
     Job job = Job.getInstance();
     FileOutputFormat.setOutputPath(job, outDir);
@@ -230,7 +218,7 @@ public class TestFileOutputCommitter extends TestCase {
     FileOutputFormat.setOutputPath(job, outDir);
     Configuration conf = job.getConfiguration();
     conf.set(MRJobConfig.TASK_ATTEMPT_ID, attempt);
-    JobContext jContext = new JobContextImpl(conf, taskID.getJobID());    
+    JobContext jContext = new JobContextImpl(conf, taskID.getJobID());
     TaskAttemptContext tContext = new TaskAttemptContextImpl(conf, taskID);
     FileOutputCommitter committer = new FileOutputCommitter(outDir, tContext);
 
@@ -251,7 +239,7 @@ public class TestFileOutputCommitter extends TestCase {
     validateMapFileOutputContent(FileSystem.get(job.getConfiguration()), outDir);
     FileUtil.fullyDelete(new File(outDir.toString()));
   }
-  
+
   public void testAbort() throws IOException, InterruptedException {
     Job job = Job.getInstance();
     FileOutputFormat.setOutputPath(job, outDir);
@@ -300,7 +288,7 @@ public class TestFileOutputCommitter extends TestCase {
     }
   }
 
-  
+
   public void testFailAbort() throws IOException, InterruptedException {
     Job job = Job.getInstance();
     Configuration conf = job.getConfiguration();

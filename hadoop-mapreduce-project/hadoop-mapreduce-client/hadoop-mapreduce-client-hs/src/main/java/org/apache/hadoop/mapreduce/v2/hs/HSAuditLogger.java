@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,12 +18,12 @@
 
 package org.apache.hadoop.mapreduce.v2.hs;
 
-import java.net.InetAddress;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
 import org.apache.hadoop.ipc.Server;
+
+import java.net.InetAddress;
 
 @Private
 public class HSAuditLogger {
@@ -45,14 +45,14 @@ public class HSAuditLogger {
 
   /**
    * Create a readable and parseable audit log string for a successful event.
-   * 
+   *
    * @param user
    *          User who made the service request.
    * @param operation
    *          Operation requested by the user.
    * @param target
    *          The target on which the operation is being performed.
-   * 
+   *
    * <br>
    * <br>
    *          Note that the {@link HSAuditLogger} uses tabs ('\t') as a key-val
@@ -108,7 +108,7 @@ public class HSAuditLogger {
 
   /**
    * Create a readable and parseable audit log string for a failed event.
-   * 
+   *
    * @param user
    *          User who made the service request.
    * @param operation
@@ -119,7 +119,7 @@ public class HSAuditLogger {
    *          The target on which the operation is being performed.
    * @param description
    *          Some additional information as to why the operation failed.
-   * 
+   *
    * <br>
    * <br>
    *          Note that the {@link HSAuditLogger} uses tabs ('\t') as a key-val
@@ -127,7 +127,7 @@ public class HSAuditLogger {
    *          ('\t').
    */
   public static void logFailure(String user, String operation, String perm,
-      String target, String description) {
+                                String target, String description) {
     if (LOG.isWarnEnabled()) {
       LOG.warn(createFailureLog(user, operation, perm, target, description));
     }
@@ -137,7 +137,7 @@ public class HSAuditLogger {
    * A helper api for creating an audit log for a failure event.
    */
   static String createFailureLog(String user, String operation, String perm,
-      String target, String description) {
+                                 String target, String description) {
     StringBuilder b = new StringBuilder();
     start(Keys.USER, user, b);
     addRemoteIP(b);

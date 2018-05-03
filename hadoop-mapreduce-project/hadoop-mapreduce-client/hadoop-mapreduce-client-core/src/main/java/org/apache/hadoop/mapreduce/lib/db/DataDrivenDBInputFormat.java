@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,37 +18,22 @@
 
 package org.apache.hadoop.mapreduce.lib.db;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Types;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.Writable;
-import org.apache.hadoop.mapreduce.InputFormat;
-import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.JobContext;
-import org.apache.hadoop.mapreduce.MRJobConfig;
-import org.apache.hadoop.mapreduce.RecordReader;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.*;
+
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A InputFormat that reads input data from an SQL table.
@@ -64,8 +49,8 @@ public class DataDrivenDBInputFormat<T extends DBWritable>
   private static final Log LOG = LogFactory.getLog(DataDrivenDBInputFormat.class);
 
   /** If users are providing their own query, the following string is expected to
-      appear in the WHERE clause, which will be substituted with a pair of conditions
-      on the input to allow input splits to parallelise the import. */
+   appear in the WHERE clause, which will be substituted with a pair of conditions
+   on the input to allow input splits to parallelise the import. */
   public static final String SUBSTITUTE_TOKEN = "$CONDITIONS";
 
   /**
@@ -127,39 +112,39 @@ public class DataDrivenDBInputFormat<T extends DBWritable>
    */
   protected DBSplitter getSplitter(int sqlDataType) {
     switch (sqlDataType) {
-    case Types.NUMERIC:
-    case Types.DECIMAL:
-      return new BigDecimalSplitter();
+      case Types.NUMERIC:
+      case Types.DECIMAL:
+        return new BigDecimalSplitter();
 
-    case Types.BIT:
-    case Types.BOOLEAN:
-      return new BooleanSplitter();
+      case Types.BIT:
+      case Types.BOOLEAN:
+        return new BooleanSplitter();
 
-    case Types.INTEGER:
-    case Types.TINYINT:
-    case Types.SMALLINT:
-    case Types.BIGINT:
-      return new IntegerSplitter();
+      case Types.INTEGER:
+      case Types.TINYINT:
+      case Types.SMALLINT:
+      case Types.BIGINT:
+        return new IntegerSplitter();
 
-    case Types.REAL:
-    case Types.FLOAT:
-    case Types.DOUBLE:
-      return new FloatSplitter();
+      case Types.REAL:
+      case Types.FLOAT:
+      case Types.DOUBLE:
+        return new FloatSplitter();
 
-    case Types.CHAR:
-    case Types.VARCHAR:
-    case Types.LONGVARCHAR:
-      return new TextSplitter();
+      case Types.CHAR:
+      case Types.VARCHAR:
+      case Types.LONGVARCHAR:
+        return new TextSplitter();
 
-    case Types.DATE:
-    case Types.TIME:
-    case Types.TIMESTAMP:
-      return new DateSplitter();
+      case Types.DATE:
+      case Types.TIME:
+      case Types.TIMESTAMP:
+        return new DateSplitter();
 
-    default:
-      // TODO: Support BINARY, VARBINARY, LONGVARBINARY, DISTINCT, CLOB, BLOB, ARRAY
-      // STRUCT, REF, DATALINK, and JAVA_OBJECT.
-      return null;
+      default:
+        // TODO: Support BINARY, VARBINARY, LONGVARBINARY, DISTINCT, CLOB, BLOB, ARRAY
+        // STRUCT, REF, DATALINK, and JAVA_OBJECT.
+        return null;
     }
   }
 
@@ -254,14 +239,14 @@ public class DataDrivenDBInputFormat<T extends DBWritable>
   }
 
   /** Set the user-defined bounding query to use with a user-defined query.
-      This *must* include the substring "$CONDITIONS"
-      (DataDrivenDBInputFormat.SUBSTITUTE_TOKEN) inside the WHERE clause,
-      so that DataDrivenDBInputFormat knows where to insert split clauses.
-      e.g., "SELECT foo FROM mytable WHERE $CONDITIONS"
-      This will be expanded to something like:
-        SELECT foo FROM mytable WHERE (id &gt; 100) AND (id &lt; 250)
-      inside each split.
-    */
+   This *must* include the substring "$CONDITIONS"
+   (DataDrivenDBInputFormat.SUBSTITUTE_TOKEN) inside the WHERE clause,
+   so that DataDrivenDBInputFormat knows where to insert split clauses.
+   e.g., "SELECT foo FROM mytable WHERE $CONDITIONS"
+   This will be expanded to something like:
+   SELECT foo FROM mytable WHERE (id &gt; 100) AND (id &lt; 250)
+   inside each split.
+   */
   public static void setBoundingQuery(Configuration conf, String query) {
     if (null != query) {
       // If the user's settng a query, warn if they don't allow conditions.
@@ -275,7 +260,7 @@ public class DataDrivenDBInputFormat<T extends DBWritable>
   }
 
   protected RecordReader<LongWritable, T> createDBRecordReader(DBInputSplit split,
-      Configuration conf) throws IOException {
+                                                               Configuration conf) throws IOException {
 
     DBConfiguration dbConf = getDBConf();
     @SuppressWarnings("unchecked")
@@ -307,23 +292,23 @@ public class DataDrivenDBInputFormat<T extends DBWritable>
   // DataDrivenDBInputFormat gets used.
 
   /** Note that the "orderBy" column is called the "splitBy" in this version.
-    * We reuse the same field, but it's not strictly ordering it -- just partitioning
-    * the results.
-    */
-  public static void setInput(Job job, 
-      Class<? extends DBWritable> inputClass,
-      String tableName,String conditions, 
-      String splitBy, String... fieldNames) {
+   * We reuse the same field, but it's not strictly ordering it -- just partitioning
+   * the results.
+   */
+  public static void setInput(Job job,
+                              Class<? extends DBWritable> inputClass,
+                              String tableName, String conditions,
+                              String splitBy, String... fieldNames) {
     DBInputFormat.setInput(job, inputClass, tableName, conditions, splitBy, fieldNames);
     job.setInputFormatClass(DataDrivenDBInputFormat.class);
   }
 
   /** setInput() takes a custom query and a separate "bounding query" to use
-      instead of the custom "count query" used by DBInputFormat.
-    */
+   instead of the custom "count query" used by DBInputFormat.
+   */
   public static void setInput(Job job,
-      Class<? extends DBWritable> inputClass,
-      String inputQuery, String inputBoundingQuery) {
+                              Class<? extends DBWritable> inputClass,
+                              String inputQuery, String inputBoundingQuery) {
     DBInputFormat.setInput(job, inputClass, inputQuery, "");
     job.getConfiguration().set(DBConfiguration.INPUT_BOUNDING_QUERY, inputBoundingQuery);
     job.setInputFormatClass(DataDrivenDBInputFormat.class);

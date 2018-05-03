@@ -1,56 +1,30 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2.app;
-
-import static org.junit.Assert.fail;
-
-import java.security.PrivilegedExceptionAction;
-import java.util.Iterator;
-import java.util.List;
-
-import org.junit.Assert;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.JobACL;
 import org.apache.hadoop.mapreduce.MRConfig;
 import org.apache.hadoop.mapreduce.MRJobConfig;
 import org.apache.hadoop.mapreduce.v2.api.MRClientProtocol;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.FailTaskAttemptRequest;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetCountersRequest;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetDiagnosticsRequest;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetJobReportRequest;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetTaskAttemptCompletionEventsRequest;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetTaskAttemptReportRequest;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetTaskReportRequest;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetTaskReportsRequest;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.KillJobRequest;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.KillTaskAttemptRequest;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.KillTaskRequest;
-import org.apache.hadoop.mapreduce.v2.api.records.AMInfo;
-import org.apache.hadoop.mapreduce.v2.api.records.JobReport;
-import org.apache.hadoop.mapreduce.v2.api.records.JobState;
-import org.apache.hadoop.mapreduce.v2.api.records.Phase;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptReport;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptState;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskReport;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskState;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskType;
+import org.apache.hadoop.mapreduce.v2.api.protocolrecords.*;
+import org.apache.hadoop.mapreduce.v2.api.records.*;
 import org.apache.hadoop.mapreduce.v2.app.client.ClientService;
 import org.apache.hadoop.mapreduce.v2.app.client.MRClientService;
 import org.apache.hadoop.mapreduce.v2.app.job.Job;
@@ -66,12 +40,19 @@ import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.yarn.factories.RecordFactory;
 import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
 import org.apache.hadoop.yarn.ipc.YarnRPC;
+import org.junit.Assert;
 import org.junit.Test;
+
+import java.security.PrivilegedExceptionAction;
+import java.util.Iterator;
+import java.util.List;
+
+import static org.junit.Assert.fail;
 
 public class TestMRClientService {
 
   private static RecordFactory recordFactory = RecordFactoryProvider.getRecordFactory(null);
-  
+
   @Test
   public void test() throws Exception {
     MRAppWithClientService app = new MRAppWithClientService(1, 0, false);
@@ -102,14 +83,14 @@ public class TestMRClientService {
     app.getContext().getEventHandler().handle(
         new TaskAttemptStatusUpdateEvent(attempt.getID(), taskAttemptStatus));
 
-    
+
     //verify that all object are fully populated by invoking RPCs.
     YarnRPC rpc = YarnRPC.create(conf);
     MRClientProtocol proxy =
-      (MRClientProtocol) rpc.getProxy(MRClientProtocol.class,
-          app.clientService.getBindAddress(), conf);
+        (MRClientProtocol) rpc.getProxy(MRClientProtocol.class,
+            app.clientService.getBindAddress(), conf);
     GetCountersRequest gcRequest =
-        recordFactory.newRecordInstance(GetCountersRequest.class);    
+        recordFactory.newRecordInstance(GetCountersRequest.class);
     gcRequest.setJobId(job.getID());
     Assert.assertNotNull("Counters is null",
         proxy.getCounters(gcRequest).getCounters());
@@ -119,20 +100,20 @@ public class TestMRClientService {
     gjrRequest.setJobId(job.getID());
     JobReport jr = proxy.getJobReport(gjrRequest).getJobReport();
     verifyJobReport(jr);
-    
+
 
     GetTaskAttemptCompletionEventsRequest gtaceRequest =
         recordFactory.newRecordInstance(GetTaskAttemptCompletionEventsRequest.class);
     gtaceRequest.setJobId(job.getID());
     gtaceRequest.setFromEventId(0);
     gtaceRequest.setMaxEvents(10);
-    Assert.assertNotNull("TaskCompletionEvents is null", 
+    Assert.assertNotNull("TaskCompletionEvents is null",
         proxy.getTaskAttemptCompletionEvents(gtaceRequest).getCompletionEventList());
 
     GetDiagnosticsRequest gdRequest =
         recordFactory.newRecordInstance(GetDiagnosticsRequest.class);
     gdRequest.setTaskAttemptId(attempt.getID());
-    Assert.assertNotNull("Diagnostics is null", 
+    Assert.assertNotNull("Diagnostics is null",
         proxy.getDiagnostics(gdRequest).getDiagnosticsList());
 
     GetTaskAttemptReportRequest gtarRequest =
@@ -141,30 +122,30 @@ public class TestMRClientService {
     TaskAttemptReport tar =
         proxy.getTaskAttemptReport(gtarRequest).getTaskAttemptReport();
     verifyTaskAttemptReport(tar);
-    
+
 
     GetTaskReportRequest gtrRequest =
         recordFactory.newRecordInstance(GetTaskReportRequest.class);
     gtrRequest.setTaskId(task.getID());
-    Assert.assertNotNull("TaskReport is null", 
+    Assert.assertNotNull("TaskReport is null",
         proxy.getTaskReport(gtrRequest).getTaskReport());
 
     GetTaskReportsRequest gtreportsRequest =
         recordFactory.newRecordInstance(GetTaskReportsRequest.class);
     gtreportsRequest.setJobId(job.getID());
     gtreportsRequest.setTaskType(TaskType.MAP);
-    Assert.assertNotNull("TaskReports for map is null", 
+    Assert.assertNotNull("TaskReports for map is null",
         proxy.getTaskReports(gtreportsRequest).getTaskReportList());
 
     gtreportsRequest =
         recordFactory.newRecordInstance(GetTaskReportsRequest.class);
     gtreportsRequest.setJobId(job.getID());
     gtreportsRequest.setTaskType(TaskType.REDUCE);
-    Assert.assertNotNull("TaskReports for reduce is null", 
+    Assert.assertNotNull("TaskReports for reduce is null",
         proxy.getTaskReports(gtreportsRequest).getTaskReportList());
 
     List<String> diag = proxy.getDiagnostics(gdRequest).getDiagnosticsList();
-    Assert.assertEquals("Num diagnostics not correct", 1 , diag.size());
+    Assert.assertEquals("Num diagnostics not correct", 1, diag.size());
     Assert.assertEquals("Diag 1 not correct",
         diagnostic1, diag.get(0).toString());
 
@@ -198,7 +179,7 @@ public class TestMRClientService {
 
     UserGroupInformation viewOnlyUser =
         UserGroupInformation.createUserForTesting(
-            "viewonlyuser", new String[] {});
+            "viewonlyuser", new String[]{});
     Assert.assertTrue("viewonlyuser cannot view job",
         job.checkAccess(viewOnlyUser, JobACL.VIEW_JOB));
     Assert.assertFalse("viewonlyuser can modify job",
@@ -269,7 +250,7 @@ public class TestMRClientService {
     Assert.assertTrue(amInfo.getStartTime() > 0);
     Assert.assertEquals(false, jr.isUber());
   }
-  
+
   private void verifyTaskAttemptReport(TaskAttemptReport tar) {
     Assert.assertEquals(TaskAttemptState.RUNNING, tar.getTaskAttemptState());
     Assert.assertNotNull("TaskAttemptReport is null", tar);
@@ -279,19 +260,21 @@ public class TestMRClientService {
     Assert.assertEquals(1, tar.getContainerId().getApplicationAttemptId()
         .getAttemptId());
   }
-  
+
   class MRAppWithClientService extends MRApp {
     MRClientService clientService = null;
+
     MRAppWithClientService(int maps, int reduces, boolean autoComplete) {
       super(maps, reduces, autoComplete, "MRAppWithClientService", true);
     }
+
     @Override
     protected ClientService createClientService(AppContext context) {
       clientService = new MRClientService(context);
       return clientService;
     }
   }
-  
+
   public static void main(String[] args) throws Exception {
     TestMRClientService t = new TestMRClientService();
     t.test();

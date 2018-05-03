@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,20 +18,17 @@
 
 package org.apache.hadoop.mapreduce.lib.jobcontrol;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.doThrow;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.mapreduce.Job;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.mapreduce.Job;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests the JobControl API using mock and stub Job instances.
@@ -41,36 +38,36 @@ public class TestMapReduceJobControlWithMocks {
   @Test
   public void testSuccessfulJobs() throws Exception {
     JobControl jobControl = new JobControl("Test");
-    
+
     ControlledJob job1 = createSuccessfulControlledJob(jobControl);
     ControlledJob job2 = createSuccessfulControlledJob(jobControl);
     ControlledJob job3 = createSuccessfulControlledJob(jobControl, job1, job2);
     ControlledJob job4 = createSuccessfulControlledJob(jobControl, job3);
-    
+
     runJobControl(jobControl);
-    
+
     assertEquals("Success list", 4, jobControl.getSuccessfulJobList().size());
     assertEquals("Failed list", 0, jobControl.getFailedJobList().size());
-    
+
     assertTrue(job1.getJobState() == ControlledJob.State.SUCCESS);
     assertTrue(job2.getJobState() == ControlledJob.State.SUCCESS);
     assertTrue(job3.getJobState() == ControlledJob.State.SUCCESS);
     assertTrue(job4.getJobState() == ControlledJob.State.SUCCESS);
-    
+
     jobControl.stop();
   }
-  
+
   @Test
   public void testFailedJob() throws Exception {
     JobControl jobControl = new JobControl("Test");
-    
+
     ControlledJob job1 = createFailedControlledJob(jobControl);
     ControlledJob job2 = createSuccessfulControlledJob(jobControl);
     ControlledJob job3 = createSuccessfulControlledJob(jobControl, job1, job2);
     ControlledJob job4 = createSuccessfulControlledJob(jobControl, job3);
-    
+
     runJobControl(jobControl);
-    
+
     assertEquals("Success list", 1, jobControl.getSuccessfulJobList().size());
     assertEquals("Failed list", 3, jobControl.getFailedJobList().size());
 
@@ -78,22 +75,22 @@ public class TestMapReduceJobControlWithMocks {
     assertTrue(job2.getJobState() == ControlledJob.State.SUCCESS);
     assertTrue(job3.getJobState() == ControlledJob.State.DEPENDENT_FAILED);
     assertTrue(job4.getJobState() == ControlledJob.State.DEPENDENT_FAILED);
-    
+
     jobControl.stop();
   }
 
   @Test
   public void testErrorWhileSubmitting() throws Exception {
     JobControl jobControl = new JobControl("Test");
-    
+
     Job mockJob = mock(Job.class);
-    
+
     ControlledJob job1 = new ControlledJob(mockJob, null);
     when(mockJob.getConfiguration()).thenReturn(new Configuration());
     doThrow(new IncompatibleClassChangeError("This is a test")).when(mockJob).submit();
-    
+
     jobControl.addJob(job1);
-    
+
     runJobControl(jobControl);
     try {
       assertEquals("Success list", 0, jobControl.getSuccessfulJobList().size());
@@ -104,21 +101,21 @@ public class TestMapReduceJobControlWithMocks {
       jobControl.stop();
     }
   }
-  
+
   @Test
   public void testKillJob() throws Exception {
     JobControl jobControl = new JobControl("Test");
-    
+
     ControlledJob job = createFailedControlledJob(jobControl);
-    
+
     job.killJob();
 
     // Verify that killJob() was called on the mock Job
     verify(job.getJob()).killJob();
   }
-  
+
   private Job createJob(boolean complete, boolean successful)
-  	throws IOException, InterruptedException {
+      throws IOException, InterruptedException {
     // Create a stub Job that responds in a controlled way
     Job mockJob = mock(Job.class);
     when(mockJob.getConfiguration()).thenReturn(new Configuration());
@@ -126,25 +123,25 @@ public class TestMapReduceJobControlWithMocks {
     when(mockJob.isSuccessful()).thenReturn(successful);
     return mockJob;
   }
-  
+
   private ControlledJob createControlledJob(JobControl jobControl,
-      	boolean successful, ControlledJob... dependingJobs)
-      	throws IOException, InterruptedException {
+                                            boolean successful, ControlledJob... dependingJobs)
+      throws IOException, InterruptedException {
     List<ControlledJob> dependingJobsList = dependingJobs == null ? null :
-      Arrays.asList(dependingJobs);
+        Arrays.asList(dependingJobs);
     ControlledJob job = new ControlledJob(createJob(true, successful),
-	dependingJobsList);
+        dependingJobsList);
     jobControl.addJob(job);
     return job;
   }
-  
+
   private ControlledJob createSuccessfulControlledJob(JobControl jobControl,
-      ControlledJob... dependingJobs) throws IOException, InterruptedException {
+                                                      ControlledJob... dependingJobs) throws IOException, InterruptedException {
     return createControlledJob(jobControl, true, dependingJobs);
   }
 
   private ControlledJob createFailedControlledJob(JobControl jobControl,
-      ControlledJob... dependingJobs) throws IOException, InterruptedException {
+                                                  ControlledJob... dependingJobs) throws IOException, InterruptedException {
     return createControlledJob(jobControl, false, dependingJobs);
   }
 
@@ -159,7 +156,7 @@ public class TestMapReduceJobControlWithMocks {
       try {
         Thread.sleep(100);
       } catch (InterruptedException e) {
-	// ignore
+        // ignore
       }
     }
   }

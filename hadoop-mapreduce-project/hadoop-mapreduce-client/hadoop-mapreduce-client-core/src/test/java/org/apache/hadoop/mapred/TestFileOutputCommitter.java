@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,22 +18,17 @@
 
 package org.apache.hadoop.mapred;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.net.URI;
-
 import junit.framework.TestCase;
-
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.FileUtil;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.RawLocalFileSystem;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.MapFile;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.URI;
 
 
 @SuppressWarnings("unchecked")
@@ -50,9 +45,9 @@ public class TestFileOutputCommitter extends TestCase {
   private Text val1 = new Text("val1");
   private Text val2 = new Text("val2");
 
-  
+
   private void writeOutput(RecordWriter theRecordWriter,
-      TaskAttemptContext context) throws IOException, InterruptedException {
+                           TaskAttemptContext context) throws IOException, InterruptedException {
     NullWritable nullWritable = NullWritable.get();
 
     try {
@@ -70,20 +65,20 @@ public class TestFileOutputCommitter extends TestCase {
   }
 
   private void writeMapFileOutput(RecordWriter theRecordWriter,
-      TaskAttemptContext context) throws IOException, InterruptedException {
+                                  TaskAttemptContext context) throws IOException, InterruptedException {
     try {
       int key = 0;
-      for (int i = 0 ; i < 10; ++i) {
+      for (int i = 0; i < 10; ++i) {
         key = i;
-        Text val = (i%2 == 1) ? val1 : val2;
+        Text val = (i % 2 == 1) ? val1 : val2;
         theRecordWriter.write(new LongWritable(key),
-            val);        
+            val);
       }
     } finally {
       theRecordWriter.close(null);
     }
   }
-  
+
   public void testRecovery() throws Exception {
     JobConf conf = new JobConf();
     FileOutputFormat.setOutputPath(conf, outDir);
@@ -99,19 +94,19 @@ public class TestFileOutputCommitter extends TestCase {
 
     // write output
     TextOutputFormat theOutputFormat = new TextOutputFormat();
-    RecordWriter theRecordWriter = 
+    RecordWriter theRecordWriter =
         theOutputFormat.getRecordWriter(null, conf, partFile, null);
     writeOutput(theRecordWriter, tContext);
 
     // do commit
-    if(committer.needsTaskCommit(tContext)) {
+    if (committer.needsTaskCommit(tContext)) {
       committer.commitTask(tContext);
     }
     Path jobTempDir1 = committer.getCommittedTaskPath(tContext);
     File jtd1 = new File(jobTempDir1.toUri().getPath());
     assertTrue(jtd1.exists());
-    validateContent(jobTempDir1);        
-    
+    validateContent(jobTempDir1);
+
     //now while running the second app attempt, 
     //recover the task output from first attempt
     JobConf conf2 = new JobConf(conf);
@@ -122,12 +117,12 @@ public class TestFileOutputCommitter extends TestCase {
     FileOutputCommitter committer2 = new FileOutputCommitter();
     committer2.setupJob(jContext2);
     Path jobTempDir2 = committer2.getCommittedTaskPath(tContext2);
-    
+
     committer2.recoverTask(tContext2);
     File jtd2 = new File(jobTempDir2.toUri().getPath());
     assertTrue(jtd2.exists());
     validateContent(jobTempDir2);
-    
+
     committer2.commitJob(jContext2);
     validateContent(outDir);
     FileUtil.fullyDelete(new File(outDir.toString()));
@@ -151,26 +146,25 @@ public class TestFileOutputCommitter extends TestCase {
       FileSystem fs, Path dir) throws IOException {
     // map output is a directory with index and data files
     Path expectedMapDir = new Path(dir, partFile);
-    assert(fs.getFileStatus(expectedMapDir).isDirectory());    
+    assert (fs.getFileStatus(expectedMapDir).isDirectory());
     FileStatus[] files = fs.listStatus(expectedMapDir);
     int fileCount = 0;
-    boolean dataFileFound = false; 
-    boolean indexFileFound = false; 
+    boolean dataFileFound = false;
+    boolean indexFileFound = false;
     for (FileStatus f : files) {
       if (f.isFile()) {
         ++fileCount;
         if (f.getPath().getName().equals(MapFile.INDEX_FILE_NAME)) {
           indexFileFound = true;
-        }
-        else if (f.getPath().getName().equals(MapFile.DATA_FILE_NAME)) {
+        } else if (f.getPath().getName().equals(MapFile.DATA_FILE_NAME)) {
           dataFileFound = true;
         }
       }
     }
-    assert(fileCount > 0);
-    assert(dataFileFound && indexFileFound);
+    assert (fileCount > 0);
+    assert (dataFileFound && indexFileFound);
   }
-  
+
   public void testCommitter() throws Exception {
     JobConf conf = new JobConf();
     FileOutputFormat.setOutputPath(conf, outDir);
@@ -185,12 +179,12 @@ public class TestFileOutputCommitter extends TestCase {
 
     // write output
     TextOutputFormat theOutputFormat = new TextOutputFormat();
-    RecordWriter theRecordWriter = 
+    RecordWriter theRecordWriter =
         theOutputFormat.getRecordWriter(null, conf, partFile, null);
     writeOutput(theRecordWriter, tContext);
 
     // do commit
-    if(committer.needsTaskCommit(tContext)) {
+    if (committer.needsTaskCommit(tContext)) {
       committer.commitTask(tContext);
     }
     committer.commitJob(jContext);
@@ -206,8 +200,8 @@ public class TestFileOutputCommitter extends TestCase {
     conf.set(JobContext.TASK_ATTEMPT_ID, attempt);
     JobContext jContext = new JobContextImpl(conf, taskID.getJobID());
     TaskAttemptContext tContext = new TaskAttemptContextImpl(conf, taskID);
-    FileOutputCommitter committer = new FileOutputCommitter();    
-    
+    FileOutputCommitter committer = new FileOutputCommitter();
+
     // setup
     committer.setupJob(jContext);
     committer.setupTask(tContext);
@@ -218,7 +212,7 @@ public class TestFileOutputCommitter extends TestCase {
     writeMapFileOutput(theRecordWriter, tContext);
 
     // do commit
-    if(committer.needsTaskCommit(tContext)) {
+    if (committer.needsTaskCommit(tContext)) {
       committer.commitTask(tContext);
     }
     committer.commitJob(jContext);
@@ -227,20 +221,20 @@ public class TestFileOutputCommitter extends TestCase {
     validateMapFileOutputContent(FileSystem.get(conf), outDir);
     FileUtil.fullyDelete(new File(outDir.toString()));
   }
-  
+
   public void testMapOnlyNoOutput() throws Exception {
     JobConf conf = new JobConf();
     //This is not set on purpose. FileOutputFormat.setOutputPath(conf, outDir);
     conf.set(JobContext.TASK_ATTEMPT_ID, attempt);
     JobContext jContext = new JobContextImpl(conf, taskID.getJobID());
     TaskAttemptContext tContext = new TaskAttemptContextImpl(conf, taskID);
-    FileOutputCommitter committer = new FileOutputCommitter();    
-    
+    FileOutputCommitter committer = new FileOutputCommitter();
+
     // setup
     committer.setupJob(jContext);
     committer.setupTask(tContext);
-    
-    if(committer.needsTaskCommit(tContext)) {
+
+    if (committer.needsTaskCommit(tContext)) {
       // do commit
       committer.commitTask(tContext);
     }
@@ -249,7 +243,7 @@ public class TestFileOutputCommitter extends TestCase {
     // validate output
     FileUtil.fullyDelete(new File(outDir.toString()));
   }
-  
+
   public void testAbort() throws IOException, InterruptedException {
     JobConf conf = new JobConf();
     FileOutputFormat.setOutputPath(conf, outDir);
@@ -264,7 +258,7 @@ public class TestFileOutputCommitter extends TestCase {
 
     // write output
     TextOutputFormat theOutputFormat = new TextOutputFormat();
-    RecordWriter theRecordWriter = 
+    RecordWriter theRecordWriter =
         theOutputFormat.getRecordWriter(null, conf, partFile, null);
     writeOutput(theRecordWriter, tContext);
 
@@ -298,7 +292,7 @@ public class TestFileOutputCommitter extends TestCase {
     }
   }
 
-  
+
   public void testFailAbort() throws IOException, InterruptedException {
     JobConf conf = new JobConf();
     conf.set(FileSystem.FS_DEFAULT_NAME_KEY, "faildel:///");
@@ -317,14 +311,14 @@ public class TestFileOutputCommitter extends TestCase {
     // write output
     File jobTmpDir = new File(new Path(outDir,
         FileOutputCommitter.TEMP_DIR_NAME + Path.SEPARATOR +
-        conf.getInt(MRConstants.APPLICATION_ATTEMPT_ID, 0) +
-        Path.SEPARATOR +
-        FileOutputCommitter.TEMP_DIR_NAME).toString());
+            conf.getInt(MRConstants.APPLICATION_ATTEMPT_ID, 0) +
+            Path.SEPARATOR +
+            FileOutputCommitter.TEMP_DIR_NAME).toString());
     File taskTmpDir = new File(jobTmpDir, "_" + taskID);
     File expectedFile = new File(taskTmpDir, partFile);
     TextOutputFormat<?, ?> theOutputFormat = new TextOutputFormat();
-    RecordWriter<?, ?> theRecordWriter = 
-        theOutputFormat.getRecordWriter(null, conf, 
+    RecordWriter<?, ?> theRecordWriter =
+        theOutputFormat.getRecordWriter(null, conf,
             expectedFile.getAbsolutePath(), null);
     writeOutput(theRecordWriter, tContext);
 

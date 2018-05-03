@@ -1,4 +1,4 @@
- /**
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,27 +18,20 @@
 
 package org.apache.hadoop.fs;
 
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
-import java.util.Date;
-import java.util.StringTokenizer;
-
 import junit.framework.TestCase;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.SequenceFile;
-import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.SequenceFile.CompressionType;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.*;
 import org.junit.Ignore;
+
+import java.io.*;
+import java.util.Date;
+import java.util.StringTokenizer;
 
 /**
  * Distributed i/o benchmark.
@@ -55,7 +48,7 @@ import org.junit.Ignore;
  * <li>io rate</li>
  * <li>io rate squared</li>
  * </ul>
- *    
+ *
  * Finally, the following information is appended to a local file
  * <ul>
  * <li>read or write test</li>
@@ -77,10 +70,10 @@ public class DFSCIOTest extends TestCase {
   private static final int DEFAULT_BUFFER_SIZE = 1000000;
   private static final String BASE_FILE_NAME = "test_io_";
   private static final String DEFAULT_RES_FILE_NAME = "DFSCIOTest_results.log";
-  
+
   private static Configuration fsConfig = new Configuration();
   private static final long MEGA = 0x100000;
-  private static String TEST_ROOT_DIR = System.getProperty("test.build.data","/benchmarks/DFSCIOTest");
+  private static String TEST_ROOT_DIR = System.getProperty("test.build.data", "/benchmarks/DFSCIOTest");
   private static Path CONTROL_DIR = new Path(TEST_ROOT_DIR, "io_control");
   private static Path WRITE_DIR = new Path(TEST_ROOT_DIR, "io_write");
   private static Path READ_DIR = new Path(TEST_ROOT_DIR, "io_read");
@@ -95,7 +88,7 @@ public class DFSCIOTest extends TestCase {
 
   /**
    * Run the test with default parameters.
-   * 
+   *
    * @throws Exception
    */
   public void testIOs() throws Exception {
@@ -104,13 +97,13 @@ public class DFSCIOTest extends TestCase {
 
   /**
    * Run the test with the specified parameters.
-   * 
+   *
    * @param fileSize file size
    * @param nrFiles number of files
    * @throws IOException
    */
   public static void testIOs(int fileSize, int nrFiles)
-    throws IOException {
+      throws IOException {
 
     FileSystem fs = FileSystem.get(fsConfig);
 
@@ -120,38 +113,38 @@ public class DFSCIOTest extends TestCase {
   }
 
   private static void createControlFile(
-                                        FileSystem fs,
-                                        int fileSize, // in MB 
-                                        int nrFiles
-                                        ) throws IOException {
-    LOG.info("creating control file: "+fileSize+" mega bytes, "+nrFiles+" files");
+      FileSystem fs,
+      int fileSize, // in MB
+      int nrFiles
+  ) throws IOException {
+    LOG.info("creating control file: " + fileSize + " mega bytes, " + nrFiles + " files");
 
     fs.delete(CONTROL_DIR, true);
 
-    for(int i=0; i < nrFiles; i++) {
+    for (int i = 0; i < nrFiles; i++) {
       String name = getFileName(i);
       Path controlFile = new Path(CONTROL_DIR, "in_file_" + name);
       SequenceFile.Writer writer = null;
       try {
         writer = SequenceFile.createWriter(fs, fsConfig, controlFile,
-                                           Text.class, LongWritable.class,
-                                           CompressionType.NONE);
+            Text.class, LongWritable.class,
+            CompressionType.NONE);
         writer.append(new Text(name), new LongWritable(fileSize));
-      } catch(Exception e) {
+      } catch (Exception e) {
         throw new IOException(e.getLocalizedMessage());
       } finally {
-    	if (writer != null)
+        if (writer != null)
           writer.close();
-    	writer = null;
+        writer = null;
       }
     }
-    LOG.info("created control files for: "+nrFiles+" files");
+    LOG.info("created control files for: " + nrFiles + " files");
   }
 
   private static String getFileName(int fIdx) {
     return BASE_FILE_NAME + Integer.toString(fIdx);
   }
-  
+
   /**
    * Write/Read mapper base class.
    * <p>
@@ -165,19 +158,19 @@ public class DFSCIOTest extends TestCase {
    * </ul>
    */
   private abstract static class IOStatMapper extends IOMapperBase<Long> {
-    IOStatMapper() { 
+    IOStatMapper() {
     }
-    
-    void collectStats(OutputCollector<Text, Text> output, 
+
+    void collectStats(OutputCollector<Text, Text> output,
                       String name,
-                      long execTime, 
+                      long execTime,
                       Long objSize) throws IOException {
       long totalSize = objSize.longValue();
-      float ioRateMbSec = (float)totalSize * 1000 / (execTime * MEGA);
+      float ioRateMbSec = (float) totalSize * 1000 / (execTime * MEGA);
       LOG.info("Number of bytes processed = " + totalSize);
       LOG.info("Exec time = " + execTime);
       LOG.info("IO rate = " + ioRateMbSec);
-      
+
       output.collect(new Text(AccumulatingReducer.VALUE_TYPE_LONG + "tasks"),
           new Text(String.valueOf(1)));
       output.collect(new Text(AccumulatingReducer.VALUE_TYPE_LONG + "size"),
@@ -185,9 +178,9 @@ public class DFSCIOTest extends TestCase {
       output.collect(new Text(AccumulatingReducer.VALUE_TYPE_LONG + "time"),
           new Text(String.valueOf(execTime)));
       output.collect(new Text(AccumulatingReducer.VALUE_TYPE_FLOAT + "rate"),
-          new Text(String.valueOf(ioRateMbSec*1000)));
+          new Text(String.valueOf(ioRateMbSec * 1000)));
       output.collect(new Text(AccumulatingReducer.VALUE_TYPE_FLOAT + "sqrate"),
-          new Text(String.valueOf(ioRateMbSec*ioRateMbSec*1000)));
+          new Text(String.valueOf(ioRateMbSec * ioRateMbSec * 1000)));
     }
   }
 
@@ -196,34 +189,34 @@ public class DFSCIOTest extends TestCase {
    */
   public static class WriteMapper extends IOStatMapper {
 
-    public WriteMapper() { 
-      super(); 
-      for(int i=0; i < bufferSize; i++)
-        buffer[i] = (byte)('0' + i % 50);
+    public WriteMapper() {
+      super();
+      for (int i = 0; i < bufferSize; i++)
+        buffer[i] = (byte) ('0' + i % 50);
     }
 
-    public Long doIO(Reporter reporter, 
-                       String name, 
-                       long totalSize 
-                       ) throws IOException {
+    public Long doIO(Reporter reporter,
+                     String name,
+                     long totalSize
+    ) throws IOException {
       // create file
       totalSize *= MEGA;
-      
+
       // create instance of local filesystem 
       FileSystem localFS = FileSystem.getLocal(fsConfig);
-      
+
       try {
         // native runtime
         Runtime runTime = Runtime.getRuntime();
-          
+
         // copy the dso and executable from dfs and chmod them
         synchronized (this) {
           localFS.delete(HDFS_TEST_DIR, true);
           if (!(localFS.mkdirs(HDFS_TEST_DIR))) {
-            throw new IOException("Failed to create " +	HDFS_TEST_DIR + " on local filesystem");
+            throw new IOException("Failed to create " + HDFS_TEST_DIR + " on local filesystem");
           }
         }
-        
+
         synchronized (this) {
           if (!localFS.exists(HDFS_SHLIB)) {
             FileUtil.copy(fs, HDFS_SHLIB, localFS, HDFS_SHLIB, false, fsConfig);
@@ -235,13 +228,13 @@ public class DFSCIOTest extends TestCase {
               throw new IOException(chmodCmd + ": Failed with exitStatus: " + exitStatus);
             }
           }
-        } 
-        
+        }
+
         synchronized (this) {
           if (!localFS.exists(HDFS_WRITE)) {
             FileUtil.copy(fs, HDFS_WRITE, localFS, HDFS_WRITE, false, fsConfig);
 
-            String chmodCmd = new String(CHMOD + " a+x " + HDFS_WRITE); 
+            String chmodCmd = new String(CHMOD + " a+x " + HDFS_WRITE);
             Process process = runTime.exec(chmodCmd);
             int exitStatus = process.waitFor();
             if (exitStatus != 0) {
@@ -249,10 +242,10 @@ public class DFSCIOTest extends TestCase {
             }
           }
         }
-    	  	  
+
         // exec the C program
         Path outFile = new Path(DATA_DIR, name);
-        String writeCmd = new String(HDFS_WRITE + " " + outFile + " " + totalSize + " " + bufferSize); 
+        String writeCmd = new String(HDFS_WRITE + " " + outFile + " " + totalSize + " " + bufferSize);
         Process process = runTime.exec(writeCmd, null, new File(HDFS_TEST_DIR.toString()));
         int exitStatus = process.waitFor();
         if (exitStatus != 0) {
@@ -268,17 +261,17 @@ public class DFSCIOTest extends TestCase {
   }
 
   private static void writeTest(FileSystem fs)
-    throws IOException {
+      throws IOException {
 
     fs.delete(DATA_DIR, true);
     fs.delete(WRITE_DIR, true);
-    
+
     runIOTest(WriteMapper.class, WRITE_DIR);
   }
-  
-  private static void runIOTest( Class<? extends Mapper> mapperClass, 
-                                 Path outputDir
-                                 ) throws IOException {
+
+  private static void runIOTest(Class<? extends Mapper> mapperClass,
+                                Path outputDir
+  ) throws IOException {
     JobConf job = new JobConf(fsConfig, DFSCIOTest.class);
 
     FileInputFormat.setInputPaths(job, CONTROL_DIR);
@@ -299,31 +292,31 @@ public class DFSCIOTest extends TestCase {
    */
   public static class ReadMapper extends IOStatMapper {
 
-    public ReadMapper() { 
-      super(); 
+    public ReadMapper() {
+      super();
     }
 
-    public Long doIO(Reporter reporter, 
-                       String name, 
-                       long totalSize 
-                       ) throws IOException {
+    public Long doIO(Reporter reporter,
+                     String name,
+                     long totalSize
+    ) throws IOException {
       totalSize *= MEGA;
-      
+
       // create instance of local filesystem 
       FileSystem localFS = FileSystem.getLocal(fsConfig);
-      
+
       try {
         // native runtime
         Runtime runTime = Runtime.getRuntime();
-        
+
         // copy the dso and executable from dfs
         synchronized (this) {
           localFS.delete(HDFS_TEST_DIR, true);
           if (!(localFS.mkdirs(HDFS_TEST_DIR))) {
-            throw new IOException("Failed to create " +	HDFS_TEST_DIR + " on local filesystem");
+            throw new IOException("Failed to create " + HDFS_TEST_DIR + " on local filesystem");
           }
         }
-        
+
         synchronized (this) {
           if (!localFS.exists(HDFS_SHLIB)) {
             if (!FileUtil.copy(fs, HDFS_SHLIB, localFS, HDFS_SHLIB, false, fsConfig)) {
@@ -338,30 +331,30 @@ public class DFSCIOTest extends TestCase {
             }
           }
         }
-        
+
         synchronized (this) {
           if (!localFS.exists(HDFS_READ)) {
             if (!FileUtil.copy(fs, HDFS_READ, localFS, HDFS_READ, false, fsConfig)) {
               throw new IOException("Failed to copy " + HDFS_READ + " to local filesystem");
             }
 
-            String chmodCmd = new String(CHMOD + " a+x " + HDFS_READ); 
+            String chmodCmd = new String(CHMOD + " a+x " + HDFS_READ);
             Process process = runTime.exec(chmodCmd);
             int exitStatus = process.waitFor();
-             
+
             if (exitStatus != 0) {
               throw new IOException(chmodCmd + ": Failed with exitStatus: " + exitStatus);
             }
           }
         }
-    	  	  
+
         // exec the C program
         Path inFile = new Path(DATA_DIR, name);
-        String readCmd = new String(HDFS_READ + " " + inFile + " " + totalSize + " " + 
-                                    bufferSize); 
+        String readCmd = new String(HDFS_READ + " " + inFile + " " + totalSize + " " +
+            bufferSize);
         Process process = runTime.exec(readCmd, null, new File(HDFS_TEST_DIR.toString()));
         int exitStatus = process.waitFor();
-        
+
         if (exitStatus != 0) {
           throw new IOException(HDFS_READ + ": Failed with exitStatus: " + exitStatus);
         }
@@ -380,11 +373,11 @@ public class DFSCIOTest extends TestCase {
   }
 
   private static void sequentialTest(
-                                     FileSystem fs, 
-                                     int testType, 
-                                     int fileSize, 
-                                     int nrFiles
-                                     ) throws Exception {
+      FileSystem fs,
+      int testType,
+      int fileSize,
+      int nrFiles
+  ) throws Exception {
     IOStatMapper ioer = null;
     if (testType == TEST_TYPE_READ)
       ioer = new ReadMapper();
@@ -392,10 +385,10 @@ public class DFSCIOTest extends TestCase {
       ioer = new WriteMapper();
     else
       return;
-    for(int i=0; i < nrFiles; i++)
+    for (int i = 0; i < nrFiles; i++)
       ioer.doIO(Reporter.NULL,
-                BASE_FILE_NAME+Integer.toString(i), 
-                MEGA*fileSize);
+          BASE_FILE_NAME + Integer.toString(i),
+          MEGA * fileSize);
   }
 
   public static void main(String[] args) {
@@ -406,9 +399,9 @@ public class DFSCIOTest extends TestCase {
     String resFileName = DEFAULT_RES_FILE_NAME;
     boolean isSequential = false;
 
-    String version="DFSCIOTest.0.0.1";
+    String version = "DFSCIOTest.0.0.1";
     String usage = "Usage: DFSCIOTest -read | -write | -clean [-nrFiles N] [-fileSize MB] [-resFile resultFileName] [-bufferSize Bytes] ";
-    
+
     System.out.println(version);
     if (args.length == 0) {
       System.err.println(usage);
@@ -437,22 +430,22 @@ public class DFSCIOTest extends TestCase {
     LOG.info("nrFiles = " + nrFiles);
     LOG.info("fileSize (MB) = " + fileSize);
     LOG.info("bufferSize = " + bufferSize);
-  
+
     try {
       fsConfig.setInt("test.io.file.buffer.size", bufferSize);
       FileSystem fs = FileSystem.get(fsConfig);
-      
+
       if (testType != TEST_TYPE_CLEANUP) {
         fs.delete(HDFS_TEST_DIR, true);
         if (!fs.mkdirs(HDFS_TEST_DIR)) {
-          throw new IOException("Mkdirs failed to create " + 
-                                HDFS_TEST_DIR.toString());
+          throw new IOException("Mkdirs failed to create " +
+              HDFS_TEST_DIR.toString());
         }
 
         //Copy the executables over to the remote filesystem
         String hadoopHome = System.getenv("HADOOP_PREFIX");
         fs.copyFromLocalFile(new Path(hadoopHome + "/libhdfs/libhdfs.so." + HDFS_LIB_VERSION),
-                             HDFS_SHLIB);
+            HDFS_SHLIB);
         fs.copyFromLocalFile(new Path(hadoopHome + "/libhdfs/hdfs_read"), HDFS_READ);
         fs.copyFromLocalFile(new Path(hadoopHome + "/libhdfs/hdfs_write"), HDFS_WRITE);
       }
@@ -461,7 +454,7 @@ public class DFSCIOTest extends TestCase {
         long tStart = System.currentTimeMillis();
         sequentialTest(fs, testType, fileSize, nrFiles);
         long execTime = System.currentTimeMillis() - tStart;
-        String resultLine = "Seq Test exec time sec: " + (float)execTime / 1000;
+        String resultLine = "Seq Test exec time sec: " + (float) execTime / 1000;
         LOG.info(resultLine);
         return;
       }
@@ -476,19 +469,19 @@ public class DFSCIOTest extends TestCase {
       if (testType == TEST_TYPE_READ)
         readTest(fs);
       long execTime = System.currentTimeMillis() - tStart;
-    
+
       analyzeResult(fs, testType, execTime, resFileName);
-    } catch(Exception e) {
+    } catch (Exception e) {
       System.err.print(e.getLocalizedMessage());
       System.exit(-1);
     }
   }
-  
-  private static void analyzeResult( FileSystem fs, 
-                                     int testType,
-                                     long execTime,
-                                     String resFileName
-                                     ) throws IOException {
+
+  private static void analyzeResult(FileSystem fs,
+                                    int testType,
+                                    long execTime,
+                                    String resFileName
+  ) throws IOException {
     Path reduceFile;
     if (testType == TEST_TYPE_WRITE)
       reduceFile = new Path(WRITE_DIR, "part-00000");
@@ -496,7 +489,7 @@ public class DFSCIOTest extends TestCase {
       reduceFile = new Path(READ_DIR, "part-00000");
     DataInputStream in;
     in = new DataInputStream(fs.open(reduceFile));
-  
+
     BufferedReader lines;
     lines = new BufferedReader(new InputStreamReader(in));
     long tasks = 0;
@@ -505,13 +498,13 @@ public class DFSCIOTest extends TestCase {
     float rate = 0;
     float sqrate = 0;
     String line;
-    while((line = lines.readLine()) != null) {
+    while ((line = lines.readLine()) != null) {
       StringTokenizer tokens = new StringTokenizer(line, " \t\n\r\f%");
-      String attr = tokens.nextToken(); 
+      String attr = tokens.nextToken();
       if (attr.endsWith(":tasks"))
         tasks = Long.parseLong(tokens.nextToken());
       else if (attr.endsWith(":size"))
-        size = Long.parseLong(tokens.	nextToken());
+        size = Long.parseLong(tokens.nextToken());
       else if (attr.endsWith(":time"))
         time = Long.parseLong(tokens.nextToken());
       else if (attr.endsWith(":rate"))
@@ -519,26 +512,26 @@ public class DFSCIOTest extends TestCase {
       else if (attr.endsWith(":sqrate"))
         sqrate = Float.parseFloat(tokens.nextToken());
     }
-    
+
     double med = rate / 1000 / tasks;
-    double stdDev = Math.sqrt(Math.abs(sqrate / 1000 / tasks - med*med));
+    double stdDev = Math.sqrt(Math.abs(sqrate / 1000 / tasks - med * med));
     String resultLines[] = {
-      "----- DFSCIOTest ----- : " + ((testType == TEST_TYPE_WRITE) ? "write" :
-                                     (testType == TEST_TYPE_READ) ? "read" : 
-                                     "unknown"),
-      "           Date & time: " + new Date(System.currentTimeMillis()),
-      "       Number of files: " + tasks,
-      "Total MBytes processed: " + size/MEGA,
-      "     Throughput mb/sec: " + size * 1000.0 / (time * MEGA),
-      "Average IO rate mb/sec: " + med,
-      " Std IO rate deviation: " + stdDev,
-      "    Test exec time sec: " + (float)execTime / 1000,
-      "" };
+        "----- DFSCIOTest ----- : " + ((testType == TEST_TYPE_WRITE) ? "write" :
+            (testType == TEST_TYPE_READ) ? "read" :
+                "unknown"),
+        "           Date & time: " + new Date(System.currentTimeMillis()),
+        "       Number of files: " + tasks,
+        "Total MBytes processed: " + size / MEGA,
+        "     Throughput mb/sec: " + size * 1000.0 / (time * MEGA),
+        "Average IO rate mb/sec: " + med,
+        " Std IO rate deviation: " + stdDev,
+        "    Test exec time sec: " + (float) execTime / 1000,
+        ""};
 
     PrintStream res = new PrintStream(
-                                      new FileOutputStream(
-                                                           new File(resFileName), true)); 
-    for(int i = 0; i < resultLines.length; i++) {
+        new FileOutputStream(
+            new File(resFileName), true));
+    for (int i = 0; i < resultLines.length; i++) {
       LOG.info(resultLines[i]);
       res.println(resultLines[i]);
     }

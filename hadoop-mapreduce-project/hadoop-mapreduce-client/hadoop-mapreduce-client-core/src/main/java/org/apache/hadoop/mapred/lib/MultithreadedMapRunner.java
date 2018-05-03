@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,22 +18,19 @@
 
 package org.apache.hadoop.mapred.lib;
 
-import org.apache.hadoop.util.ReflectionUtils;
-import org.apache.hadoop.classification.InterfaceAudience;
-import org.apache.hadoop.classification.InterfaceStability;
-import org.apache.hadoop.mapred.MapRunnable;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.Mapper;
-import org.apache.hadoop.mapred.RecordReader;
-import org.apache.hadoop.mapred.OutputCollector;
-import org.apache.hadoop.mapred.Reporter;
-import org.apache.hadoop.mapred.SkipBadRecords;
-import org.apache.hadoop.mapreduce.lib.map.MultithreadedMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.classification.InterfaceAudience;
+import org.apache.hadoop.classification.InterfaceStability;
+import org.apache.hadoop.mapred.*;
+import org.apache.hadoop.mapreduce.lib.map.MultithreadedMapper;
+import org.apache.hadoop.util.ReflectionUtils;
 
 import java.io.IOException;
-import java.util.concurrent.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Multithreaded implementation for @link org.apache.hadoop.mapred.MapRunnable.
@@ -57,7 +54,7 @@ public class MultithreadedMapRunner<K1, V1, K2, V2>
     implements MapRunnable<K1, V1, K2, V2> {
 
   private static final Log LOG =
-    LogFactory.getLog(MultithreadedMapRunner.class.getName());
+      LogFactory.getLog(MultithreadedMapRunner.class.getName());
 
   private JobConf job;
   private Mapper<K1, V1, K2, V2> mapper;
@@ -69,25 +66,25 @@ public class MultithreadedMapRunner<K1, V1, K2, V2>
   @SuppressWarnings("unchecked")
   public void configure(JobConf jobConf) {
     int numberOfThreads =
-      jobConf.getInt(MultithreadedMapper.NUM_THREADS, 10);
+        jobConf.getInt(MultithreadedMapper.NUM_THREADS, 10);
     if (LOG.isDebugEnabled()) {
       LOG.debug("Configuring jobConf " + jobConf.getJobName() +
-                " to use " + numberOfThreads + " threads");
+          " to use " + numberOfThreads + " threads");
     }
 
     this.job = jobConf;
     //increment processed counter only if skipping feature is enabled
-    this.incrProcCount = SkipBadRecords.getMapperMaxSkipRecords(job)>0 && 
-      SkipBadRecords.getAutoIncrMapperProcCount(job);
+    this.incrProcCount = SkipBadRecords.getMapperMaxSkipRecords(job) > 0 &&
+        SkipBadRecords.getAutoIncrMapperProcCount(job);
     this.mapper = ReflectionUtils.newInstance(jobConf.getMapperClass(),
         jobConf);
 
     // Creating a threadpool of the configured size to execute the Mapper
     // map method in parallel.
-    executorService = new ThreadPoolExecutor(numberOfThreads, numberOfThreads, 
-                                             0L, TimeUnit.MILLISECONDS,
-                                             new BlockingArrayQueue
-                                               (numberOfThreads));
+    executorService = new ThreadPoolExecutor(numberOfThreads, numberOfThreads,
+        0L, TimeUnit.MILLISECONDS,
+        new BlockingArrayQueue
+            (numberOfThreads));
   }
 
   /**
@@ -95,14 +92,17 @@ public class MultithreadedMapRunner<K1, V1, K2, V2>
    * queue, to a put, which waits on a full queue.
    */
   private static class BlockingArrayQueue extends ArrayBlockingQueue<Runnable> {
- 
+
     private static final long serialVersionUID = 1L;
+
     public BlockingArrayQueue(int capacity) {
       super(capacity);
     }
+
     public boolean offer(Runnable r) {
       return add(r);
     }
+
     public boolean add(Runnable r) {
       try {
         put(r);
@@ -134,7 +134,7 @@ public class MultithreadedMapRunner<K1, V1, K2, V2>
 
   public void run(RecordReader<K1, V1> input, OutputCollector<K2, V2> output,
                   Reporter reporter)
-    throws IOException {
+      throws IOException {
     try {
       // allocate key & value instances these objects will not be reused
       // because execution of Mapper.map is not serialized.
@@ -144,7 +144,7 @@ public class MultithreadedMapRunner<K1, V1, K2, V2>
       while (input.next(key, value)) {
 
         executorService.execute(new MapperInvokeRunable(key, value, output,
-                                reporter));
+            reporter));
 
         checkForExceptionsFromProcessingThreads();
 
@@ -155,7 +155,7 @@ public class MultithreadedMapRunner<K1, V1, K2, V2>
 
       if (LOG.isDebugEnabled()) {
         LOG.debug("Finished dispatching all Mappper.map calls, job "
-                  + job.getJobName());
+            + job.getJobName());
       }
 
       // Graceful shutdown of the Threadpool, it will let all scheduled
@@ -168,7 +168,7 @@ public class MultithreadedMapRunner<K1, V1, K2, V2>
         while (!executorService.awaitTermination(100, TimeUnit.MILLISECONDS)) {
           if (LOG.isDebugEnabled()) {
             LOG.debug("Awaiting all running Mappper.map calls to finish, job "
-                      + job.getJobName());
+                + job.getJobName());
           }
 
           // NOTE: while Mapper.map dispatching has concluded there are still
@@ -234,8 +234,8 @@ public class MultithreadedMapRunner<K1, V1, K2, V2>
       try {
         // map pair to output
         MultithreadedMapRunner.this.mapper.map(key, value, output, reporter);
-        if(incrProcCount) {
-          reporter.incrCounter(SkipBadRecords.COUNTER_GROUP, 
+        if (incrProcCount) {
+          reporter.incrCounter(SkipBadRecords.COUNTER_GROUP,
               SkipBadRecords.COUNTER_MAP_PROCESSED_RECORDS, 1);
         }
       } catch (IOException ex) {

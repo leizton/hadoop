@@ -23,45 +23,31 @@ import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.mapreduce.MRConfig;
 import org.apache.hadoop.mapreduce.QueueState;
 import org.apache.hadoop.security.authorize.AccessControlList;
-import static org.apache.hadoop.mapred.QueueManager.toFullPropertyName;
+import org.w3c.dom.*;
 import org.xml.sax.SAXException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.DOMException;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
-import java.io.IOException;
-import java.io.File;
-import java.io.InputStream;
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Properties;
-import java.util.Set;
-import java.util.HashSet;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.*;
+import java.util.*;
+
+import static org.apache.hadoop.mapred.QueueManager.toFullPropertyName;
 
 /**
  * Class for parsing mapred-queues.xml.
- *    The format consists nesting of
- *    queues within queues - a feature called hierarchical queues.
- *    The parser expects that queues are
- *    defined within the 'queues' tag which is the top level element for
- *    XML document.
- * 
+ * The format consists nesting of
+ * queues within queues - a feature called hierarchical queues.
+ * The parser expects that queues are
+ * defined within the 'queues' tag which is the top level element for
+ * XML document.
+ * <p>
  * Creates the complete queue hieararchy
  */
 class QueueConfigurationParser {
   private static final Log LOG =
-    LogFactory.getLog(QueueConfigurationParser.class);
-  
+      LogFactory.getLog(QueueConfigurationParser.class);
+
   private boolean aclsEnabled = false;
 
   //Default root.
@@ -91,7 +77,7 @@ class QueueConfigurationParser {
    * Default constructor for DeperacatedQueueConfigurationParser
    */
   QueueConfigurationParser() {
-    
+
   }
 
   QueueConfigurationParser(String confFile, boolean areAclsEnabled) {
@@ -99,7 +85,7 @@ class QueueConfigurationParser {
     File file = new File(confFile).getAbsoluteFile();
     if (!file.exists()) {
       throw new RuntimeException("Configuration file not found at " +
-                                 confFile);
+          confFile);
     }
     InputStream in = null;
     try {
@@ -149,7 +135,7 @@ class QueueConfigurationParser {
   /**
    * Method to load the resource file.
    * generates the root.
-   * 
+   *
    * @param resourceInput InputStream that provides the XML to parse
    * @return
    * @throws ParserConfigurationException
@@ -157,9 +143,9 @@ class QueueConfigurationParser {
    * @throws IOException
    */
   protected Queue loadResource(InputStream resourceInput)
-    throws ParserConfigurationException, SAXException, IOException {
+      throws ParserConfigurationException, SAXException, IOException {
     DocumentBuilderFactory docBuilderFactory
-      = DocumentBuilderFactory.newInstance();
+        = DocumentBuilderFactory.newInstance();
     //ignore all comments inside the xml file
     docBuilderFactory.setIgnoringComments(true);
 
@@ -169,9 +155,9 @@ class QueueConfigurationParser {
       docBuilderFactory.setXIncludeAware(true);
     } catch (UnsupportedOperationException e) {
       LOG.info(
-        "Failed to set setXIncludeAware(true) for parser "
-          + docBuilderFactory
-          + NAME_SEPARATOR + e);
+          "Failed to set setXIncludeAware(true) for parser "
+              + docBuilderFactory
+              + NAME_SEPARATOR + e);
     }
     DocumentBuilder builder = docBuilderFactory.newDocumentBuilder();
     Document doc = null;
@@ -218,13 +204,13 @@ class QueueConfigurationParser {
         if (!propNode.getNodeName().equals(QUEUE_TAG)) {
           LOG.info("At root level only \" queue \" tags are allowed ");
           throw
-            new RuntimeException("Malformed xml document no queue defined ");
+              new RuntimeException("Malformed xml document no queue defined ");
         }
 
         Element prop = (Element) propNode;
         //Add children to root.
         Queue q = createHierarchy("", prop);
-        if(rootNode == null) {
+        if (rootNode == null) {
           rootNode = new Queue();
           rootNode.setName("");
         }
@@ -238,7 +224,7 @@ class QueueConfigurationParser {
   }
 
   /**
-   * @param parent Name of the parent queue
+   * @param parent    Name of the parent queue
    * @param queueNode
    * @return
    */
@@ -252,7 +238,7 @@ class QueueConfigurationParser {
     String name = "";
     Queue newQueue = new Queue();
     Map<String, AccessControlList> acls =
-      new HashMap<String, AccessControlList>();
+        new HashMap<String, AccessControlList>();
 
     NodeList fields = queueNode.getChildNodes();
     validate(queueNode);
@@ -260,7 +246,7 @@ class QueueConfigurationParser {
 
     String submitKey = "";
     String adminKey = "";
-    
+
     for (int j = 0; j < fields.getLength(); j++) {
       Node fieldNode = fields.item(j);
       if (!(fieldNode instanceof Element)) {
@@ -270,8 +256,8 @@ class QueueConfigurationParser {
       if (QUEUE_NAME_TAG.equals(field.getTagName())) {
         String nameValue = field.getTextContent();
         if (field.getTextContent() == null ||
-          field.getTextContent().trim().equals("") ||
-          field.getTextContent().contains(NAME_SEPARATOR)) {
+            field.getTextContent().trim().equals("") ||
+            field.getTextContent().contains(NAME_SEPARATOR)) {
           throw new RuntimeException("Improper queue name : " + nameValue);
         }
 
@@ -291,7 +277,7 @@ class QueueConfigurationParser {
       if (QUEUE_TAG.equals(field.getTagName()) && field.hasChildNodes()) {
         subQueues.add(field);
       }
-      if(isAclsEnabled()) {
+      if (isAclsEnabled()) {
         if (ACL_SUBMIT_JOB_TAG.equals(field.getTagName())) {
           acls.put(submitKey, new AccessControlList(field.getTextContent()));
         }
@@ -311,21 +297,21 @@ class QueueConfigurationParser {
         newQueue.setState(QueueState.getState(state));
       }
     }
-    
+
     if (!acls.containsKey(submitKey)) {
       acls.put(submitKey, new AccessControlList(" "));
     }
-    
+
     if (!acls.containsKey(adminKey)) {
       acls.put(adminKey, new AccessControlList(" "));
     }
-    
+
     //Set acls
     newQueue.setAcls(acls);
     //At this point we have the queue ready at current height level.
     //so we have parent name available.
 
-    for(Element field:subQueues) {
+    for (Element field : subQueues) {
       newQueue.addChild(createHierarchy(newQueue.getName(), field));
     }
     return newQueue;
@@ -355,10 +341,10 @@ class QueueConfigurationParser {
         if (prop.hasAttributes()) {
           NamedNodeMap nmp = prop.getAttributes();
           if (nmp.getNamedItem(KEY_TAG) != null && nmp.getNamedItem(
-            VALUE_TAG) != null) {
+              VALUE_TAG) != null) {
             props.setProperty(
-              nmp.getNamedItem(KEY_TAG).getTextContent(), nmp.getNamedItem(
-                VALUE_TAG).getTextContent());
+                nmp.getNamedItem(KEY_TAG).getTextContent(), nmp.getNamedItem(
+                    VALUE_TAG).getTextContent());
           }
         }
       }
@@ -367,13 +353,13 @@ class QueueConfigurationParser {
   }
 
   /**
-   *
    * Checks if there is NAME_TAG for queues.
-   *
+   * <p>
    * Checks if (queue has children)
-   *  then it shouldnot have acls-* or state
-   *   else
-   *  throws an Exception.
+   * then it shouldnot have acls-* or state
+   * else
+   * throws an Exception.
+   *
    * @param node
    */
   private void validate(Node node) {
@@ -390,19 +376,19 @@ class QueueConfigurationParser {
       siblings.add((fields.item(i)).getNodeName());
     }
 
-    if(! siblings.contains(QUEUE_NAME_TAG)) {
+    if (!siblings.contains(QUEUE_NAME_TAG)) {
       throw new RuntimeException(
-        " Malformed xml formation queue name not specified ");
+          " Malformed xml formation queue name not specified ");
     }
 
     if (siblings.contains(QUEUE_TAG) && (
-      siblings.contains(ACL_ADMINISTER_JOB_TAG) ||
-        siblings.contains(ACL_SUBMIT_JOB_TAG) ||
-        siblings.contains(STATE_TAG)
+        siblings.contains(ACL_ADMINISTER_JOB_TAG) ||
+            siblings.contains(ACL_SUBMIT_JOB_TAG) ||
+            siblings.contains(STATE_TAG)
     )) {
       throw new RuntimeException(
-        " Malformed xml formation queue tag and acls " +
-          "tags or state tags are siblings ");
+          " Malformed xml formation queue tag and acls " +
+              "tags or state tags are siblings ");
     }
   }
 
@@ -419,7 +405,7 @@ class QueueConfigurationParser {
    * Construct an {@link Element} for a single queue, constructing the inner
    * queue &lt;name/&gt;, &lt;properties/&gt;, &lt;state/&gt; and the inner
    * &lt;queue&gt; elements recursively.
-   * 
+   *
    * @param document
    * @param jqi
    * @return

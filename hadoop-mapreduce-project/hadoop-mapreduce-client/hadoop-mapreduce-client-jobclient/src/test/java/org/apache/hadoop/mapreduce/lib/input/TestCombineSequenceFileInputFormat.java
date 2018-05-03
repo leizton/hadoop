@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,15 +18,6 @@
 
 package org.apache.hadoop.mapreduce.lib.input;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-
-import java.io.IOException;
-import java.util.BitSet;
-import java.util.List;
-import java.util.Random;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -35,19 +26,20 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.SequenceFile;
-import org.apache.hadoop.mapreduce.InputFormat;
-import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.MapContext;
-import org.apache.hadoop.mapreduce.MapReduceTestUtil;
-import org.apache.hadoop.mapreduce.RecordReader;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.task.MapContextImpl;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.util.BitSet;
+import java.util.List;
+import java.util.Random;
+
+import static org.junit.Assert.*;
+
 public class TestCombineSequenceFileInputFormat {
   private static final Log LOG =
-    LogFactory.getLog(TestCombineSequenceFileInputFormat.class);
+      LogFactory.getLog(TestCombineSequenceFileInputFormat.class);
   private static Configuration conf = new Configuration();
   private static FileSystem localFs = null;
 
@@ -61,10 +53,10 @@ public class TestCombineSequenceFileInputFormat {
   }
 
   private static Path workDir =
-    new Path(new Path(System.getProperty("test.build.data", "."), "data"),
-             "TestCombineSequenceFileInputFormat");
+      new Path(new Path(System.getProperty("test.build.data", "."), "data"),
+          "TestCombineSequenceFileInputFormat");
 
-  @Test(timeout=10000)
+  @Test(timeout = 10000)
   public void testFormat() throws IOException, InterruptedException {
     Job job = Job.getInstance(conf);
 
@@ -82,13 +74,13 @@ public class TestCombineSequenceFileInputFormat {
     createFiles(length, numFiles, random, job);
 
     TaskAttemptContext context = MapReduceTestUtil.
-      createDummyMapTaskAttemptContext(job.getConfiguration());
+        createDummyMapTaskAttemptContext(job.getConfiguration());
     // create a combine split for the files
-    InputFormat<IntWritable,BytesWritable> format =
-      new CombineSequenceFileInputFormat<IntWritable,BytesWritable>();
+    InputFormat<IntWritable, BytesWritable> format =
+        new CombineSequenceFileInputFormat<IntWritable, BytesWritable>();
     for (int i = 0; i < 3; i++) {
       int numSplits =
-        random.nextInt(length/(SequenceFile.SYNC_INTERVAL/20)) + 1;
+          random.nextInt(length / (SequenceFile.SYNC_INTERVAL / 20)) + 1;
       LOG.info("splitting: requesting = " + numSplits);
       List<InputSplit> splits = format.getSplits(job);
       LOG.info("splitting: got =        " + splits.size());
@@ -98,19 +90,19 @@ public class TestCombineSequenceFileInputFormat {
       assertEquals("We got more than one splits!", 1, splits.size());
       InputSplit split = splits.get(0);
       assertEquals("It should be CombineFileSplit",
-        CombineFileSplit.class, split.getClass());
+          CombineFileSplit.class, split.getClass());
 
       // check the split
       BitSet bits = new BitSet(length);
-      RecordReader<IntWritable,BytesWritable> reader =
-        format.createRecordReader(split, context);
-      MapContext<IntWritable,BytesWritable,IntWritable,BytesWritable> mcontext =
-        new MapContextImpl<IntWritable,BytesWritable,IntWritable,BytesWritable>(job.getConfiguration(),
-        context.getTaskAttemptID(), reader, null, null,
-        MapReduceTestUtil.createDummyReporter(), split);
+      RecordReader<IntWritable, BytesWritable> reader =
+          format.createRecordReader(split, context);
+      MapContext<IntWritable, BytesWritable, IntWritable, BytesWritable> mcontext =
+          new MapContextImpl<IntWritable, BytesWritable, IntWritable, BytesWritable>(job.getConfiguration(),
+              context.getTaskAttemptID(), reader, null, null,
+              MapReduceTestUtil.createDummyReporter(), split);
       reader.initialize(split, mcontext);
       assertEquals("reader class is CombineFileRecordReader.",
-        CombineFileRecordReader.class, reader.getClass());
+          CombineFileRecordReader.class, reader.getClass());
 
       try {
         while (reader.nextKeyValue()) {
@@ -149,17 +141,17 @@ public class TestCombineSequenceFileInputFormat {
     // generate a number of files with various lengths
     Range[] ranges = new Range[numFiles];
     for (int i = 0; i < numFiles; i++) {
-      int start = i == 0 ? 0 : ranges[i-1].end;
+      int start = i == 0 ? 0 : ranges[i - 1].end;
       int end = i == numFiles - 1 ?
-        length :
-        (length/numFiles)*(2*i + 1)/2 + random.nextInt(length/numFiles) + 1;
+          length :
+          (length / numFiles) * (2 * i + 1) / 2 + random.nextInt(length / numFiles) + 1;
       ranges[i] = new Range(start, end);
     }
     return ranges;
   }
 
   private static void createFiles(int length, int numFiles, Random random,
-    Job job) throws IOException {
+                                  Job job) throws IOException {
     Range[] ranges = createRanges(length, numFiles, random);
 
     for (int i = 0; i < numFiles; i++) {
@@ -167,8 +159,8 @@ public class TestCombineSequenceFileInputFormat {
       // create a file with length entries
       @SuppressWarnings("deprecation")
       SequenceFile.Writer writer =
-        SequenceFile.createWriter(localFs, job.getConfiguration(), file,
-                                  IntWritable.class, BytesWritable.class);
+          SequenceFile.createWriter(localFs, job.getConfiguration(), file,
+              IntWritable.class, BytesWritable.class);
       Range range = ranges[i];
       try {
         for (int j = range.start; j < range.end; j++) {

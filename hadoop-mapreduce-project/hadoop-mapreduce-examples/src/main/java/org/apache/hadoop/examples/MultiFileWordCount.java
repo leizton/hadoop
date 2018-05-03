@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,11 +18,6 @@
 
 package org.apache.hadoop.examples;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-import java.util.StringTokenizer;
-
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -30,11 +25,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparable;
-import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.RecordReader;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.lib.input.CombineFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.CombineFileRecordReader;
 import org.apache.hadoop.mapreduce.lib.input.CombineFileSplit;
@@ -44,6 +35,11 @@ import org.apache.hadoop.mapreduce.lib.reduce.IntSumReducer;
 import org.apache.hadoop.util.LineReader;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+import java.util.StringTokenizer;
 
 
 /**
@@ -72,20 +68,22 @@ public class MultiFileWordCount extends Configured implements Tool {
     }
 
     public int compareTo(Object o) {
-      WordOffset that = (WordOffset)o;
+      WordOffset that = (WordOffset) o;
 
       int f = this.fileName.compareTo(that.fileName);
-      if(f == 0) {
-        return (int)Math.signum((double)(this.offset - that.offset));
+      if (f == 0) {
+        return (int) Math.signum((double) (this.offset - that.offset));
       }
       return f;
     }
+
     @Override
     public boolean equals(Object obj) {
-      if(obj instanceof WordOffset)
+      if (obj instanceof WordOffset)
         return this.compareTo(obj) == 0;
       return false;
     }
+
     @Override
     public int hashCode() {
       assert false : "hashCode not designed";
@@ -99,13 +97,13 @@ public class MultiFileWordCount extends Configured implements Tool {
    * (custom) {@link RecordReader}. CombineFileInputFormat uses 
    * {@link CombineFileSplit}s. 
    */
-  public static class MyInputFormat 
-    extends CombineFileInputFormat<WordOffset, Text>  {
+  public static class MyInputFormat
+      extends CombineFileInputFormat<WordOffset, Text> {
 
-    public RecordReader<WordOffset,Text> createRecordReader(InputSplit split,
-        TaskAttemptContext context) throws IOException {
+    public RecordReader<WordOffset, Text> createRecordReader(InputSplit split,
+                                                             TaskAttemptContext context) throws IOException {
       return new CombineFileRecordReader<WordOffset, Text>(
-        (CombineFileSplit)split, context, CombineFileLineRecordReader.class);
+          (CombineFileSplit) split, context, CombineFileLineRecordReader.class);
     }
   }
 
@@ -113,8 +111,8 @@ public class MultiFileWordCount extends Configured implements Tool {
    * RecordReader is responsible from extracting records from a chunk
    * of the CombineFileSplit. 
    */
-  public static class CombineFileLineRecordReader 
-    extends RecordReader<WordOffset, Text> {
+  public static class CombineFileLineRecordReader
+      extends RecordReader<WordOffset, Text> {
 
     private long startOffset; //offset of the chunk;
     private long end; //end of the chunk;
@@ -123,19 +121,19 @@ public class MultiFileWordCount extends Configured implements Tool {
     private Path path;
     private WordOffset key;
     private Text value;
-    
+
     private FSDataInputStream fileIn;
     private LineReader reader;
-    
+
     public CombineFileLineRecordReader(CombineFileSplit split,
-        TaskAttemptContext context, Integer index) throws IOException {
-      
+                                       TaskAttemptContext context, Integer index) throws IOException {
+
       this.path = split.getPath(index);
       fs = this.path.getFileSystem(context.getConfiguration());
       this.startOffset = split.getOffset(index);
       this.end = startOffset + split.getLength(index);
       boolean skipFirstLine = false;
-      
+
       //open the file
       fileIn = fs.open(path);
       if (startOffset != 0) {
@@ -146,7 +144,7 @@ public class MultiFileWordCount extends Configured implements Tool {
       reader = new LineReader(fileIn);
       if (skipFirstLine) {  // skip first line and re-establish "startOffset".
         startOffset += reader.readLine(new Text(), 0,
-                    (int)Math.min((long)Integer.MAX_VALUE, end - startOffset));
+            (int) Math.min((long) Integer.MAX_VALUE, end - startOffset));
       }
       this.pos = startOffset;
     }
@@ -155,13 +153,14 @@ public class MultiFileWordCount extends Configured implements Tool {
         throws IOException, InterruptedException {
     }
 
-    public void close() throws IOException { }
+    public void close() throws IOException {
+    }
 
     public float getProgress() throws IOException {
       if (startOffset == end) {
         return 0.0f;
       } else {
-        return Math.min(1.0f, (pos - startOffset) / (float)(end - startOffset));
+        return Math.min(1.0f, (pos - startOffset) / (float) (end - startOffset));
       }
     }
 
@@ -188,7 +187,7 @@ public class MultiFileWordCount extends Configured implements Tool {
       }
     }
 
-    public WordOffset getCurrentKey() 
+    public WordOffset getCurrentKey()
         throws IOException, InterruptedException {
       return key;
     }
@@ -201,14 +200,14 @@ public class MultiFileWordCount extends Configured implements Tool {
   /**
    * This Mapper is similar to the one in {@link WordCount.MapClass}.
    */
-  public static class MapClass extends 
+  public static class MapClass extends
       Mapper<WordOffset, Text, Text, IntWritable> {
     private final static IntWritable one = new IntWritable(1);
     private Text word = new Text();
-    
+
     public void map(WordOffset key, Text value, Context context)
         throws IOException, InterruptedException {
-      
+
       String line = value.toString();
       StringTokenizer itr = new StringTokenizer(line);
       while (itr.hasMoreTokens()) {
@@ -217,14 +216,14 @@ public class MultiFileWordCount extends Configured implements Tool {
       }
     }
   }
-  
+
   private void printUsage() {
-    System.out.println("Usage : multifilewc <input_dir> <output>" );
+    System.out.println("Usage : multifilewc <input_dir> <output>");
   }
 
   public int run(String[] args) throws Exception {
 
-    if(args.length < 2) {
+    if (args.length < 2) {
       printUsage();
       return 2;
     }
@@ -235,7 +234,7 @@ public class MultiFileWordCount extends Configured implements Tool {
 
     //set the InputFormat of the job to our InputFormat
     job.setInputFormatClass(MyInputFormat.class);
-    
+
     // the keys are words (strings)
     job.setOutputKeyClass(Text.class);
     // the values are counts (ints)

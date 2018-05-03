@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,9 +17,6 @@
  */
 
 package org.apache.hadoop.mapreduce.v2.hs;
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -39,6 +36,9 @@ import org.apache.hadoop.tools.GetUserMappingsProtocol;
 import org.apache.hadoop.tools.protocolPB.GetUserMappingsProtocolClientSideTranslatorPB;
 import org.apache.hadoop.tools.protocolPB.GetUserMappingsProtocolPB;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+
 @Private
 public class HSProxies {
 
@@ -46,7 +46,7 @@ public class HSProxies {
 
   @SuppressWarnings("unchecked")
   public static <T> T createProxy(Configuration conf, InetSocketAddress hsaddr,
-      Class<T> xface, UserGroupInformation ugi) throws IOException {
+                                  Class<T> xface, UserGroupInformation ugi) throws IOException {
 
     T proxy;
     if (xface == RefreshUserMappingsProtocol.class) {
@@ -91,8 +91,8 @@ public class HSProxies {
   }
 
   private static Object createHSProxy(InetSocketAddress address,
-      Configuration conf, UserGroupInformation ugi, Class<?> xface,
-      int rpcTimeout) throws IOException {
+                                      Configuration conf, UserGroupInformation ugi, Class<?> xface,
+                                      int rpcTimeout) throws IOException {
     RPC.setProtocolEngine(conf, xface, ProtobufRpcEngine.class);
     Object proxy = RPC.getProxy(xface, RPC.getProtocolVersion(xface), address,
         ugi, conf, NetUtils.getDefaultSocketFactory(conf), rpcTimeout);

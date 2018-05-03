@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,13 +18,10 @@
 
 package org.apache.hadoop.mapreduce.jobhistory;
 
-import java.io.IOException;
-
+import org.apache.avro.util.Utf8;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.mapreduce.JobID;
-
-import org.apache.avro.util.Utf8;
 
 /**
  * Event to record the change of status for a job
@@ -45,17 +42,27 @@ public class JobStatusChangedEvent implements HistoryEvent {
     datum.jobStatus = new Utf8(jobStatus);
   }
 
-  JobStatusChangedEvent() {}
+  JobStatusChangedEvent() {
+  }
 
-  public Object getDatum() { return datum; }
+  public Object getDatum() {
+    return datum;
+  }
+
   public void setDatum(Object datum) {
-    this.datum = (JobStatusChanged)datum;
+    this.datum = (JobStatusChanged) datum;
   }
 
   /** Get the Job Id */
-  public JobID getJobId() { return JobID.forName(datum.jobid.toString()); }
+  public JobID getJobId() {
+    return JobID.forName(datum.jobid.toString());
+  }
+
   /** Get the event status */
-  public String getStatus() { return datum.jobStatus.toString(); }
+  public String getStatus() {
+    return datum.jobStatus.toString();
+  }
+
   /** Get the event type */
   public EventType getEventType() {
     return EventType.JOB_STATUS_CHANGED;

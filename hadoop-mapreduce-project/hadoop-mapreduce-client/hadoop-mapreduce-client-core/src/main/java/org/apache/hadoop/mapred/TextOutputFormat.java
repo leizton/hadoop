@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,23 +18,23 @@
 
 package org.apache.hadoop.mapred;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.FSDataOutputStream;
-
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.io.compress.GzipCodec;
-import org.apache.hadoop.util.*;
+import org.apache.hadoop.util.Progressable;
+import org.apache.hadoop.util.ReflectionUtils;
 
-/** 
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+
+/**
  * An {@link OutputFormat} that writes plain text files. 
  */
 @InterfaceAudience.Public
@@ -42,9 +42,10 @@ import org.apache.hadoop.util.*;
 public class TextOutputFormat<K, V> extends FileOutputFormat<K, V> {
 
   protected static class LineRecordWriter<K, V>
-    implements RecordWriter<K, V> {
+      implements RecordWriter<K, V> {
     private static final String utf8 = "UTF-8";
     private static final byte[] newline;
+
     static {
       try {
         newline = "\n".getBytes(utf8);
@@ -85,7 +86,7 @@ public class TextOutputFormat<K, V> extends FileOutputFormat<K, V> {
     }
 
     public synchronized void write(K key, V value)
-      throws IOException {
+        throws IOException {
 
       boolean nullKey = key == null || key instanceof NullWritable;
       boolean nullValue = value == null || value instanceof NullWritable;
@@ -110,13 +111,13 @@ public class TextOutputFormat<K, V> extends FileOutputFormat<K, V> {
   }
 
   public RecordWriter<K, V> getRecordWriter(FileSystem ignored,
-                                                  JobConf job,
-                                                  String name,
-                                                  Progressable progress)
-    throws IOException {
+                                            JobConf job,
+                                            String name,
+                                            Progressable progress)
+      throws IOException {
     boolean isCompressed = getCompressOutput(job);
-    String keyValueSeparator = job.get("mapreduce.output.textoutputformat.separator", 
-                                       "\t");
+    String keyValueSeparator = job.get("mapreduce.output.textoutputformat.separator",
+        "\t");
     if (!isCompressed) {
       Path file = FileOutputFormat.getTaskOutputPath(job, name);
       FileSystem fs = file.getFileSystem(job);
@@ -124,18 +125,18 @@ public class TextOutputFormat<K, V> extends FileOutputFormat<K, V> {
       return new LineRecordWriter<K, V>(fileOut, keyValueSeparator);
     } else {
       Class<? extends CompressionCodec> codecClass =
-        getOutputCompressorClass(job, GzipCodec.class);
+          getOutputCompressorClass(job, GzipCodec.class);
       // create the named codec
       CompressionCodec codec = ReflectionUtils.newInstance(codecClass, job);
       // build the filename including the extension
-      Path file = 
-        FileOutputFormat.getTaskOutputPath(job, 
-                                           name + codec.getDefaultExtension());
+      Path file =
+          FileOutputFormat.getTaskOutputPath(job,
+              name + codec.getDefaultExtension());
       FileSystem fs = file.getFileSystem(job);
       FSDataOutputStream fileOut = fs.create(file, progress);
       return new LineRecordWriter<K, V>(new DataOutputStream
-                                        (codec.createOutputStream(fileOut)),
-                                        keyValueSeparator);
+          (codec.createOutputStream(fileOut)),
+          keyValueSeparator);
     }
   }
 }

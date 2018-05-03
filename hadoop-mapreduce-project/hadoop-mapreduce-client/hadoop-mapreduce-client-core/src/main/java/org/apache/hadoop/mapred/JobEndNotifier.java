@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,10 +17,6 @@
  */
 
 package org.apache.hadoop.mapred;
-
-import java.io.IOException;
-import java.util.concurrent.Delayed;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
@@ -31,13 +27,16 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 
+import java.io.IOException;
+import java.util.concurrent.Delayed;
+import java.util.concurrent.TimeUnit;
+
 @InterfaceAudience.Private
 @InterfaceStability.Unstable
 public class JobEndNotifier {
   private static final Log LOG =
-    LogFactory.getLog(JobEndNotifier.class.getName());
+      LogFactory.getLog(JobEndNotifier.class.getName());
 
- 
 
   private static JobEndStatusInfo createNotification(JobConf conf,
                                                      JobStatus status) {
@@ -53,8 +52,8 @@ public class JobEndNotifier {
       }
       if (uri.contains("$jobStatus")) {
         String statusStr =
-          (status.getRunState() == JobStatus.SUCCEEDED) ? "SUCCEEDED" : 
-            (status.getRunState() == JobStatus.FAILED) ? "FAILED" : "KILLED";
+            (status.getRunState() == JobStatus.SUCCEEDED) ? "SUCCEEDED" :
+                (status.getRunState() == JobStatus.FAILED) ? "FAILED" : "KILLED";
         uri = uri.replace("$jobStatus", statusStr);
       }
       notification = new JobEndStatusInfo(
@@ -86,21 +85,17 @@ public class JobEndNotifier {
               notification.getTimeout());
           if (code != 200) {
             throw new IOException("Invalid response status code: " + code);
-          }
-          else {
+          } else {
             break;
           }
-        }
-        catch (IOException ioex) {
+        } catch (IOException ioex) {
           LOG.error("Notification error [" + notification.getUri() + "]", ioex);
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
           LOG.error("Notification error [" + notification.getUri() + "]", ex);
         }
         try {
           Thread.sleep(notification.getRetryInterval());
-        }
-        catch (InterruptedException iex) {
+        } catch (InterruptedException iex) {
           LOG.error("Notification retry error [" + notification + "]", iex);
         }
       } while (notification.configureForRetry());
@@ -115,7 +110,7 @@ public class JobEndNotifier {
     private int timeout;
 
     JobEndStatusInfo(String uri, int retryAttempts, long retryInterval,
-        int timeout) {
+                     int timeout) {
       this.uri = uri;
       this.retryAttempts = retryAttempts;
       this.retryInterval = retryInterval;
@@ -155,7 +150,7 @@ public class JobEndNotifier {
     }
 
     public int compareTo(Delayed d) {
-      return (int)(delayTime - ((JobEndStatusInfo)d).delayTime);
+      return (int) (delayTime - ((JobEndStatusInfo) d).delayTime);
     }
 
     @Override
@@ -163,7 +158,7 @@ public class JobEndNotifier {
       if (!(o instanceof JobEndStatusInfo)) {
         return false;
       }
-      if (delayTime == ((JobEndStatusInfo)o).delayTime) {
+      if (delayTime == ((JobEndStatusInfo) o).delayTime) {
         return true;
       }
       return false;
@@ -171,13 +166,13 @@ public class JobEndNotifier {
 
     @Override
     public int hashCode() {
-      return 37 * 17 + (int) (delayTime^(delayTime>>>32));
+      return 37 * 17 + (int) (delayTime ^ (delayTime >>> 32));
     }
-      
+
     @Override
     public String toString() {
       return "URL: " + uri + " remaining retries: " + retryAttempts +
-        " interval: " + retryInterval;
+          " interval: " + retryInterval;
     }
 
   }

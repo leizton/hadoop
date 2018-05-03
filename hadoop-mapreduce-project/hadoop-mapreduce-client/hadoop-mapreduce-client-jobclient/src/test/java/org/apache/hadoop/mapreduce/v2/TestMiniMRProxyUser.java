@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,19 +30,16 @@ import org.apache.hadoop.mapred.RunningJob;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.authorize.ProxyUsers;
 
-import java.net.InetAddress;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.net.InetAddress;
 import java.security.PrivilegedExceptionAction;
 
 public class TestMiniMRProxyUser extends TestCase {
 
   private MiniDFSCluster dfsCluster = null;
   private MiniMRCluster mrCluster = null;
-    
+
   protected void setUp() throws Exception {
     super.setUp();
     if (System.getProperty("hadoop.log.dir") == null) {
@@ -90,7 +87,7 @@ public class TestMiniMRProxyUser extends TestCase {
   protected JobConf getJobConf() {
     return mrCluster.createJobConf();
   }
-  
+
   @Override
   protected void tearDown() throws Exception {
     if (mrCluster != null) {
@@ -125,39 +122,37 @@ public class TestMiniMRProxyUser extends TestCase {
     assertTrue(runJob.isComplete());
     assertTrue(runJob.isSuccessful());
   }
-    
+
   public void __testCurrentUser() throws Exception {
-   mrRun();
-  }  
+    mrRun();
+  }
 
   public void testValidProxyUser() throws Exception {
     UserGroupInformation ugi = UserGroupInformation.createProxyUser("u1", UserGroupInformation.getLoginUser());
     ugi.doAs(new PrivilegedExceptionAction<Void>() {
-        public Void run() throws Exception {
-          mrRun();
-          return null;
-        }
+      public Void run() throws Exception {
+        mrRun();
+        return null;
+      }
 
- 
+
     });
   }
 
   public void ___testInvalidProxyUser() throws Exception {
     UserGroupInformation ugi = UserGroupInformation.createProxyUser("u2", UserGroupInformation.getLoginUser());
     ugi.doAs(new PrivilegedExceptionAction<Void>() {
-        public Void run() throws Exception {
-          try {
-            mrRun();
-            fail();
-          }
-          catch (RemoteException ex) {
-            //nop
-          }
-          catch (Exception ex) {
-            fail();
-          }
-          return null;
+      public Void run() throws Exception {
+        try {
+          mrRun();
+          fail();
+        } catch (RemoteException ex) {
+          //nop
+        } catch (Exception ex) {
+          fail();
         }
+        return null;
+      }
     });
   }
 }

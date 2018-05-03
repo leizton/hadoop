@@ -31,12 +31,12 @@ public class Limits {
   private LimitExceededException firstViolation;
 
   private static boolean isInited;
-  
+
   private static int GROUP_NAME_MAX;
   private static int COUNTER_NAME_MAX;
   private static int GROUPS_MAX;
   private static int COUNTERS_MAX;
-  
+
   public synchronized static void init(Configuration conf) {
     if (!isInited) {
       if (conf == null) {
@@ -51,35 +51,35 @@ public class Limits {
     }
     isInited = true;
   }
-  
+
   public static int getGroupNameMax() {
     if (!isInited) {
       init(null);
     }
     return GROUP_NAME_MAX;
   }
-  
+
   public static int getCounterNameMax() {
     if (!isInited) {
       init(null);
     }
     return COUNTER_NAME_MAX;
   }
-  
+
   public static int getGroupsMax() {
     if (!isInited) {
       init(null);
     }
     return GROUPS_MAX;
   }
-  
+
   public static int getCountersMax() {
     if (!isInited) {
       init(null);
     }
     return COUNTERS_MAX;
   }
-  
+
   public static String filterName(String name, int maxLen) {
     return name.length() > maxLen ? name.substring(0, maxLen - 1) : name;
   }
@@ -98,8 +98,8 @@ public class Limits {
     }
     int countersMax = getCountersMax();
     if (size > countersMax) {
-      firstViolation = new LimitExceededException("Too many counters: "+ size +
-                                                  " max="+ countersMax);
+      firstViolation = new LimitExceededException("Too many counters: " + size +
+          " max=" + countersMax);
       throw firstViolation;
     }
   }
@@ -115,8 +115,8 @@ public class Limits {
     }
     int groupsMax = getGroupsMax();
     if (size > groupsMax) {
-      firstViolation = new LimitExceededException("Too many counter groups: "+
-                                                  size +" max="+ groupsMax);
+      firstViolation = new LimitExceededException("Too many counter groups: " +
+          size + " max=" + groupsMax);
     }
   }
 

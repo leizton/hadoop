@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,18 +17,6 @@
  */
 
 package org.apache.hadoop.mapred.pipes;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-
-import javax.crypto.SecretKey;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,12 +29,7 @@ import org.apache.hadoop.io.FloatWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.WritableComparable;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.OutputCollector;
-import org.apache.hadoop.mapred.RecordReader;
-import org.apache.hadoop.mapred.Reporter;
-import org.apache.hadoop.mapred.TaskAttemptID;
-import org.apache.hadoop.mapred.TaskLog;
+import org.apache.hadoop.mapred.*;
 import org.apache.hadoop.mapreduce.MRJobConfig;
 import org.apache.hadoop.mapreduce.filecache.DistributedCache;
 import org.apache.hadoop.mapreduce.security.SecureShuffleUtils;
@@ -57,12 +40,19 @@ import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.hadoop.util.StringUtils;
 
+import javax.crypto.SecretKey;
+import java.io.File;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.*;
+
 /**
  * This class is responsible for launching and communicating with the child 
  * process.
  */
 class Application<K1 extends WritableComparable, V1 extends Writable,
-                  K2 extends WritableComparable, V2 extends Writable> {
+    K2 extends WritableComparable, V2 extends Writable> {
   private static final Log LOG = LogFactory.getLog(Application.class.getName());
   private ServerSocket serverSocket;
   private Process process;
@@ -70,7 +60,7 @@ class Application<K1 extends WritableComparable, V1 extends Writable,
   private OutputHandler<K2, V2> handler;
   private DownwardProtocol<K1, V1> downlink;
   static final boolean WINDOWS
-  = System.getProperty("os.name").startsWith("Windows");
+      = System.getProperty("os.name").startsWith("Windows");
 
   /**
    * Start the child process to handle the task for us.
@@ -83,30 +73,30 @@ class Application<K1 extends WritableComparable, V1 extends Writable,
    * @throws IOException
    * @throws InterruptedException
    */
-  Application(JobConf conf, 
-              RecordReader<FloatWritable, NullWritable> recordReader, 
-              OutputCollector<K2,V2> output, Reporter reporter,
+  Application(JobConf conf,
+              RecordReader<FloatWritable, NullWritable> recordReader,
+              OutputCollector<K2, V2> output, Reporter reporter,
               Class<? extends K2> outputKeyClass,
               Class<? extends V2> outputValueClass
-              ) throws IOException, InterruptedException {
+  ) throws IOException, InterruptedException {
     serverSocket = new ServerSocket(0);
-    Map<String, String> env = new HashMap<String,String>();
+    Map<String, String> env = new HashMap<String, String>();
     // add TMPDIR environment variable with the value of java.io.tmpdir
     env.put("TMPDIR", System.getProperty("java.io.tmpdir"));
-    env.put(Submitter.PORT, 
-            Integer.toString(serverSocket.getLocalPort()));
-    
+    env.put(Submitter.PORT,
+        Integer.toString(serverSocket.getLocalPort()));
+
     //Add token to the environment if security is enabled
     Token<JobTokenIdentifier> jobToken = TokenCache.getJobToken(conf
         .getCredentials());
     // This password is used as shared secret key between this application and
     // child pipes process
-    byte[]  password = jobToken.getPassword();
+    byte[] password = jobToken.getPassword();
     String localPasswordFile = new File(".") + Path.SEPARATOR
         + "jobTokenPassword";
     writePasswordToLocalFile(localPasswordFile, password, conf);
     env.put("hadoop.pipes.shared.secret.location", localPasswordFile);
- 
+
     List<String> cmd = new ArrayList<String>();
     String interpretor = conf.get(Submitter.INTERPRETOR);
     if (interpretor != null) {
@@ -122,30 +112,30 @@ class Application<K1 extends WritableComparable, V1 extends Writable,
     // wrap the command in a stdout/stderr capture
     // we are starting map/reduce task of the pipes job. this is not a cleanup
     // attempt. 
-    TaskAttemptID taskid = 
-      TaskAttemptID.forName(conf.get(MRJobConfig.TASK_ATTEMPT_ID));
+    TaskAttemptID taskid =
+        TaskAttemptID.forName(conf.get(MRJobConfig.TASK_ATTEMPT_ID));
     File stdout = TaskLog.getTaskLogFile(taskid, false, TaskLog.LogName.STDOUT);
     File stderr = TaskLog.getTaskLogFile(taskid, false, TaskLog.LogName.STDERR);
     long logLength = TaskLog.getTaskLogLength(conf);
     cmd = TaskLog.captureOutAndError(null, cmd, stdout, stderr, logLength,
-                                     false);
-    
+        false);
+
     process = runClient(cmd, env);
     clientSocket = serverSocket.accept();
-    
+
     String challenge = getSecurityChallenge();
     String digestToSend = createDigest(password, challenge);
     String digestExpected = createDigest(password, digestToSend);
-    
-    handler = new OutputHandler<K2, V2>(output, reporter, recordReader, 
+
+    handler = new OutputHandler<K2, V2>(output, reporter, recordReader,
         digestExpected);
     K2 outputKey = (K2)
-      ReflectionUtils.newInstance(outputKeyClass, conf);
-    V2 outputValue = (V2) 
-      ReflectionUtils.newInstance(outputValueClass, conf);
-    downlink = new BinaryProtocol<K1, V1, K2, V2>(clientSocket, handler, 
-                                  outputKey, outputValue, conf);
-    
+        ReflectionUtils.newInstance(outputKeyClass, conf);
+    V2 outputValue = (V2)
+        ReflectionUtils.newInstance(outputValueClass, conf);
+    downlink = new BinaryProtocol<K1, V1, K2, V2>(clientSocket, handler,
+        outputKey, outputValue, conf);
+
     downlink.authenticate(digestToSend, challenge);
     waitForAuthentication();
     LOG.debug("Authentication succeeded");
@@ -165,7 +155,7 @@ class Application<K1 extends WritableComparable, V1 extends Writable,
   }
 
   private void writePasswordToLocalFile(String localPasswordFile,
-      byte[] password, JobConf conf) throws IOException {
+                                        byte[] password, JobConf conf) throws IOException {
     FileSystem localFs = FileSystem.getLocal(conf);
     Path localPath = new Path(localPasswordFile);
     FSDataOutputStream out = FileSystem.create(localFs, localPath,
@@ -182,7 +172,7 @@ class Application<K1 extends WritableComparable, V1 extends Writable,
   DownwardProtocol<K1, V1> getDownlink() {
     return downlink;
   }
-  
+
   /**
    * Wait for authentication response.
    * @throws IOException
@@ -194,7 +184,7 @@ class Application<K1 extends WritableComparable, V1 extends Writable,
     LOG.debug("Waiting for authentication response");
     handler.waitForAuthentication();
   }
-  
+
   /**
    * Wait for the application to finish
    * @return did the application finish correctly?
@@ -225,9 +215,9 @@ class Application<K1 extends WritableComparable, V1 extends Writable,
     }
     IOException wrapper = new IOException("pipe child exception");
     wrapper.initCause(t);
-    throw wrapper;      
+    throw wrapper;
   }
-  
+
   /**
    * Clean up the child procress and socket.
    * @throws IOException
@@ -238,7 +228,7 @@ class Application<K1 extends WritableComparable, V1 extends Writable,
       downlink.close();
     } catch (InterruptedException ie) {
       Thread.currentThread().interrupt();
-    }      
+    }
   }
 
   /**
@@ -249,7 +239,7 @@ class Application<K1 extends WritableComparable, V1 extends Writable,
    * @return a handle on the process
    * @throws IOException
    */
-  static Process runClient(List<String> command, 
+  static Process runClient(List<String> command,
                            Map<String, String> env) throws IOException {
     ProcessBuilder builder = new ProcessBuilder(command);
     if (env != null) {
@@ -258,7 +248,7 @@ class Application<K1 extends WritableComparable, V1 extends Writable,
     Process result = builder.start();
     return result;
   }
-  
+
   public static String createDigest(byte[] password, String data)
       throws IOException {
     SecretKey key = JobTokenSecretManager.createSecretKey(password);

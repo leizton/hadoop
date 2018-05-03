@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,10 +19,6 @@
 package org.apache.hadoop.mapreduce.v2.api.protocolrecords.impl.pb;
 
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetTaskAttemptCompletionEventsResponse;
 import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptCompletionEvent;
 import org.apache.hadoop.mapreduce.v2.api.records.impl.pb.TaskAttemptCompletionEventPBImpl;
@@ -31,16 +27,19 @@ import org.apache.hadoop.mapreduce.v2.proto.MRServiceProtos.GetTaskAttemptComple
 import org.apache.hadoop.mapreduce.v2.proto.MRServiceProtos.GetTaskAttemptCompletionEventsResponseProtoOrBuilder;
 import org.apache.hadoop.yarn.api.records.impl.pb.ProtoBase;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
-    
+
 public class GetTaskAttemptCompletionEventsResponsePBImpl extends ProtoBase<GetTaskAttemptCompletionEventsResponseProto> implements GetTaskAttemptCompletionEventsResponse {
   GetTaskAttemptCompletionEventsResponseProto proto = GetTaskAttemptCompletionEventsResponseProto.getDefaultInstance();
   GetTaskAttemptCompletionEventsResponseProto.Builder builder = null;
   boolean viaProto = false;
-  
+
   private List<TaskAttemptCompletionEvent> completionEvents = null;
-  
-  
+
+
   public GetTaskAttemptCompletionEventsResponsePBImpl() {
     builder = GetTaskAttemptCompletionEventsResponseProto.newBuilder();
   }
@@ -49,9 +48,9 @@ public class GetTaskAttemptCompletionEventsResponsePBImpl extends ProtoBase<GetT
     this.proto = proto;
     viaProto = true;
   }
-  
+
   public GetTaskAttemptCompletionEventsResponseProto getProto() {
-      mergeLocalToProto();
+    mergeLocalToProto();
     proto = viaProto ? proto : builder.build();
     viaProto = true;
     return proto;
@@ -64,7 +63,7 @@ public class GetTaskAttemptCompletionEventsResponsePBImpl extends ProtoBase<GetT
   }
 
   private void mergeLocalToProto() {
-    if (viaProto) 
+    if (viaProto)
       maybeInitBuilder();
     mergeLocalToBuilder();
     proto = builder.build();
@@ -77,24 +76,26 @@ public class GetTaskAttemptCompletionEventsResponsePBImpl extends ProtoBase<GetT
     }
     viaProto = false;
   }
-    
-  
+
+
   @Override
   public List<TaskAttemptCompletionEvent> getCompletionEventList() {
     initCompletionEvents();
     return this.completionEvents;
   }
+
   @Override
   public TaskAttemptCompletionEvent getCompletionEvent(int index) {
     initCompletionEvents();
     return this.completionEvents.get(index);
   }
+
   @Override
   public int getCompletionEventCount() {
     initCompletionEvents();
     return this.completionEvents.size();
   }
-  
+
   private void initCompletionEvents() {
     if (this.completionEvents != null) {
       return;
@@ -107,7 +108,7 @@ public class GetTaskAttemptCompletionEventsResponsePBImpl extends ProtoBase<GetT
       this.completionEvents.add(convertFromProtoFormat(c));
     }
   }
-  
+
   @Override
   public void addAllCompletionEvents(final List<TaskAttemptCompletionEvent> completionEvents) {
     if (completionEvents == null)
@@ -115,7 +116,7 @@ public class GetTaskAttemptCompletionEventsResponsePBImpl extends ProtoBase<GetT
     initCompletionEvents();
     this.completionEvents.addAll(completionEvents);
   }
-  
+
   private void addCompletionEventsToProto() {
     maybeInitBuilder();
     builder.clearCompletionEvents();
@@ -149,16 +150,19 @@ public class GetTaskAttemptCompletionEventsResponsePBImpl extends ProtoBase<GetT
     };
     builder.addAllCompletionEvents(iterable);
   }
+
   @Override
   public void addCompletionEvent(TaskAttemptCompletionEvent completionEvents) {
     initCompletionEvents();
     this.completionEvents.add(completionEvents);
   }
+
   @Override
   public void removeCompletionEvent(int index) {
     initCompletionEvents();
     this.completionEvents.remove(index);
   }
+
   @Override
   public void clearCompletionEvents() {
     initCompletionEvents();
@@ -170,9 +174,8 @@ public class GetTaskAttemptCompletionEventsResponsePBImpl extends ProtoBase<GetT
   }
 
   private TaskAttemptCompletionEventProto convertToProtoFormat(TaskAttemptCompletionEvent t) {
-    return ((TaskAttemptCompletionEventPBImpl)t).getProto();
+    return ((TaskAttemptCompletionEventPBImpl) t).getProto();
   }
 
 
-
-}  
+}

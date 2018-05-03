@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,11 +16,6 @@
  * limitations under the License.
  */
 package org.apache.hadoop.ipc;
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketAddress;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -35,6 +30,11 @@ import org.apache.hadoop.mapreduce.v2.MiniMRYarnCluster;
 import org.apache.hadoop.net.StandardSocketFactory;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketAddress;
 
 /**
  * This class checks that RPCs can use specialized socket factories.
@@ -85,7 +85,7 @@ public class TestMRCJCSocketFactory {
       miniMRYarnCluster = initAndStartMiniMRYarnCluster(jobConf);
       JobConf jconf = new JobConf(miniMRYarnCluster.getConfig());
       jconf.set("hadoop.rpc.socket.factory.class.default",
-                "org.apache.hadoop.ipc.DummySocketFactory");
+          "org.apache.hadoop.ipc.DummySocketFactory");
       jconf.set(MRConfig.FRAMEWORK_NAME, MRConfig.YARN_FRAMEWORK_NAME);
       String rmAddress = jconf.get("yarn.resourcemanager.address");
       String[] split = rmAddress.split(":");

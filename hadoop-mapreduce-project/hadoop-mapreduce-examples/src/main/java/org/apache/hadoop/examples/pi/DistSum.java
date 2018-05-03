@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,17 +16,6 @@
  * limitations under the License.
  */
 package org.apache.hadoop.examples.pi;
-
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,23 +27,18 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Writable;
-import org.apache.hadoop.mapreduce.Cluster;
-import org.apache.hadoop.mapreduce.ClusterMetrics;
-import org.apache.hadoop.mapreduce.InputFormat;
-import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.JobContext;
-import org.apache.hadoop.mapreduce.MRJobConfig;
-import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.Partitioner;
-import org.apache.hadoop.mapreduce.RecordReader;
-import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.TaskInputOutputContext;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
 
 /**
  * The main class for computing sums using map/reduce jobs.
@@ -71,17 +55,18 @@ public final class DistSum extends Configured implements Tool {
   private static final String NAME = DistSum.class.getSimpleName();
   private static final String N_PARTS = "mapreduce.pi." + NAME + ".nParts";
   /////////////////////////////////////////////////////////////////////////////
+
   /** DistSum job parameters */
   static class Parameters {
     static final int COUNT = 6;
     static final String LIST = "<nThreads> <nJobs> <type> <nPart> <remoteDir> <localDir>";
     static final String DESCRIPTION =
         "\n  <nThreads> The number of working threads."
-      + "\n  <nJobs> The number of jobs per sum."
-      + "\n  <type> 'm' for map side job, 'r' for reduce side job, 'x' for mix type."
-      + "\n  <nPart> The number of parts per job."
-      + "\n  <remoteDir> Remote directory for submitting jobs."
-      + "\n  <localDir> Local directory for storing output files.";
+            + "\n  <nJobs> The number of jobs per sum."
+            + "\n  <type> 'm' for map side job, 'r' for reduce side job, 'x' for mix type."
+            + "\n  <nPart> The number of parts per job."
+            + "\n  <remoteDir> Remote directory for submitting jobs."
+            + "\n  <localDir> Local directory for storing output files.";
 
     /** Number of worker threads */
     final int nThreads;
@@ -95,9 +80,9 @@ public final class DistSum extends Configured implements Tool {
     final String remoteDir;
     /** The local output directory */
     final File localDir;
-  
+
     private Parameters(Machine machine, int nThreads, int nJobs, int nParts,
-        String remoteDir, File localDir) {
+                       String remoteDir, File localDir) {
       this.machine = machine;
       this.nThreads = nThreads;
       this.nJobs = nJobs;
@@ -109,10 +94,10 @@ public final class DistSum extends Configured implements Tool {
     /** {@inheritDoc} */
     public String toString() {
       return "\nnThreads  = " + nThreads
-           + "\nnJobs     = " + nJobs
-           + "\nnParts    = " + nParts + " (" + machine + ")"
-           + "\nremoteDir = " + remoteDir
-           + "\nlocalDir  = " + localDir;
+          + "\nnJobs     = " + nJobs
+          + "\nnParts    = " + nParts + " (" + machine + ")"
+          + "\nremoteDir = " + remoteDir
+          + "\nlocalDir  = " + localDir;
     }
 
     /** Parse parameters */
@@ -121,7 +106,7 @@ public final class DistSum extends Configured implements Tool {
         throw new IllegalArgumentException("args.length - i < COUNT = "
             + COUNT + ", args.length="
             + args.length + ", i=" + i + ", args=" + Arrays.asList(args));
-      
+
       final int nThreads = Integer.parseInt(args[i++]);
       final int nJobs = Integer.parseInt(args[i++]);
       final String type = args[i++];
@@ -129,7 +114,7 @@ public final class DistSum extends Configured implements Tool {
       final String remoteDir = args[i++];
       final File localDir = new File(args[i++]);
 
-      if (!"m".equals(type) && !"r".equals(type) && !"x".equals(type)) { 
+      if (!"m".equals(type) && !"r".equals(type) && !"x".equals(type)) {
         throw new IllegalArgumentException("type=" + type + " is not equal to m, r or x");
       } else if (nParts <= 0) {
         throw new IllegalArgumentException("nParts = " + nParts + " <= 0");
@@ -140,24 +125,27 @@ public final class DistSum extends Configured implements Tool {
       }
       Util.checkDirectory(localDir);
 
-      return new Parameters("m".equals(type)? MapSide.INSTANCE
-          : "r".equals(type)? ReduceSide.INSTANCE: MixMachine.INSTANCE,
+      return new Parameters("m".equals(type) ? MapSide.INSTANCE
+          : "r".equals(type) ? ReduceSide.INSTANCE : MixMachine.INSTANCE,
           nThreads, nJobs, nParts, remoteDir, localDir);
     }
   }
   /////////////////////////////////////////////////////////////////////////////
+
   /** Abstract machine for job execution. */
   public static abstract class Machine {
     /** Initialize a job */
     abstract void init(Job job) throws IOException;
-    
+
     /** {@inheritDoc} */
-    public String toString() {return getClass().getSimpleName();}
+    public String toString() {
+      return getClass().getSimpleName();
+    }
 
     /** Compute sigma */
     static void compute(Summation sigma,
-        TaskInputOutputContext<?, ?, NullWritable, TaskResult> context
-        ) throws IOException, InterruptedException {
+                        TaskInputOutputContext<?, ?, NullWritable, TaskResult> context
+    ) throws IOException, InterruptedException {
       String s;
       LOG.info(s = "sigma=" + sigma);
       context.setStatus(s);
@@ -175,26 +163,40 @@ public final class DistSum extends Configured implements Tool {
     /** Split for the summations */
     public static final class SummationSplit extends InputSplit implements Writable, Container<Summation> {
       private final static String[] EMPTY = {};
-  
+
       private Summation sigma;
-  
-      public SummationSplit() {}
-      private SummationSplit(Summation sigma) {this.sigma = sigma;}
+
+      public SummationSplit() {
+      }
+
+      private SummationSplit(Summation sigma) {
+        this.sigma = sigma;
+      }
+
       /** {@inheritDoc} */
       @Override
-      public Summation getElement() {return sigma;}
+      public Summation getElement() {
+        return sigma;
+      }
+
       /** {@inheritDoc} */
       @Override
-      public long getLength() {return 1;}
+      public long getLength() {
+        return 1;
+      }
+
       /** {@inheritDoc} */
       @Override
-      public String[] getLocations() {return EMPTY;}
-  
+      public String[] getLocations() {
+        return EMPTY;
+      }
+
       /** {@inheritDoc} */
       @Override
       public void readFields(DataInput in) throws IOException {
         sigma = SummationWritable.read(in);
       }
+
       /** {@inheritDoc} */
       @Override
       public void write(DataOutput out) throws IOException {
@@ -208,35 +210,51 @@ public final class DistSum extends Configured implements Tool {
       @Override
       public final RecordReader<NullWritable, SummationWritable> createRecordReader(
           InputSplit generic, TaskAttemptContext context) {
-        final SummationSplit split = (SummationSplit)generic;
-  
+        final SummationSplit split = (SummationSplit) generic;
+
         //return a record reader
         return new RecordReader<NullWritable, SummationWritable>() {
           boolean done = false;
-  
+
           /** {@inheritDoc} */
           @Override
-          public void initialize(InputSplit split, TaskAttemptContext context) {}
+          public void initialize(InputSplit split, TaskAttemptContext context) {
+          }
+
           /** {@inheritDoc} */
           @Override
-          public boolean nextKeyValue() {return !done ? done = true : false;}
+          public boolean nextKeyValue() {
+            return !done ? done = true : false;
+          }
+
           /** {@inheritDoc} */
           @Override
-          public NullWritable getCurrentKey() {return NullWritable.get();}
+          public NullWritable getCurrentKey() {
+            return NullWritable.get();
+          }
+
           /** {@inheritDoc} */
           @Override
-          public SummationWritable getCurrentValue() {return new SummationWritable(split.getElement());}
+          public SummationWritable getCurrentValue() {
+            return new SummationWritable(split.getElement());
+          }
+
           /** {@inheritDoc} */
           @Override
-          public float getProgress() {return done? 1f: 0f;}
+          public float getProgress() {
+            return done ? 1f : 0f;
+          }
+
           /** {@inheritDoc} */
           @Override
-          public void close() {}
+          public void close() {
+          }
         };
       }
     }
   }
   /////////////////////////////////////////////////////////////////////////////
+
   /**
    * A machine which does computation on the map side.
    */
@@ -265,31 +283,32 @@ public final class DistSum extends Configured implements Tool {
       public List<InputSplit> getSplits(JobContext context) {
         //read sigma from conf
         final Configuration conf = context.getConfiguration();
-        final Summation sigma = SummationWritable.read(DistSum.class, conf); 
+        final Summation sigma = SummationWritable.read(DistSum.class, conf);
         final int nParts = conf.getInt(N_PARTS, 0);
-  
+
         //create splits
         final List<InputSplit> splits = new ArrayList<InputSplit>(nParts);
         final Summation[] parts = sigma.partition(nParts);
-        for(int i = 0; i < parts.length; ++i) {
+        for (int i = 0; i < parts.length; ++i) {
           splits.add(new SummationSplit(parts[i]));
           //LOG.info("parts[" + i + "] = " + parts[i]);
         }
         return splits;
       }
     }
-  
+
     /** A mapper which computes sums */
     public static class SummingMapper extends
         Mapper<NullWritable, SummationWritable, NullWritable, TaskResult> {
       @Override
       protected void map(NullWritable nw, SummationWritable sigma, final Context context
-          ) throws IOException, InterruptedException {
+      ) throws IOException, InterruptedException {
         compute(sigma.getElement(), context);
       }
     }
   }
   /////////////////////////////////////////////////////////////////////////////
+
   /**
    * A machine which does computation on the reduce side.
    */
@@ -326,8 +345,8 @@ public final class DistSum extends Configured implements Tool {
       public List<InputSplit> getSplits(JobContext context) {
         //read sigma from conf
         final Configuration conf = context.getConfiguration();
-        final Summation sigma = SummationWritable.read(DistSum.class, conf); 
-  
+        final Summation sigma = SummationWritable.read(DistSum.class, conf);
+
         //create splits
         final List<InputSplit> splits = new ArrayList<InputSplit>(1);
         splits.add(new SummationSplit(sigma));
@@ -341,11 +360,11 @@ public final class DistSum extends Configured implements Tool {
       /** Partitions sigma into parts */
       @Override
       protected void map(NullWritable nw, SummationWritable sigma, final Context context
-          ) throws IOException, InterruptedException {
+      ) throws IOException, InterruptedException {
         final Configuration conf = context.getConfiguration();
         final int nParts = conf.getInt(N_PARTS, 0);
         final Summation[] parts = sigma.getElement().partition(nParts);
-        for(int i = 0; i < parts.length; ++i) {
+        for (int i = 0; i < parts.length; ++i) {
           context.write(new IntWritable(i), new SummationWritable(parts[i]));
           LOG.info("parts[" + i + "] = " + parts[i]);
         }
@@ -359,27 +378,28 @@ public final class DistSum extends Configured implements Tool {
       public int getPartition(IntWritable index, SummationWritable value, int numPartitions) {
         return index.get();
       }
-    }    
+    }
 
     /** A Reducer which computes sums */
     public static class SummingReducer extends
         Reducer<IntWritable, SummationWritable, NullWritable, TaskResult> {
       @Override
       protected void reduce(IntWritable index, Iterable<SummationWritable> sums,
-          Context context) throws IOException, InterruptedException {
+                            Context context) throws IOException, InterruptedException {
         LOG.info("index=" + index);
-        for(SummationWritable sigma : sums)
+        for (SummationWritable sigma : sums)
           compute(sigma.getElement(), context);
       }
     }
   }
   /////////////////////////////////////////////////////////////////////////////
+
   /**
    * A machine which chooses Machine in runtime according to the cluster status
    */
   public static class MixMachine extends Machine {
     private static final MixMachine INSTANCE = new MixMachine();
-    
+
     private Cluster cluster;
 
     /** {@inheritDoc} */
@@ -400,35 +420,41 @@ public final class DistSum extends Configured implements Tool {
     private Machine chooseMachine(Configuration conf) throws IOException {
       final int parts = conf.getInt(N_PARTS, Integer.MAX_VALUE);
       try {
-        for(;; Thread.sleep(2000)) {
+        for (; ; Thread.sleep(2000)) {
           //get cluster status
           final ClusterMetrics status = cluster.getClusterStatus();
-          final int m = 
-            status.getMapSlotCapacity() - status.getOccupiedMapSlots();
-          final int r = 
-            status.getReduceSlotCapacity() - status.getOccupiedReduceSlots();
+          final int m =
+              status.getMapSlotCapacity() - status.getOccupiedMapSlots();
+          final int r =
+              status.getReduceSlotCapacity() - status.getOccupiedReduceSlots();
           if (m >= parts || r >= parts) {
             //favor ReduceSide machine
-            final Machine value = r >= parts?
-                ReduceSide.INSTANCE: MapSide.INSTANCE;
+            final Machine value = r >= parts ?
+                ReduceSide.INSTANCE : MapSide.INSTANCE;
             Util.out.println("  " + this + " is " + value + " (m=" + m + ", r=" + r + ")");
             return value;
           }
         }
       } catch (InterruptedException e) {
         throw new IOException(e);
-      }    
+      }
     }
 
   }
+
   /////////////////////////////////////////////////////////////////////////////
-  private final Util.Timer timer = new Util.Timer(true);  
+  private final Util.Timer timer = new Util.Timer(true);
   private Parameters parameters;
 
   /** Get Parameters */
-  Parameters getParameters() {return parameters;}
+  Parameters getParameters() {
+    return parameters;
+  }
+
   /** Set Parameters */
-  void setParameters(Parameters p) {parameters = p;}
+  void setParameters(Parameters p) {
+    parameters = p;
+  }
 
   /** Create a job */
   private Job createJob(String name, Summation sigma) throws IOException {
@@ -444,7 +470,7 @@ public final class DistSum extends Configured implements Tool {
     jobconf.setBoolean(MRJobConfig.MAP_SPECULATIVE, false);
     jobconf.setBoolean(MRJobConfig.REDUCE_SPECULATIVE, false);
 
-    return job; 
+    return job;
   }
 
   /** Start a job to compute sigma */
@@ -465,8 +491,8 @@ public final class DistSum extends Configured implements Tool {
 
     //start a map/reduce job
     final String startmessage = "steps/parts = "
-      + sigma.E.getSteps() + "/" + parameters.nParts
-      + " = " + Util.long2string(sigma.E.getSteps()/parameters.nParts);
+        + sigma.E.getSteps() + "/" + parameters.nParts
+        + " = " + Util.long2string(sigma.E.getSteps() / parameters.nParts);
     Util.runJob(name, job, parameters.machine, startmessage, timer);
     final List<TaskResult> results = Util.readJobOutputs(fs, outdir);
     Util.writeResults(name, results, fs, parameters.remoteDir);
@@ -476,7 +502,7 @@ public final class DistSum extends Configured implements Tool {
     final List<TaskResult> combined = Util.combine(results);
     final PrintWriter out = Util.createWriter(parameters.localDir, name);
     try {
-      for(TaskResult r : combined) {
+      for (TaskResult r : combined) {
         final String s = taskResult2string(name, r);
         out.println(s);
         out.flush();
@@ -506,11 +532,17 @@ public final class DistSum extends Configured implements Tool {
       j = s.indexOf("> ", i);
       final String key = s.substring(i, j);
       final TaskResult value = TaskResult.valueOf(s.substring(j + 2));
-      return new Map.Entry<String, TaskResult>(){
+      return new Map.Entry<String, TaskResult>() {
         @Override
-        public String getKey() {return key;}
+        public String getKey() {
+          return key;
+        }
+
         @Override
-        public TaskResult getValue() {return value;}
+        public TaskResult getValue() {
+          return value;
+        }
+
         @Override
         public TaskResult setValue(TaskResult value) {
           throw new UnsupportedOperationException();
@@ -533,11 +565,15 @@ public final class DistSum extends Configured implements Tool {
     }
 
     /** @return The job name */
-    String getJobName() {return String.format("%s.job%03d", name, index);}
+    String getJobName() {
+      return String.format("%s.job%03d", name, index);
+    }
 
     /** {@inheritDoc} */
     @Override
-    public String toString() {return getJobName() + sigma;}
+    public String toString() {
+      return getJobName() + sigma;
+    }
 
     /** Start the computation */
     @Override
@@ -545,7 +581,7 @@ public final class DistSum extends Configured implements Tool {
       if (sigma.getValue() == null)
         try {
           compute(getJobName(), sigma);
-        } catch(Exception e) {
+        } catch (Exception e) {
           Util.out.println("ERROR: Got an exception from " + getJobName());
           e.printStackTrace(Util.out);
         }
@@ -556,8 +592,8 @@ public final class DistSum extends Configured implements Tool {
   /** Partition sigma and execute the computations. */
   private Summation execute(String name, Summation sigma) {
     final Summation[] summations = sigma.partition(parameters.nJobs);
-    final List<Computation> computations = new ArrayList<Computation>(); 
-    for(int i = 0; i < summations.length; i++)
+    final List<Computation> computations = new ArrayList<Computation>();
+    for (int i = 0; i < summations.length; i++)
       computations.add(new Computation(i, name, summations[i]));
     try {
       Util.execute(parameters.nThreads, computations);
@@ -566,7 +602,7 @@ public final class DistSum extends Configured implements Tool {
     }
 
     final List<Summation> combined = Util.combine(Arrays.asList(summations));
-    return combined.size() == 1? combined.get(0): null;
+    return combined.size() == 1 ? combined.get(0) : null;
   }
 
   /** {@inheritDoc} */

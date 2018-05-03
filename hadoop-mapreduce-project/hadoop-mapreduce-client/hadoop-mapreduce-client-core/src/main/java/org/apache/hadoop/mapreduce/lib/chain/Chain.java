@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,29 +17,20 @@
  */
 package org.apache.hadoop.mapreduce.lib.chain;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DefaultStringifier;
 import org.apache.hadoop.io.Stringifier;
-import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.MapContext;
-import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.RecordReader;
-import org.apache.hadoop.mapreduce.RecordWriter;
-import org.apache.hadoop.mapreduce.ReduceContext;
-import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.TaskInputOutputContext;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.lib.map.WrappedMapper;
 import org.apache.hadoop.mapreduce.lib.reduce.WrappedReducer;
 import org.apache.hadoop.util.ReflectionUtils;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * The Chain class provides all the common functionality for the
@@ -57,22 +48,22 @@ public class Chain {
   protected static final String CHAIN_REDUCER_CLASS = ".reducer.class";
   protected static final String CHAIN_REDUCER_CONFIG = ".reducer.config";
 
-  protected static final String MAPPER_INPUT_KEY_CLASS = 
-    "mapreduce.chain.mapper.input.key.class";
-  protected static final String MAPPER_INPUT_VALUE_CLASS = 
-    "mapreduce.chain.mapper.input.value.class";
-  protected static final String MAPPER_OUTPUT_KEY_CLASS = 
-    "mapreduce.chain.mapper.output.key.class";
-  protected static final String MAPPER_OUTPUT_VALUE_CLASS = 
-    "mapreduce.chain.mapper.output.value.class";
-  protected static final String REDUCER_INPUT_KEY_CLASS = 
-    "mapreduce.chain.reducer.input.key.class";
-  protected static final String REDUCER_INPUT_VALUE_CLASS = 
-    "maperduce.chain.reducer.input.value.class";
-  protected static final String REDUCER_OUTPUT_KEY_CLASS = 
-    "mapreduce.chain.reducer.output.key.class";
-  protected static final String REDUCER_OUTPUT_VALUE_CLASS = 
-    "mapreduce.chain.reducer.output.value.class";
+  protected static final String MAPPER_INPUT_KEY_CLASS =
+      "mapreduce.chain.mapper.input.key.class";
+  protected static final String MAPPER_INPUT_VALUE_CLASS =
+      "mapreduce.chain.mapper.input.value.class";
+  protected static final String MAPPER_OUTPUT_KEY_CLASS =
+      "mapreduce.chain.mapper.output.key.class";
+  protected static final String MAPPER_OUTPUT_VALUE_CLASS =
+      "mapreduce.chain.mapper.output.value.class";
+  protected static final String REDUCER_INPUT_KEY_CLASS =
+      "mapreduce.chain.reducer.input.key.class";
+  protected static final String REDUCER_INPUT_VALUE_CLASS =
+      "maperduce.chain.reducer.input.value.class";
+  protected static final String REDUCER_OUTPUT_KEY_CLASS =
+      "mapreduce.chain.reducer.output.key.class";
+  protected static final String REDUCER_OUTPUT_VALUE_CLASS =
+      "mapreduce.chain.reducer.output.value.class";
 
   protected boolean isMap;
 
@@ -82,13 +73,13 @@ public class Chain {
   private List<Configuration> confList = new ArrayList<Configuration>();
   private Configuration rConf;
   private List<Thread> threads = new ArrayList<Thread>();
-  private List<ChainBlockingQueue<?>> blockingQueues = 
-    new ArrayList<ChainBlockingQueue<?>>();
+  private List<ChainBlockingQueue<?>> blockingQueues =
+      new ArrayList<ChainBlockingQueue<?>>();
   private Throwable throwable = null;
 
   /**
    * Creates a Chain instance configured for a Mapper or a Reducer.
-   * 
+   *
    * @param isMap
    *          TRUE indicates the chain is for a Mapper, FALSE that is for a
    *          Reducer.
@@ -128,8 +119,8 @@ public class Chain {
 
     // constructor to read from a blocking queue
     ChainRecordReader(Class<?> keyClass, Class<?> valueClass,
-        ChainBlockingQueue<KeyValuePair<KEYIN, VALUEIN>> inputQueue,
-        Configuration conf) {
+                      ChainBlockingQueue<KeyValuePair<KEYIN, VALUEIN>> inputQueue,
+                      Configuration conf) {
       this.keyClass = keyClass;
       this.valueClass = valueClass;
       this.inputQueue = inputQueue;
@@ -147,7 +138,7 @@ public class Chain {
 
     /**
      * Advance to the next key, value pair, returning null if at end.
-     * 
+     *
      * @return the key object that was read into, or null if no more
      */
     public boolean nextKeyValue() throws IOException, InterruptedException {
@@ -180,7 +171,7 @@ public class Chain {
 
     /**
      * Get the current key.
-     * 
+     *
      * @return the current key object or null if there isn't one
      * @throws IOException
      * @throws InterruptedException
@@ -191,7 +182,7 @@ public class Chain {
 
     /**
      * Get the current value.
-     * 
+     *
      * @return the value object that was read into
      * @throws IOException
      * @throws InterruptedException
@@ -229,8 +220,8 @@ public class Chain {
 
     // constructor to write to blocking queue
     ChainRecordWriter(Class<?> keyClass, Class<?> valueClass,
-        ChainBlockingQueue<KeyValuePair<KEYOUT, VALUEOUT>> output,
-        Configuration conf) {
+                      ChainBlockingQueue<KeyValuePair<KEYOUT, VALUEOUT>> output,
+                      Configuration conf) {
       this.keyClass = keyClass;
       this.valueClass = valueClass;
       this.outputQueue = output;
@@ -239,7 +230,7 @@ public class Chain {
 
     /**
      * Writes a key/value pair.
-     * 
+     *
      * @param key
      *          the key to write.
      * @param value
@@ -269,7 +260,7 @@ public class Chain {
 
     /**
      * Close this <code>RecordWriter</code> to future operations.
-     * 
+     *
      * @param context
      *          the context of the task
      * @throws IOException
@@ -303,8 +294,8 @@ public class Chain {
     private RecordWriter<KEYOUT, VALUEOUT> rw;
 
     public MapRunner(Mapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT> mapper,
-        Mapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT>.Context mapperContext,
-        RecordReader<KEYIN, VALUEIN> rr, RecordWriter<KEYOUT, VALUEOUT> rw)
+                     Mapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT>.Context mapperContext,
+                     RecordReader<KEYIN, VALUEIN> rr, RecordWriter<KEYOUT, VALUEOUT> rw)
         throws IOException, InterruptedException {
       this.mapper = mapper;
       this.rr = rr;
@@ -335,8 +326,8 @@ public class Chain {
     private RecordWriter<KEYOUT, VALUEOUT> rw;
 
     ReduceRunner(Reducer<KEYIN, VALUEIN, KEYOUT, VALUEOUT>.Context context,
-        Reducer<KEYIN, VALUEIN, KEYOUT, VALUEOUT> reducer,
-        RecordWriter<KEYOUT, VALUEOUT> rw) throws IOException,
+                 Reducer<KEYIN, VALUEIN, KEYOUT, VALUEOUT> reducer,
+                 RecordWriter<KEYOUT, VALUEOUT> rw) throws IOException,
         InterruptedException {
       this.reducer = reducer;
       this.chainContext = context;
@@ -364,17 +355,17 @@ public class Chain {
    * Create a map context that is based on ChainMapContext and the given record
    * reader and record writer
    */
-  private <KEYIN, VALUEIN, KEYOUT, VALUEOUT> 
+  private <KEYIN, VALUEIN, KEYOUT, VALUEOUT>
   Mapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT>.Context createMapContext(
       RecordReader<KEYIN, VALUEIN> rr, RecordWriter<KEYOUT, VALUEOUT> rw,
       TaskInputOutputContext<KEYIN, VALUEIN, KEYOUT, VALUEOUT> context,
       Configuration conf) {
-    MapContext<KEYIN, VALUEIN, KEYOUT, VALUEOUT> mapContext = 
-      new ChainMapContextImpl<KEYIN, VALUEIN, KEYOUT, VALUEOUT>(
-        context, rr, rw, conf);
-    Mapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT>.Context mapperContext = 
-      new WrappedMapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT>()
-        .getMapContext(mapContext);
+    MapContext<KEYIN, VALUEIN, KEYOUT, VALUEOUT> mapContext =
+        new ChainMapContextImpl<KEYIN, VALUEIN, KEYOUT, VALUEOUT>(
+            context, rr, rw, conf);
+    Mapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT>.Context mapperContext =
+        new WrappedMapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT>()
+            .getMapContext(mapContext);
     return mapperContext;
   }
 
@@ -397,7 +388,7 @@ public class Chain {
    */
   @SuppressWarnings("unchecked")
   void addMapper(TaskInputOutputContext inputContext,
-      ChainBlockingQueue<KeyValuePair<?, ?>> output, int index)
+                 ChainBlockingQueue<KeyValuePair<?, ?>> output, int index)
       throws IOException, InterruptedException {
     Configuration conf = getConf(index);
     Class<?> keyOutClass = conf.getClass(MAPPER_OUTPUT_KEY_CLASS, Object.class);
@@ -419,7 +410,7 @@ public class Chain {
    */
   @SuppressWarnings("unchecked")
   void addMapper(ChainBlockingQueue<KeyValuePair<?, ?>> input,
-      TaskInputOutputContext outputContext, int index) throws IOException,
+                 TaskInputOutputContext outputContext, int index) throws IOException,
       InterruptedException {
     Configuration conf = getConf(index);
     Class<?> keyClass = conf.getClass(MAPPER_INPUT_KEY_CLASS, Object.class);
@@ -436,8 +427,8 @@ public class Chain {
    */
   @SuppressWarnings("unchecked")
   void addMapper(ChainBlockingQueue<KeyValuePair<?, ?>> input,
-      ChainBlockingQueue<KeyValuePair<?, ?>> output,
-      TaskInputOutputContext context, int index) throws IOException,
+                 ChainBlockingQueue<KeyValuePair<?, ?>> output,
+                 TaskInputOutputContext context, int index) throws IOException,
       InterruptedException {
     Configuration conf = getConf(index);
     Class<?> keyClass = conf.getClass(MAPPER_INPUT_KEY_CLASS, Object.class);
@@ -457,17 +448,17 @@ public class Chain {
    * Create a reduce context that is based on ChainMapContext and the given
    * record writer
    */
-  private <KEYIN, VALUEIN, KEYOUT, VALUEOUT> 
+  private <KEYIN, VALUEIN, KEYOUT, VALUEOUT>
   Reducer<KEYIN, VALUEIN, KEYOUT, VALUEOUT>.Context createReduceContext(
       RecordWriter<KEYOUT, VALUEOUT> rw,
       ReduceContext<KEYIN, VALUEIN, KEYOUT, VALUEOUT> context,
       Configuration conf) {
-    ReduceContext<KEYIN, VALUEIN, KEYOUT, VALUEOUT> reduceContext = 
-      new ChainReduceContextImpl<KEYIN, VALUEIN, KEYOUT, VALUEOUT>(
-          context, rw, conf);
-    Reducer<KEYIN, VALUEIN, KEYOUT, VALUEOUT>.Context reducerContext = 
-      new WrappedReducer<KEYIN, VALUEIN, KEYOUT, VALUEOUT>()
-        .getReducerContext(reduceContext);
+    ReduceContext<KEYIN, VALUEIN, KEYOUT, VALUEOUT> reduceContext =
+        new ChainReduceContextImpl<KEYIN, VALUEIN, KEYOUT, VALUEOUT>(
+            context, rw, conf);
+    Reducer<KEYIN, VALUEIN, KEYOUT, VALUEOUT>.Context reducerContext =
+        new WrappedReducer<KEYIN, VALUEIN, KEYOUT, VALUEOUT>()
+            .getReducerContext(reduceContext);
     return reducerContext;
   }
 
@@ -489,7 +480,7 @@ public class Chain {
    */
   @SuppressWarnings("unchecked")
   void addReducer(TaskInputOutputContext inputContext,
-      ChainBlockingQueue<KeyValuePair<?, ?>> outputQueue) throws IOException,
+                  ChainBlockingQueue<KeyValuePair<?, ?>> outputQueue) throws IOException,
       InterruptedException {
 
     Class<?> keyOutClass = rConf.getClass(REDUCER_OUTPUT_KEY_CLASS,
@@ -510,7 +501,7 @@ public class Chain {
       thread.start();
     }
   }
-  
+
   // wait till all threads finish
   void joinAllThreads() throws IOException, InterruptedException {
     for (Thread thread : threads) {
@@ -541,7 +532,7 @@ public class Chain {
   /**
    * Returns the prefix to use for the configuration of the chain depending if
    * it is for a Mapper or a Reducer.
-   * 
+   *
    * @param isMap
    *          TRUE for Mapper, FALSE for Reducer.
    * @return the prefix to use.
@@ -556,14 +547,14 @@ public class Chain {
 
   /**
    * Creates a {@link Configuration} for the Map or Reduce in the chain.
-   * 
+   *
    * <p>
    * It creates a new Configuration using the chain job's Configuration as base
    * and adds to it the configuration properties for the chain element. The keys
    * of the chain element Configuration have precedence over the given
    * Configuration.
    * </p>
-   * 
+   *
    * @param jobConf
    *          the chain job's Configuration.
    * @param confKey
@@ -573,11 +564,11 @@ public class Chain {
    *         the chain element configuration properties.
    */
   protected static Configuration getChainElementConf(Configuration jobConf,
-      String confKey) {
+                                                     String confKey) {
     Configuration conf = null;
     try {
-      Stringifier<Configuration> stringifier = 
-        new DefaultStringifier<Configuration>(jobConf, Configuration.class);
+      Stringifier<Configuration> stringifier =
+          new DefaultStringifier<Configuration>(jobConf, Configuration.class);
       String confString = jobConf.get(confKey, null);
       if (confString != null) {
         conf = stringifier.fromString(jobConf.get(confKey, null));
@@ -600,11 +591,11 @@ public class Chain {
 
   /**
    * Adds a Mapper class to the chain job.
-   * 
+   *
    * <p/>
    * The configuration properties of the chain job have precedence over the
    * configuration properties of the Mapper.
-   * 
+   *
    * @param isMap
    *          indicates if the Chain is for a Mapper or for a Reducer.
    * @param job
@@ -627,9 +618,9 @@ public class Chain {
    */
   @SuppressWarnings("unchecked")
   protected static void addMapper(boolean isMap, Job job,
-      Class<? extends Mapper> klass, Class<?> inputKeyClass,
-      Class<?> inputValueClass, Class<?> outputKeyClass,
-      Class<?> outputValueClass, Configuration mapperConf) {
+                                  Class<? extends Mapper> klass, Class<?> inputKeyClass,
+                                  Class<?> inputValueClass, Class<?> outputKeyClass,
+                                  Class<?> outputValueClass, Configuration mapperConf) {
     String prefix = getPrefix(isMap);
     Configuration jobConf = job.getConfiguration();
 
@@ -649,7 +640,7 @@ public class Chain {
 
   // if a reducer chain check the Reducer has been already set or not
   protected static void checkReducerAlreadySet(boolean isMap,
-      Configuration jobConf, String prefix, boolean shouldSet) {
+                                               Configuration jobConf, String prefix, boolean shouldSet) {
     if (!isMap) {
       if (shouldSet) {
         if (jobConf.getClass(prefix + CHAIN_REDUCER_CLASS, null) == null) {
@@ -666,9 +657,9 @@ public class Chain {
   }
 
   protected static void validateKeyValueTypes(boolean isMap,
-      Configuration jobConf, Class<?> inputKeyClass, Class<?> inputValueClass,
-      Class<?> outputKeyClass, Class<?> outputValueClass, int index,
-      String prefix) {
+                                              Configuration jobConf, Class<?> inputKeyClass, Class<?> inputValueClass,
+                                              Class<?> outputKeyClass, Class<?> outputValueClass, int index,
+                                              String prefix) {
     // if it is a reducer chain and the first Mapper is being added check the
     // key and value input classes of the mapper match those of the reducer
     // output.
@@ -704,9 +695,9 @@ public class Chain {
   }
 
   protected static void setMapperConf(boolean isMap, Configuration jobConf,
-      Class<?> inputKeyClass, Class<?> inputValueClass,
-      Class<?> outputKeyClass, Class<?> outputValueClass,
-      Configuration mapperConf, int index, String prefix) {
+                                      Class<?> inputKeyClass, Class<?> inputValueClass,
+                                      Class<?> outputKeyClass, Class<?> outputValueClass,
+                                      Configuration mapperConf, int index, String prefix) {
     // if the Mapper does not have a configuration, create an empty one
     if (mapperConf == null) {
       // using a Configuration without defaults to make it lightweight.
@@ -723,8 +714,8 @@ public class Chain {
     mapperConf.setClass(MAPPER_OUTPUT_VALUE_CLASS, outputValueClass,
         Object.class);
     // serialize the mapper configuration in the chain configuration.
-    Stringifier<Configuration> stringifier = 
-      new DefaultStringifier<Configuration>(jobConf, Configuration.class);
+    Stringifier<Configuration> stringifier =
+        new DefaultStringifier<Configuration>(jobConf, Configuration.class);
     try {
       jobConf.set(prefix + CHAIN_MAPPER_CONFIG + index, stringifier
           .toString(new Configuration(mapperConf)));
@@ -738,11 +729,11 @@ public class Chain {
 
   /**
    * Sets the Reducer class to the chain job.
-   * 
+   *
    * <p/>
    * The configuration properties of the chain job have precedence over the
    * configuration properties of the Reducer.
-   * 
+   *
    * @param job
    *          the chain job.
    * @param klass
@@ -763,9 +754,9 @@ public class Chain {
    */
   @SuppressWarnings("unchecked")
   protected static void setReducer(Job job, Class<? extends Reducer> klass,
-      Class<?> inputKeyClass, Class<?> inputValueClass,
-      Class<?> outputKeyClass, Class<?> outputValueClass,
-      Configuration reducerConf) {
+                                   Class<?> inputKeyClass, Class<?> inputValueClass,
+                                   Class<?> outputKeyClass, Class<?> outputValueClass,
+                                   Configuration reducerConf) {
     String prefix = getPrefix(false);
     Configuration jobConf = job.getConfiguration();
     checkReducerAlreadySet(false, jobConf, prefix, false);
@@ -777,9 +768,9 @@ public class Chain {
   }
 
   protected static void setReducerConf(Configuration jobConf,
-      Class<?> inputKeyClass, Class<?> inputValueClass,
-      Class<?> outputKeyClass, Class<?> outputValueClass,
-      Configuration reducerConf, String prefix) {
+                                       Class<?> inputKeyClass, Class<?> inputValueClass,
+                                       Class<?> outputKeyClass, Class<?> outputValueClass,
+                                       Configuration reducerConf, String prefix) {
     // if the Reducer does not have a Configuration, create an empty one
     if (reducerConf == null) {
       // using a Configuration without defaults to make it lightweight.
@@ -799,8 +790,8 @@ public class Chain {
         Object.class);
 
     // serialize the reducer configuration in the chain's configuration.
-    Stringifier<Configuration> stringifier = 
-      new DefaultStringifier<Configuration>(jobConf, Configuration.class);
+    Stringifier<Configuration> stringifier =
+        new DefaultStringifier<Configuration>(jobConf, Configuration.class);
     try {
       jobConf.set(prefix + CHAIN_REDUCER_CONFIG, stringifier
           .toString(new Configuration(reducerConf)));
@@ -811,7 +802,7 @@ public class Chain {
 
   /**
    * Setup the chain.
-   * 
+   *
    * @param jobConf
    *          chain job's {@link Configuration}.
    */
@@ -846,16 +837,16 @@ public class Chain {
 
   /**
    * Returns the Reducer instance in the chain.
-   * 
+   *
    * @return the Reducer instance in the chain or NULL if none.
    */
   Reducer<?, ?, ?, ?> getReducer() {
     return reducer;
   }
-  
+
   /**
    * Creates a ChainBlockingQueue with KeyValuePair as element
-   * 
+   *
    * @return the ChainBlockingQueue
    */
   ChainBlockingQueue<KeyValuePair<?, ?>> createBlockingQueue() {
@@ -864,13 +855,13 @@ public class Chain {
 
   /**
    * A blocking queue with one element.
-   *   
+   *
    * @param <E>
    */
   class ChainBlockingQueue<E> {
     E element = null;
     boolean isInterrupted = false;
-    
+
     ChainBlockingQueue() {
       blockingQueues.add(this);
     }

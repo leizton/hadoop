@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,23 +18,19 @@
 
 package org.apache.hadoop.fs.slive;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Random;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.slive.OperationOutput.OutputType;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.MapReduceBase;
-import org.apache.hadoop.mapred.Mapper;
-import org.apache.hadoop.mapred.OutputCollector;
-import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapred.*;
 import org.apache.hadoop.mapreduce.MRJobConfig;
 import org.apache.hadoop.mapreduce.TaskAttemptID;
 import org.apache.hadoop.util.StringUtils;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Random;
 
 /**
  * The slive class which sets up the mapper to be used which itself will receive
@@ -55,7 +51,7 @@ public class SliveMapper extends MapReduceBase implements
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see
    * org.apache.hadoop.mapred.MapReduceBase#configure(org.apache.hadoop.mapred
    * .JobConf)
@@ -70,9 +66,9 @@ public class SliveMapper extends MapReduceBase implements
       LOG.error("Unable to setup slive " + StringUtils.stringifyException(e));
       throw new RuntimeException("Unable to setup slive configuration", e);
     }
-    if(conf.get(MRJobConfig.TASK_ATTEMPT_ID) != null ) {
+    if (conf.get(MRJobConfig.TASK_ATTEMPT_ID) != null) {
       this.taskId = TaskAttemptID.forName(conf.get(MRJobConfig.TASK_ATTEMPT_ID))
-        .getTaskID().getId();
+          .getTaskID().getId();
     } else {
       // So that branch-1/0.20 can run this same code as well
       this.taskId = TaskAttemptID.forName(conf.get("mapred.task.id"))
@@ -82,7 +78,7 @@ public class SliveMapper extends MapReduceBase implements
 
   /**
    * Fetches the config this object uses
-   * 
+   *
    * @return ConfigExtractor
    */
   private ConfigExtractor getConfig() {
@@ -91,7 +87,7 @@ public class SliveMapper extends MapReduceBase implements
 
   /**
    * Logs to the given reporter and logs to the internal logger at info level
-   * 
+   *
    * @param r
    *          the reporter to set status on
    * @param msg
@@ -104,7 +100,7 @@ public class SliveMapper extends MapReduceBase implements
 
   /**
    * Runs the given operation and reports on its results
-   * 
+   *
    * @param op
    *          the operation to run
    * @param reporter
@@ -114,7 +110,7 @@ public class SliveMapper extends MapReduceBase implements
    * @throws IOException
    */
   private void runOperation(Operation op, Reporter reporter,
-      OutputCollector<Text, Text> output, long opNum) throws IOException {
+                            OutputCollector<Text, Text> output, long opNum) throws IOException {
     if (op == null) {
       return;
     }
@@ -130,19 +126,19 @@ public class SliveMapper extends MapReduceBase implements
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see org.apache.hadoop.mapred.Mapper#map(java.lang.Object,
    * java.lang.Object, org.apache.hadoop.mapred.OutputCollector,
    * org.apache.hadoop.mapred.Reporter)
    */
   @Override // Mapper
   public void map(Object key, Object value, OutputCollector<Text, Text> output,
-      Reporter reporter) throws IOException {
+                  Reporter reporter) throws IOException {
     logAndSetStatus(reporter, "Running slive mapper for dummy key " + key
         + " and dummy value " + value);
     //Add taskID to randomSeed to deterministically seed rnd.
     Random rnd = config.getRandomSeed() != null ?
-      new Random(this.taskId + config.getRandomSeed()) : new Random();
+        new Random(this.taskId + config.getRandomSeed()) : new Random();
     WeightSelector selector = new WeightSelector(config, rnd);
     long startTime = Timer.now();
     long opAm = 0;

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,15 +18,8 @@
 
 package org.apache.hadoop.mapreduce.v2.hs;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
-
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -51,8 +44,14 @@ import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
 import org.apache.hadoop.yarn.security.client.ClientToAMTokenSecretManager;
 import org.apache.hadoop.yarn.util.Clock;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 /**
  * Loads and manages the Job history cache.
@@ -74,10 +73,10 @@ public class JobHistory extends AbstractService implements HistoryContext {
   private HistoryStorage storage = null;
   private HistoryFileManager hsManager = null;
   ScheduledFuture<?> futureHistoryCleaner = null;
-  
+
   //History job cleaner interval
   private long cleanerInterval;
-  
+
   @Override
   protected void serviceInit(Configuration conf) throws Exception {
     LOG.info("JobHistory Init");
@@ -99,7 +98,7 @@ public class JobHistory extends AbstractService implements HistoryContext {
     }
 
     storage = createHistoryStorage();
-    
+
     if (storage instanceof Service) {
       ((Service) storage).init(conf);
     }
@@ -113,7 +112,7 @@ public class JobHistory extends AbstractService implements HistoryContext {
         JHAdminConfig.MR_HISTORY_STORAGE, CachedHistoryStorage.class,
         HistoryStorage.class), conf);
   }
-  
+
   protected HistoryFileManager createHistoryFileManager() {
     return new HistoryFileManager();
   }
@@ -140,7 +139,7 @@ public class JobHistory extends AbstractService implements HistoryContext {
   protected int getInitDelaySecs() {
     return 30;
   }
-  
+
   @Override
   protected void serviceStop() throws Exception {
     LOG.info("Stopping JobHistory");
@@ -159,7 +158,7 @@ public class JobHistory extends AbstractService implements HistoryContext {
       }
       if (!scheduledExecutor.isShutdown()) {
         LOG.warn("HistoryCleanerService/move to done shutdown may not have " +
-        		"succeeded, Forcing a shutdown");
+            "succeeded, Forcing a shutdown");
         scheduledExecutor.shutdownNow();
       }
     }
@@ -192,7 +191,7 @@ public class JobHistory extends AbstractService implements HistoryContext {
       }
     }
   }
-  
+
   private class HistoryCleaner implements Runnable {
     public void run() {
       LOG.info("History Cleaner started");
@@ -253,10 +252,10 @@ public class JobHistory extends AbstractService implements HistoryContext {
   HistoryStorage getHistoryStorage() {
     return storage;
   }
-  
+
   /**
    * Look for a set of partial jobs.
-   * 
+   *
    * @param offset
    *          the offset into the list of jobs.
    * @param count
@@ -279,8 +278,8 @@ public class JobHistory extends AbstractService implements HistoryContext {
    */
   @Override
   public JobsInfo getPartialJobs(Long offset, Long count, String user,
-      String queue, Long sBegin, Long sEnd, Long fBegin, Long fEnd,
-      JobState jobState) {
+                                 String queue, Long sBegin, Long sEnd, Long fBegin, Long fEnd,
+                                 JobState jobState) {
     return storage.getPartialJobs(offset, count, user, queue, sBegin, sEnd,
         fBegin, fEnd, jobState);
   }
@@ -318,10 +317,11 @@ public class JobHistory extends AbstractService implements HistoryContext {
   protected Configuration createConf() {
     return new Configuration();
   }
-  
+
   public long getCleanerInterval() {
     return cleanerInterval;
   }
+
   // TODO AppContext - Not Required
   private ApplicationAttemptId appAttemptID;
 
@@ -376,6 +376,7 @@ public class JobHistory extends AbstractService implements HistoryContext {
     // Not Implemented
     return null;
   }
+
   @Override
   public ClientToAMTokenSecretManager getClientToAMTokenSecretManager() {
     // Not implemented.

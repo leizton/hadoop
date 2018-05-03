@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,54 +18,55 @@
 
 package org.apache.hadoop.mapred;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.compress.BZip2Codec;
+import org.apache.hadoop.io.compress.CompressionCodec;
+import org.apache.hadoop.io.compress.CompressionInputStream;
+import org.apache.hadoop.io.compress.GzipCodec;
+import org.apache.hadoop.util.LineReader;
+import org.apache.hadoop.util.ReflectionUtils;
+import org.junit.Ignore;
+import org.junit.Test;
+
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.Inflater;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.compress.*;
-import org.apache.hadoop.util.LineReader;
-import org.apache.hadoop.util.ReflectionUtils;
-
-import org.junit.Ignore;
-import org.junit.Test;
 import static org.junit.Assert.*;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 @Ignore
 public class TestConcatenatedCompressedInput {
   private static final Log LOG =
-    LogFactory.getLog(TestConcatenatedCompressedInput.class.getName());
+      LogFactory.getLog(TestConcatenatedCompressedInput.class.getName());
   private static int MAX_LENGTH = 10000;
   private static JobConf defaultConf = new JobConf();
   private static FileSystem localFs = null;
 
   // from ~roelofs/ss30b-colors.hh
-  final static String COLOR_RED        = "[0;31m";     // background doesn't matter...  "[0m"
-  final static String COLOR_GREEN      = "[0;32m";     // background doesn't matter...  "[0m"
-  final static String COLOR_YELLOW     = "[0;33;40m";  // DO force black background     "[0m"
-  final static String COLOR_BLUE       = "[0;34m";     // do NOT force black background "[0m"
-  final static String COLOR_MAGENTA    = "[0;35m";     // background doesn't matter...  "[0m"
-  final static String COLOR_CYAN       = "[0;36m";     // background doesn't matter...  "[0m"
-  final static String COLOR_WHITE      = "[0;37;40m";  // DO force black background     "[0m"
-  final static String COLOR_BR_RED     = "[1;31m";     // background doesn't matter...  "[0m"
-  final static String COLOR_BR_GREEN   = "[1;32m";     // background doesn't matter...  "[0m"
-  final static String COLOR_BR_YELLOW  = "[1;33;40m";  // DO force black background     "[0m"
-  final static String COLOR_BR_BLUE    = "[1;34m";     // do NOT force black background "[0m"
+  final static String COLOR_RED = "[0;31m";     // background doesn't matter...  "[0m"
+  final static String COLOR_GREEN = "[0;32m";     // background doesn't matter...  "[0m"
+  final static String COLOR_YELLOW = "[0;33;40m";  // DO force black background     "[0m"
+  final static String COLOR_BLUE = "[0;34m";     // do NOT force black background "[0m"
+  final static String COLOR_MAGENTA = "[0;35m";     // background doesn't matter...  "[0m"
+  final static String COLOR_CYAN = "[0;36m";     // background doesn't matter...  "[0m"
+  final static String COLOR_WHITE = "[0;37;40m";  // DO force black background     "[0m"
+  final static String COLOR_BR_RED = "[1;31m";     // background doesn't matter...  "[0m"
+  final static String COLOR_BR_GREEN = "[1;32m";     // background doesn't matter...  "[0m"
+  final static String COLOR_BR_YELLOW = "[1;33;40m";  // DO force black background     "[0m"
+  final static String COLOR_BR_BLUE = "[1;34m";     // do NOT force black background "[0m"
   final static String COLOR_BR_MAGENTA = "[1;35m";     // background doesn't matter...  "[0m"
-  final static String COLOR_BR_CYAN    = "[1;36m";     // background doesn't matter...  "[0m"
-  final static String COLOR_BR_WHITE   = "[1;37;40m";  // DO force black background     "[0m"
-  final static String COLOR_NORMAL     = "[0m";
+  final static String COLOR_BR_CYAN = "[1;36m";     // background doesn't matter...  "[0m"
+  final static String COLOR_BR_WHITE = "[1;37;40m";  // DO force black background     "[0m"
+  final static String COLOR_NORMAL = "[0m";
 
   static {
     try {
@@ -77,17 +78,17 @@ public class TestConcatenatedCompressedInput {
   }
 
   private static Path workDir =
-    new Path(new Path(System.getProperty("test.build.data", "/tmp")),
-             "TestConcatenatedCompressedInput").makeQualified(localFs);
+      new Path(new Path(System.getProperty("test.build.data", "/tmp")),
+          "TestConcatenatedCompressedInput").makeQualified(localFs);
 
   private static LineReader makeStream(String str) throws IOException {
     return new LineReader(new ByteArrayInputStream(str.getBytes("UTF-8")),
-                          defaultConf);
+        defaultConf);
   }
 
   private static void writeFile(FileSystem fs, Path name,
                                 CompressionCodec codec, String contents)
-  throws IOException {
+      throws IOException {
     OutputStream stm;
     if (codec == null) {
       stm = fs.create(name);
@@ -102,10 +103,10 @@ public class TestConcatenatedCompressedInput {
 
   private static List<Text> readSplit(TextInputFormat format,
                                       InputSplit split, JobConf jobConf)
-  throws IOException {
+      throws IOException {
     List<Text> result = new ArrayList<Text>();
     RecordReader<LongWritable, Text> reader =
-      format.getRecordReader(split, jobConf, voidReporter);
+        format.getRecordReader(split, jobConf, voidReporter);
     LongWritable key = reader.createKey();
     Text value = reader.createValue();
     while (reader.next(key, value)) {
@@ -142,51 +143,51 @@ public class TestConcatenatedCompressedInput {
     if (org.apache.hadoop.io.compress.zlib.BuiltInGzipDecompressor.class ==
         gzip.getDecompressorType()) {
       System.out.println(COLOR_BR_RED +
-        "testGzip() using native-zlib Decompressor (" +
-        gzip.getDecompressorType() + ")" + COLOR_NORMAL);
+          "testGzip() using native-zlib Decompressor (" +
+          gzip.getDecompressorType() + ")" + COLOR_NORMAL);
     } else {
       LOG.warn("testGzip() skipped:  native (C/C++) libs not loaded");
       return;
     }
 
-/*
- *      // THIS IS BUGGY: omits 2nd/3rd gzip headers; screws up 2nd/3rd CRCs--
- *      //                see https://issues.apache.org/jira/browse/HADOOP-6799
- *  Path fnHDFS = new Path(workDir, "concat" + gzip.getDefaultExtension());
- *  //OutputStream out = localFs.create(fnHDFS);
- *  //GzipCodec.GzipOutputStream gzOStm = new GzipCodec.GzipOutputStream(out);
- *      // can just combine those two lines, probably
- *  //GzipCodec.GzipOutputStream gzOStm =
- *  //  new GzipCodec.GzipOutputStream(localFs.create(fnHDFS));
- *      // oops, no:  this is a protected helper class; need to access
- *      //   it via createOutputStream() instead:
- *  OutputStream out = localFs.create(fnHDFS);
- *  Compressor gzCmp = gzip.createCompressor();
- *  CompressionOutputStream gzOStm = gzip.createOutputStream(out, gzCmp);
- *      // this SHOULD be going to HDFS:  got out from localFs == HDFS
- *      //   ...yup, works
- *  gzOStm.write("first gzip concat\n member\nwith three lines\n".getBytes());
- *  gzOStm.finish();
- *  gzOStm.resetState();
- *  gzOStm.write("2nd gzip concat member\n".getBytes());
- *  gzOStm.finish();
- *  gzOStm.resetState();
- *  gzOStm.write("gzip concat\nmember #3\n".getBytes());
- *  gzOStm.close();
- *      //
- *  String fn = "hdfs-to-local-concat" + gzip.getDefaultExtension();
- *  Path fnLocal = new Path(System.getProperty("test.concat.data","/tmp"), fn);
- *  localFs.copyToLocalFile(fnHDFS, fnLocal);
- */
+    /*
+     *      // THIS IS BUGGY: omits 2nd/3rd gzip headers; screws up 2nd/3rd CRCs--
+     *      //                see https://issues.apache.org/jira/browse/HADOOP-6799
+     *  Path fnHDFS = new Path(workDir, "concat" + gzip.getDefaultExtension());
+     *  //OutputStream out = localFs.create(fnHDFS);
+     *  //GzipCodec.GzipOutputStream gzOStm = new GzipCodec.GzipOutputStream(out);
+     *      // can just combine those two lines, probably
+     *  //GzipCodec.GzipOutputStream gzOStm =
+     *  //  new GzipCodec.GzipOutputStream(localFs.create(fnHDFS));
+     *      // oops, no:  this is a protected helper class; need to access
+     *      //   it via createOutputStream() instead:
+     *  OutputStream out = localFs.create(fnHDFS);
+     *  Compressor gzCmp = gzip.createCompressor();
+     *  CompressionOutputStream gzOStm = gzip.createOutputStream(out, gzCmp);
+     *      // this SHOULD be going to HDFS:  got out from localFs == HDFS
+     *      //   ...yup, works
+     *  gzOStm.write("first gzip concat\n member\nwith three lines\n".getBytes());
+     *  gzOStm.finish();
+     *  gzOStm.resetState();
+     *  gzOStm.write("2nd gzip concat member\n".getBytes());
+     *  gzOStm.finish();
+     *  gzOStm.resetState();
+     *  gzOStm.write("gzip concat\nmember #3\n".getBytes());
+     *  gzOStm.close();
+     *      //
+     *  String fn = "hdfs-to-local-concat" + gzip.getDefaultExtension();
+     *  Path fnLocal = new Path(System.getProperty("test.concat.data","/tmp"), fn);
+     *  localFs.copyToLocalFile(fnHDFS, fnLocal);
+     */
 
     // copy prebuilt (correct!) version of concat.gz to HDFS
     final String fn = "concat" + gzip.getDefaultExtension();
     Path fnLocal = new Path(System.getProperty("test.concat.data", "/tmp"), fn);
-    Path fnHDFS  = new Path(workDir, fn);
+    Path fnHDFS = new Path(workDir, fn);
     localFs.copyFromLocalFile(fnLocal, fnHDFS);
 
     writeFile(localFs, new Path(workDir, "part2.txt.gz"), gzip,
-              "this is a test\nof gzip\n");
+        "this is a test\nof gzip\n");
     FileInputFormat.setInputPaths(jobConf, workDir);
     TextInputFormat format = new TextInputFormat();
     format.configure(jobConf);
@@ -202,14 +203,14 @@ public class TestConcatenatedCompressedInput {
     List<Text> results = readSplit(format, splits[0], jobConf);
     assertEquals("splits[0] num lines", 6, results.size());
     assertEquals("splits[0][5]", "member #3",
-                 results.get(5).toString());
+        results.get(5).toString());
 
     results = readSplit(format, splits[1], jobConf);
     assertEquals("splits[1] num lines", 2, results.size());
     assertEquals("splits[1][0]", "this is a test",
-                 results.get(0).toString());
+        results.get(0).toString());
     assertEquals("splits[1][1]", "of gzip",
-                 results.get(1).toString());
+        results.get(1).toString());
   }
 
   /**
@@ -221,13 +222,13 @@ public class TestConcatenatedCompressedInput {
     localFs.delete(workDir, true);            // localFs = FileSystem instance
 
     System.out.println(COLOR_BR_BLUE + "testPrototypeInflaterGzip() using " +
-      "non-native/Java Inflater and manual gzip header/trailer parsing" +
-      COLOR_NORMAL);
+        "non-native/Java Inflater and manual gzip header/trailer parsing" +
+        COLOR_NORMAL);
 
     // copy prebuilt (correct!) version of concat.gz to HDFS
     final String fn = "concat" + gzip.getDefaultExtension();
     Path fnLocal = new Path(System.getProperty("test.concat.data", "/tmp"), fn);
-    Path fnHDFS  = new Path(workDir, fn);
+    Path fnHDFS = new Path(workDir, fn);
     localFs.copyFromLocalFile(fnLocal, fnHDFS);
 
     final FileInputStream in = new FileInputStream(fnLocal.toString());
@@ -243,7 +244,7 @@ public class TestConcatenatedCompressedInput {
     assertEquals("2nd byte", 0x8b, compressedBuf[1] & 0xff);
     assertEquals("3rd byte (compression method)", 8, compressedBuf[2] & 0xff);
 
-    byte flags = (byte)(compressedBuf[3] & 0xff);
+    byte flags = (byte) (compressedBuf[3] & 0xff);
     if ((flags & 0x04) != 0) {   // FEXTRA
       numBytesRead = in.read(compressedBuf, 0, 2);
       assertEquals("XLEN bytes read", 2, numBytesRead);
@@ -253,13 +254,13 @@ public class TestConcatenatedCompressedInput {
     if ((flags & 0x08) != 0) {   // FNAME
       while ((numBytesRead = in.read()) != 0) {
         assertFalse("unexpected end-of-file while reading filename",
-                    numBytesRead == -1);
+            numBytesRead == -1);
       }
     }
     if ((flags & 0x10) != 0) {   // FCOMMENT
       while ((numBytesRead = in.read()) != 0) {
         assertFalse("unexpected end-of-file while reading comment",
-                    numBytesRead == -1);
+            numBytesRead == -1);
       }
     }
     if ((flags & 0xe0) != 0) {   // reserved
@@ -284,9 +285,9 @@ public class TestConcatenatedCompressedInput {
     try {
       int numBytesUncompressed = inflater.inflate(uncompressedBuf);
       String outString =
-        new String(uncompressedBuf, 0, numBytesUncompressed, "UTF-8");
+          new String(uncompressedBuf, 0, numBytesUncompressed, "UTF-8");
       System.out.println("uncompressed data of first gzip member = [" +
-                         outString + "]");
+          outString + "]");
     } catch (java.util.zip.DataFormatException ex) {
       throw new IOException(ex.getMessage());
     }
@@ -309,23 +310,23 @@ public class TestConcatenatedCompressedInput {
     localFs.delete(workDir, true);
 
     assertEquals("[non-native (Java) codec]",
-      org.apache.hadoop.io.compress.zlib.BuiltInGzipDecompressor.class,
-      gzip.getDecompressorType());
+        org.apache.hadoop.io.compress.zlib.BuiltInGzipDecompressor.class,
+        gzip.getDecompressorType());
     System.out.println(COLOR_BR_YELLOW + "testBuiltInGzipDecompressor() using" +
-      " non-native (Java Inflater) Decompressor (" + gzip.getDecompressorType()
-      + ")" + COLOR_NORMAL);
+        " non-native (Java Inflater) Decompressor (" + gzip.getDecompressorType()
+        + ")" + COLOR_NORMAL);
 
     // copy single-member test file to HDFS
     String fn1 = "testConcatThenCompress.txt" + gzip.getDefaultExtension();
-    Path fnLocal1 = new Path(System.getProperty("test.concat.data","/tmp"),fn1);
-    Path fnHDFS1  = new Path(workDir, fn1);
+    Path fnLocal1 = new Path(System.getProperty("test.concat.data", "/tmp"), fn1);
+    Path fnHDFS1 = new Path(workDir, fn1);
     localFs.copyFromLocalFile(fnLocal1, fnHDFS1);
 
     // copy multiple-member test file to HDFS
     // (actually in "seekable gzip" format, a la JIRA PIG-42)
     String fn2 = "testCompressThenConcat.txt" + gzip.getDefaultExtension();
-    Path fnLocal2 = new Path(System.getProperty("test.concat.data","/tmp"),fn2);
-    Path fnHDFS2  = new Path(workDir, fn2);
+    Path fnLocal2 = new Path(System.getProperty("test.concat.data", "/tmp"), fn2);
+    Path fnHDFS2 = new Path(workDir, fn2);
     localFs.copyFromLocalFile(fnLocal2, fnHDFS2);
 
     FileInputFormat.setInputPaths(jobConf, workDir);
@@ -340,16 +341,16 @@ public class TestConcatenatedCompressedInput {
     LineReader in = new LineReader(cin2);
     Text out = new Text();
 
-    int numBytes, totalBytes=0, lineNum=0;
+    int numBytes, totalBytes = 0, lineNum = 0;
     while ((numBytes = in.readLine(out)) > 0) {
       ++lineNum;
       totalBytes += numBytes;
     }
     in.close();
     assertEquals("total uncompressed bytes in concatenated test file",
-                 5346, totalBytes);
+        5346, totalBytes);
     assertEquals("total uncompressed lines in concatenated test file",
-                 84, lineNum);
+        84, lineNum);
 
     // test BuiltInGzipDecompressor with lots of different input-buffer sizes
     doMultipleGzipBufferSizes(jobConf, false);
@@ -365,10 +366,10 @@ public class TestConcatenatedCompressedInput {
   // errors at buffer boundaries
   private static void doMultipleGzipBufferSizes(JobConf jConf,
                                                 boolean useNative)
-  throws IOException {
+      throws IOException {
     System.out.println(COLOR_YELLOW + "doMultipleGzipBufferSizes() using " +
-      (useNative? "GzipZlibDecompressor" : "BuiltInGzipDecompressor") +
-      COLOR_NORMAL);
+        (useNative ? "GzipZlibDecompressor" : "BuiltInGzipDecompressor") +
+        COLOR_NORMAL);
 
     jConf.setBoolean("io.native.lib.available", useNative);
 
@@ -389,35 +390,35 @@ public class TestConcatenatedCompressedInput {
     jConf.setInt("io.file.buffer.size", bufferSize);
     doSingleGzipBufferSize(jConf);
 
-    bufferSize = 2*1024;
+    bufferSize = 2 * 1024;
     jConf.setInt("io.file.buffer.size", bufferSize);
     doSingleGzipBufferSize(jConf);
 
-    bufferSize = 4*1024;
+    bufferSize = 4 * 1024;
     jConf.setInt("io.file.buffer.size", bufferSize);
     doSingleGzipBufferSize(jConf);
 
-    bufferSize = 63*1024;
+    bufferSize = 63 * 1024;
     jConf.setInt("io.file.buffer.size", bufferSize);
     doSingleGzipBufferSize(jConf);
 
-    bufferSize = 64*1024;
+    bufferSize = 64 * 1024;
     jConf.setInt("io.file.buffer.size", bufferSize);
     doSingleGzipBufferSize(jConf);
 
-    bufferSize = 65*1024;
+    bufferSize = 65 * 1024;
     jConf.setInt("io.file.buffer.size", bufferSize);
     doSingleGzipBufferSize(jConf);
 
-    bufferSize = 127*1024;
+    bufferSize = 127 * 1024;
     jConf.setInt("io.file.buffer.size", bufferSize);
     doSingleGzipBufferSize(jConf);
 
-    bufferSize = 128*1024;
+    bufferSize = 128 * 1024;
     jConf.setInt("io.file.buffer.size", bufferSize);
     doSingleGzipBufferSize(jConf);
 
-    bufferSize = 129*1024;
+    bufferSize = 129 * 1024;
     jConf.setInt("io.file.buffer.size", bufferSize);
     doSingleGzipBufferSize(jConf);
   }
@@ -442,20 +443,20 @@ public class TestConcatenatedCompressedInput {
     List<Text> results = readSplit(format, splits[0], jConf);
     assertEquals("splits[0] length (num lines)", 84, results.size());
     assertEquals("splits[0][0]",
-      "Call me Ishmael. Some years ago--never mind how long precisely--having",
-      results.get(0).toString());
+        "Call me Ishmael. Some years ago--never mind how long precisely--having",
+        results.get(0).toString());
     assertEquals("splits[0][42]",
-      "Tell me, does the magnetic virtue of the needles of the compasses of",
-      results.get(42).toString());
+        "Tell me, does the magnetic virtue of the needles of the compasses of",
+        results.get(42).toString());
 
     results = readSplit(format, splits[1], jConf);
     assertEquals("splits[1] length (num lines)", 84, results.size());
     assertEquals("splits[1][0]",
-      "Call me Ishmael. Some years ago--never mind how long precisely--having",
-      results.get(0).toString());
+        "Call me Ishmael. Some years ago--never mind how long precisely--having",
+        results.get(0).toString());
     assertEquals("splits[1][42]",
-      "Tell me, does the magnetic virtue of the needles of the compasses of",
-      results.get(42).toString());
+        "Tell me, does the magnetic virtue of the needles of the compasses of",
+        results.get(42).toString());
   }
 
   /**
@@ -470,17 +471,17 @@ public class TestConcatenatedCompressedInput {
     localFs.delete(workDir, true);
 
     System.out.println(COLOR_BR_CYAN +
-      "testBzip2() using non-native CBZip2InputStream (presumably)" +
-      COLOR_NORMAL);
+        "testBzip2() using non-native CBZip2InputStream (presumably)" +
+        COLOR_NORMAL);
 
     // copy prebuilt (correct!) version of concat.bz2 to HDFS
     final String fn = "concat" + bzip2.getDefaultExtension();
     Path fnLocal = new Path(System.getProperty("test.concat.data", "/tmp"), fn);
-    Path fnHDFS  = new Path(workDir, fn);
+    Path fnHDFS = new Path(workDir, fn);
     localFs.copyFromLocalFile(fnLocal, fnHDFS);
 
     writeFile(localFs, new Path(workDir, "part2.txt.bz2"), bzip2,
-              "this is a test\nof bzip2\n");
+        "this is a test\nof bzip2\n");
     FileInputFormat.setInputPaths(jobConf, workDir);
     TextInputFormat format = new TextInputFormat();  // extends FileInputFormat
     format.configure(jobConf);
@@ -498,14 +499,14 @@ public class TestConcatenatedCompressedInput {
     List<Text> results = readSplit(format, splits[0], jobConf);
     assertEquals("splits[0] num lines", 6, results.size());
     assertEquals("splits[0][5]", "member #3",
-                 results.get(5).toString());
+        results.get(5).toString());
 
     results = readSplit(format, splits[1], jobConf);
     assertEquals("splits[1] num lines", 2, results.size());
     assertEquals("splits[1][0]", "this is a test",
-                 results.get(0).toString());
+        results.get(0).toString());
     assertEquals("splits[1][1]", "of bzip2",
-                 results.get(1).toString());
+        results.get(1).toString());
   }
 
   /**
@@ -520,19 +521,19 @@ public class TestConcatenatedCompressedInput {
     localFs.delete(workDir, true);
 
     System.out.println(COLOR_BR_MAGENTA +
-      "testMoreBzip2() using non-native CBZip2InputStream (presumably)" +
-      COLOR_NORMAL);
+        "testMoreBzip2() using non-native CBZip2InputStream (presumably)" +
+        COLOR_NORMAL);
 
     // copy single-member test file to HDFS
     String fn1 = "testConcatThenCompress.txt" + bzip2.getDefaultExtension();
-    Path fnLocal1 = new Path(System.getProperty("test.concat.data","/tmp"),fn1);
-    Path fnHDFS1  = new Path(workDir, fn1);
+    Path fnLocal1 = new Path(System.getProperty("test.concat.data", "/tmp"), fn1);
+    Path fnHDFS1 = new Path(workDir, fn1);
     localFs.copyFromLocalFile(fnLocal1, fnHDFS1);
 
     // copy multiple-member test file to HDFS
     String fn2 = "testCompressThenConcat.txt" + bzip2.getDefaultExtension();
-    Path fnLocal2 = new Path(System.getProperty("test.concat.data","/tmp"),fn2);
-    Path fnHDFS2  = new Path(workDir, fn2);
+    Path fnLocal2 = new Path(System.getProperty("test.concat.data", "/tmp"), fn2);
+    Path fnHDFS2 = new Path(workDir, fn2);
     localFs.copyFromLocalFile(fnLocal2, fnHDFS2);
 
     FileInputFormat.setInputPaths(jobConf, workDir);
@@ -585,10 +586,10 @@ public class TestConcatenatedCompressedInput {
   // three dozen input-buffer sizes in order to try to catch any parser/state-
   // machine errors at buffer boundaries
   private static void doMultipleBzip2BufferSizes(JobConf jConf,
-                                                boolean useNative)
-  throws IOException {
+                                                 boolean useNative)
+      throws IOException {
     System.out.println(COLOR_MAGENTA + "doMultipleBzip2BufferSizes() using " +
-      "default bzip2 decompressor" + COLOR_NORMAL);
+        "default bzip2 decompressor" + COLOR_NORMAL);
 
     jConf.setBoolean("io.native.lib.available", useNative);
 
@@ -610,35 +611,35 @@ public class TestConcatenatedCompressedInput {
     jConf.setInt("io.file.buffer.size", bufferSize);
     doSingleBzip2BufferSize(jConf);
 
-    bufferSize = 2*1024;
+    bufferSize = 2 * 1024;
     jConf.setInt("io.file.buffer.size", bufferSize);
     doSingleBzip2BufferSize(jConf);
 
-    bufferSize = 4*1024;
+    bufferSize = 4 * 1024;
     jConf.setInt("io.file.buffer.size", bufferSize);
     doSingleBzip2BufferSize(jConf);
 
-    bufferSize = 63*1024;
+    bufferSize = 63 * 1024;
     jConf.setInt("io.file.buffer.size", bufferSize);
     doSingleBzip2BufferSize(jConf);
 
-    bufferSize = 64*1024;
+    bufferSize = 64 * 1024;
     jConf.setInt("io.file.buffer.size", bufferSize);
     doSingleBzip2BufferSize(jConf);
 
-    bufferSize = 65*1024;
+    bufferSize = 65 * 1024;
     jConf.setInt("io.file.buffer.size", bufferSize);
     doSingleBzip2BufferSize(jConf);
 
-    bufferSize = 127*1024;
+    bufferSize = 127 * 1024;
     jConf.setInt("io.file.buffer.size", bufferSize);
     doSingleBzip2BufferSize(jConf);
 
-    bufferSize = 128*1024;
+    bufferSize = 128 * 1024;
     jConf.setInt("io.file.buffer.size", bufferSize);
     doSingleBzip2BufferSize(jConf);
 
-    bufferSize = 129*1024;
+    bufferSize = 129 * 1024;
     jConf.setInt("io.file.buffer.size", bufferSize);
     doSingleBzip2BufferSize(jConf);
   }
@@ -664,39 +665,39 @@ public class TestConcatenatedCompressedInput {
     List<Text> results = readSplit(format, splits[0], jConf);
     assertEquals("splits[0] length (num lines)", 84, results.size());
     assertEquals("splits[0][0]",
-      "Call me Ishmael. Some years ago--never mind how long precisely--having",
-      results.get(0).toString());
+        "Call me Ishmael. Some years ago--never mind how long precisely--having",
+        results.get(0).toString());
     assertEquals("splits[0][42]",
-      "Tell me, does the magnetic virtue of the needles of the compasses of",
-      results.get(42).toString());
+        "Tell me, does the magnetic virtue of the needles of the compasses of",
+        results.get(42).toString());
 
     // testCompressThenConcat (multi)
     results = readSplit(format, splits[1], jConf);
     assertEquals("splits[1] length (num lines)", 84, results.size());
     assertEquals("splits[1][0]",
-      "Call me Ishmael. Some years ago--never mind how long precisely--having",
-      results.get(0).toString());
+        "Call me Ishmael. Some years ago--never mind how long precisely--having",
+        results.get(0).toString());
     assertEquals("splits[1][42]",
-      "Tell me, does the magnetic virtue of the needles of the compasses of",
-      results.get(42).toString());
+        "Tell me, does the magnetic virtue of the needles of the compasses of",
+        results.get(42).toString());
   }
 
   private static String unquote(String in) {
     StringBuffer result = new StringBuffer();
-    for(int i=0; i < in.length(); ++i) {
+    for (int i = 0; i < in.length(); ++i) {
       char ch = in.charAt(i);
       if (ch == '\\') {
         ch = in.charAt(++i);
         switch (ch) {
-        case 'n':
-          result.append('\n');
-          break;
-        case 'r':
-          result.append('\r');
-          break;
-        default:
-          result.append(ch);
-          break;
+          case 'n':
+            result.append('\n');
+            break;
+          case 'r':
+            result.append('\r');
+            break;
+          default:
+            result.append(ch);
+            break;
         }
       } else {
         result.append(ch);
@@ -711,7 +712,7 @@ public class TestConcatenatedCompressedInput {
    * @throws Exception
    */
   public static void main(String[] args) throws Exception {
-    for(String arg: args) {
+    for (String arg : args) {
       System.out.println("Working on " + arg);
       LineReader reader = makeStream(unquote(arg));
       Text line = new Text();

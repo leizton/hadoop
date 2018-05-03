@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,6 +17,15 @@
  */
 package org.apache.hadoop.mapred;
 
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.FileUtil;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.*;
+import org.apache.hadoop.mapreduce.MRConfig;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.File;
@@ -24,20 +33,6 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Random;
 
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.FileUtil;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.SequenceFile;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.Writable;
-import org.apache.hadoop.io.WritableComparable;
-import org.apache.hadoop.io.WritableComparator;
-import org.apache.hadoop.mapreduce.MRConfig;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -63,7 +58,7 @@ public class TestComparators {
   JobClient jc;
   static Random rng = new Random();
 
-  /** 
+  /**
    * RandomGen is a mapper that generates 5 random values for each key
    * in the input. The values are in the range [0-4]. The mapper also
    * generates a composite key. If the input key is x and the generated
@@ -72,57 +67,59 @@ public class TestComparators {
    * Think of the random value as a timestamp associated with the record. 
    */
   static class RandomGenMapper
-    implements Mapper<IntWritable, Writable, IntWritable, IntWritable> {
-    
+      implements Mapper<IntWritable, Writable, IntWritable, IntWritable> {
+
     public void configure(JobConf job) {
     }
-    
+
     public void map(IntWritable key, Writable value,
                     OutputCollector<IntWritable, IntWritable> out,
                     Reporter reporter) throws IOException {
       int num_values = 5;
-      for(int i = 0; i < num_values; ++i) {
+      for (int i = 0; i < num_values; ++i) {
         int val = rng.nextInt(num_values);
         int compositeKey = key.get() * 100 + val;
         out.collect(new IntWritable(compositeKey), new IntWritable(val));
       }
     }
-    
+
     public void close() {
     }
   }
-  
-  /** 
+
+  /**
    * Your basic identity mapper. 
    */
   static class IdentityMapper
-    implements Mapper<WritableComparable, Writable,
-                      WritableComparable, Writable> {
-    
+      implements Mapper<WritableComparable, Writable,
+      WritableComparable, Writable> {
+
     public void configure(JobConf job) {
     }
-    
+
     public void map(WritableComparable key, Writable value,
                     OutputCollector<WritableComparable, Writable> out,
                     Reporter reporter) throws IOException {
       out.collect(key, value);
     }
-    
+
     public void close() {
     }
   }
-  
-  /** 
+
+  /**
    * Checks whether keys are in ascending order.  
    */
   static class AscendingKeysReducer
-    implements Reducer<IntWritable, Writable, IntWritable, Text> {
-    
-    public void configure(JobConf job) {}
+      implements Reducer<IntWritable, Writable, IntWritable, Text> {
+
+    public void configure(JobConf job) {
+    }
 
     // keep track of the last key we've seen
     private int lastKey = Integer.MIN_VALUE;
-    public void reduce(IntWritable key, Iterator<Writable> values, 
+
+    public void reduce(IntWritable key, Iterator<Writable> values,
                        OutputCollector<IntWritable, Text> out,
                        Reporter reporter) throws IOException {
       int currentKey = key.get();
@@ -133,20 +130,23 @@ public class TestComparators {
       lastKey = currentKey;
       out.collect(key, new Text("success"));
     }
-    
-    public void close() {}
+
+    public void close() {
+    }
   }
-  
-  /** 
+
+  /**
    * Checks whether keys are in ascending order.  
    */
   static class DescendingKeysReducer
-    implements Reducer<IntWritable, Writable, IntWritable, Text> {
-    public void configure(JobConf job) {}
+      implements Reducer<IntWritable, Writable, IntWritable, Text> {
+    public void configure(JobConf job) {
+    }
 
     // keep track of the last key we've seen
     private int lastKey = Integer.MAX_VALUE;
-    public void reduce(IntWritable key, Iterator<Writable> values, 
+
+    public void reduce(IntWritable key, Iterator<Writable> values,
                        OutputCollector<IntWritable, Text> out,
                        Reporter reporter) throws IOException {
       int currentKey = key.get();
@@ -157,23 +157,25 @@ public class TestComparators {
       lastKey = currentKey;
       out.collect(key, new Text("success"));
     }
-    
-    public void close() {}
+
+    public void close() {
+    }
   }
-  
+
   /** The reducer checks whether the input values are in ascending order and
    * whether they are correctly grouped by key (i.e. each call to reduce
    * should have 5 values if the grouping is correct). It also checks whether
    * the keys themselves are in ascending order.
    */
   static class AscendingGroupReducer
-    implements Reducer<IntWritable, IntWritable, IntWritable, Text> {
-    
+      implements Reducer<IntWritable, IntWritable, IntWritable, Text> {
+
     public void configure(JobConf job) {
     }
 
     // keep track of the last key we've seen
     private int lastKey = Integer.MIN_VALUE;
+
     public void reduce(IntWritable key,
                        Iterator<IntWritable> values,
                        OutputCollector<IntWritable, Text> out,
@@ -189,7 +191,7 @@ public class TestComparators {
       int valueCount = 0;
       while (values.hasNext()) {
         IntWritable current = values.next();
-        
+
         // Check that the values are sorted
         if (current.compareTo(previous) < 0)
           fail("Values generated by Mapper not in order");
@@ -205,19 +207,20 @@ public class TestComparators {
     public void close() {
     }
   }
-  
+
   /** The reducer checks whether the input values are in descending order and
    * whether they are correctly grouped by key (i.e. each call to reduce
    * should have 5 values if the grouping is correct). 
    */
   static class DescendingGroupReducer
-    implements Reducer<IntWritable, IntWritable, IntWritable, Text> {
-    
+      implements Reducer<IntWritable, IntWritable, IntWritable, Text> {
+
     public void configure(JobConf job) {
     }
 
     // keep track of the last key we've seen
     private int lastKey = Integer.MAX_VALUE;
+
     public void reduce(IntWritable key,
                        Iterator<IntWritable> values,
                        OutputCollector<IntWritable, Text> out,
@@ -233,7 +236,7 @@ public class TestComparators {
       int valueCount = 0;
       while (values.hasNext()) {
         IntWritable current = values.next();
-        
+
         // Check that the values are sorted
         if (current.compareTo(previous) > 0)
           fail("Values generated by Mapper not in order");
@@ -249,17 +252,18 @@ public class TestComparators {
     public void close() {
     }
   }
-  
-  /** 
+
+  /**
    * A decreasing Comparator for IntWritable 
-   */ 
+   */
   public static class DecreasingIntComparator extends IntWritable.Comparator {
     public int compare(byte[] b1, int s1, int l1, byte[] b2, int s2, int l2) {
       return -super.compare(b1, s1, l1, b2, s2, l2);
     }
+
     static {                    // register this comparator
       WritableComparator.define(DecreasingIntComparator.class,
-                                new IntWritable.Comparator());
+          new IntWritable.Comparator());
     }
   }
 
@@ -271,9 +275,10 @@ public class TestComparators {
     public CompositeIntGroupFn() {
       super(IntWritable.class);
     }
-    public int compare (WritableComparable v1, WritableComparable v2) {
-      int val1 = ((IntWritable)(v1)).get() / 100;
-      int val2 = ((IntWritable)(v2)).get() / 100;
+
+    public int compare(WritableComparable v1, WritableComparable v2) {
+      int val1 = ((IntWritable) (v1)).get() / 100;
+      int val2 = ((IntWritable) (v2)).get() / 100;
       if (val1 < val2)
         return 1;
       else if (val1 > val2)
@@ -281,34 +286,34 @@ public class TestComparators {
       else
         return 0;
     }
-    
-    public boolean equals (IntWritable v1, IntWritable v2) {
+
+    public boolean equals(IntWritable v1, IntWritable v2) {
       int val1 = v1.get();
       int val2 = v2.get();
-      
-      return (val1/100) == (val2/100);
+
+      return (val1 / 100) == (val2 / 100);
     }
-    
+
     static {
-      WritableComparator.define(CompositeIntGroupFn.class, 
-                                new IntWritable.Comparator());
+      WritableComparator.define(CompositeIntGroupFn.class,
+          new IntWritable.Comparator());
     }
   }
 
   /** Reverse grouping function for values based on the composite key. 
    */
   public static class CompositeIntReverseGroupFn extends CompositeIntGroupFn {
-    public int compare (WritableComparable v1, WritableComparable v2) {
+    public int compare(WritableComparable v1, WritableComparable v2) {
       return -super.compare(v1, v2);
     }
-    
-    public boolean equals (IntWritable v1, IntWritable v2) {
+
+    public boolean equals(IntWritable v1, IntWritable v2) {
       return !(super.equals(v1, v2));
     }
-    
+
     static {
-      WritableComparator.define(CompositeIntReverseGroupFn.class, 
-                                new IntWritable.Comparator());
+      WritableComparator.define(CompositeIntReverseGroupFn.class,
+          new IntWritable.Comparator());
     }
   }
 
@@ -327,8 +332,8 @@ public class TestComparators {
     conf.setMapOutputValueClass(IntWritable.class);
     // set up two map jobs, so we can test merge phase in Reduce also
     conf.setNumMapTasks(2);
-    conf.set(MRConfig.FRAMEWORK_NAME, MRConfig.LOCAL_FRAMEWORK_NAME);    
-    
+    conf.set(MRConfig.FRAMEWORK_NAME, MRConfig.LOCAL_FRAMEWORK_NAME);
+
     conf.setOutputFormat(SequenceFileOutputFormat.class);
     if (!fs.mkdirs(testdir)) {
       throw new IOException("Mkdirs failed to create " + testdir.toString());
@@ -338,20 +343,20 @@ public class TestComparators {
     }
     // set up input data in 2 files 
     Path inFile = new Path(inDir, "part0");
-    SequenceFile.Writer writer = SequenceFile.createWriter(fs, conf, inFile, 
+    SequenceFile.Writer writer = SequenceFile.createWriter(fs, conf, inFile,
         IntWritable.class, IntWritable.class);
     writer.append(new IntWritable(11), new IntWritable(999));
     writer.append(new IntWritable(23), new IntWritable(456));
     writer.append(new IntWritable(10), new IntWritable(780));
     writer.close();
     inFile = new Path(inDir, "part1");
-    writer = SequenceFile.createWriter(fs, conf, inFile, 
+    writer = SequenceFile.createWriter(fs, conf, inFile,
         IntWritable.class, IntWritable.class);
     writer.append(new IntWritable(45), new IntWritable(100));
     writer.append(new IntWritable(18), new IntWritable(200));
     writer.append(new IntWritable(27), new IntWritable(300));
     writer.close();
-    
+
     jc = new JobClient(conf);
   }
 
@@ -359,6 +364,7 @@ public class TestComparators {
   public void cleanup() {
     FileUtil.fullyDelete(TEST_DIR);
   }
+
   /**
    * Test the default comparator for Map/Reduce. 
    * Use the identity mapper and see if the keys are sorted at the end
@@ -368,17 +374,17 @@ public class TestComparators {
   public void testDefaultMRComparator() throws Exception {
     conf.setMapperClass(IdentityMapper.class);
     conf.setReducerClass(AscendingKeysReducer.class);
-    
+
     RunningJob r_job = jc.submitJob(conf);
     while (!r_job.isComplete()) {
       Thread.sleep(1000);
     }
-    
+
     if (!r_job.isSuccessful()) {
       fail("Oops! The job broke due to an unexpected error");
     }
   }
-  
+
   /**
    * Test user-defined comparator for Map/Reduce.
    * We provide our own comparator that is the reverse of the default int 
@@ -390,17 +396,17 @@ public class TestComparators {
     conf.setMapperClass(IdentityMapper.class);
     conf.setReducerClass(DescendingKeysReducer.class);
     conf.setOutputKeyComparatorClass(DecreasingIntComparator.class);
-    
+
     RunningJob r_job = jc.submitJob(conf);
     while (!r_job.isComplete()) {
       Thread.sleep(1000);
     }
-    
+
     if (!r_job.isSuccessful()) {
       fail("Oops! The job broke due to an unexpected error");
     }
   }
-  
+
   /**
    * Test user-defined grouping comparator for grouping values in Reduce.
    * We generate composite keys that contain a random number, which acts
@@ -413,17 +419,17 @@ public class TestComparators {
     conf.setMapperClass(RandomGenMapper.class);
     conf.setReducerClass(AscendingGroupReducer.class);
     conf.setOutputValueGroupingComparator(CompositeIntGroupFn.class);
-    
+
     RunningJob r_job = jc.submitJob(conf);
     while (!r_job.isComplete()) {
       Thread.sleep(1000);
     }
-    
+
     if (!r_job.isSuccessful()) {
       fail("Oops! The job broke due to an unexpected error");
     }
   }
-  
+
   /**
    * Test all user comparators. Super-test of all tests here. 
    * We generate composite keys that contain a random number, which acts
@@ -444,7 +450,7 @@ public class TestComparators {
     while (!r_job.isComplete()) {
       Thread.sleep(1000);
     }
-    
+
     if (!r_job.isSuccessful()) {
       fail("Oops! The job broke due to an unexpected error");
     }
@@ -464,32 +470,42 @@ public class TestComparators {
 
   public static class MyWritable implements WritableComparable<MyWritable> {
     int i, j;
-    public MyWritable() { }
+
+    public MyWritable() {
+    }
+
     public MyWritable(int i, int j) {
       this.i = i;
       this.j = j;
     }
+
     public void readFields(DataInput in) throws IOException {
       i = in.readInt();
       j = in.readInt();
     }
+
     public void write(DataOutput out) throws IOException {
       out.writeInt(i);
       out.writeInt(j);
     }
+
     public int compareTo(MyWritable b) {
       return this.i - b.i;
     }
+
     static {
       WritableComparator.define(MyWritable.class, new MyCmp());
     }
   }
 
   public static class MyCmp extends WritableComparator {
-    public MyCmp() { super(MyWritable.class, true); }
+    public MyCmp() {
+      super(MyWritable.class, true);
+    }
+
     public int compare(WritableComparable a, WritableComparable b) {
-      MyWritable aa = (MyWritable)a;
-      MyWritable bb = (MyWritable)b;
+      MyWritable aa = (MyWritable) a;
+      MyWritable bb = (MyWritable) b;
       return aa.j - bb.j;
     }
   }

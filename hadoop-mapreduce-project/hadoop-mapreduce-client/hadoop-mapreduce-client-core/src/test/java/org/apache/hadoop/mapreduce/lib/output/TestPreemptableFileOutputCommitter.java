@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,13 +18,6 @@
 
 package org.apache.hadoop.mapreduce.lib.output;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-
-import org.apache.hadoop.mapreduce.task.annotation.Checkpointable;
-import org.junit.Test;
-import static org.mockito.Mockito.*;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -33,6 +26,13 @@ import org.apache.hadoop.mapreduce.MRJobConfig;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.TaskAttemptID;
 import org.apache.hadoop.mapreduce.TaskType;
+import org.apache.hadoop.mapreduce.task.annotation.Checkpointable;
+import org.junit.Test;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
+import static org.mockito.Mockito.*;
 
 public class TestPreemptableFileOutputCommitter {
 
@@ -43,7 +43,7 @@ public class TestPreemptableFileOutputCommitter {
     Configuration conf = new Configuration(false);
     conf.setInt(MRJobConfig.APPLICATION_ATTEMPT_ID, 1);
     TaskAttemptID tid0 =
-      new TaskAttemptID("1363718006656", 1, TaskType.REDUCE, 14, 3);
+        new TaskAttemptID("1363718006656", 1, TaskType.REDUCE, 14, 3);
 
     Path p = spy(new Path("/user/hadoop/out"));
     Path a = new Path("hdfs://user/hadoop/out");
@@ -87,11 +87,13 @@ public class TestPreemptableFileOutputCommitter {
   @Checkpointable
   static class TestPFOC extends PartialFileOutputCommitter {
     final FileSystem fs;
+
     TestPFOC(Path outputPath, TaskAttemptContext ctxt, FileSystem fs)
         throws IOException {
       super(outputPath, ctxt);
       this.fs = fs;
     }
+
     @Override
     FileSystem fsFor(Path p, Configuration conf) {
       return fs;

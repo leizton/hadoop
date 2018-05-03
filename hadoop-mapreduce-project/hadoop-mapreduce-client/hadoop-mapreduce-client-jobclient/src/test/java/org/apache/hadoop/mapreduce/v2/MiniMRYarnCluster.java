@@ -1,28 +1,22 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -52,6 +46,12 @@ import org.apache.hadoop.yarn.server.MiniYARNCluster;
 import org.apache.hadoop.yarn.server.nodemanager.ContainerExecutor;
 import org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor;
 import org.apache.hadoop.yarn.webapp.util.WebAppUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 
 /**
  * Configures and starts the MR-specific components in the YARN cluster.
@@ -93,11 +93,12 @@ public class MiniMRYarnCluster extends MiniYARNCluster {
       address =
           conf.getSocketAddr(JHAdminConfig.MR_HISTORY_WEBAPP_ADDRESS,
               JHAdminConfig.DEFAULT_MR_HISTORY_WEBAPP_ADDRESS,
-              JHAdminConfig.DEFAULT_MR_HISTORY_WEBAPP_PORT);    }
+              JHAdminConfig.DEFAULT_MR_HISTORY_WEBAPP_PORT);
+    }
     address = NetUtils.getConnectAddress(address);
     StringBuffer sb = new StringBuffer();
     InetAddress resolved = address.getAddress();
-    if (resolved == null || resolved.isAnyLocalAddress() || 
+    if (resolved == null || resolved.isAnyLocalAddress() ||
         resolved.isLoopbackAddress()) {
       String lh = address.getHostName();
       try {
@@ -129,7 +130,7 @@ public class MiniMRYarnCluster extends MiniYARNCluster {
       conf.setBoolean(YarnConfiguration.NM_VMEM_CHECK_ENABLED, false);
     }
 
-    conf.set(CommonConfigurationKeys.FS_PERMISSIONS_UMASK_KEY,  "000");
+    conf.set(CommonConfigurationKeys.FS_PERMISSIONS_UMASK_KEY, "000");
 
     try {
       Path stagingPath = FileContext.getFileContext(conf).makeQualified(
@@ -149,7 +150,7 @@ public class MiniMRYarnCluster extends MiniYARNCluster {
                   .getAbsolutePath());
         }
       }
-      FileContext fc=FileContext.getFileContext(stagingPath.toUri(), conf);
+      FileContext fc = FileContext.getFileContext(stagingPath.toUri(), conf);
       if (fc.util().exists(stagingPath)) {
         LOG.info(stagingPath + " exists! deleting...");
         fc.delete(stagingPath, true);
@@ -165,10 +166,10 @@ public class MiniMRYarnCluster extends MiniYARNCluster {
       throw new YarnRuntimeException("Could not create staging directory. ", e);
     }
     conf.set(MRConfig.MASTER_ADDRESS, "test"); // The default is local because of
-                                             // which shuffle doesn't happen
+    // which shuffle doesn't happen
     //configure the shuffle service in NM
     conf.setStrings(YarnConfiguration.NM_AUX_SERVICES,
-        new String[] { ShuffleHandler.MAPREDUCE_SHUFFLE_SERVICEID });
+        new String[]{ShuffleHandler.MAPREDUCE_SHUFFLE_SERVICEID});
     conf.setClass(String.format(YarnConfiguration.NM_AUX_SERVICE_FMT,
         ShuffleHandler.MAPREDUCE_SHUFFLE_SERVICEID), ShuffleHandler.class,
         Service.class);
@@ -200,18 +201,20 @@ public class MiniMRYarnCluster extends MiniYARNCluster {
           String hostname = MiniYARNCluster.getHostname();
           // pick free random ports.
           getConfig().set(JHAdminConfig.MR_HISTORY_ADDRESS,
-            hostname + ":0");
+              hostname + ":0");
           MRWebAppUtil.setJHSWebappURLWithoutScheme(getConfig(), hostname
               + ":0");
           getConfig().set(JHAdminConfig.JHS_ADMIN_ADDRESS,
-            hostname + ":0");
+              hostname + ":0");
         }
         historyServer = new JobHistoryServer();
         historyServer.init(getConfig());
         new Thread() {
           public void run() {
             historyServer.start();
-          };
+          }
+
+          ;
         }.start();
         while (historyServer.getServiceState() == STATE.INITED) {
           LOG.info("Waiting for HistoryServer to start...");
@@ -227,19 +230,19 @@ public class MiniMRYarnCluster extends MiniYARNCluster {
       }
       //need to do this because historyServer.init creates a new Configuration
       getConfig().set(JHAdminConfig.MR_HISTORY_ADDRESS,
-                      historyServer.getConfig().get(JHAdminConfig.MR_HISTORY_ADDRESS));
+          historyServer.getConfig().get(JHAdminConfig.MR_HISTORY_ADDRESS));
       MRWebAppUtil.setJHSWebappURLWithoutScheme(getConfig(),
           MRWebAppUtil.getJHSWebappURLWithoutScheme(historyServer.getConfig()));
 
       LOG.info("MiniMRYARN ResourceManager address: " +
-               getConfig().get(YarnConfiguration.RM_ADDRESS));
+          getConfig().get(YarnConfiguration.RM_ADDRESS));
       LOG.info("MiniMRYARN ResourceManager web address: " +
-               WebAppUtils.getRMWebAppURLWithoutScheme(getConfig()));
+          WebAppUtils.getRMWebAppURLWithoutScheme(getConfig()));
       LOG.info("MiniMRYARN HistoryServer address: " +
-               getConfig().get(JHAdminConfig.MR_HISTORY_ADDRESS));
+          getConfig().get(JHAdminConfig.MR_HISTORY_ADDRESS));
       LOG.info("MiniMRYARN HistoryServer web address: "
           + getResolvedMRHistoryWebAppURLWithoutScheme(getConfig(),
-              MRWebAppUtil.getJHSHttpPolicy() == HttpConfig.Policy.HTTPS_ONLY));
+          MRWebAppUtil.getJHSHttpPolicy() == HttpConfig.Policy.HTTPS_ONLY));
     }
 
     @Override

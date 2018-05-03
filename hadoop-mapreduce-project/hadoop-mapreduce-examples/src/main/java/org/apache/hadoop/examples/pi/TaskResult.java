@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,31 +17,36 @@
  */
 package org.apache.hadoop.examples.pi;
 
+import org.apache.hadoop.examples.pi.math.Summation;
+import org.apache.hadoop.io.Writable;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-
-import org.apache.hadoop.examples.pi.math.Summation;
-import org.apache.hadoop.io.Writable;
 
 /** A class for map task results or reduce task results. */
 public class TaskResult implements Container<Summation>, Combinable<TaskResult>, Writable {
   private Summation sigma;
   private long duration;
 
-  public TaskResult() {}
+  public TaskResult() {
+  }
 
   TaskResult(Summation sigma, long duration) {
     this.sigma = sigma;
-    this.duration = duration;      
+    this.duration = duration;
   }
 
   /** {@inheritDoc} */
   @Override
-  public Summation getElement() {return sigma;}
+  public Summation getElement() {
+    return sigma;
+  }
 
   /** @return The time duration used */
-  long getDuration() {return duration;}
+  long getDuration() {
+    return duration;
+  }
 
   /** {@inheritDoc} */
   @Override
@@ -55,11 +60,11 @@ public class TaskResult implements Container<Summation>, Combinable<TaskResult>,
     if (this == obj)
       return true;
     else if (obj != null && obj instanceof TaskResult) {
-      final TaskResult that = (TaskResult)obj;
+      final TaskResult that = (TaskResult) obj;
       return this.compareTo(that) == 0;
     }
-    throw new IllegalArgumentException(obj == null? "obj == null":
-      "obj.getClass()=" + obj.getClass());
+    throw new IllegalArgumentException(obj == null ? "obj == null" :
+        "obj.getClass()=" + obj.getClass());
   }
 
   /** Not supported */
@@ -72,7 +77,7 @@ public class TaskResult implements Container<Summation>, Combinable<TaskResult>,
   @Override
   public TaskResult combine(TaskResult that) {
     final Summation s = sigma.combine(that.sigma);
-    return s == null? null: new TaskResult(s, this.duration + that.duration);
+    return s == null ? null : new TaskResult(s, this.duration + that.duration);
   }
 
   /** {@inheritDoc} */
@@ -88,7 +93,7 @@ public class TaskResult implements Container<Summation>, Combinable<TaskResult>,
     SummationWritable.write(sigma, out);
     out.writeLong(duration);
   }
-  
+
   /** {@inheritDoc} */
   @Override
   public String toString() {

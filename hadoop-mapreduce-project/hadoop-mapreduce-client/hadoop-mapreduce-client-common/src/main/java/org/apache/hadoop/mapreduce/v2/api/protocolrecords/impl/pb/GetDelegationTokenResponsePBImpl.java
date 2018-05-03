@@ -1,20 +1,20 @@
- /**
-   * Licensed to the Apache Software Foundation (ASF) under one
-   * or more contributor license agreements.  See the NOTICE file
-   * distributed with this work for additional information
-   * regarding copyright ownership.  The ASF licenses this file
-   * to you under the Apache License, Version 2.0 (the
-   * "License"); you may not use this file except in compliance
-   * with the License.  You may obtain a copy of the License at
-   *
-   *     http://www.apache.org/licenses/LICENSE-2.0
-   *
-   * Unless required by applicable law or agreed to in writing, software
-   * distributed under the License is distributed on an "AS IS" BASIS,
-   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   * See the License for the specific language governing permissions and
-   * limitations under the License.
-   */
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.apache.hadoop.mapreduce.v2.api.protocolrecords.impl.pb;
 
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetDelegationTokenResponse;
@@ -26,26 +26,26 @@ import org.apache.hadoop.yarn.api.records.impl.pb.ProtoBase;
 import org.apache.hadoop.yarn.api.records.impl.pb.TokenPBImpl;
 
 public class GetDelegationTokenResponsePBImpl extends
-      ProtoBase<GetDelegationTokenResponseProto> implements GetDelegationTokenResponse {
-  
-  Token mrToken;
-  
+    ProtoBase<GetDelegationTokenResponseProto> implements GetDelegationTokenResponse {
 
-  GetDelegationTokenResponseProto proto = 
+  Token mrToken;
+
+
+  GetDelegationTokenResponseProto proto =
       GetDelegationTokenResponseProto.getDefaultInstance();
   GetDelegationTokenResponseProto.Builder builder = null;
   boolean viaProto = false;
-  
+
   public GetDelegationTokenResponsePBImpl() {
     builder = GetDelegationTokenResponseProto.newBuilder();
   }
-  
-  public GetDelegationTokenResponsePBImpl (
+
+  public GetDelegationTokenResponsePBImpl(
       GetDelegationTokenResponseProto proto) {
     this.proto = proto;
     viaProto = true;
   }
-  
+
   @Override
   public Token getDelegationToken() {
     GetDelegationTokenResponseProtoOrBuilder p = viaProto ? proto : builder;
@@ -56,13 +56,13 @@ public class GetDelegationTokenResponsePBImpl extends
       return null;
     }
     this.mrToken = convertFromProtoFormat(p.getToken());
-    return this.mrToken;  
+    return this.mrToken;
   }
-  
+
   @Override
   public void setDelegationToken(Token mrToken) {
     maybeInitBuilder();
-    if (mrToken == null) 
+    if (mrToken == null)
       builder.getToken();
     this.mrToken = mrToken;
   }
@@ -74,7 +74,7 @@ public class GetDelegationTokenResponsePBImpl extends
     viaProto = true;
     return proto;
   }
-  
+
 
   private void mergeLocalToBuilder() {
     if (mrToken != null) {
@@ -83,7 +83,7 @@ public class GetDelegationTokenResponsePBImpl extends
   }
 
   private void mergeLocalToProto() {
-    if (viaProto) 
+    if (viaProto)
       maybeInitBuilder();
     mergeLocalToBuilder();
     proto = builder.build();
@@ -102,6 +102,6 @@ public class GetDelegationTokenResponsePBImpl extends
   }
 
   private TokenProto convertToProtoFormat(Token t) {
-    return ((TokenPBImpl)t).getProto();
+    return ((TokenPBImpl) t).getProto();
   }
 }

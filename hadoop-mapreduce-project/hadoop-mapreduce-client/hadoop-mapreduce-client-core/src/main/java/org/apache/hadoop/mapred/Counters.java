@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,8 +18,15 @@
 
 package org.apache.hadoop.mapred;
 
-import static org.apache.hadoop.mapreduce.util.CountersStrings.parseEscapedCompactString;
-import static org.apache.hadoop.mapreduce.util.CountersStrings.toEscapedCompactString;
+import com.google.common.collect.Iterators;
+import org.apache.commons.collections.IteratorUtils;
+import org.apache.commons.logging.Log;
+import org.apache.hadoop.classification.InterfaceAudience;
+import org.apache.hadoop.classification.InterfaceStability;
+import org.apache.hadoop.mapreduce.FileSystemCounter;
+import org.apache.hadoop.mapreduce.counters.*;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormatCounter;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormatCounter;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -29,23 +36,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import org.apache.commons.collections.IteratorUtils;
-import org.apache.commons.logging.Log;
-import org.apache.hadoop.classification.InterfaceAudience;
-import org.apache.hadoop.classification.InterfaceStability;
-import org.apache.hadoop.mapreduce.FileSystemCounter;
-import org.apache.hadoop.mapreduce.counters.AbstractCounterGroup;
-import org.apache.hadoop.mapreduce.counters.AbstractCounters;
-import org.apache.hadoop.mapreduce.counters.CounterGroupBase;
-import org.apache.hadoop.mapreduce.counters.CounterGroupFactory;
-import org.apache.hadoop.mapreduce.counters.FileSystemCounterGroup;
-import org.apache.hadoop.mapreduce.counters.FrameworkCounterGroup;
-import org.apache.hadoop.mapreduce.counters.GenericCounter;
-import org.apache.hadoop.mapreduce.counters.Limits;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormatCounter;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormatCounter;
-
-import com.google.common.collect.Iterators;
+import static org.apache.hadoop.mapreduce.util.CountersStrings.parseEscapedCompactString;
+import static org.apache.hadoop.mapreduce.util.CountersStrings.toEscapedCompactString;
 
 /**
  * A set of named counters.
@@ -61,16 +53,16 @@ import com.google.common.collect.Iterators;
 @InterfaceStability.Stable
 public class Counters
     extends AbstractCounters<Counters.Counter, Counters.Group> {
-  
+
   public static int MAX_COUNTER_LIMIT = Limits.getCountersMax();
   public static int MAX_GROUP_LIMIT = Limits.getGroupsMax();
   private static HashMap<String, String> depricatedCounterMap =
       new HashMap<String, String>();
-  
+
   static {
     initDepricatedMap();
   }
-  
+
   public Counters() {
     super(groupFactory);
   }
@@ -79,18 +71,18 @@ public class Counters
     super(newCounters, groupFactory);
   }
 
-  @SuppressWarnings({ "deprecation" })
+  @SuppressWarnings({"deprecation"})
   private static void initDepricatedMap() {
     depricatedCounterMap.put(FileInputFormat.Counter.class.getName(),
-      FileInputFormatCounter.class.getName());
+        FileInputFormatCounter.class.getName());
     depricatedCounterMap.put(FileOutputFormat.Counter.class.getName(),
-      FileOutputFormatCounter.class.getName());
+        FileOutputFormatCounter.class.getName());
     depricatedCounterMap.put(
-      org.apache.hadoop.mapreduce.lib.input.FileInputFormat.Counter.class
-        .getName(), FileInputFormatCounter.class.getName());
+        org.apache.hadoop.mapreduce.lib.input.FileInputFormat.Counter.class
+            .getName(), FileInputFormatCounter.class.getName());
     depricatedCounterMap.put(
-      org.apache.hadoop.mapreduce.lib.output.FileOutputFormat.Counter.class
-        .getName(), FileOutputFormatCounter.class.getName());
+        org.apache.hadoop.mapreduce.lib.output.FileOutputFormat.Counter.class
+            .getName(), FileOutputFormatCounter.class.getName());
   }
 
   private static String getNewGroupKey(String oldGroup) {
@@ -99,7 +91,7 @@ public class Counters
     }
     return null;
   }
-  
+
   /**
    * Downgrade new {@link org.apache.hadoop.mapreduce.Counters} to old Counters
    * @param newCounters new Counters
@@ -121,8 +113,8 @@ public class Counters
   public synchronized String makeCompactString() {
     StringBuilder builder = new StringBuilder();
     boolean first = true;
-    for(Group group: this){
-      for(Counter counter: group) {
+    for (Group group : this) {
+      for (Counter counter : group) {
         if (first) {
           first = false;
         } else {
@@ -137,7 +129,7 @@ public class Counters
     }
     return builder.toString();
   }
-  
+
   /**
    * A counter record, comprising its name and value.
    */
@@ -226,20 +218,20 @@ public class Counters
     public org.apache.hadoop.mapreduce.Counter getUnderlyingCounter() {
       return realCounter;
     }
-    
+
     @Override
     public synchronized boolean equals(Object genericRight) {
       if (genericRight instanceof Counter) {
         synchronized (genericRight) {
           Counter right = (Counter) genericRight;
           return getName().equals(right.getName()) &&
-                 getDisplayName().equals(right.getDisplayName()) &&
-                 getValue() == right.getValue();
+              getDisplayName().equals(right.getDisplayName()) &&
+              getValue() == right.getValue();
         }
       }
       return false;
     }
-    
+
     @Override
     public int hashCode() {
       return realCounter.hashCode();
@@ -258,29 +250,30 @@ public class Counters
   @InterfaceStability.Stable
   public static class Group implements CounterGroupBase<Counter> {
     private CounterGroupBase<Counter> realGroup;
-    
+
     protected Group() {
       realGroup = null;
     }
-    
+
     Group(GenericGroup group) {
       this.realGroup = group;
     }
+
     Group(FSGroupImpl group) {
       this.realGroup = group;
     }
-    
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
     Group(FrameworkGroupImpl group) {
       this.realGroup = group;
     }
-    
+
     /**
      * @param counterName the name of the counter
      * @return the value of the specified counter, or 0 if the counter does
      * not exist.
      */
-    public long getCounter(String counterName)  {
+    public long getCounter(String counterName) {
       return getCounterValue(realGroup, counterName);
     }
 
@@ -316,7 +309,7 @@ public class Counters
 
     @Override
     public void write(DataOutput out) throws IOException {
-     realGroup.write(out); 
+      realGroup.write(out);
     }
 
     @Override
@@ -378,7 +371,7 @@ public class Counters
     public void incrAllCounters(CounterGroupBase<Counter> rightGroup) {
       realGroup.incrAllCounters(rightGroup);
     }
-    
+
     @Override
     public CounterGroupBase<Counter> getUnderlyingGroup() {
       return realGroup;
@@ -388,8 +381,8 @@ public class Counters
     public synchronized boolean equals(Object genericRight) {
       if (genericRight instanceof CounterGroupBase<?>) {
         @SuppressWarnings("unchecked")
-        CounterGroupBase<Counter> right = ((CounterGroupBase<Counter>) 
-        genericRight).getUnderlyingGroup();
+        CounterGroupBase<Counter> right = ((CounterGroupBase<Counter>)
+            genericRight).getUnderlyingGroup();
         return Iterators.elementsEqual(iterator(), right.iterator());
       }
       return false;
@@ -425,10 +418,10 @@ public class Counters
     protected Counter newCounter() {
       return new Counter();
     }
-    
+
     @Override
     public CounterGroupBase<Counter> getUnderlyingGroup() {
-     return this;
+      return this;
     }
   }
 
@@ -468,8 +461,8 @@ public class Counters
   public synchronized Counter findCounter(String group, String name) {
     if (name.equals("MAP_INPUT_BYTES")) {
       LOG.warn("Counter name MAP_INPUT_BYTES is deprecated. " +
-               "Use FileInputFormatCounters as group name and " +
-               " BYTES_READ as counter name instead");
+          "Use FileInputFormatCounters as group name and " +
+          " BYTES_READ as counter name instead");
       return findCounter(FileInputFormatCounter.BYTES_READ);
     }
     String newGroupKey = getNewGroupKey(group);
@@ -490,7 +483,8 @@ public class Counters
     protected <T extends Enum<T>>
     FrameworkGroupFactory<Group> newFrameworkGroupFactory(final Class<T> cls) {
       return new FrameworkGroupFactory<Group>() {
-        @Override public Group newGroup(String name) {
+        @Override
+        public Group newGroup(String name) {
           return new Group(new FrameworkGroupImpl<T>(cls)); // impl in this package
         }
       };
@@ -560,7 +554,7 @@ public class Counters
    * @param other the other Counters instance
    */
   public synchronized void incrAllCounters(Counters other) {
-    for (Group otherGroup: other) {
+    for (Group otherGroup : other) {
       Group group = getGroup(otherGroup.getName());
       group.setDisplayName(otherGroup.getDisplayName());
       for (Counter otherCounter : otherGroup) {
@@ -598,11 +592,11 @@ public class Counters
    */
   public void log(Log log) {
     log.info("Counters: " + size());
-    for(Group group: this) {
+    for (Group group : this) {
       log.info("  " + group.getDisplayName());
-      for (Counter counter: group) {
+      for (Counter counter : group) {
         log.info("    " + counter.getDisplayName() + "=" +
-                 counter.getCounter());
+            counter.getCounter());
       }
     }
   }

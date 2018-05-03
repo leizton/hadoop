@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,12 +18,12 @@
 package org.apache.hadoop.examples.pi.math;
 
 /** Montgomery method.
- * 
+ *
  * References:
- * 
+ *
  * [1] Richard Crandall and Carl Pomerance.  Prime Numbers: A Computational 
  *     Perspective.  Springer-Verlag, 2001. 
- * 
+ *
  * [2] Peter Montgomery.  Modular multiplication without trial division.
  *     Math. Comp., 44:519-521, 1985.
  */
@@ -50,11 +50,11 @@ class Montgomery {
 
   /** Compute 2^y mod N for N odd. */
   long mod(final long y) {
-    long p = R - N; 
+    long p = R - N;
     long x = p << 1;
     if (x >= N) x -= N;
-    
-    for(long mask = Long.highestOneBit(y); mask > 0; mask >>>= 1) {
+
+    for (long mask = Long.highestOneBit(y); mask > 0; mask >>>= 1) {
       p = product.m(p, p);
       if ((mask & y) != 0) p = product.m(p, x);
     }
@@ -72,7 +72,7 @@ class Montgomery {
       final long a = LongLong.multiplication(xN_I, x.and(R_1), N_I).and(R_1);
       LongLong.multiplication(aN, a, N);
       final long z = aN.plusEqual(x).shiftRight(s);
-      return z < N? z: z - N;      
+      return z < N ? z : z - N;
     }
   }
 }

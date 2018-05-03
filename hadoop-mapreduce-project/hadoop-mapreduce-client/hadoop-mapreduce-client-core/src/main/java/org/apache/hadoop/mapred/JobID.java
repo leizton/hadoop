@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,11 +18,11 @@
 
 package org.apache.hadoop.mapred;
 
-import java.io.DataInput;
-import java.io.IOException;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
+
+import java.io.DataInput;
+import java.io.IOException;
 
 /**
  * JobID represents the immutable and unique identifier for 
@@ -37,7 +37,7 @@ import org.apache.hadoop.classification.InterfaceStability;
  * <p>
  * Applications should never construct or parse JobID strings, but rather 
  * use appropriate constructors or {@link #forName(String)} method. 
- * 
+ *
  * @see TaskID
  * @see TaskAttemptID
  */
@@ -52,8 +52,9 @@ public class JobID extends org.apache.hadoop.mapreduce.JobID {
   public JobID(String jtIdentifier, int id) {
     super(jtIdentifier, id);
   }
-  
-  public JobID() { }
+
+  public JobID() {
+  }
 
   /**
    * Downgrade a new JobID to an old one
@@ -82,8 +83,8 @@ public class JobID extends org.apache.hadoop.mapreduce.JobID {
   public static JobID forName(String str) throws IllegalArgumentException {
     return (JobID) org.apache.hadoop.mapreduce.JobID.forName(str);
   }
-  
-  /** 
+
+  /**
    * Returns a regex pattern which matches task IDs. Arguments can 
    * be given null, in which case that part of the regex will be generic.  
    * For example to obtain a regex matching <i>any job</i> 
@@ -103,7 +104,7 @@ public class JobID extends org.apache.hadoop.mapreduce.JobID {
     builder.append(getJobIDsPatternWOPrefix(jtIdentifier, jobId));
     return builder.toString();
   }
-  
+
   @Deprecated
   static StringBuilder getJobIDsPatternWOPrefix(String jtIdentifier,
                                                 Integer jobId) {
@@ -114,7 +115,7 @@ public class JobID extends org.apache.hadoop.mapreduce.JobID {
       builder.append("[^").append(SEPARATOR).append("]*");
     }
     builder.append(SEPARATOR)
-      .append(jobId != null ? idFormat.format(jobId) : "[0-9]*");
+        .append(jobId != null ? idFormat.format(jobId) : "[0-9]*");
     return builder;
   }
 

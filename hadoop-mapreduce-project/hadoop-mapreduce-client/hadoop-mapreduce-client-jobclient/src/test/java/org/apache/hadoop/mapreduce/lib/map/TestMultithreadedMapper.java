@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,7 +23,10 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.HadoopTestCase;
-import org.apache.hadoop.mapreduce.*;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.MapReduceTestUtil;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
 
 import java.io.IOException;
 
@@ -40,6 +43,7 @@ public class TestMultithreadedMapper extends HadoopTestCase {
   public void testIOExRun() throws Exception {
     run(true, false);
   }
+
   public void testRuntimeExRun() throws Exception {
     run(false, true);
   }
@@ -70,22 +74,21 @@ public class TestMultithreadedMapper extends HadoopTestCase {
 
     if (job.isSuccessful()) {
       assertFalse(ioEx || rtEx);
-    }
-    else {
+    } else {
       assertTrue(ioEx || rtEx);
     }
   }
 
-  public static class IDMap extends 
+  public static class IDMap extends
       Mapper<LongWritable, Text, LongWritable, Text> {
     private boolean ioEx = false;
     private boolean rtEx = false;
 
     public void setup(Context context) {
       ioEx = context.getConfiguration().
-               getBoolean("multithreaded.ioException", false);
+          getBoolean("multithreaded.ioException", false);
       rtEx = context.getConfiguration().
-               getBoolean("multithreaded.runtimeException", false);
+          getBoolean("multithreaded.runtimeException", false);
     }
 
     public void map(LongWritable key, Text value, Context context)

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,9 +17,6 @@
  */
 package org.apache.hadoop.mapreduce.v2.hs;
 
-import java.lang.InterruptedException;
-import java.util.Collection;
-
 import org.apache.hadoop.mapreduce.v2.api.records.JobId;
 import org.apache.hadoop.mapreduce.v2.hs.HistoryFileManager.HistoryFileInfo;
 import org.apache.hadoop.mapreduce.v2.hs.HistoryFileManager.JobListCache;
@@ -27,11 +24,13 @@ import org.apache.hadoop.mapreduce.v2.util.MRBuilderUtils;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.util.Collection;
+
 import static org.junit.Assert.*;
 
 public class TestJobListCache {
 
-  @Test (timeout = 1000)
+  @Test(timeout = 1000)
   public void testAddExisting() {
     JobListCache cache = new JobListCache(2, 1000);
 
@@ -45,7 +44,7 @@ public class TestJobListCache {
         cache.values().size());
   }
 
-  @Test (timeout = 1000)
+  @Test(timeout = 1000)
   public void testEviction() throws InterruptedException {
     int maxSize = 2;
     JobListCache cache = new JobListCache(maxSize, 1000);
@@ -66,14 +65,14 @@ public class TestJobListCache {
     cache.addIfAbsent(fileInfo2);
     cache.addIfAbsent(fileInfo3);
 
-    Collection <HistoryFileInfo> values;
+    Collection<HistoryFileInfo> values;
     for (int i = 0; i < 9; i++) {
       values = cache.values();
       if (values.size() > maxSize) {
         Thread.sleep(100);
       } else {
         assertFalse("fileInfo1 should have been evicted",
-          values.contains(fileInfo1));
+            values.contains(fileInfo1));
         return;
       }
     }

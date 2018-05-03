@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,13 +16,6 @@
  * limitations under the License.
  */
 package org.apache.hadoop.mapreduce;
-
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
@@ -33,6 +26,13 @@ import org.apache.hadoop.mapred.TIPStatus;
 import org.apache.hadoop.mapred.TaskID;
 import org.apache.hadoop.util.StringInterner;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+
 /** A report on the state of a task. */
 @InterfaceAudience.Private
 @InterfaceStability.Evolving
@@ -41,18 +41,19 @@ public class TaskReport implements Writable {
   private float progress;
   private String state;
   private String[] diagnostics;
-  private long startTime; 
-  private long finishTime; 
+  private long startTime;
+  private long finishTime;
   private Counters counters;
   private TIPStatus currentStatus;
-  
-  private Collection<TaskAttemptID> runningAttempts = 
-    new ArrayList<TaskAttemptID>();
+
+  private Collection<TaskAttemptID> runningAttempts =
+      new ArrayList<TaskAttemptID>();
   private TaskAttemptID successfulAttempt = new TaskAttemptID();
+
   public TaskReport() {
     taskid = new TaskID();
   }
-  
+
   /**
    * Creates a new TaskReport object
    * @param taskid
@@ -65,15 +66,15 @@ public class TaskReport implements Writable {
    * @param counters
    */
   public TaskReport(TaskID taskid, float progress, String state,
-             String[] diagnostics, TIPStatus currentStatus, 
-             long startTime, long finishTime,
-             Counters counters) {
+                    String[] diagnostics, TIPStatus currentStatus,
+                    long startTime, long finishTime,
+                    Counters counters) {
     this.taskid = taskid;
     this.progress = progress;
     this.state = state;
     this.diagnostics = diagnostics;
     this.currentStatus = currentStatus;
-    this.startTime = startTime; 
+    this.startTime = startTime;
     this.finishTime = finishTime;
     this.counters = counters;
   }
@@ -89,22 +90,30 @@ public class TaskReport implements Writable {
   }
 
   /** The amount completed, between zero and one. */
-  public float getProgress() { return progress; }
-  
+  public float getProgress() {
+    return progress;
+  }
+
   /** The most recent state, reported by the Reporter. */
-  public String getState() { return state; }
-  
+  public String getState() {
+    return state;
+  }
+
   /** A list of error messages. */
-  public String[] getDiagnostics() { return diagnostics; }
-  
+  public String[] getDiagnostics() {
+    return diagnostics;
+  }
+
   /** A table of counters. */
-  public Counters getTaskCounters() { return counters; }
-  
+  public Counters getTaskCounters() {
+    return counters;
+  }
+
   /** The current status */
   public TIPStatus getCurrentStatus() {
     return currentStatus;
   }
-  
+
   /**
    * Get finish time of task. 
    * @return 0, if finish time was not set else returns finish time.
@@ -113,7 +122,7 @@ public class TaskReport implements Writable {
     return finishTime;
   }
 
-  /** 
+  /**
    * set finish time of task. 
    * @param finishTime finish time of task. 
    */
@@ -129,35 +138,35 @@ public class TaskReport implements Writable {
     return startTime;
   }
 
-  /** 
+  /**
    * set start time of the task. 
-   */ 
+   */
   protected void setStartTime(long startTime) {
     this.startTime = startTime;
   }
 
-  /** 
+  /**
    * set successful attempt ID of the task. 
-   */ 
+   */
   protected void setSuccessfulAttemptId(TaskAttemptID t) {
     successfulAttempt = t;
   }
-  
+
   /**
    * Get the attempt ID that took this task to completion
    */
   public TaskAttemptID getSuccessfulTaskAttemptId() {
     return successfulAttempt;
   }
-  
-  /** 
+
+  /**
    * set running attempt(s) of the task. 
-   */ 
+   */
   protected void setRunningTaskAttemptIds(
       Collection<TaskAttemptID> runningAttempts) {
     this.runningAttempts = runningAttempts;
   }
-  
+
   /**
    * Get the running task attempt IDs for this task
    */
@@ -168,28 +177,29 @@ public class TaskReport implements Writable {
 
   @Override
   public boolean equals(Object o) {
-    if(o == null)
+    if (o == null)
       return false;
-    if(o.getClass().equals(this.getClass())) {
+    if (o.getClass().equals(this.getClass())) {
       TaskReport report = (TaskReport) o;
       return counters.equals(report.getTaskCounters())
-             && Arrays.toString(this.diagnostics)
-                      .equals(Arrays.toString(report.getDiagnostics()))
-             && this.finishTime == report.getFinishTime()
-             && this.progress == report.getProgress()
-             && this.startTime == report.getStartTime()
-             && this.state.equals(report.getState())
-             && this.taskid.equals(report.getTaskID());
+          && Arrays.toString(this.diagnostics)
+          .equals(Arrays.toString(report.getDiagnostics()))
+          && this.finishTime == report.getFinishTime()
+          && this.progress == report.getProgress()
+          && this.startTime == report.getStartTime()
+          && this.state.equals(report.getState())
+          && this.taskid.equals(report.getTaskID());
     }
-    return false; 
+    return false;
   }
 
   @Override
   public int hashCode() {
-    return (counters.toString() + Arrays.toString(this.diagnostics) 
-            + this.finishTime + this.progress + this.startTime + this.state 
-            + this.taskid.toString()).hashCode();
+    return (counters.toString() + Arrays.toString(this.diagnostics)
+        + this.finishTime + this.progress + this.startTime + this.state
+        + this.taskid.toString()).hashCode();
   }
+
   //////////////////////////////////////////////
   // Writable
   //////////////////////////////////////////////
@@ -218,15 +228,15 @@ public class TaskReport implements Writable {
     this.taskid.readFields(in);
     this.progress = in.readFloat();
     this.state = StringInterner.weakIntern(Text.readString(in));
-    this.startTime = in.readLong(); 
+    this.startTime = in.readLong();
     this.finishTime = in.readLong();
-    
+
     diagnostics = WritableUtils.readStringArray(in);
     counters = new Counters();
     counters.readFields(in);
     currentStatus = WritableUtils.readEnum(in, TIPStatus.class);
     if (currentStatus == TIPStatus.RUNNING) {
-      int num = WritableUtils.readVInt(in);    
+      int num = WritableUtils.readVInt(in);
       for (int i = 0; i < num; i++) {
         TaskAttemptID t = new TaskAttemptID();
         t.readFields(in);

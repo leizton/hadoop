@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,23 +17,23 @@
  */
 package org.apache.hadoop.mapred.lib.aggregate;
 
-import org.apache.hadoop.fs.*;
-import org.apache.hadoop.io.*;
+import junit.framework.TestCase;
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.*;
-import org.apache.hadoop.mapred.lib.*;
 import org.apache.hadoop.mapreduce.MapReduceTestUtil;
 
-import junit.framework.TestCase;
-import java.io.*;
-import java.util.*;
 import java.text.NumberFormat;
 
 public class TestAggregates extends TestCase {
 
   private static NumberFormat idFormat = NumberFormat.getInstance();
-    static {
-      idFormat.setMinimumIntegerDigits(4);
-      idFormat.setGroupingUsed(false);
+
+  static {
+    idFormat.setMinimumIntegerDigits(4);
+    idFormat.setGroupingUsed(false);
   }
 
 
@@ -56,7 +56,7 @@ public class TestAggregates extends TestCase {
     StringBuffer inputData = new StringBuffer();
     StringBuffer expectedOutput = new StringBuffer();
     expectedOutput.append("max\t19\n");
-    expectedOutput.append("min\t1\n"); 
+    expectedOutput.append("min\t1\n");
 
     FSDataOutputStream fileOut = fs.create(new Path(INPUT_DIR, inputFile));
     for (int i = 1; i < numOfInputLines; i++) {
@@ -96,8 +96,8 @@ public class TestAggregates extends TestCase {
     job.setCombinerClass(ValueAggregatorCombiner.class);
 
     job.setInt("aggregator.descriptor.num", 1);
-    job.set("aggregator.descriptor.0", 
-          "UserDefined,org.apache.hadoop.mapred.lib.aggregate.AggregatorTests");
+    job.set("aggregator.descriptor.0",
+        "UserDefined,org.apache.hadoop.mapred.lib.aggregate.AggregatorTests");
     job.setLong("aggregate.max.num.unique.values", 14);
 
     JobClient.runJob(job);
@@ -109,12 +109,12 @@ public class TestAggregates extends TestCase {
     //
     boolean success = true;
     Path outPath = new Path(OUTPUT_DIR, "part-00000");
-    String outdata = MapReduceTestUtil.readOutput(outPath,job);
+    String outdata = MapReduceTestUtil.readOutput(outPath, job);
     System.out.println("full out data:");
     System.out.println(outdata.toString());
     outdata = outdata.substring(0, expectedOutput.toString().length());
 
-    assertEquals(expectedOutput.toString(),outdata);
+    assertEquals(expectedOutput.toString(), outdata);
     //fs.delete(OUTPUT_DIR);
     fs.delete(INPUT_DIR, true);
   }

@@ -1,26 +1,24 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2.app;
 
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.collect.Maps;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.v2.api.records.JobId;
 import org.apache.hadoop.mapreduce.v2.app.job.Job;
@@ -30,7 +28,8 @@ import org.apache.hadoop.yarn.event.EventHandler;
 import org.apache.hadoop.yarn.security.client.ClientToAMTokenSecretManager;
 import org.apache.hadoop.yarn.util.Clock;
 
-import com.google.common.collect.Maps;
+import java.util.Map;
+import java.util.Set;
 
 public class MockAppContext implements AppContext {
   final ApplicationAttemptId appAttemptID;
@@ -40,13 +39,13 @@ public class MockAppContext implements AppContext {
   final long startTime = System.currentTimeMillis();
   Set<String> blacklistedNodes;
   String queue;
-  
+
   public MockAppContext(int appid) {
     appID = MockJobs.newAppID(appid);
     appAttemptID = ApplicationAttemptId.newInstance(appID, 0);
     jobs = null;
   }
-  
+
   public MockAppContext(int appid, int numTasks, int numAttempts, Path confPath) {
     appID = MockJobs.newAppID(appid);
     appAttemptID = ApplicationAttemptId.newInstance(appID, 0);
@@ -55,13 +54,13 @@ public class MockAppContext implements AppContext {
     map.put(job.getID(), job);
     jobs = map;
   }
-  
+
   public MockAppContext(int appid, int numJobs, int numTasks, int numAttempts) {
     this(appid, numJobs, numTasks, numAttempts, false);
   }
-  
+
   public MockAppContext(int appid, int numJobs, int numTasks, int numAttempts,
-      boolean hasFailedTasks) {
+                        boolean hasFailedTasks) {
     appID = MockJobs.newAppID(appid);
     appAttemptID = ApplicationAttemptId.newInstance(appID, 0);
     jobs = MockJobs.newJobs(appID, numJobs, numTasks, numAttempts, hasFailedTasks);
@@ -122,7 +121,7 @@ public class MockAppContext implements AppContext {
   public Set<String> getBlacklistedNodes() {
     return blacklistedNodes;
   }
-  
+
   public void setBlacklistedNodes(Set<String> blacklistedNodes) {
     this.blacklistedNodes = blacklistedNodes;
   }
@@ -143,7 +142,7 @@ public class MockAppContext implements AppContext {
     return true;
   }
 
-@Override
+  @Override
   public String getNMHostname() {
     // bogus - Not Required
     return null;

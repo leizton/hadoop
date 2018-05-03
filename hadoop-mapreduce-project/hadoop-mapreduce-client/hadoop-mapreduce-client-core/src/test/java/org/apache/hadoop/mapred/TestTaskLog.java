@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,20 +17,19 @@
  */
 package org.apache.hadoop.mapred;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.apache.commons.io.FileUtils;
+import org.apache.hadoop.mapred.TaskLog.LogName;
+import org.apache.hadoop.yarn.conf.YarnConfiguration;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.hadoop.mapred.TaskLog.LogName;
-import org.apache.hadoop.mapreduce.MRJobConfig;
-import org.apache.hadoop.yarn.conf.YarnConfiguration;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * TestCounters checks the sanity and recoverability of Queue
@@ -39,10 +38,10 @@ public class TestTaskLog {
 
   /**
    * test TaskAttemptID
-   * 
+   *
    * @throws IOException
    */
-  @Test (timeout=50000)
+  @Test(timeout = 50000)
   public void testTaskLog() throws IOException {
     // test TaskLog
     System.setProperty(
@@ -71,8 +70,8 @@ public class TestTaskLog {
 
     assertTrue(indexFile.getAbsolutePath().endsWith(
         "userlogs" + File.separatorChar + "job_job_0001"
-        + File.separatorChar + "JobId.cleanup"
-        + File.separatorChar + "log.index"));
+            + File.separatorChar + "JobId.cleanup"
+            + File.separatorChar + "log.index"));
 
     f = TaskLog.getRealTaskLogFileLocation(taid, true, LogName.DEBUGOUT);
     if (f != null) {
@@ -88,7 +87,7 @@ public class TestTaskLog {
   }
 
   public String readTaskLog(TaskLog.LogName filter,
-      org.apache.hadoop.mapred.TaskAttemptID taskId, boolean isCleanup)
+                            org.apache.hadoop.mapred.TaskAttemptID taskId, boolean isCleanup)
       throws IOException {
     // string buffer to store task log
     StringBuffer result = new StringBuffer();
@@ -117,10 +116,10 @@ public class TestTaskLog {
 
   /**
    * test without TASK_LOG_DIR
-   * 
+   *
    * @throws IOException
    */
-  @Test (timeout=50000)
+  @Test(timeout = 50000)
   public void testTaskLogWithoutTaskLogDir() throws IOException {
     // TaskLog tasklog= new TaskLog();
     System.clearProperty(YarnConfiguration.YARN_APP_CONTAINER_LOG_DIR);

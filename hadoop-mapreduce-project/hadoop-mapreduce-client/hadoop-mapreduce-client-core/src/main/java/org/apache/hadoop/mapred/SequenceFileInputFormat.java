@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,18 +18,17 @@
 
 package org.apache.hadoop.mapred;
 
-import java.io.IOException;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-
-import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.MapFile;
+import org.apache.hadoop.io.SequenceFile;
 
-/** 
+import java.io.IOException;
+
+/**
  * An {@link InputFormat} for {@link SequenceFile}s. 
  */
 @InterfaceAudience.Public
@@ -39,7 +38,7 @@ public class SequenceFileInputFormat<K, V> extends FileInputFormat<K, V> {
   public SequenceFileInputFormat() {
     setMinSplitSize(SequenceFile.SYNC_INTERVAL);
   }
-  
+
   @Override
   protected FileStatus[] listStatus(JobConf job) throws IOException {
     FileStatus[] files = super.listStatus(job);
@@ -56,8 +55,8 @@ public class SequenceFileInputFormat<K, V> extends FileInputFormat<K, V> {
   }
 
   public RecordReader<K, V> getRecordReader(InputSplit split,
-                                      JobConf job, Reporter reporter)
-    throws IOException {
+                                            JobConf job, Reporter reporter)
+      throws IOException {
 
     reporter.setStatus(split.toString());
 

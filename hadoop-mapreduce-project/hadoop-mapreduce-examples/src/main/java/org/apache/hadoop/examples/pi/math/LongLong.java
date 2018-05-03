@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -65,7 +65,7 @@ class LongLong {
   @Override
   public String toString() {
     final int remainder = BITS_PER_LONG % 4;
-    return String.format("%x*2^%d + %016x", d1<<remainder, BITS_PER_LONG-remainder, d0);
+    return String.format("%x*2^%d + %016x", d1 << remainder, BITS_PER_LONG - remainder, d0);
   }
 
   /** Compute a*b and store the result to r.
@@ -94,9 +94,9 @@ class LongLong {
     final long b_lower = b & LOWER_MASK;
     final long b_upper = (b & UPPER_MASK) >> MID;
 
-    final long tmp = a_lower*b_upper + a_upper*b_lower;
-    r.d0 = a_lower*b_lower + ((tmp << MID) & FULL_MASK);
-    r.d1 = a_upper*b_upper + (tmp >> MID);
+    final long tmp = a_lower * b_upper + a_upper * b_lower;
+    r.d0 = a_lower * b_lower + ((tmp << MID) & FULL_MASK);
+    r.d1 = a_upper * b_upper + (tmp >> MID);
     return r;
   }
 }

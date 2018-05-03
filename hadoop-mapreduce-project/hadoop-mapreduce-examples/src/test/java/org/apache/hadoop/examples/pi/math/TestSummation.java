@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,38 +17,34 @@
  */
 package org.apache.hadoop.examples.pi.math;
 
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
-
 import org.apache.hadoop.examples.pi.Container;
 import org.apache.hadoop.examples.pi.Util;
 import org.apache.hadoop.examples.pi.Util.Timer;
 import org.apache.hadoop.examples.pi.math.TestModular.Montgomery2;
+
+import java.math.BigInteger;
+import java.util.*;
 
 public class TestSummation extends junit.framework.TestCase {
   static final Random RANDOM = new Random();
   static final BigInteger TWO = BigInteger.valueOf(2);
 
   private static Summation2 newSummation(final long base, final long range, final long delta) {
-    final ArithmeticProgression N = new ArithmeticProgression('n', base+3, delta, base+3+range);
-    final ArithmeticProgression E = new ArithmeticProgression('e', base+range, -delta, base);
+    final ArithmeticProgression N = new ArithmeticProgression('n', base + 3, delta, base + 3 + range);
+    final ArithmeticProgression E = new ArithmeticProgression('e', base + range, -delta, base);
     return new Summation2(N, E);
   }
 
   private static void runTestSubtract(Summation sigma, List<Summation> diff) {
 //    Util.out.println("diff=" + diff);
     List<Container<Summation>> tmp = new ArrayList<Container<Summation>>(diff.size());
-    for(Summation s : diff)
+    for (Summation s : diff)
       tmp.add(s);
     final List<Summation> a = sigma.remainingTerms(tmp);
 //    Util.out.println("a   =" + a);
 
     a.addAll(diff);
-    for(Summation s : a)
+    for (Summation s : a)
       s.compute();
 
     final List<Summation> combined = Util.combine(a);
@@ -66,31 +62,32 @@ public class TestSummation extends junit.framework.TestCase {
     runTestSubtract(sigma, new ArrayList<Summation>());
     runTestSubtract(sigma, parts);
 
-    for(int n = 1; n < size; n++) {
-      for(int j = 0; j < 10; j++) {
+    for (int n = 1; n < size; n++) {
+      for (int j = 0; j < 10; j++) {
         final List<Summation> diff = new ArrayList<Summation>(parts);
-        for(int i = 0; i < n; i++)
+        for (int i = 0; i < n; i++)
           diff.remove(RANDOM.nextInt(diff.size()));
 ///        Collections.sort(diff);
         runTestSubtract(sigma, diff);
       }
     }
   }
-  
+
   static class Summation2 extends Summation {
     Summation2(ArithmeticProgression N, ArithmeticProgression E) {
       super(N, E);
     }
 
-    
+
     final Montgomery2 m2 = new Montgomery2();
+
     double compute_montgomery2() {
       long e = E.value;
       long n = N.value;
       double s = 0;
-      for(; e > E.limit; e += E.delta) {
+      for (; e > E.limit; e += E.delta) {
         m2.set(n);
-        s = Modular.addMod(s, m2.mod2(e)/(double)n);
+        s = Modular.addMod(s, m2.mod2(e) / (double) n);
         n += N.delta;
       }
       return s;
@@ -100,19 +97,19 @@ public class TestSummation extends junit.framework.TestCase {
       long e = E.value;
       long n = N.value;
       double s = 0;
-      for(; e > E.limit; e += E.delta) {
-        s = Modular.addMod(s, TestModular.modBigInteger(e, n)/(double)n);
+      for (; e > E.limit; e += E.delta) {
+        s = Modular.addMod(s, TestModular.modBigInteger(e, n) / (double) n);
         n += N.delta;
       }
       return s;
     }
-  
+
     double compute_modPow() {
       long e = E.value;
       long n = N.value;
       double s = 0;
-      for(; e > E.limit; e += E.delta) {
-        s = Modular.addMod(s, TWO.modPow(BigInteger.valueOf(e), BigInteger.valueOf(n)).doubleValue()/n);
+      for (; e > E.limit; e += E.delta) {
+        s = Modular.addMod(s, TWO.modPow(BigInteger.valueOf(e), BigInteger.valueOf(n)).doubleValue() / n);
         n += N.delta;
       }
       return s;
@@ -141,7 +138,7 @@ public class TestSummation extends junit.framework.TestCase {
   public static void main(String[] args) {
     final long delta = 1L << 4;
     final long range = 1L << 20;
-    for(int i = 20; i < 40; i += 2) 
+    for (int i = 20; i < 40; i += 2)
       computeBenchmarks(newSummation(1L << i, range, delta));
   }
 }

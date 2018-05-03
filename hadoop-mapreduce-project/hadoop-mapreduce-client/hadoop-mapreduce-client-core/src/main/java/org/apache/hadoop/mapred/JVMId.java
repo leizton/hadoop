@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,28 +30,30 @@ class JVMId {
   private static final String JVM = "jvm";
   private static final char SEPARATOR = '_';
   private static NumberFormat idFormat = NumberFormat.getInstance();
+
   static {
     idFormat.setGroupingUsed(false);
     idFormat.setMinimumIntegerDigits(6);
   }
-  
+
   public JVMId(JobID jobId, boolean isMap, long id) {
     this.jvmId = id;
     this.isMap = isMap;
     this.jobId = jobId;
   }
-  
-  public JVMId (String jtIdentifier, int jobId, boolean isMap, long id) {
+
+  public JVMId(String jtIdentifier, int jobId, boolean isMap, long id) {
     this(new JobID(jtIdentifier, jobId), isMap, id);
   }
-    
-  public JVMId() { 
+
+  public JVMId() {
     jobId = new JobID();
   }
-  
+
   public boolean isMapJVM() {
     return isMap;
   }
+
   public JobID getJobId() {
     return jobId;
   }
@@ -96,8 +98,8 @@ class JVMId {
    **/
   public int compareTo(JVMId that) {
     int jobComp = this.jobId.compareTo(that.jobId);
-    if(jobComp == 0) {
-      if(this.isMap == that.isMap) {
+    if (jobComp == 0) {
+      if (this.isMap == that.isMap) {
         return Long.valueOf(this.jvmId).compareTo(that.jvmId);
       } else {
         return this.isMap ? -1 : 1;
@@ -106,9 +108,9 @@ class JVMId {
       return jobComp;
     }
   }
-  
+
   @Override
-  public String toString() { 
+  public String toString() {
     return appendTo(new StringBuilder(JVM)).toString();
   }
 
@@ -128,10 +130,10 @@ class JVMId {
    */
   protected StringBuilder appendTo(StringBuilder builder) {
     return jobId.appendTo(builder).
-                 append(SEPARATOR).
-                 append(isMap ? 'm' : 'r').
-                 append(SEPARATOR).
-                 append(idFormat.format(jvmId));
+        append(SEPARATOR).
+        append(isMap ? 'm' : 'r').
+        append(SEPARATOR).
+        append(idFormat.format(jvmId));
   }
 
   public void readFields(DataInput in) throws IOException {
@@ -145,30 +147,30 @@ class JVMId {
     jobId.write(out);
     out.writeBoolean(isMap);
   }
-  
+
   /** Construct a JVMId object from given string 
    * @return constructed JVMId object or null if the given String is null
    * @throws IllegalArgumentException if the given string is malformed
    */
-  public static JVMId forName(String str) 
-    throws IllegalArgumentException {
-    if(str == null)
+  public static JVMId forName(String str)
+      throws IllegalArgumentException {
+    if (str == null)
       return null;
     try {
       String[] parts = str.split("_");
-      if(parts.length == 5) {
-        if(parts[0].equals(JVM)) {
+      if (parts.length == 5) {
+        if (parts[0].equals(JVM)) {
           boolean isMap = false;
-          if(parts[3].equals("m")) isMap = true;
-          else if(parts[3].equals("r")) isMap = false;
+          if (parts[3].equals("m")) isMap = true;
+          else if (parts[3].equals("r")) isMap = false;
           else throw new Exception();
           return new JVMId(parts[1], Integer.parseInt(parts[2]),
               isMap, Integer.parseInt(parts[4]));
         }
       }
-    }catch (Exception ex) {//fall below
+    } catch (Exception ex) {//fall below
     }
-    throw new IllegalArgumentException("TaskId string : " + str 
+    throw new IllegalArgumentException("TaskId string : " + str
         + " is not properly formed");
   }
 

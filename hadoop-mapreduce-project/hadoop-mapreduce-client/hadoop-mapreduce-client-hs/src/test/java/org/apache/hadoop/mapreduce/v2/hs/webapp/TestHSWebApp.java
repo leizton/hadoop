@@ -1,40 +1,25 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2.hs.webapp;
 
-import static org.apache.hadoop.mapreduce.v2.app.webapp.AMParams.APP_ID;
-import static org.apache.hadoop.mapreduce.v2.app.webapp.AMParams.ATTEMPT_STATE;
-import static org.apache.hadoop.mapreduce.v2.app.webapp.AMParams.JOB_ID;
-import static org.apache.hadoop.mapreduce.v2.app.webapp.AMParams.TASK_TYPE;
-import static org.apache.hadoop.yarn.webapp.YarnWebParams.APP_OWNER;
-import static org.apache.hadoop.yarn.webapp.YarnWebParams.CONTAINER_ID;
-import static org.apache.hadoop.yarn.webapp.YarnWebParams.CONTAINER_LOG_TYPE;
-import static org.apache.hadoop.yarn.webapp.YarnWebParams.ENTITY_STRING;
-import static org.apache.hadoop.yarn.webapp.YarnWebParams.NM_NODENAME;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.verify;
-
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.Map;
-
+import com.google.inject.AbstractModule;
+import com.google.inject.Injector;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -50,21 +35,30 @@ import org.apache.hadoop.yarn.webapp.log.AggregatedLogsPage;
 import org.apache.hadoop.yarn.webapp.test.WebAppTests;
 import org.junit.Test;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Injector;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.apache.hadoop.mapreduce.v2.app.webapp.AMParams.*;
+import static org.apache.hadoop.yarn.webapp.YarnWebParams.*;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.verify;
 
 public class TestHSWebApp {
   private static final Log LOG = LogFactory.getLog(TestHSWebApp.class);
 
-  @Test public void testAppControllerIndex() {
+  @Test
+  public void testAppControllerIndex() {
     MockAppContext ctx = new MockAppContext(0, 1, 1, 1);
     Injector injector = WebAppTests.createMockInjector(AppContext.class, ctx);
     HsController controller = injector.getInstance(HsController.class);
     controller.index();
-    assertEquals(ctx.getApplicationID().toString(), controller.get(APP_ID,""));
+    assertEquals(ctx.getApplicationID().toString(), controller.get(APP_ID, ""));
   }
 
-  @Test public void testJobView() {
+  @Test
+  public void testJobView() {
     LOG.info("HsJobPage");
     AppContext appContext = new MockAppContext(0, 1, 1, 1);
     Map<String, String> params = TestAMWebApp.getJobParams(appContext);
@@ -89,60 +83,67 @@ public class TestHSWebApp {
         .testPage(HsTaskPage.class, AppContext.class, appContext, params);
   }
 
-  @Test public void testAttemptsWithJobView() {
+  @Test
+  public void testAttemptsWithJobView() {
     LOG.info("HsAttemptsPage with data");
     MockAppContext ctx = new MockAppContext(0, 1, 1, 1);
     JobId id = ctx.getAllJobs().keySet().iterator().next();
-    Map<String, String> params = new HashMap<String,String>();
+    Map<String, String> params = new HashMap<String, String>();
     params.put(JOB_ID, id.toString());
     params.put(TASK_TYPE, "m");
     params.put(ATTEMPT_STATE, "SUCCESSFUL");
     WebAppTests.testPage(HsAttemptsPage.class, AppContext.class,
         ctx, params);
   }
-  
-  @Test public void testAttemptsView() {
+
+  @Test
+  public void testAttemptsView() {
     LOG.info("HsAttemptsPage");
     AppContext appContext = new MockAppContext(0, 1, 1, 1);
     Map<String, String> params = TestAMWebApp.getTaskParams(appContext);
     WebAppTests.testPage(HsAttemptsPage.class, AppContext.class,
-                         appContext, params);
+        appContext, params);
   }
-  
-  @Test public void testConfView() {
+
+  @Test
+  public void testConfView() {
     LOG.info("HsConfPage");
     WebAppTests.testPage(HsConfPage.class, AppContext.class,
-                         new MockAppContext(0, 1, 1, 1));
+        new MockAppContext(0, 1, 1, 1));
   }
-  
-  @Test public void testAboutView() {
+
+  @Test
+  public void testAboutView() {
     LOG.info("HsAboutPage");
     WebAppTests.testPage(HsAboutPage.class, AppContext.class,
-                         new MockAppContext(0, 1, 1, 1));
+        new MockAppContext(0, 1, 1, 1));
   }
-  
-  @Test public void testJobCounterView() {
+
+  @Test
+  public void testJobCounterView() {
     LOG.info("JobCounterView");
     AppContext appContext = new MockAppContext(0, 1, 1, 1);
     Map<String, String> params = TestAMWebApp.getJobParams(appContext);
     WebAppTests.testPage(HsCountersPage.class, AppContext.class,
-                         appContext, params);
+        appContext, params);
   }
-  
-  @Test public void testJobCounterViewForKilledJob() {
+
+  @Test
+  public void testJobCounterViewForKilledJob() {
     LOG.info("JobCounterViewForKilledJob");
     AppContext appContext = new MockAppContext(0, 1, 1, 1, true);
     Map<String, String> params = TestAMWebApp.getJobParams(appContext);
     WebAppTests.testPage(HsCountersPage.class, AppContext.class,
         appContext, params);
   }
-  
-  @Test public void testSingleCounterView() {
+
+  @Test
+  public void testSingleCounterView() {
     LOG.info("HsSingleCounterPage");
     WebAppTests.testPage(HsSingleCounterPage.class, AppContext.class,
-                         new MockAppContext(0, 1, 1, 1));
+        new MockAppContext(0, 1, 1, 1));
   }
-  
+
   @Test
   public void testLogsView1() throws IOException {
     LOG.info("HsLogsPage");
@@ -163,7 +164,7 @@ public class TestHSWebApp {
 
     params.put(CONTAINER_ID, MRApp.newContainerId(1, 1, 333, 1)
         .toString());
-    params.put(NM_NODENAME, 
+    params.put(NM_NODENAME,
         NodeId.newInstance(MockJobs.NM_HOST, MockJobs.NM_PORT).toString());
     params.put(ENTITY_STRING, "container_10_0001_01_000001");
     params.put(APP_OWNER, "owner");
@@ -199,11 +200,11 @@ public class TestHSWebApp {
     Injector injector =
         WebAppTests.testPage(AggregatedLogsPage.class, AppContext.class, ctx,
             params, new AbstractModule() {
-          @Override
-          protected void configure() {
-            bind(Configuration.class).toInstance(conf);
-          }
-        });
+              @Override
+              protected void configure() {
+                bind(Configuration.class).toInstance(conf);
+              }
+            });
     PrintWriter spyPw = WebAppTests.getPrintWriter(injector);
     verify(spyPw).write(
         "Logs not available for container_10_0001_01_000001."

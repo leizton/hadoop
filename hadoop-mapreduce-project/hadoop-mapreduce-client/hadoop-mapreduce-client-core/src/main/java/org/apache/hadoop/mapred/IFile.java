@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,13 +17,8 @@
  */
 package org.apache.hadoop.mapred;
 
-import java.io.DataInput;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.InputStream;
-
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
@@ -35,16 +30,11 @@ import org.apache.hadoop.io.DataInputBuffer;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.io.WritableUtils;
-import org.apache.hadoop.io.compress.CodecPool;
-import org.apache.hadoop.io.compress.CompressionCodec;
-import org.apache.hadoop.io.compress.CompressionOutputStream;
-import org.apache.hadoop.io.compress.Compressor;
-import org.apache.hadoop.io.compress.Decompressor;
+import org.apache.hadoop.io.compress.*;
 import org.apache.hadoop.io.serializer.SerializationFactory;
 import org.apache.hadoop.io.serializer.Serializer;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.io.*;
 
 /**
  * <code>IFile</code> is the simple <key-len, value-len, key, value> format
@@ -58,7 +48,7 @@ import org.apache.commons.logging.LogFactory;
 public class IFile {
   private static final Log LOG = LogFactory.getLog(IFile.class);
   public static final int EOF_MARKER = -1; // End of File Marker
-  
+
   /**
    * <code>IFile.Writer</code> to write out intermediate map-outputs. 
    */
@@ -69,11 +59,11 @@ public class IFile {
     boolean ownOutputStream = false;
     long start = 0;
     FSDataOutputStream rawOut;
-    
+
     CompressionOutputStream compressedOut;
     Compressor compressor;
     boolean compressOutput = false;
-    
+
     long decompressedBytesWritten = 0;
     long compressedBytesWritten = 0;
 
@@ -87,24 +77,24 @@ public class IFile {
     Class<V> valueClass;
     Serializer<K> keySerializer;
     Serializer<V> valueSerializer;
-    
+
     DataOutputBuffer buffer = new DataOutputBuffer();
 
     public Writer(Configuration conf, FSDataOutputStream out,
-        Class<K> keyClass, Class<V> valueClass,
-        CompressionCodec codec, Counters.Counter writesCounter)
+                  Class<K> keyClass, Class<V> valueClass,
+                  CompressionCodec codec, Counters.Counter writesCounter)
         throws IOException {
       this(conf, out, keyClass, valueClass, codec, writesCounter, false);
     }
-    
+
     protected Writer(Counters.Counter writesCounter) {
       writtenRecordsCounter = writesCounter;
     }
 
-    public Writer(Configuration conf, FSDataOutputStream out, 
-        Class<K> keyClass, Class<V> valueClass,
-        CompressionCodec codec, Counters.Counter writesCounter,
-        boolean ownOutputStream)
+    public Writer(Configuration conf, FSDataOutputStream out,
+                  Class<K> keyClass, Class<V> valueClass,
+                  CompressionCodec codec, Counters.Counter writesCounter,
+                  boolean ownOutputStream)
         throws IOException {
       this.writtenRecordsCounter = writesCounter;
       this.checksumOut = new IFileOutputStream(out);
@@ -115,22 +105,22 @@ public class IFile {
         if (this.compressor != null) {
           this.compressor.reset();
           this.compressedOut = codec.createOutputStream(checksumOut, compressor);
-          this.out = new FSDataOutputStream(this.compressedOut,  null);
+          this.out = new FSDataOutputStream(this.compressedOut, null);
           this.compressOutput = true;
         } else {
           LOG.warn("Could not obtain compressor from CodecPool");
-          this.out = new FSDataOutputStream(checksumOut,null);
+          this.out = new FSDataOutputStream(checksumOut, null);
         }
       } else {
-        this.out = new FSDataOutputStream(checksumOut,null);
+        this.out = new FSDataOutputStream(checksumOut, null);
       }
-      
+
       this.keyClass = keyClass;
       this.valueClass = valueClass;
 
       if (keyClass != null) {
-        SerializationFactory serializationFactory = 
-          new SerializationFactory(conf);
+        SerializationFactory serializationFactory =
+            new SerializationFactory(conf);
         this.keySerializer = serializationFactory.getSerializer(keyClass);
         this.keySerializer.open(buffer);
         this.valueSerializer = serializationFactory.getSerializer(valueClass);
@@ -153,21 +143,20 @@ public class IFile {
       WritableUtils.writeVInt(out, EOF_MARKER);
       WritableUtils.writeVInt(out, EOF_MARKER);
       decompressedBytesWritten += 2 * WritableUtils.getVIntSize(EOF_MARKER);
-      
+
       //Flush the stream
       out.flush();
-  
+
       if (compressOutput) {
         // Flush
         compressedOut.finish();
         compressedOut.resetState();
       }
-      
+
       // Close the underlying stream iff we own it...
       if (ownOutputStream) {
         out.close();
-      }
-      else {
+      } else {
         // Write the checksum
         checksumOut.finish();
       }
@@ -181,35 +170,35 @@ public class IFile {
       }
 
       out = null;
-      if(writtenRecordsCounter != null) {
+      if (writtenRecordsCounter != null) {
         writtenRecordsCounter.increment(numRecordsWritten);
       }
     }
 
     public void append(K key, V value) throws IOException {
       if (key.getClass() != keyClass)
-        throw new IOException("wrong key class: "+ key.getClass()
-                              +" is not "+ keyClass);
+        throw new IOException("wrong key class: " + key.getClass()
+            + " is not " + keyClass);
       if (value.getClass() != valueClass)
-        throw new IOException("wrong value class: "+ value.getClass()
-                              +" is not "+ valueClass);
+        throw new IOException("wrong value class: " + value.getClass()
+            + " is not " + valueClass);
 
       // Append the 'key'
       keySerializer.serialize(key);
       int keyLength = buffer.getLength();
       if (keyLength < 0) {
-        throw new IOException("Negative key-length not allowed: " + keyLength + 
-                              " for " + key);
+        throw new IOException("Negative key-length not allowed: " + keyLength +
+            " for " + key);
       }
 
       // Append the 'value'
       valueSerializer.serialize(value);
       int valueLength = buffer.getLength() - keyLength;
       if (valueLength < 0) {
-        throw new IOException("Negative value-length not allowed: " + 
-                              valueLength + " for " + value);
+        throw new IOException("Negative value-length not allowed: " +
+            valueLength + " for " + value);
       }
-      
+
       // Write the record out
       WritableUtils.writeVInt(out, keyLength);                  // key length
       WritableUtils.writeVInt(out, valueLength);                // value length
@@ -217,55 +206,55 @@ public class IFile {
 
       // Reset
       buffer.reset();
-      
+
       // Update bytes written
-      decompressedBytesWritten += keyLength + valueLength + 
-                                  WritableUtils.getVIntSize(keyLength) + 
-                                  WritableUtils.getVIntSize(valueLength);
+      decompressedBytesWritten += keyLength + valueLength +
+          WritableUtils.getVIntSize(keyLength) +
+          WritableUtils.getVIntSize(valueLength);
       ++numRecordsWritten;
     }
-    
+
     public void append(DataInputBuffer key, DataInputBuffer value)
-    throws IOException {
+        throws IOException {
       int keyLength = key.getLength() - key.getPosition();
       if (keyLength < 0) {
-        throw new IOException("Negative key-length not allowed: " + keyLength + 
-                              " for " + key);
+        throw new IOException("Negative key-length not allowed: " + keyLength +
+            " for " + key);
       }
-      
+
       int valueLength = value.getLength() - value.getPosition();
       if (valueLength < 0) {
-        throw new IOException("Negative value-length not allowed: " + 
-                              valueLength + " for " + value);
+        throw new IOException("Negative value-length not allowed: " +
+            valueLength + " for " + value);
       }
 
       WritableUtils.writeVInt(out, keyLength);
       WritableUtils.writeVInt(out, valueLength);
-      out.write(key.getData(), key.getPosition(), keyLength); 
-      out.write(value.getData(), value.getPosition(), valueLength); 
+      out.write(key.getData(), key.getPosition(), keyLength);
+      out.write(value.getData(), value.getPosition(), valueLength);
 
       // Update bytes written
-      decompressedBytesWritten += keyLength + valueLength + 
-                      WritableUtils.getVIntSize(keyLength) + 
-                      WritableUtils.getVIntSize(valueLength);
+      decompressedBytesWritten += keyLength + valueLength +
+          WritableUtils.getVIntSize(keyLength) +
+          WritableUtils.getVIntSize(valueLength);
       ++numRecordsWritten;
     }
-    
+
     // Required for mark/reset
-    public DataOutputStream getOutputStream () {
+    public DataOutputStream getOutputStream() {
       return out;
     }
-    
+
     // Required for mark/reset
     public void updateCountersForExternalAppend(long length) {
       ++numRecordsWritten;
       decompressedBytesWritten += length;
     }
-    
+
     public long getRawLength() {
       return decompressedBytesWritten;
     }
-    
+
     public long getCompressedLength() {
       return compressedBytesWritten;
     }
@@ -277,7 +266,7 @@ public class IFile {
   @InterfaceAudience.Private
   @InterfaceStability.Unstable
   public static class Reader<K extends Object, V extends Object> {
-    private static final int DEFAULT_BUFFER_SIZE = 128*1024;
+    private static final int DEFAULT_BUFFER_SIZE = 128 * 1024;
     private static final int MAX_VINT_SIZE = 9;
 
     // Count records read from disk
@@ -290,7 +279,7 @@ public class IFile {
     protected final long fileLength;
     protected boolean eof = false;
     final IFileInputStream checksumIn;
-    
+
     protected byte[] buffer = null;
     protected int bufferSize = DEFAULT_BUFFER_SIZE;
     protected DataInputStream dataIn;
@@ -299,11 +288,11 @@ public class IFile {
     protected int currentKeyLength;
     protected int currentValueLength;
     byte keyBytes[] = new byte[0];
-    
-    
+
+
     /**
      * Construct an IFile Reader.
-     * 
+     *
      * @param conf Configuration File 
      * @param fs  FileSystem
      * @param file Path of the file to be opened. This file should have
@@ -315,14 +304,14 @@ public class IFile {
     public Reader(Configuration conf, FileSystem fs, Path file,
                   CompressionCodec codec,
                   Counters.Counter readsCounter) throws IOException {
-      this(conf, fs.open(file), 
-           fs.getFileStatus(file).getLen(),
-           codec, readsCounter);
+      this(conf, fs.open(file),
+          fs.getFileStatus(file).getLen(),
+          codec, readsCounter);
     }
 
     /**
      * Construct an IFile Reader.
-     * 
+     *
      * @param conf Configuration File 
      * @param in   The input stream
      * @param length Length of the data in the stream, including the checksum
@@ -331,11 +320,11 @@ public class IFile {
      * @param readsCounter Counter for records read from disk
      * @throws IOException
      */
-    public Reader(Configuration conf, FSDataInputStream in, long length, 
+    public Reader(Configuration conf, FSDataInputStream in, long length,
                   CompressionCodec codec,
                   Counters.Counter readsCounter) throws IOException {
       readRecordsCounter = readsCounter;
-      checksumIn = new IFileInputStream(in,length, conf);
+      checksumIn = new IFileInputStream(in, length, conf);
       if (codec != null) {
         decompressor = CodecPool.getDecompressor(codec);
         if (decompressor != null) {
@@ -349,23 +338,23 @@ public class IFile {
       }
       this.dataIn = new DataInputStream(this.in);
       this.fileLength = length;
-      
+
       if (conf != null) {
         bufferSize = conf.getInt("io.file.buffer.size", DEFAULT_BUFFER_SIZE);
       }
     }
-    
-    public long getLength() { 
+
+    public long getLength() {
       return fileLength - checksumIn.getSize();
     }
-    
-    public long getPosition() throws IOException {    
-      return checksumIn.getPosition(); 
+
+    public long getPosition() throws IOException {
+      return checksumIn.getPosition();
     }
-    
+
     /**
      * Read upto len bytes into buf starting at offset off.
-     * 
+     *
      * @param buf buffer 
      * @param off offset
      * @param len length of buffer
@@ -384,38 +373,38 @@ public class IFile {
       }
       return len;
     }
-    
+
     protected boolean positionToNextRecord(DataInput dIn) throws IOException {
       // Sanity check
       if (eof) {
         throw new EOFException("Completed reading " + bytesRead);
       }
-      
+
       // Read key and value lengths
       currentKeyLength = WritableUtils.readVInt(dIn);
       currentValueLength = WritableUtils.readVInt(dIn);
       bytesRead += WritableUtils.getVIntSize(currentKeyLength) +
-                   WritableUtils.getVIntSize(currentValueLength);
-      
+          WritableUtils.getVIntSize(currentValueLength);
+
       // Check for EOF
       if (currentKeyLength == EOF_MARKER && currentValueLength == EOF_MARKER) {
         eof = true;
         return false;
       }
-      
+
       // Sanity check
       if (currentKeyLength < 0) {
-        throw new IOException("Rec# " + recNo + ": Negative key-length: " + 
-                              currentKeyLength);
+        throw new IOException("Rec# " + recNo + ": Negative key-length: " +
+            currentKeyLength);
       }
       if (currentValueLength < 0) {
-        throw new IOException("Rec# " + recNo + ": Negative value-length: " + 
-                              currentValueLength);
+        throw new IOException("Rec# " + recNo + ": Negative value-length: " +
+            currentValueLength);
       }
-            
+
       return true;
     }
-    
+
     public boolean nextRawKey(DataInputBuffer key) throws IOException {
       if (!positionToNextRecord(dataIn)) {
         return false;
@@ -425,38 +414,38 @@ public class IFile {
       }
       int i = readData(keyBytes, 0, currentKeyLength);
       if (i != currentKeyLength) {
-        throw new IOException ("Asked for " + currentKeyLength + " Got: " + i);
+        throw new IOException("Asked for " + currentKeyLength + " Got: " + i);
       }
       key.reset(keyBytes, currentKeyLength);
       bytesRead += currentKeyLength;
       return true;
     }
-    
+
     public void nextRawValue(DataInputBuffer value) throws IOException {
       final byte[] valBytes = (value.getData().length < currentValueLength)
-        ? new byte[currentValueLength << 1]
-        : value.getData();
+          ? new byte[currentValueLength << 1]
+          : value.getData();
       int i = readData(valBytes, 0, currentValueLength);
       if (i != currentValueLength) {
-        throw new IOException ("Asked for " + currentValueLength + " Got: " + i);
+        throw new IOException("Asked for " + currentValueLength + " Got: " + i);
       }
       value.reset(valBytes, currentValueLength);
-      
+
       // Record the bytes read
       bytesRead += currentValueLength;
 
       ++recNo;
       ++numRecordsRead;
     }
-    
+
     public void close() throws IOException {
       // Close the underlying stream
       in.close();
-      
+
       // Release the buffer
       dataIn = null;
       buffer = null;
-      if(readRecordsCounter != null) {
+      if (readRecordsCounter != null) {
         readRecordsCounter.increment(numRecordsRead);
       }
 
@@ -467,7 +456,7 @@ public class IFile {
         decompressor = null;
       }
     }
-    
+
     public void reset(int offset) {
       return;
     }
@@ -476,5 +465,5 @@ public class IFile {
       checksumIn.disableChecksumValidation();
     }
 
-  }    
+  }
 }

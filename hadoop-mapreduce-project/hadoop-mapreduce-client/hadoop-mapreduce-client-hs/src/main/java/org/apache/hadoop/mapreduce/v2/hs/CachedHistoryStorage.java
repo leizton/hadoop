@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,14 +18,7 @@
 
 package org.apache.hadoop.mapreduce.v2.hs;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
-
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -33,14 +26,15 @@ import org.apache.hadoop.mapreduce.v2.api.records.JobId;
 import org.apache.hadoop.mapreduce.v2.api.records.JobReport;
 import org.apache.hadoop.mapreduce.v2.api.records.JobState;
 import org.apache.hadoop.mapreduce.v2.app.job.Job;
-import org.apache.hadoop.mapreduce.v2.hs.webapp.dao.JobsInfo;
 import org.apache.hadoop.mapreduce.v2.hs.HistoryFileManager.HistoryFileInfo;
 import org.apache.hadoop.mapreduce.v2.hs.webapp.dao.JobInfo;
+import org.apache.hadoop.mapreduce.v2.hs.webapp.dao.JobsInfo;
 import org.apache.hadoop.mapreduce.v2.jobhistory.JHAdminConfig;
 import org.apache.hadoop.service.AbstractService;
 import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * Manages an in memory cache of parsed Job History files.
@@ -82,7 +76,7 @@ public class CachedHistoryStorage extends AbstractService implements
       }
     });
   }
-  
+
   public void refreshLoadedJobCache() {
     if (getServiceState() == STATE.STARTED) {
       setConfig(createConf());
@@ -91,16 +85,16 @@ public class CachedHistoryStorage extends AbstractService implements
       LOG.warn("Failed to execute refreshLoadedJobCache: CachedHistoryStorage is not started");
     }
   }
-  
+
   @VisibleForTesting
   Configuration createConf() {
     return new Configuration();
   }
-  
+
   public CachedHistoryStorage() {
     super(CachedHistoryStorage.class.getName());
   }
-  
+
   private Job loadJob(HistoryFileInfo fileInfo) {
     try {
       Job job = fileInfo.loadJob();
@@ -122,7 +116,7 @@ public class CachedHistoryStorage extends AbstractService implements
   Map<JobId, Job> getLoadedJobCache() {
     return loadedJobCache;
   }
-  
+
   @Override
   public Job getFullJob(JobId jobId) {
     if (LOG.isDebugEnabled()) {
@@ -135,7 +129,7 @@ public class CachedHistoryStorage extends AbstractService implements
         result = loadedJobCache.get(jobId);
         if (result == null) {
           result = loadJob(fileInfo);
-        } else if(fileInfo.isDeleted()) {
+        } else if (fileInfo.isDeleted()) {
           loadedJobCache.remove(jobId);
           result = null;
         }
@@ -168,15 +162,15 @@ public class CachedHistoryStorage extends AbstractService implements
 
   @Override
   public JobsInfo getPartialJobs(Long offset, Long count, String user,
-      String queue, Long sBegin, Long sEnd, Long fBegin, Long fEnd,
-      JobState jobState) {
+                                 String queue, Long sBegin, Long sEnd, Long fBegin, Long fEnd,
+                                 JobState jobState) {
     return getPartialJobs(getAllPartialJobs().values(), offset, count, user,
         queue, sBegin, sEnd, fBegin, fEnd, jobState);
   }
 
   public static JobsInfo getPartialJobs(Collection<Job> jobs, Long offset,
-      Long count, String user, String queue, Long sBegin, Long sEnd,
-      Long fBegin, Long fEnd, JobState jobState) {
+                                        Long count, String user, String queue, Long sBegin, Long sEnd,
+                                        Long fBegin, Long fEnd, JobState jobState) {
     JobsInfo allJobs = new JobsInfo();
 
     if (sBegin == null || sBegin < 0)

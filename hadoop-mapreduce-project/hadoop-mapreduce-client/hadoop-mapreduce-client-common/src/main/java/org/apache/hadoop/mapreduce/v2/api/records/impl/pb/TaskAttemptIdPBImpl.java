@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,16 +23,15 @@ import org.apache.hadoop.mapreduce.v2.api.records.TaskId;
 import org.apache.hadoop.mapreduce.v2.proto.MRProtos.TaskAttemptIdProto;
 import org.apache.hadoop.mapreduce.v2.proto.MRProtos.TaskAttemptIdProtoOrBuilder;
 import org.apache.hadoop.mapreduce.v2.proto.MRProtos.TaskIdProto;
-    
+
 public class TaskAttemptIdPBImpl extends TaskAttemptId {
   TaskAttemptIdProto proto = TaskAttemptIdProto.getDefaultInstance();
   TaskAttemptIdProto.Builder builder = null;
   boolean viaProto = false;
-  
+
   private TaskId taskId = null;
-  
-  
-  
+
+
   public TaskAttemptIdPBImpl() {
     builder = TaskAttemptIdProto.newBuilder();
   }
@@ -41,9 +40,9 @@ public class TaskAttemptIdPBImpl extends TaskAttemptId {
     this.proto = proto;
     viaProto = true;
   }
-  
+
   public synchronized TaskAttemptIdProto getProto() {
-      mergeLocalToProto();
+    mergeLocalToProto();
     proto = viaProto ? proto : builder.build();
     viaProto = true;
     return proto;
@@ -57,7 +56,7 @@ public class TaskAttemptIdPBImpl extends TaskAttemptId {
   }
 
   private synchronized void mergeLocalToProto() {
-    if (viaProto) 
+    if (viaProto)
       maybeInitBuilder();
     mergeLocalToBuilder();
     proto = builder.build();
@@ -70,8 +69,8 @@ public class TaskAttemptIdPBImpl extends TaskAttemptId {
     }
     viaProto = false;
   }
-    
-  
+
+
   @Override
   public synchronized int getId() {
     TaskAttemptIdProtoOrBuilder p = viaProto ? proto : builder;
@@ -83,6 +82,7 @@ public class TaskAttemptIdPBImpl extends TaskAttemptId {
     maybeInitBuilder();
     builder.setId((id));
   }
+
   @Override
   public synchronized TaskId getTaskId() {
     TaskAttemptIdProtoOrBuilder p = viaProto ? proto : builder;
@@ -109,6 +109,6 @@ public class TaskAttemptIdPBImpl extends TaskAttemptId {
   }
 
   private TaskIdProto convertToProtoFormat(TaskId t) {
-    return ((TaskIdPBImpl)t).getProto();
+    return ((TaskIdPBImpl) t).getProto();
   }
 }

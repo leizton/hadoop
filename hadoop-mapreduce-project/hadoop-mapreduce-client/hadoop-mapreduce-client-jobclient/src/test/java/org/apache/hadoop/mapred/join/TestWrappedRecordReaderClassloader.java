@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,24 +17,18 @@
  */
 package org.apache.hadoop.mapred.join;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-
 import junit.framework.TestCase;
-
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.WritableComparable;
-import org.apache.hadoop.mapred.InputFormat;
-import org.apache.hadoop.mapred.InputSplit;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.JobConfigurable;
-import org.apache.hadoop.mapred.RecordReader;
-import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapred.*;
 import org.apache.hadoop.util.ReflectionUtils;
+
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 
 public class TestWrappedRecordReaderClassloader extends TestCase {
   /**
@@ -53,7 +47,7 @@ public class TestWrappedRecordReaderClassloader extends TestCase {
         .makeQualified(fs);
 
     Path base = new Path(testdir, "/empty");
-    Path[] src = { new Path(base, "i0"), new Path("i1"), new Path("i2") };
+    Path[] src = {new Path(base, "i0"), new Path("i1"), new Path("i2")};
     job.set("mapreduce.join.expr", CompositeInputFormat.compose("outer",
         IF_ClassLoaderChecker.class, src));
 
@@ -107,11 +101,11 @@ public class TestWrappedRecordReaderClassloader extends TestCase {
     }
 
     public InputSplit[] getSplits(JobConf conf, int splits) {
-      return new InputSplit[] { new FakeSplit() };
+      return new InputSplit[]{new FakeSplit()};
     }
 
     public RecordReader<K, V> getRecordReader(InputSplit ignored, JobConf job,
-        Reporter reporter) {
+                                              Reporter reporter) {
       return new RR_ClassLoaderChecker<K, V>(job);
     }
   }
@@ -123,7 +117,7 @@ public class TestWrappedRecordReaderClassloader extends TestCase {
     @SuppressWarnings("unchecked")
     public RR_ClassLoaderChecker(JobConf job) {
       assertTrue("The class loader has not been inherited from "
-          + CompositeRecordReader.class.getSimpleName(),
+              + CompositeRecordReader.class.getSimpleName(),
           job.getClassLoader() instanceof Fake_ClassLoader);
 
       keyclass = (Class<? extends K>) job.getClass("test.fakeif.keyclass",

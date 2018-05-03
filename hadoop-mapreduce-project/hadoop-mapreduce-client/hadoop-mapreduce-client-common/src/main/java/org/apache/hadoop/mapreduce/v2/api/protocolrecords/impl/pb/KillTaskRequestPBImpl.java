@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,15 +28,14 @@ import org.apache.hadoop.mapreduce.v2.proto.MRServiceProtos.KillTaskRequestProto
 import org.apache.hadoop.yarn.api.records.impl.pb.ProtoBase;
 
 
-    
 public class KillTaskRequestPBImpl extends ProtoBase<KillTaskRequestProto> implements KillTaskRequest {
   KillTaskRequestProto proto = KillTaskRequestProto.getDefaultInstance();
   KillTaskRequestProto.Builder builder = null;
   boolean viaProto = false;
-  
+
   private TaskId taskId = null;
-  
-  
+
+
   public KillTaskRequestPBImpl() {
     builder = KillTaskRequestProto.newBuilder();
   }
@@ -45,9 +44,9 @@ public class KillTaskRequestPBImpl extends ProtoBase<KillTaskRequestProto> imple
     this.proto = proto;
     viaProto = true;
   }
-  
+
   public KillTaskRequestProto getProto() {
-      mergeLocalToProto();
+    mergeLocalToProto();
     proto = viaProto ? proto : builder.build();
     viaProto = true;
     return proto;
@@ -60,7 +59,7 @@ public class KillTaskRequestPBImpl extends ProtoBase<KillTaskRequestProto> imple
   }
 
   private void mergeLocalToProto() {
-    if (viaProto) 
+    if (viaProto)
       maybeInitBuilder();
     mergeLocalToBuilder();
     proto = builder.build();
@@ -73,8 +72,8 @@ public class KillTaskRequestPBImpl extends ProtoBase<KillTaskRequestProto> imple
     }
     viaProto = false;
   }
-    
-  
+
+
   @Override
   public TaskId getTaskId() {
     KillTaskRequestProtoOrBuilder p = viaProto ? proto : builder;
@@ -91,7 +90,7 @@ public class KillTaskRequestPBImpl extends ProtoBase<KillTaskRequestProto> imple
   @Override
   public void setTaskId(TaskId taskId) {
     maybeInitBuilder();
-    if (taskId == null) 
+    if (taskId == null)
       builder.clearTaskId();
     this.taskId = taskId;
   }
@@ -101,9 +100,8 @@ public class KillTaskRequestPBImpl extends ProtoBase<KillTaskRequestProto> imple
   }
 
   private TaskIdProto convertToProtoFormat(TaskId t) {
-    return ((TaskIdPBImpl)t).getProto();
+    return ((TaskIdPBImpl) t).getProto();
   }
 
 
-
-}  
+}

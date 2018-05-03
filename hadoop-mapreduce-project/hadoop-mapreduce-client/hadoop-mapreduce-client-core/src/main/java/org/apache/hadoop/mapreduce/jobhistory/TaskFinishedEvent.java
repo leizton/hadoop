@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -42,7 +42,7 @@ public class TaskFinishedEvent implements HistoryEvent {
   private TaskType taskType;
   private String status;
   private Counters counters;
-  
+
   /**
    * Create an event to record the successful completion of a task
    * @param id Task ID
@@ -62,15 +62,15 @@ public class TaskFinishedEvent implements HistoryEvent {
     this.status = status;
     this.counters = counters;
   }
-  
-  TaskFinishedEvent() {}
+
+  TaskFinishedEvent() {
+  }
 
   public Object getDatum() {
     if (datum == null) {
       datum = new TaskFinished();
       datum.taskid = new Utf8(taskid.toString());
-      if(successfulAttemptId != null)
-      {
+      if (successfulAttemptId != null) {
         datum.successfulAttemptId = new Utf8(successfulAttemptId.toString());
       }
       datum.finishTime = finishTime;
@@ -82,7 +82,7 @@ public class TaskFinishedEvent implements HistoryEvent {
   }
 
   public void setDatum(Object oDatum) {
-    this.datum = (TaskFinished)oDatum;
+    this.datum = (TaskFinished) oDatum;
     this.taskid = TaskID.forName(datum.taskid.toString());
     if (datum.successfulAttemptId != null) {
       this.successfulAttemptId = TaskAttemptID
@@ -95,25 +95,39 @@ public class TaskFinishedEvent implements HistoryEvent {
   }
 
   /** Get task id */
-  public TaskID getTaskId() { return taskid; }
+  public TaskID getTaskId() {
+    return taskid;
+  }
+
   /** Get successful task attempt id */
   public TaskAttemptID getSuccessfulTaskAttemptId() {
     return successfulAttemptId;
   }
+
   /** Get the task finish time */
-  public long getFinishTime() { return finishTime; }
+  public long getFinishTime() {
+    return finishTime;
+  }
+
   /** Get task counters */
-  public Counters getCounters() { return counters; }
+  public Counters getCounters() {
+    return counters;
+  }
+
   /** Get task type */
   public TaskType getTaskType() {
     return taskType;
   }
+
   /** Get task status */
-  public String getTaskStatus() { return status.toString(); }
+  public String getTaskStatus() {
+    return status.toString();
+  }
+
   /** Get event type */
   public EventType getEventType() {
     return EventType.TASK_FINISHED;
   }
 
-  
+
 }

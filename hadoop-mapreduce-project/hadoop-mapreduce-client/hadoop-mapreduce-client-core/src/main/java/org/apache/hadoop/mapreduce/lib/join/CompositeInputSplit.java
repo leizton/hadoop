@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,22 +18,20 @@
 
 package org.apache.hadoop.mapreduce.lib.join;
 
-import java.io.DataInput;
-import java.io.DataInputStream;
-import java.io.DataOutput;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.util.HashSet;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.WritableUtils;
-import org.apache.hadoop.io.serializer.*;
+import org.apache.hadoop.io.serializer.Deserializer;
+import org.apache.hadoop.io.serializer.SerializationFactory;
+import org.apache.hadoop.io.serializer.Serializer;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.util.ReflectionUtils;
+
+import java.io.*;
+import java.util.HashSet;
 
 /**
  * This InputSplit contains a set of child InputSplits. Any InputSplit inserted
@@ -48,7 +46,8 @@ public class CompositeInputSplit extends InputSplit implements Writable {
   private InputSplit[] splits;
   private Configuration conf = new Configuration();
 
-  public CompositeInputSplit() { }
+  public CompositeInputSplit() {
+  }
 
   public CompositeInputSplit(int capacity) {
     splits = new InputSplit[capacity];
@@ -128,9 +127,9 @@ public class CompositeInputSplit extends InputSplit implements Writable {
     }
     for (InputSplit s : splits) {
       SerializationFactory factory = new SerializationFactory(conf);
-      Serializer serializer = 
-        factory.getSerializer(s.getClass());
-      serializer.open((DataOutputStream)out);
+      Serializer serializer =
+          factory.getSerializer(s.getClass());
+      serializer.open((DataOutputStream) out);
       serializer.serialize(s);
     }
   }
@@ -150,14 +149,14 @@ public class CompositeInputSplit extends InputSplit implements Writable {
     try {
       for (int i = 0; i < card; ++i) {
         cls[i] =
-          Class.forName(Text.readString(in)).asSubclass(InputSplit.class);
+            Class.forName(Text.readString(in)).asSubclass(InputSplit.class);
       }
       for (int i = 0; i < card; ++i) {
         splits[i] = ReflectionUtils.newInstance(cls[i], null);
         SerializationFactory factory = new SerializationFactory(conf);
         Deserializer deserializer = factory.getDeserializer(cls[i]);
-        deserializer.open((DataInputStream)in);
-        splits[i] = (InputSplit)deserializer.deserialize(splits[i]);
+        deserializer.open((DataInputStream) in);
+        splits[i] = (InputSplit) deserializer.deserialize(splits[i]);
       }
     } catch (ClassNotFoundException e) {
       throw new IOException("Failed split init", e);

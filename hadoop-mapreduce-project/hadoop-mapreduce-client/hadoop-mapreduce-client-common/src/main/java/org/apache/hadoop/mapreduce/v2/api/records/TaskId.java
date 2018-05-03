@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,7 +25,7 @@ import java.text.NumberFormat;
  * <code>TaskId</code> represents the unique identifier for a Map or Reduce
  * Task.
  * </p>
- * 
+ *
  * <p>
  * TaskId consists of 3 parts. First part is <code>JobId</code>, that this Task
  * belongs to. Second part of the TaskId is either 'm' or 'r' representing
@@ -96,7 +96,7 @@ public abstract class TaskId implements Comparable<TaskId> {
       return false;
     return true;
   }
-      
+
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder(TASK);

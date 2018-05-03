@@ -18,14 +18,8 @@
 
 package org.apache.hadoop.mapreduce.counters;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Iterator;
-
+import com.google.common.collect.AbstractIterator;
+import com.google.common.collect.Iterators;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
@@ -34,8 +28,13 @@ import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.mapreduce.Counter;
 import org.apache.hadoop.mapreduce.util.ResourceBundles;
 
-import com.google.common.collect.AbstractIterator;
-import com.google.common.collect.Iterators;
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Iterator;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * An abstract class to provide common implementation for the framework
@@ -48,7 +47,7 @@ import com.google.common.collect.Iterators;
 public abstract class FrameworkCounterGroup<T extends Enum<T>,
     C extends Counter> implements CounterGroupBase<C> {
   private static final Log LOG = LogFactory.getLog(FrameworkCounterGroup.class);
-  
+
   private final Class<T> enumClass; // for Enum.valueOf
   private final Object[] counters;  // local casts are OK and save a class ref
   private String displayName = null;
@@ -67,7 +66,7 @@ public abstract class FrameworkCounterGroup<T extends Enum<T>,
       key = ref;
       this.groupName = groupName;
     }
-    
+
     @Private
     public T getKey() {
       return key;
@@ -77,7 +76,7 @@ public abstract class FrameworkCounterGroup<T extends Enum<T>,
     public String getGroupName() {
       return groupName;
     }
-    
+
     @Override
     public String getName() {
       return key.name();
@@ -178,8 +177,7 @@ public abstract class FrameworkCounterGroup<T extends Enum<T>,
   public C findCounter(String counterName, boolean create) {
     try {
       return findCounter(valueOf(counterName));
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       if (create) throw new IllegalArgumentException(e);
       return null;
     }
@@ -207,6 +205,7 @@ public abstract class FrameworkCounterGroup<T extends Enum<T>,
 
   /**
    * Abstract factory method for new framework counter
+   *
    * @param key for the enum value of a counter
    * @return a new counter for the key
    */
@@ -274,6 +273,7 @@ public abstract class FrameworkCounterGroup<T extends Enum<T>,
   public Iterator<C> iterator() {
     return new AbstractIterator<C>() {
       int i = 0;
+
       @Override
       protected C computeNext() {
         while (i < counters.length) {

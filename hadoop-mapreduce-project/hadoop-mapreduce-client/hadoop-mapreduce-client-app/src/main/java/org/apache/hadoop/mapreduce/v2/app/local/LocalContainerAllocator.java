@@ -1,24 +1,22 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2.app.local;
-
-import java.util.ArrayList;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -47,6 +45,8 @@ import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
 import org.apache.hadoop.yarn.factories.RecordFactory;
 import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
 
+import java.util.ArrayList;
+
 /**
  * Allocates containers locally. Doesn't allocate a real container;
  * instead sends an allocated event for all requests.
@@ -71,8 +71,8 @@ public class LocalContainerAllocator extends RMCommunicator
       RecordFactoryProvider.getRecordFactory(null);
 
   public LocalContainerAllocator(ClientService clientService,
-    AppContext context, String nmHost, int nmPort, int nmHttpPort
-    , ContainerId cId) {
+                                 AppContext context, String nmHost, int nmPort, int nmHttpPort
+      , ContainerId cId) {
     super(clientService, context);
     this.eventHandler = context.getEventHandler();
     this.nmHost = nmHost;
@@ -97,8 +97,8 @@ public class LocalContainerAllocator extends RMCommunicator
   protected synchronized void heartbeat() throws Exception {
     AllocateRequest allocateRequest =
         AllocateRequest.newInstance(this.lastResponseID,
-          super.getApplicationProgress(), new ArrayList<ResourceRequest>(),
-        new ArrayList<ContainerId>(), null);
+            super.getApplicationProgress(), new ArrayList<ResourceRequest>(),
+            new ArrayList<ContainerId>(), null);
     try {
       scheduler.allocate(allocateRequest);
       // Reset retry count if no exception occurred.
@@ -108,10 +108,10 @@ public class LocalContainerAllocator extends RMCommunicator
       // This can happen if the RM has been restarted. If it is in that state,
       // this application must clean itself up.
       eventHandler.handle(new JobEvent(this.getJob().getID(),
-        JobEventType.JOB_AM_REBOOT));
+          JobEventType.JOB_AM_REBOOT));
       throw new YarnRuntimeException(
-        "Resource Manager doesn't recognize AttemptId: "
-            + this.getContext().getApplicationID(), e);
+          "Resource Manager doesn't recognize AttemptId: "
+              + this.getContext().getApplicationID(), e);
     } catch (ApplicationMasterNotRegisteredException e) {
       LOG.info("ApplicationMaster is out of sync with ResourceManager,"
           + " hence resync and send outstanding requests.");
@@ -123,9 +123,9 @@ public class LocalContainerAllocator extends RMCommunicator
       if (System.currentTimeMillis() - retrystartTime >= retryInterval) {
         LOG.error("Could not contact RM after " + retryInterval + " milliseconds.");
         eventHandler.handle(new JobEvent(this.getJob().getID(),
-                                         JobEventType.INTERNAL_ERROR));
+            JobEventType.INTERNAL_ERROR));
         throw new YarnRuntimeException("Could not contact RM after " +
-                                retryInterval + " milliseconds.");
+            retryInterval + " milliseconds.");
       }
       // Throw this up to the caller, which may decide to ignore it and
       // continue to attempt to contact the RM.
@@ -141,7 +141,7 @@ public class LocalContainerAllocator extends RMCommunicator
       // Assign the same container ID as the AM
       ContainerId cID =
           ContainerId.newContainerId(getContext().getApplicationAttemptId(),
-            this.containerId.getContainerId());
+              this.containerId.getContainerId());
       Container container = recordFactory.newRecordInstance(Container.class);
       container.setId(cID);
       NodeId nodeId = NodeId.newInstance(this.nmHost, this.nmPort);

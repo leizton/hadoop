@@ -1,37 +1,24 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2.app.launcher;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -45,18 +32,21 @@ import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptEvent;
 import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptEventType;
 import org.apache.hadoop.service.AbstractService;
 import org.apache.hadoop.util.StringUtils;
-import org.apache.hadoop.yarn.api.protocolrecords.StartContainerRequest;
-import org.apache.hadoop.yarn.api.protocolrecords.StartContainersRequest;
-import org.apache.hadoop.yarn.api.protocolrecords.StartContainersResponse;
-import org.apache.hadoop.yarn.api.protocolrecords.StopContainersRequest;
-import org.apache.hadoop.yarn.api.protocolrecords.StopContainersResponse;
+import org.apache.hadoop.yarn.api.protocolrecords.*;
 import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
 import org.apache.hadoop.yarn.client.api.impl.ContainerManagementProtocolProxy;
 import org.apache.hadoop.yarn.client.api.impl.ContainerManagementProtocolProxy.ContainerManagementProtocolProxyData;
 import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * This class is responsible for launching of containers.
@@ -66,8 +56,8 @@ public class ContainerLauncherImpl extends AbstractService implements
 
   static final Log LOG = LogFactory.getLog(ContainerLauncherImpl.class);
 
-  private ConcurrentHashMap<ContainerId, Container> containers = 
-    new ConcurrentHashMap<ContainerId, Container>(); 
+  private ConcurrentHashMap<ContainerId, Container> containers =
+      new ConcurrentHashMap<ContainerId, Container>();
   private final AppContext context;
   protected ThreadPoolExecutor launcherPool;
   protected static final int INITIAL_POOL_SIZE = 10;
@@ -81,24 +71,24 @@ public class ContainerLauncherImpl extends AbstractService implements
   private Container getContainer(ContainerLauncherEvent event) {
     ContainerId id = event.getContainerID();
     Container c = containers.get(id);
-    if(c == null) {
+    if (c == null) {
       c = new Container(event.getTaskAttemptID(), event.getContainerID(),
           event.getContainerMgrAddress());
       Container old = containers.putIfAbsent(id, c);
-      if(old != null) {
+      if (old != null) {
         c = old;
       }
     }
     return c;
   }
-  
+
   private void removeContainerIfDone(ContainerId id) {
     Container c = containers.get(id);
-    if(c != null && c.isCompletelyDone()) {
+    if (c != null && c.isCompletelyDone()) {
       containers.remove(id);
     }
   }
-  
+
   private static enum ContainerState {
     PREP, FAILED, RUNNING, DONE, KILLED_BEFORE_LAUNCH
   }
@@ -109,29 +99,29 @@ public class ContainerLauncherImpl extends AbstractService implements
     private TaskAttemptId taskAttemptID;
     private ContainerId containerID;
     final private String containerMgrAddress;
-    
+
     public Container(TaskAttemptId taId, ContainerId containerID,
-        String containerMgrAddress) {
+                     String containerMgrAddress) {
       this.state = ContainerState.PREP;
       this.taskAttemptID = taId;
       this.containerMgrAddress = containerMgrAddress;
       this.containerID = containerID;
     }
-    
+
     public synchronized boolean isCompletelyDone() {
       return state == ContainerState.DONE || state == ContainerState.FAILED;
     }
-    
+
     @SuppressWarnings("unchecked")
     public synchronized void launch(ContainerRemoteLaunchEvent event) {
       LOG.info("Launching " + taskAttemptID);
-      if(this.state == ContainerState.KILLED_BEFORE_LAUNCH) {
+      if (this.state == ContainerState.KILLED_BEFORE_LAUNCH) {
         state = ContainerState.DONE;
-        sendContainerLaunchFailedMsg(taskAttemptID, 
+        sendContainerLaunchFailedMsg(taskAttemptID,
             "Container was killed before it was launched");
         return;
       }
-      
+
       ContainerManagementProtocolProxyData proxy = null;
       try {
 
@@ -139,12 +129,12 @@ public class ContainerLauncherImpl extends AbstractService implements
 
         // Construct the actual Container
         ContainerLaunchContext containerLaunchContext =
-          event.getContainerLaunchContext();
+            event.getContainerLaunchContext();
 
         // Now launch the actual container
         StartContainerRequest startRequest =
             StartContainerRequest.newInstance(containerLaunchContext,
-              event.getContainerToken());
+                event.getContainerToken());
         List<StartContainerRequest> list = new ArrayList<StartContainerRequest>();
         list.add(startRequest);
         StartContainersRequest requestList = StartContainersRequest.newInstance(list);
@@ -158,13 +148,13 @@ public class ContainerLauncherImpl extends AbstractService implements
             response.getAllServicesMetaData().get(
                 ShuffleHandler.MAPREDUCE_SHUFFLE_SERVICEID);
         int port = -1;
-        if(portInfo != null) {
+        if (portInfo != null) {
           port = ShuffleHandler.deserializeMetaData(portInfo);
         }
         LOG.info("Shuffle port returned by ContainerManager for "
             + taskAttemptID + " : " + port);
 
-        if(port < 0) {
+        if (port < 0) {
           this.state = ContainerState.FAILED;
           throw new IllegalStateException("Invalid shuffle port number "
               + port + " returned for " + taskAttemptID);
@@ -186,11 +176,11 @@ public class ContainerLauncherImpl extends AbstractService implements
         }
       }
     }
-    
+
     @SuppressWarnings("unchecked")
     public synchronized void kill() {
 
-      if(this.state == ContainerState.PREP) {
+      if (this.state == ContainerState.PREP) {
         this.state = ContainerState.KILLED_BEFORE_LAUNCH;
       } else if (!isCompletelyDone()) {
         LOG.info("KILLING " + taskAttemptID);
@@ -208,7 +198,7 @@ public class ContainerLauncherImpl extends AbstractService implements
           if (response.getFailedRequests() != null
               && response.getFailedRequests().containsKey(this.containerID)) {
             throw response.getFailedRequests().get(this.containerID)
-              .deSerialize();
+                .deSerialize();
           }
         } catch (Throwable t) {
           // ignore the cleanup failure
@@ -361,25 +351,25 @@ public class ContainerLauncherImpl extends AbstractService implements
       ContainerId containerID = event.getContainerID();
 
       Container c = getContainer(event);
-      switch(event.getType()) {
+      switch (event.getType()) {
 
-      case CONTAINER_REMOTE_LAUNCH:
-        ContainerRemoteLaunchEvent launchEvent
-            = (ContainerRemoteLaunchEvent) event;
-        c.launch(launchEvent);
-        break;
+        case CONTAINER_REMOTE_LAUNCH:
+          ContainerRemoteLaunchEvent launchEvent
+              = (ContainerRemoteLaunchEvent) event;
+          c.launch(launchEvent);
+          break;
 
-      case CONTAINER_REMOTE_CLEANUP:
-        c.kill();
-        break;
+        case CONTAINER_REMOTE_CLEANUP:
+          c.kill();
+          break;
       }
       removeContainerIfDone(containerID);
     }
   }
-  
+
   @SuppressWarnings("unchecked")
   void sendContainerLaunchFailedMsg(TaskAttemptId taskAttemptID,
-      String message) {
+                                    String message) {
     LOG.error(message);
     context.getEventHandler().handle(
         new TaskAttemptDiagnosticsUpdateEvent(taskAttemptID, message));
@@ -396,10 +386,10 @@ public class ContainerLauncherImpl extends AbstractService implements
       throw new YarnRuntimeException(e);
     }
   }
-  
+
   public ContainerManagementProtocolProxy.ContainerManagementProtocolProxyData
-      getCMProxy(String containerMgrBindAddr, ContainerId containerId)
-          throws IOException {
+  getCMProxy(String containerMgrBindAddr, ContainerId containerId)
+      throws IOException {
     return cmProxy.getProxy(containerMgrBindAddr, containerId);
   }
 }

@@ -1,40 +1,40 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2.hs.webapp;
 
-import java.io.IOException;
-
+import com.google.inject.Inject;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.v2.app.webapp.App;
 import org.apache.hadoop.mapreduce.v2.app.webapp.AppController;
 import org.apache.hadoop.yarn.webapp.View;
 import org.apache.hadoop.yarn.webapp.log.AggregatedLogsPage;
 
-import com.google.inject.Inject;
+import java.io.IOException;
 
 /**
  * This class renders the various pages that the History Server WebApp supports
  */
 public class HsController extends AppController {
-  
-  
-  @Inject HsController(App app, Configuration conf, RequestContext ctx) {
+
+
+  @Inject
+  HsController(App app, Configuration conf, RequestContext ctx) {
     super(app, conf, ctx, "History");
   }
 
@@ -46,7 +46,7 @@ public class HsController extends AppController {
   public void index() {
     setTitle("JobHistory");
   }
-  
+
   /*
    * (non-Javadoc)
    * @see org.apache.hadoop.mapreduce.v2.app.webapp.AppController#jobPage()
@@ -55,7 +55,7 @@ public class HsController extends AppController {
   protected Class<? extends View> jobPage() {
     return HsJobPage.class;
   }
-  
+
   /*
    * (non-Javadoc)
    * @see org.apache.hadoop.mapreduce.v2.app.webapp.AppController#countersPage()
@@ -64,7 +64,7 @@ public class HsController extends AppController {
   public Class<? extends View> countersPage() {
     return HsCountersPage.class;
   }
-  
+
   /*
    * (non-Javadoc)
    * @see org.apache.hadoop.mapreduce.v2.app.webapp.AppController#tasksPage()
@@ -82,7 +82,7 @@ public class HsController extends AppController {
   protected Class<? extends View> taskPage() {
     return HsTaskPage.class;
   }
-  
+
   /*
    * (non-Javadoc)
    * @see org.apache.hadoop.mapreduce.v2.app.webapp.AppController#attemptsPage()
@@ -91,10 +91,10 @@ public class HsController extends AppController {
   protected Class<? extends View> attemptsPage() {
     return HsAttemptsPage.class;
   }
-  
+
   // Need all of these methods here also as Guice doesn't look into parent
   // classes.
-  
+
   /*
    * (non-Javadoc)
    * @see org.apache.hadoop.mapreduce.v2.app.webapp.AppController#job()
@@ -112,7 +112,7 @@ public class HsController extends AppController {
   public void jobCounters() {
     super.jobCounters();
   }
-  
+
   /*
    * (non-Javadoc)
    * @see org.apache.hadoop.mapreduce.v2.app.webapp.AppController#taskCounters()
@@ -121,7 +121,7 @@ public class HsController extends AppController {
   public void taskCounters() {
     super.taskCounters();
   }
-  
+
   /*
    * (non-Javadoc)
    * @see org.apache.hadoop.mapreduce.v2.app.webapp.AppController#tasks()
@@ -130,7 +130,7 @@ public class HsController extends AppController {
   public void tasks() {
     super.tasks();
   }
-  
+
   /*
    * (non-Javadoc)
    * @see org.apache.hadoop.mapreduce.v2.app.webapp.AppController#task()
@@ -148,7 +148,7 @@ public class HsController extends AppController {
   public void attempts() {
     super.attempts();
   }
-  
+
   /**
    * @return the page that will be used to render the /conf page
    */
@@ -163,14 +163,14 @@ public class HsController extends AppController {
   protected Class<? extends View> aboutPage() {
     return HsAboutPage.class;
   }
-  
+
   /**
    * Render a page about the current server.
    */
   public void about() {
     render(aboutPage());
   }
-  
+
   /**
    * Render the logs page.
    */
@@ -184,7 +184,7 @@ public class HsController extends AppController {
   public void nmlogs() {
     render(AggregatedLogsPage.class);
   }
-  
+
   /*
    * (non-Javadoc)
    * @see org.apache.hadoop.mapreduce.v2.app.webapp.AppController#singleCounterPage()
@@ -193,22 +193,22 @@ public class HsController extends AppController {
   protected Class<? extends View> singleCounterPage() {
     return HsSingleCounterPage.class;
   }
-  
+
   /*
    * (non-Javadoc)
    * @see org.apache.hadoop.mapreduce.v2.app.webapp.AppController#singleJobCounter()
    */
   @Override
-  public void singleJobCounter() throws IOException{
+  public void singleJobCounter() throws IOException {
     super.singleJobCounter();
   }
-  
+
   /*
    * (non-Javadoc)
    * @see org.apache.hadoop.mapreduce.v2.app.webapp.AppController#singleTaskCounter()
    */
   @Override
-  public void singleTaskCounter() throws IOException{
+  public void singleTaskCounter() throws IOException {
     super.singleTaskCounter();
   }
 }

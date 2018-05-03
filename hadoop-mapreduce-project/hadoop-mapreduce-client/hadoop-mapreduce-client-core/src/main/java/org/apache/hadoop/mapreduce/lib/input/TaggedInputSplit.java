@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,12 +17,6 @@
  */
 
 package org.apache.hadoop.mapreduce.lib.input;
-
-import java.io.DataInput;
-import java.io.DataInputStream;
-import java.io.DataOutput;
-import java.io.DataOutputStream;
-import java.io.IOException;
 
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
@@ -36,6 +30,8 @@ import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.hadoop.util.StringInterner;
+
+import java.io.*;
 
 /**
  * An {@link InputSplit} that tags another InputSplit with extra data for use
@@ -61,7 +57,7 @@ class TaggedInputSplit extends InputSplit implements Configurable, Writable {
 
   /**
    * Creates a new TaggedInputSplit.
-   * 
+   *
    * @param inputSplit The InputSplit to be tagged
    * @param conf The configuration to use
    * @param inputFormatClass The InputFormat class to use for this job
@@ -69,8 +65,8 @@ class TaggedInputSplit extends InputSplit implements Configurable, Writable {
    */
   @SuppressWarnings("unchecked")
   public TaggedInputSplit(InputSplit inputSplit, Configuration conf,
-      Class<? extends InputFormat> inputFormatClass,
-      Class<? extends Mapper> mapperClass) {
+                          Class<? extends InputFormat> inputFormatClass,
+                          Class<? extends Mapper> mapperClass) {
     this.inputSplitClass = inputSplit.getClass();
     this.inputSplit = inputSplit;
     this.conf = conf;
@@ -80,7 +76,7 @@ class TaggedInputSplit extends InputSplit implements Configurable, Writable {
 
   /**
    * Retrieves the original InputSplit.
-   * 
+   *
    * @return The InputSplit that was tagged
    */
   public InputSplit getInputSplit() {
@@ -89,7 +85,7 @@ class TaggedInputSplit extends InputSplit implements Configurable, Writable {
 
   /**
    * Retrieves the InputFormat class to use for this split.
-   * 
+   *
    * @return The InputFormat class to use
    */
   @SuppressWarnings("unchecked")
@@ -99,7 +95,7 @@ class TaggedInputSplit extends InputSplit implements Configurable, Writable {
 
   /**
    * Retrieves the Mapper class to use for this split.
-   * 
+   *
    * @return The Mapper class to use
    */
   @SuppressWarnings("unchecked")
@@ -121,11 +117,11 @@ class TaggedInputSplit extends InputSplit implements Configurable, Writable {
     inputFormatClass = (Class<? extends InputFormat<?, ?>>) readClass(in);
     mapperClass = (Class<? extends Mapper<?, ?, ?, ?>>) readClass(in);
     inputSplit = (InputSplit) ReflectionUtils
-       .newInstance(inputSplitClass, conf);
+        .newInstance(inputSplitClass, conf);
     SerializationFactory factory = new SerializationFactory(conf);
     Deserializer deserializer = factory.getDeserializer(inputSplitClass);
-    deserializer.open((DataInputStream)in);
-    inputSplit = (InputSplit)deserializer.deserialize(inputSplit);
+    deserializer.open((DataInputStream) in);
+    inputSplit = (InputSplit) deserializer.deserialize(inputSplit);
   }
 
   private Class<?> readClass(DataInput in) throws IOException {
@@ -143,9 +139,9 @@ class TaggedInputSplit extends InputSplit implements Configurable, Writable {
     Text.writeString(out, inputFormatClass.getName());
     Text.writeString(out, mapperClass.getName());
     SerializationFactory factory = new SerializationFactory(conf);
-    Serializer serializer = 
-          factory.getSerializer(inputSplitClass);
-    serializer.open((DataOutputStream)out);
+    Serializer serializer =
+        factory.getSerializer(inputSplitClass);
+    serializer.open((DataOutputStream) out);
     serializer.serialize(inputSplit);
   }
 

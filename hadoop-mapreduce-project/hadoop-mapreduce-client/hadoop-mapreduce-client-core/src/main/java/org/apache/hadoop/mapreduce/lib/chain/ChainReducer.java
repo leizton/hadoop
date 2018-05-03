@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,7 +30,7 @@ import java.io.IOException;
 /**
  * The ChainReducer class allows to chain multiple Mapper classes after a
  * Reducer within the Reducer task.
- * 
+ *
  * <p>
  * For each record output by the Reducer, the Mapper classes are invoked in a
  * chained (or piped) fashion. The output of the reducer becomes the input of
@@ -60,7 +60,7 @@ import java.io.IOException;
  * </p>
  * ChainReducer usage pattern:
  * <p/>
- * 
+ *
  * <pre>
  * ...
  * Job = new Job(conf);
@@ -90,7 +90,7 @@ public class ChainReducer<KEYIN, VALUEIN, KEYOUT, VALUEOUT> extends
 
   /**
    * Sets the {@link Reducer} class to the chain job.
-   * 
+   *
    * <p>
    * The key and values are passed from one element of the chain to the next, by
    * value. For the added Reducer the configuration given for it,
@@ -102,7 +102,7 @@ public class ChainReducer<KEYIN, VALUEIN, KEYOUT, VALUEOUT> extends
    * ChainReducer, this is done by the setReducer or the addMapper for the last
    * element in the chain.
    * </p>
-   * 
+   *
    * @param job
    *          the job
    * @param klass
@@ -122,9 +122,9 @@ public class ChainReducer<KEYIN, VALUEIN, KEYOUT, VALUEOUT> extends
    *          FALSE.
    */
   public static void setReducer(Job job, Class<? extends Reducer> klass,
-      Class<?> inputKeyClass, Class<?> inputValueClass,
-      Class<?> outputKeyClass, Class<?> outputValueClass,
-      Configuration reducerConf) {
+                                Class<?> inputKeyClass, Class<?> inputValueClass,
+                                Class<?> outputKeyClass, Class<?> outputValueClass,
+                                Configuration reducerConf) {
     job.setReducerClass(ChainReducer.class);
     job.setOutputKeyClass(outputKeyClass);
     job.setOutputValueClass(outputValueClass);
@@ -134,7 +134,7 @@ public class ChainReducer<KEYIN, VALUEIN, KEYOUT, VALUEOUT> extends
 
   /**
    * Adds a {@link Mapper} class to the chain reducer.
-   * 
+   *
    * <p>
    * The key and values are passed from one element of the chain to the next, by
    * value For the added Mapper the configuration given for it,
@@ -146,7 +146,7 @@ public class ChainReducer<KEYIN, VALUEIN, KEYOUT, VALUEOUT> extends
    * ChainMapper, this is done by the addMapper for the last mapper in the
    * chain.
    * </p>
-   * 
+   *
    * @param job
    *          The job.
    * @param klass
@@ -166,9 +166,9 @@ public class ChainReducer<KEYIN, VALUEIN, KEYOUT, VALUEOUT> extends
    *          FALSE.
    */
   public static void addMapper(Job job, Class<? extends Mapper> klass,
-      Class<?> inputKeyClass, Class<?> inputValueClass,
-      Class<?> outputKeyClass, Class<?> outputValueClass,
-      Configuration mapperConf) throws IOException {
+                               Class<?> inputKeyClass, Class<?> inputValueClass,
+                               Class<?> outputKeyClass, Class<?> outputValueClass,
+                               Configuration mapperConf) throws IOException {
     job.setOutputKeyClass(outputKeyClass);
     job.setOutputValueClass(outputValueClass);
     Chain.addMapper(false, job, klass, inputKeyClass, inputValueClass,
@@ -213,7 +213,7 @@ public class ChainReducer<KEYIN, VALUEIN, KEYOUT, VALUEOUT> extends
 
     // start all threads
     chain.startAllThreads();
-    
+
     // wait for all threads
     chain.joinAllThreads();
   }

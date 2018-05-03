@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,22 +16,6 @@
  * limitations under the License.
  */
 package org.apache.hadoop.mapreduce.v2.app;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.times;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.junit.Assert;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
@@ -72,19 +56,31 @@ import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+
 public class TestMRAppMaster {
   private static final Log LOG = LogFactory.getLog(TestMRAppMaster.class);
   static String stagingDir = "staging/";
   private static FileContext localFS = null;
   private static final File testDir = new File("target",
-    TestMRAppMaster.class.getName() + "-tmpDir").getAbsoluteFile();
-  
+      TestMRAppMaster.class.getName() + "-tmpDir").getAbsoluteFile();
+
   @BeforeClass
   public static void setup() throws AccessControlException,
       FileNotFoundException, IllegalArgumentException, IOException {
@@ -96,22 +92,22 @@ public class TestMRAppMaster {
     localFS.delete(new Path(testDir.getAbsolutePath()), true);
     testDir.mkdir();
   }
-  
+
   @Before
   public void cleanup() throws IOException {
     File dir = new File(stagingDir);
-    if(dir.exists()) {
+    if (dir.exists()) {
       FileUtils.deleteDirectory(dir);
     }
     dir.mkdirs();
   }
-  
+
   @Test
   public void testMRAppMasterForDifferentUser() throws IOException,
       InterruptedException {
     String applicationAttemptIdStr = "appattempt_1317529182569_0004_000001";
     String containerIdStr = "container_1317529182569_0004_000001_1";
-    
+
     String userName = "TestAppMasterUser";
     ApplicationAttemptId applicationAttemptId = ConverterUtils
         .toApplicationAttemptId(applicationAttemptIdStr);
@@ -125,7 +121,7 @@ public class TestMRAppMaster {
     Path userPath = new Path(stagingDir, userName);
     Path userStagingPath = new Path(userPath, ".staging");
     assertEquals(userStagingPath.toString(),
-      appMaster.stagingDirPath.toString());
+        appMaster.stagingDirPath.toString());
   }
 
   @Test
@@ -138,7 +134,7 @@ public class TestMRAppMaster {
     conf.set(MRJobConfig.MR_AM_STAGING_DIR, stagingDir);
     ApplicationAttemptId applicationAttemptId = ConverterUtils
         .toApplicationAttemptId(applicationAttemptIdStr);
-    JobId jobId =  TypeConverter.toYarn(
+    JobId jobId = TypeConverter.toYarn(
         TypeConverter.fromYarn(applicationAttemptId.getApplicationId()));
     Path start = MRApps.getStartJobCommitFile(conf, userName, jobId);
     FileSystem fs = FileSystem.get(conf);
@@ -162,9 +158,9 @@ public class TestMRAppMaster {
     appMaster.stop();
 
     // verify the final status is FAILED
-    verifyFailedStatus((MRAppMasterTest)appMaster, "FAILED");
+    verifyFailedStatus((MRAppMasterTest) appMaster, "FAILED");
   }
-  
+
   @Test
   public void testMRAppMasterSuccessLock() throws IOException,
       InterruptedException {
@@ -175,7 +171,7 @@ public class TestMRAppMaster {
     conf.set(MRJobConfig.MR_AM_STAGING_DIR, stagingDir);
     ApplicationAttemptId applicationAttemptId = ConverterUtils
         .toApplicationAttemptId(applicationAttemptIdStr);
-    JobId jobId =  TypeConverter.toYarn(
+    JobId jobId = TypeConverter.toYarn(
         TypeConverter.fromYarn(applicationAttemptId.getApplicationId()));
     Path start = MRApps.getStartJobCommitFile(conf, userName, jobId);
     Path end = MRApps.getEndJobCommitSuccessFile(conf, userName, jobId);
@@ -200,9 +196,9 @@ public class TestMRAppMaster {
     appMaster.stop();
 
     // verify the final status is SUCCEEDED
-    verifyFailedStatus((MRAppMasterTest)appMaster, "SUCCEEDED");
+    verifyFailedStatus((MRAppMasterTest) appMaster, "SUCCEEDED");
   }
-  
+
   @Test
   public void testMRAppMasterFailLock() throws IOException,
       InterruptedException {
@@ -213,7 +209,7 @@ public class TestMRAppMaster {
     conf.set(MRJobConfig.MR_AM_STAGING_DIR, stagingDir);
     ApplicationAttemptId applicationAttemptId = ConverterUtils
         .toApplicationAttemptId(applicationAttemptIdStr);
-    JobId jobId =  TypeConverter.toYarn(
+    JobId jobId = TypeConverter.toYarn(
         TypeConverter.fromYarn(applicationAttemptId.getApplicationId()));
     Path start = MRApps.getStartJobCommitFile(conf, userName, jobId);
     Path end = MRApps.getEndJobCommitFailureFile(conf, userName, jobId);
@@ -238,9 +234,9 @@ public class TestMRAppMaster {
     appMaster.stop();
 
     // verify the final status is FAILED
-    verifyFailedStatus((MRAppMasterTest)appMaster, "FAILED");
+    verifyFailedStatus((MRAppMasterTest) appMaster, "FAILED");
   }
-  
+
   @Test
   public void testMRAppMasterMissingStaging() throws IOException,
       InterruptedException {
@@ -254,10 +250,10 @@ public class TestMRAppMaster {
 
     //Delete the staging directory
     File dir = new File(stagingDir);
-    if(dir.exists()) {
+    if (dir.exists()) {
       FileUtils.deleteDirectory(dir);
     }
-    
+
     ContainerId containerId = ConverterUtils.toContainerId(containerIdStr);
     MRAppMaster appMaster =
         new MRAppMasterTest(applicationAttemptId, containerId, "host", -1, -1,
@@ -278,12 +274,12 @@ public class TestMRAppMaster {
     appMaster.stop();
   }
 
-  @Test (timeout = 30000)
+  @Test(timeout = 30000)
   public void testMRAppMasterMaxAppAttempts() throws IOException,
       InterruptedException {
     // No matter what's the maxAppAttempt or attempt id, the isLastRetry always
     // equals to false
-    Boolean[] expectedBools = new Boolean[]{ false, false, false };
+    Boolean[] expectedBools = new Boolean[]{false, false, false};
 
     String applicationAttemptIdStr = "appattempt_1317529182569_0004_000002";
     String containerIdStr = "container_1317529182569_0004_000002_1";
@@ -310,7 +306,7 @@ public class TestMRAppMaster {
 
   // A dirty hack to modify the env of the current JVM itself - Dirty, but
   // should be okay for testing.
-  @SuppressWarnings({ "rawtypes", "unchecked" })
+  @SuppressWarnings({"rawtypes", "unchecked"})
   private static void setNewEnvironmentHack(Map<String, String> newenv)
       throws Exception {
     try {
@@ -363,7 +359,7 @@ public class TestMRAppMaster {
         new Token<AMRMTokenIdentifier>(identifier, password,
             AMRMTokenIdentifier.KIND_NAME, appTokenService);
     credentials.addToken(appTokenService, appToken);
-    
+
     Text keyAlias = new Text("mySecretKeyAlias");
     credentials.addSecretKey(keyAlias, "mySecretKey".getBytes());
     Token<? extends TokenIdentifier> storedToken =
@@ -374,7 +370,7 @@ public class TestMRAppMaster {
     Path tokenFilePath = new Path(testDir.getAbsolutePath(), "tokens-file");
     Map<String, String> newEnv = new HashMap<String, String>();
     newEnv.put(UserGroupInformation.HADOOP_TOKEN_FILE_LOCATION, tokenFilePath
-      .toUri().getPath());
+        .toUri().getPath());
     setNewEnvironmentHack(newEnv);
     credentials.writeTokenStorageFile(tokenFilePath, conf);
 
@@ -396,7 +392,7 @@ public class TestMRAppMaster {
 
     MRAppMasterTest appMaster =
         new MRAppMasterTest(applicationAttemptId, containerId, "host", -1, -1,
-          System.currentTimeMillis(), false, true);
+            System.currentTimeMillis(), false, true);
     MRAppMaster.initAndStartAppMaster(appMaster, conf, userName);
 
     // Now validate the task credentials
@@ -423,8 +419,8 @@ public class TestMRAppMaster {
     Assert.assertEquals(1, confCredentials.numberOfTokens());
     Assert.assertEquals(storedToken, confCredentials.getToken(tokenAlias));
     Assert.assertEquals("mySecretKey",
-      new String(confCredentials.getSecretKey(keyAlias)));
-    
+        new String(confCredentials.getSecretKey(keyAlias)));
+
     // Verify the AM's ugi - app token should be present
     Credentials ugiCredentials = appMaster.getUgi().getCredentials();
     Assert.assertEquals(1, ugiCredentials.numberOfSecretKeys());
@@ -432,13 +428,13 @@ public class TestMRAppMaster {
     Assert.assertEquals(storedToken, ugiCredentials.getToken(tokenAlias));
     Assert.assertEquals(appToken, ugiCredentials.getToken(appTokenService));
     Assert.assertEquals("mySecretKey",
-      new String(ugiCredentials.getSecretKey(keyAlias)));
+        new String(ugiCredentials.getSecretKey(keyAlias)));
 
 
   }
 
   private void verifyFailedStatus(MRAppMasterTest appMaster,
-      String expectedJobState) {
+                                  String expectedJobState) {
     ArgumentCaptor<JobHistoryEvent> captor = ArgumentCaptor
         .forClass(JobHistoryEvent.class);
     // handle two events: AMStartedEvent and JobUnsuccessfulCompletionEvent
@@ -450,6 +446,7 @@ public class TestMRAppMaster {
         , expectedJobState);
   }
 }
+
 class MRAppMasterTest extends MRAppMaster {
 
   Path stagingDirPath;
@@ -462,15 +459,16 @@ class MRAppMasterTest extends MRAppMaster {
   JobHistoryEventHandler spyHistoryService;
 
   public MRAppMasterTest(ApplicationAttemptId applicationAttemptId,
-      ContainerId containerId, String host, int port, int httpPort,
-      long submitTime) {
+                         ContainerId containerId, String host, int port, int httpPort,
+                         long submitTime) {
     this(applicationAttemptId, containerId, host, port, httpPort,
         submitTime, true, true);
   }
+
   public MRAppMasterTest(ApplicationAttemptId applicationAttemptId,
-      ContainerId containerId, String host, int port, int httpPort,
-      long submitTime, boolean overrideInit,
-      boolean overrideStart) {
+                         ContainerId containerId, String host, int port, int httpPort,
+                         long submitTime, boolean overrideInit,
+                         boolean overrideStart) {
     super(applicationAttemptId, containerId, host, port, httpPort, submitTime);
     this.overrideInit = overrideInit;
     this.overrideStart = overrideStart;
@@ -486,7 +484,7 @@ class MRAppMasterTest extends MRAppMaster {
     }
     this.conf = conf;
   }
-  
+
   @Override
   protected ContainerAllocator createContainerAllocator(
       final ClientService clientService, final AppContext context) {
@@ -523,7 +521,7 @@ class MRAppMasterTest extends MRAppMaster {
   public Credentials getCredentials() {
     return super.getCredentials();
   }
-  
+
   public UserGroupInformation getUgi() {
     return currentUser;
   }

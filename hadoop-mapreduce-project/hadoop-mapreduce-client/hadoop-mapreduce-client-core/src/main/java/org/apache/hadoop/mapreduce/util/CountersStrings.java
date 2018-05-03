@@ -18,18 +18,17 @@
 
 package org.apache.hadoop.mapreduce.util;
 
-import java.text.ParseException;
-import java.util.List;
-
 import com.google.common.collect.Lists;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.mapreduce.counters.AbstractCounters;
 import org.apache.hadoop.mapreduce.Counter;
+import org.apache.hadoop.mapreduce.counters.AbstractCounters;
 import org.apache.hadoop.mapreduce.counters.CounterGroupBase;
 import org.apache.hadoop.util.StringInterner;
 import org.apache.hadoop.util.StringUtils;
+
+import java.text.ParseException;
+import java.util.List;
 
 /**
  * String conversion utilities for counters.
@@ -43,12 +42,14 @@ public class CountersStrings {
   private static final char COUNTER_CLOSE = ']';
   private static final char UNIT_OPEN = '(';
   private static final char UNIT_CLOSE = ')';
-  private static char[] charsToEscape =  {GROUP_OPEN, GROUP_CLOSE,
-                                          COUNTER_OPEN, COUNTER_CLOSE,
-                                          UNIT_OPEN, UNIT_CLOSE};
+  private static char[] charsToEscape = {GROUP_OPEN, GROUP_CLOSE,
+      COUNTER_OPEN, COUNTER_CLOSE,
+      UNIT_OPEN, UNIT_CLOSE};
+
   /**
    * Make the pre 0.21 counter string (for e.g. old job history files)
    * [(actual-name)(display-name)(value)]
+   *
    * @param counter to stringify
    * @return the stringified result
    */
@@ -58,7 +59,7 @@ public class CountersStrings {
     // determine the buffer length apriori.
     String escapedName, escapedDispName;
     long currentValue;
-    synchronized(counter) {
+    synchronized (counter) {
       escapedName = escape(counter.getName());
       escapedDispName = escape(counter.getDisplayName());
       currentValue = counter.getValue();
@@ -94,7 +95,8 @@ public class CountersStrings {
    * Make the 0.21 counter group string.
    * format: {(actual-name)(display-name)(value)[][][]}
    * where [] are compact strings for the counters within.
-   * @param <G> type of the group
+   *
+   * @param <G>   type of the group
    * @param group to stringify
    * @return the stringified result
    */
@@ -103,7 +105,7 @@ public class CountersStrings {
     List<String> escapedStrs = Lists.newArrayList();
     int length;
     String escapedName, escapedDispName;
-    synchronized(group) {
+    synchronized (group) {
       // First up, obtain the strings that need escaping. This will help us
       // determine the buffer length apriori.
       escapedName = escape(group.getName());
@@ -131,7 +133,7 @@ public class CountersStrings {
     builder.append(UNIT_CLOSE);
 
     // write the value
-    for(String escaped : escapedStrs) {
+    for (String escaped : escapedStrs) {
       builder.append(escaped);
     }
 
@@ -141,19 +143,20 @@ public class CountersStrings {
 
   /**
    * Make the pre 0.21 counters string
-   * @param <C> type of the counter
-   * @param <G> type of the counter group
-   * @param <T> type of the counters object
+   *
+   * @param <C>      type of the counter
+   * @param <G>      type of the counter group
+   * @param <T>      type of the counters object
    * @param counters the object to stringify
    * @return the string in the following format
    * {(groupName)(group-displayName)[(counterName)(displayName)(value)]*}*
    */
   public static <C extends Counter, G extends CounterGroupBase<C>,
-                 T extends AbstractCounters<C, G>>
+      T extends AbstractCounters<C, G>>
   String toEscapedCompactString(T counters) {
     String[] groupsArray;
     int length = 0;
-    synchronized(counters) {
+    synchronized (counters) {
       groupsArray = new String[counters.countCounters()];
       int i = 0;
       // First up, obtain the escaped string for each group so that we can
@@ -176,29 +179,29 @@ public class CountersStrings {
   // Escapes all the delimiters for counters i.e {,[,(,),],}
   private static String escape(String string) {
     return StringUtils.escapeString(string, StringUtils.ESCAPE_CHAR,
-                                    charsToEscape);
+        charsToEscape);
   }
 
   // Unescapes all the delimiters for counters i.e {,[,(,),],}
   private static String unescape(String string) {
     return StringUtils.unEscapeString(string, StringUtils.ESCAPE_CHAR,
-                                      charsToEscape);
+        charsToEscape);
   }
 
   // Extracts a block (data enclosed within delimeters) ignoring escape
   // sequences. Throws ParseException if an incomplete block is found else
   // returns null.
   private static String getBlock(String str, char open, char close,
-                                IntWritable index) throws ParseException {
+                                 IntWritable index) throws ParseException {
     StringBuilder split = new StringBuilder();
     int next = StringUtils.findNext(str, open, StringUtils.ESCAPE_CHAR,
-                                    index.get(), split);
+        index.get(), split);
     split.setLength(0); // clear the buffer
     if (next >= 0) {
       ++next; // move over '('
 
       next = StringUtils.findNext(str, close, StringUtils.ESCAPE_CHAR,
-                                  next, split);
+          next, split);
       if (next >= 0) {
         ++next; // move over ')'
         index.set(next);
@@ -212,24 +215,25 @@ public class CountersStrings {
 
   /**
    * Parse a pre 0.21 counters string into a counter object.
-   * @param <C> type of the counter
-   * @param <G> type of the counter group
-   * @param <T> type of the counters object
+   *
+   * @param <C>           type of the counter
+   * @param <G>           type of the counter group
+   * @param <T>           type of the counters object
    * @param compactString to parse
-   * @param counters an empty counters object to hold the result
+   * @param counters      an empty counters object to hold the result
    * @return the counters object holding the result
    * @throws ParseException
    */
   @SuppressWarnings("deprecation")
   public static <C extends Counter, G extends CounterGroupBase<C>,
-                 T extends AbstractCounters<C, G>>
+      T extends AbstractCounters<C, G>>
   T parseEscapedCompactString(String compactString, T counters)
       throws ParseException {
     IntWritable index = new IntWritable(0);
 
     // Get the group to work on
     String groupString =
-      getBlock(compactString, GROUP_OPEN, GROUP_CLOSE, index);
+        getBlock(compactString, GROUP_OPEN, GROUP_CLOSE, index);
 
     while (groupString != null) {
       IntWritable groupIndex = new IntWritable(0);
@@ -249,7 +253,7 @@ public class CountersStrings {
       group.setDisplayName(groupDisplayName);
 
       String counterString =
-        getBlock(groupString, COUNTER_OPEN, COUNTER_CLOSE, groupIndex);
+          getBlock(groupString, COUNTER_OPEN, COUNTER_CLOSE, groupIndex);
 
       while (counterString != null) {
         IntWritable counterIndex = new IntWritable(0);
@@ -266,8 +270,8 @@ public class CountersStrings {
 
         // Get the value
         long value =
-          Long.parseLong(getBlock(counterString, UNIT_OPEN, UNIT_CLOSE,
-                                  counterIndex));
+            Long.parseLong(getBlock(counterString, UNIT_OPEN, UNIT_CLOSE,
+                counterIndex));
 
         // Add the counter
         Counter counter = group.findCounter(counterName);
@@ -276,7 +280,7 @@ public class CountersStrings {
 
         // Get the next counter
         counterString =
-          getBlock(groupString, COUNTER_OPEN, COUNTER_CLOSE, groupIndex);
+            getBlock(groupString, COUNTER_OPEN, COUNTER_CLOSE, groupIndex);
       }
 
       groupString = getBlock(compactString, GROUP_OPEN, GROUP_CLOSE, index);

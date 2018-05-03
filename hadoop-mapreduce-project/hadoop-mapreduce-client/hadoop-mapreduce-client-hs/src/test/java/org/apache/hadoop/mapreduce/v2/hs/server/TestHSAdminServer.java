@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,13 +17,6 @@
  */
 
 package org.apache.hadoop.mapreduce.v2.hs.server;
-
-import static org.junit.Assert.*;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 import org.apache.hadoop.HadoopIllegalArgumentException;
 import org.apache.hadoop.conf.Configuration;
@@ -35,16 +28,20 @@ import org.apache.hadoop.mapreduce.v2.jobhistory.JHAdminConfig;
 import org.apache.hadoop.security.GroupMappingServiceProvider;
 import org.apache.hadoop.security.Groups;
 import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.hadoop.security.authorize.AuthorizationException;
 import org.apache.hadoop.security.authorize.ProxyUsers;
+import org.apache.hadoop.yarn.logaggregation.AggregatedLogDeletionService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
 
-import org.apache.hadoop.security.authorize.AuthorizationException;
-import org.apache.hadoop.yarn.logaggregation.AggregatedLogDeletionService;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 public class TestHSAdminServer {
   private HSAdminServer hsAdminServer = null;
@@ -120,7 +117,7 @@ public class TestHSAdminServer {
   @Test
   public void testRefreshUserToGroupsMappings() throws Exception {
 
-    String[] args = new String[] { "-refreshUserToGroupsMappings" };
+    String[] args = new String[]{"-refreshUserToGroupsMappings"};
     Groups groups = Groups.getUserToGroupsMappingService(conf);
     String user = UserGroupInformation.getCurrentUser().getUserName();
     System.out.println("first attempt:");
@@ -162,7 +159,7 @@ public class TestHSAdminServer {
     when(ugi.getRealUser()).thenReturn(superUser);
     when(superUser.getShortUserName()).thenReturn("superuser");
     when(superUser.getUserName()).thenReturn("superuser");
-    when(ugi.getGroupNames()).thenReturn(new String[] { "group3" });
+    when(ugi.getGroupNames()).thenReturn(new String[]{"group3"});
     when(ugi.getUserName()).thenReturn("regularUser");
 
     // Set super user groups not to include groups of regularUser
@@ -249,7 +246,7 @@ public class TestHSAdminServer {
     hsAdminClient.run(args);
     verify(jobHistoryService).refreshLoadedJobCache();
   }
-  
+
   @Test
   public void testRefreshLogRetentionSettings() throws Exception {
     String[] args = new String[1];

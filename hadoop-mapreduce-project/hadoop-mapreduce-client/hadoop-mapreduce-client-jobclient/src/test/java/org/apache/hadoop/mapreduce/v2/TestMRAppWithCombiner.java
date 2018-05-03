@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,11 +17,6 @@
  */
 
 package org.apache.hadoop.mapreduce.v2;
-
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.util.Iterator;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -32,14 +27,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.FileInputFormat;
-import org.apache.hadoop.mapred.FileOutputFormat;
-import org.apache.hadoop.mapred.JobClient;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.OutputCollector;
-import org.apache.hadoop.mapred.Reporter;
-import org.apache.hadoop.mapred.RunningJob;
-import org.apache.hadoop.mapred.TextInputFormat;
+import org.apache.hadoop.mapred.*;
 import org.apache.hadoop.mapred.lib.IdentityMapper;
 import org.apache.hadoop.mapred.lib.IdentityReducer;
 import org.apache.hadoop.mapreduce.filecache.DistributedCache;
@@ -47,6 +35,11 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
 
 @SuppressWarnings("deprecation")
 public class TestMRAppWithCombiner {
@@ -120,7 +113,7 @@ public class TestMRAppWithCombiner {
     FileOutputFormat.setOutputPath(conf, out);
     conf.setNumMapTasks(numMaps);
     conf.setNumReduceTasks(numReds);
-    
+
     runJob(conf);
   }
 
@@ -150,7 +143,7 @@ public class TestMRAppWithCombiner {
 
   class MyCombinerToCheckReporter<K, V> extends IdentityReducer<K, V> {
     public void reduce(K key, Iterator<V> values, OutputCollector<K, V> output,
-        Reporter reporter) throws IOException {
+                       Reporter reporter) throws IOException {
       if (Reporter.NULL == reporter) {
         Assert.fail("A valid Reporter should have been used but, Reporter.NULL is used");
       }

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,26 +18,17 @@
 
 package org.apache.hadoop.mapreduce.lib.reduce;
 
-import java.io.IOException;
-import java.net.URI;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configuration.IntegerRanges;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.RawComparator;
-import org.apache.hadoop.mapreduce.Counter;
-import org.apache.hadoop.mapreduce.InputFormat;
-import org.apache.hadoop.mapreduce.JobID;
-import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.OutputCommitter;
-import org.apache.hadoop.mapreduce.OutputFormat;
-import org.apache.hadoop.mapreduce.Partitioner;
-import org.apache.hadoop.mapreduce.ReduceContext;
-import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.TaskAttemptID;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.security.Credentials;
+
+import java.io.IOException;
+import java.net.URI;
 
 /**
  * A {@link Reducer} which wraps a given one to allow for custom 
@@ -45,7 +36,7 @@ import org.apache.hadoop.security.Credentials;
  */
 @InterfaceAudience.Public
 @InterfaceStability.Evolving
-public class WrappedReducer<KEYIN, VALUEIN, KEYOUT, VALUEOUT> 
+public class WrappedReducer<KEYIN, VALUEIN, KEYOUT, VALUEOUT>
     extends Reducer<KEYIN, VALUEIN, KEYOUT, VALUEOUT> {
 
   /**
@@ -53,20 +44,19 @@ public class WrappedReducer<KEYIN, VALUEIN, KEYOUT, VALUEOUT>
    * @param reduceContext <code>ReduceContext</code> to be wrapped
    * @return a wrapped <code>Reducer.Context</code> for custom implementations
    */
-  public Reducer<KEYIN, VALUEIN, KEYOUT, VALUEOUT>.Context 
+  public Reducer<KEYIN, VALUEIN, KEYOUT, VALUEOUT>.Context
   getReducerContext(ReduceContext<KEYIN, VALUEIN, KEYOUT, VALUEOUT> reduceContext) {
     return new Context(reduceContext);
   }
-  
+
   @InterfaceStability.Evolving
-  public class Context 
+  public class Context
       extends Reducer<KEYIN, VALUEIN, KEYOUT, VALUEOUT>.Context {
 
     protected ReduceContext<KEYIN, VALUEIN, KEYOUT, VALUEOUT> reduceContext;
 
-    public Context(ReduceContext<KEYIN, VALUEIN, KEYOUT, VALUEOUT> reduceContext)
-    {
-      this.reduceContext = reduceContext; 
+    public Context(ReduceContext<KEYIN, VALUEIN, KEYOUT, VALUEOUT> reduceContext) {
+      this.reduceContext = reduceContext;
     }
 
     @Override
@@ -301,7 +291,7 @@ public class WrappedReducer<KEYIN, VALUEIN, KEYOUT, VALUEOUT>
     public boolean nextKey() throws IOException, InterruptedException {
       return reduceContext.nextKey();
     }
-    
+
     @Override
     public boolean getProfileEnabled() {
       return reduceContext.getProfileEnabled();
@@ -326,7 +316,7 @@ public class WrappedReducer<KEYIN, VALUEIN, KEYOUT, VALUEOUT>
     public Credentials getCredentials() {
       return reduceContext.getCredentials();
     }
-    
+
     @Override
     public float getProgress() {
       return reduceContext.getProgress();

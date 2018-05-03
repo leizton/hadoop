@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,23 +18,14 @@
 
 package org.apache.hadoop.mapreduce.lib.map;
 
-import org.apache.hadoop.util.ReflectionUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.mapreduce.Counter;
-import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.JobContext;
-import org.apache.hadoop.mapreduce.MapContext;
-import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.RecordReader;
-import org.apache.hadoop.mapreduce.RecordWriter;
-import org.apache.hadoop.mapreduce.StatusReporter;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.task.MapContextImpl;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.util.ReflectionUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -58,14 +49,14 @@ import java.util.List;
  */
 @InterfaceAudience.Public
 @InterfaceStability.Stable
-public class MultithreadedMapper<K1, V1, K2, V2> 
-  extends Mapper<K1, V1, K2, V2> {
+public class MultithreadedMapper<K1, V1, K2, V2>
+    extends Mapper<K1, V1, K2, V2> {
 
   private static final Log LOG = LogFactory.getLog(MultithreadedMapper.class);
   public static String NUM_THREADS = "mapreduce.mapper.multithreadedmapper.threads";
   public static String MAP_CLASS = "mapreduce.mapper.multithreadedmapper.mapclass";
-  
-  private Class<? extends Mapper<K1,V1,K2,V2>> mapClass;
+
+  private Class<? extends Mapper<K1, V1, K2, V2>> mapClass;
   private Context outer;
   private List<MapRunner> runners;
 
@@ -97,12 +88,12 @@ public class MultithreadedMapper<K1, V1, K2, V2>
    * @return the mapper class to run
    */
   @SuppressWarnings("unchecked")
-  public static <K1,V1,K2,V2>
-  Class<Mapper<K1,V1,K2,V2>> getMapperClass(JobContext job) {
-    return (Class<Mapper<K1,V1,K2,V2>>) 
-      job.getConfiguration().getClass(MAP_CLASS, Mapper.class);
+  public static <K1, V1, K2, V2>
+  Class<Mapper<K1, V1, K2, V2>> getMapperClass(JobContext job) {
+    return (Class<Mapper<K1, V1, K2, V2>>)
+        job.getConfiguration().getClass(MAP_CLASS, Mapper.class);
   }
-  
+
   /**
    * Set the application's mapper class.
    * @param <K1> the map input key type
@@ -112,12 +103,12 @@ public class MultithreadedMapper<K1, V1, K2, V2>
    * @param job the job to modify
    * @param cls the class to use as the mapper
    */
-  public static <K1,V1,K2,V2> 
-  void setMapperClass(Job job, 
-                      Class<? extends Mapper<K1,V1,K2,V2>> cls) {
+  public static <K1, V1, K2, V2>
+  void setMapperClass(Job job,
+                      Class<? extends Mapper<K1, V1, K2, V2>> cls) {
     if (MultithreadedMapper.class.isAssignableFrom(cls)) {
-      throw new IllegalArgumentException("Can't have recursive " + 
-                                         "MultithreadedMapper instances.");
+      throw new IllegalArgumentException("Can't have recursive " +
+          "MultithreadedMapper instances.");
     }
     job.getConfiguration().setClass(MAP_CLASS, cls, Mapper.class);
   }
@@ -131,17 +122,17 @@ public class MultithreadedMapper<K1, V1, K2, V2>
     int numberOfThreads = getNumberOfThreads(context);
     mapClass = getMapperClass(context);
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Configuring multithread runner to use " + numberOfThreads + 
-                " threads");
+      LOG.debug("Configuring multithread runner to use " + numberOfThreads +
+          " threads");
     }
-    
-    runners =  new ArrayList<MapRunner>(numberOfThreads);
-    for(int i=0; i < numberOfThreads; ++i) {
+
+    runners = new ArrayList<MapRunner>(numberOfThreads);
+    for (int i = 0; i < numberOfThreads; ++i) {
       MapRunner thread = new MapRunner(context);
       thread.start();
       runners.add(i, thread);
     }
-    for(int i=0; i < numberOfThreads; ++i) {
+    for (int i = 0; i < numberOfThreads; ++i) {
       MapRunner thread = runners.get(i);
       thread.join();
       Throwable th = thread.throwable;
@@ -157,7 +148,7 @@ public class MultithreadedMapper<K1, V1, K2, V2>
     }
   }
 
-  private class SubMapRecordReader extends RecordReader<K1,V1> {
+  private class SubMapRecordReader extends RecordReader<K1, V1> {
     private K1 key;
     private V1 value;
     private Configuration conf;
@@ -172,9 +163,9 @@ public class MultithreadedMapper<K1, V1, K2, V2>
     }
 
     @Override
-    public void initialize(InputSplit split, 
+    public void initialize(InputSplit split,
                            TaskAttemptContext context
-                           ) throws IOException, InterruptedException {
+    ) throws IOException, InterruptedException {
       conf = context.getConfiguration();
     }
 
@@ -186,7 +177,7 @@ public class MultithreadedMapper<K1, V1, K2, V2>
           return false;
         }
         key = ReflectionUtils.copy(outer.getConfiguration(),
-                                   outer.getCurrentKey(), key);
+            outer.getCurrentKey(), key);
         value = ReflectionUtils.copy(conf, outer.getCurrentValue(), value);
         return true;
       }
@@ -201,21 +192,21 @@ public class MultithreadedMapper<K1, V1, K2, V2>
       return value;
     }
   }
-  
-  private class SubMapRecordWriter extends RecordWriter<K2,V2> {
+
+  private class SubMapRecordWriter extends RecordWriter<K2, V2> {
 
     @Override
     public void close(TaskAttemptContext context) throws IOException,
-                                                 InterruptedException {
+        InterruptedException {
     }
 
     @Override
     public void write(K2 key, V2 value) throws IOException,
-                                               InterruptedException {
+        InterruptedException {
       synchronized (outer) {
         outer.write(key, value);
       }
-    }  
+    }
   }
 
   private class SubMapStatusReporter extends StatusReporter {
@@ -239,7 +230,7 @@ public class MultithreadedMapper<K1, V1, K2, V2>
     public void setStatus(String status) {
       outer.setStatus(status);
     }
-    
+
     @Override
     public float getProgress() {
       return outer.getProgress();
@@ -247,22 +238,22 @@ public class MultithreadedMapper<K1, V1, K2, V2>
   }
 
   private class MapRunner extends Thread {
-    private Mapper<K1,V1,K2,V2> mapper;
+    private Mapper<K1, V1, K2, V2> mapper;
     private Context subcontext;
     private Throwable throwable;
-    private RecordReader<K1,V1> reader = new SubMapRecordReader();
+    private RecordReader<K1, V1> reader = new SubMapRecordReader();
 
     MapRunner(Context context) throws IOException, InterruptedException {
-      mapper = ReflectionUtils.newInstance(mapClass, 
-                                           context.getConfiguration());
-      MapContext<K1, V1, K2, V2> mapContext = 
-        new MapContextImpl<K1, V1, K2, V2>(outer.getConfiguration(), 
-                                           outer.getTaskAttemptID(),
-                                           reader,
-                                           new SubMapRecordWriter(), 
-                                           context.getOutputCommitter(),
-                                           new SubMapStatusReporter(),
-                                           outer.getInputSplit());
+      mapper = ReflectionUtils.newInstance(mapClass,
+          context.getConfiguration());
+      MapContext<K1, V1, K2, V2> mapContext =
+          new MapContextImpl<K1, V1, K2, V2>(outer.getConfiguration(),
+              outer.getTaskAttemptID(),
+              reader,
+              new SubMapRecordWriter(),
+              context.getOutputCommitter(),
+              new SubMapStatusReporter(),
+              outer.getInputSplit());
       subcontext = new WrappedMapper<K1, V1, K2, V2>().getMapContext(mapContext);
       reader.initialize(context.getInputSplit(), context);
     }

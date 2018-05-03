@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,18 +18,6 @@
 
 package org.apache.hadoop.mapreduce.lib.db;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
@@ -38,19 +26,21 @@ import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Writable;
-import org.apache.hadoop.mapreduce.InputFormat;
-import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.JobContext;
-import org.apache.hadoop.mapreduce.MRJobConfig;
-import org.apache.hadoop.mapreduce.RecordReader;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.hadoop.mapreduce.*;
+
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * A InputFormat that reads input data from an SQL table.
  * <p>
  * DBInputFormat emits LongWritables containing the record number as 
  * key and DBWritables as value. 
- * 
+ *
  * The SQL query, and input class can be using one of the two 
  * setInput methods.
  */
@@ -60,7 +50,7 @@ public class DBInputFormat<T extends DBWritable>
     extends InputFormat<LongWritable, T> implements Configurable {
 
   private static final Log LOG = LogFactory.getLog(DBInputFormat.class);
-  
+
   protected String dbProductName = "DEFAULT";
 
   /**
@@ -69,15 +59,22 @@ public class DBInputFormat<T extends DBWritable>
   @InterfaceStability.Evolving
   public static class NullDBWritable implements DBWritable, Writable {
     @Override
-    public void readFields(DataInput in) throws IOException { }
+    public void readFields(DataInput in) throws IOException {
+    }
+
     @Override
-    public void readFields(ResultSet arg0) throws SQLException { }
+    public void readFields(ResultSet arg0) throws SQLException {
+    }
+
     @Override
-    public void write(DataOutput out) throws IOException { }
+    public void write(DataOutput out) throws IOException {
+    }
+
     @Override
-    public void write(PreparedStatement arg0) throws SQLException { }
+    public void write(PreparedStatement arg0) throws SQLException {
+    }
   }
-  
+
   /**
    * A InputSplit that spans a set of rows
    */
@@ -106,7 +103,7 @@ public class DBInputFormat<T extends DBWritable>
     /** {@inheritDoc} */
     public String[] getLocations() throws IOException {
       // TODO Add a layer to enable SQL "sharding" and support locality
-      return new String[] {};
+      return new String[]{};
     }
 
     /**
@@ -163,8 +160,7 @@ public class DBInputFormat<T extends DBWritable>
 
       DatabaseMetaData dbMeta = connection.getMetaData();
       this.dbProductName = dbMeta.getDatabaseProductName().toUpperCase();
-    }
-    catch (Exception ex) {
+    } catch (Exception ex) {
       throw new RuntimeException(ex);
     }
 
@@ -176,7 +172,7 @@ public class DBInputFormat<T extends DBWritable>
   public Configuration getConf() {
     return dbConf.getConf();
   }
-  
+
   public DBConfiguration getDBConf() {
     return dbConf;
   }
@@ -201,7 +197,7 @@ public class DBInputFormat<T extends DBWritable>
   }
 
   protected RecordReader<LongWritable, T> createDBRecordReader(DBInputSplit split,
-      Configuration conf) throws IOException {
+                                                               Configuration conf) throws IOException {
 
     @SuppressWarnings("unchecked")
     Class<T> inputClass = (Class<T>) (dbConf.getInputClass());
@@ -230,7 +226,7 @@ public class DBInputFormat<T extends DBWritable>
 
   /** {@inheritDoc} */
   public RecordReader<LongWritable, T> createRecordReader(InputSplit split,
-      TaskAttemptContext context) throws IOException, InterruptedException {  
+                                                          TaskAttemptContext context) throws IOException, InterruptedException {
 
     return createDBRecordReader((DBInputSplit) split, context.getConfiguration());
   }
@@ -238,7 +234,7 @@ public class DBInputFormat<T extends DBWritable>
   /** {@inheritDoc} */
   public List<InputSplit> getSplits(JobContext job) throws IOException {
 
-    ResultSet results = null;  
+    ResultSet results = null;
     Statement statement = null;
     try {
       statement = connection.createStatement();
@@ -275,11 +271,17 @@ public class DBInputFormat<T extends DBWritable>
       throw new IOException("Got SQLException", e);
     } finally {
       try {
-        if (results != null) { results.close(); }
-      } catch (SQLException e1) {}
+        if (results != null) {
+          results.close();
+        }
+      } catch (SQLException e1) {
+      }
       try {
-        if (statement != null) { statement.close(); }
-      } catch (SQLException e1) {}
+        if (statement != null) {
+          statement.close();
+        }
+      } catch (SQLException e1) {
+      }
 
       closeConnection();
     }
@@ -288,11 +290,11 @@ public class DBInputFormat<T extends DBWritable>
   /** Returns the query for getting the total number of rows, 
    * subclasses can override this for custom behaviour.*/
   protected String getCountQuery() {
-    
-    if(dbConf.getInputCountQuery() != null) {
+
+    if (dbConf.getInputCountQuery() != null) {
       return dbConf.getInputCountQuery();
     }
-    
+
     StringBuilder query = new StringBuilder();
     query.append("SELECT COUNT(*) FROM " + tableName);
 
@@ -303,7 +305,7 @@ public class DBInputFormat<T extends DBWritable>
 
   /**
    * Initializes the map-part of the job with the appropriate input settings.
-   * 
+   *
    * @param job The map-reduce job
    * @param inputClass the class object implementing DBWritable, which is the 
    * Java object holding tuple fields.
@@ -314,10 +316,10 @@ public class DBInputFormat<T extends DBWritable>
    * @param fieldNames The field names in the table
    * @see #setInput(Job, Class, String, String)
    */
-  public static void setInput(Job job, 
-      Class<? extends DBWritable> inputClass,
-      String tableName,String conditions, 
-      String orderBy, String... fieldNames) {
+  public static void setInput(Job job,
+                              Class<? extends DBWritable> inputClass,
+                              String tableName, String conditions,
+                              String orderBy, String... fieldNames) {
     job.setInputFormatClass(DBInputFormat.class);
     DBConfiguration dbConf = new DBConfiguration(job.getConfiguration());
     dbConf.setInputClass(inputClass);
@@ -326,10 +328,10 @@ public class DBInputFormat<T extends DBWritable>
     dbConf.setInputConditions(conditions);
     dbConf.setInputOrderBy(orderBy);
   }
-  
+
   /**
    * Initializes the map-part of the job with the appropriate input settings.
-   * 
+   *
    * @param job The map-reduce job
    * @param inputClass the class object implementing DBWritable, which is the 
    * Java object holding tuple fields.
@@ -341,8 +343,8 @@ public class DBInputFormat<T extends DBWritable>
    * @see #setInput(Job, Class, String, String, String, String...)
    */
   public static void setInput(Job job,
-      Class<? extends DBWritable> inputClass,
-      String inputQuery, String inputCountQuery) {
+                              Class<? extends DBWritable> inputClass,
+                              String inputQuery, String inputCountQuery) {
     job.setInputFormatClass(DBInputFormat.class);
     DBConfiguration dbConf = new DBConfiguration(job.getConfiguration());
     dbConf.setInputClass(inputClass);

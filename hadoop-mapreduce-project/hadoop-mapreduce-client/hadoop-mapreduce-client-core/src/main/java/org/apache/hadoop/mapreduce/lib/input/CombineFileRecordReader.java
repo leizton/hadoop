@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,15 +18,17 @@
 
 package org.apache.hadoop.mapreduce.lib.input;
 
-import java.io.*;
-import java.lang.reflect.*;
-
-import org.apache.hadoop.fs.FileSystem;
-
-import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.mapreduce.InputSplit;
+import org.apache.hadoop.mapreduce.MRJobConfig;
+import org.apache.hadoop.mapreduce.RecordReader;
+import org.apache.hadoop.mapreduce.TaskAttemptContext;
+
+import java.io.IOException;
+import java.lang.reflect.Constructor;
 
 /**
  * A generic RecordReader that can hand out different recordReaders
@@ -40,30 +42,30 @@ import org.apache.hadoop.conf.Configuration;
 @InterfaceStability.Stable
 public class CombineFileRecordReader<K, V> extends RecordReader<K, V> {
 
-  static final Class [] constructorSignature = new Class [] 
-                                         {CombineFileSplit.class,
-                                          TaskAttemptContext.class,
-                                          Integer.class};
+  static final Class[] constructorSignature = new Class[]
+      {CombineFileSplit.class,
+          TaskAttemptContext.class,
+          Integer.class};
 
   protected CombineFileSplit split;
-  protected Class<? extends RecordReader<K,V>> rrClass;
-  protected Constructor<? extends RecordReader<K,V>> rrConstructor;
+  protected Class<? extends RecordReader<K, V>> rrClass;
+  protected Constructor<? extends RecordReader<K, V>> rrConstructor;
   protected FileSystem fs;
   protected TaskAttemptContext context;
-  
+
   protected int idx;
   protected long progress;
   protected RecordReader<K, V> curReader;
 
   public void initialize(InputSplit split,
-      TaskAttemptContext context) throws IOException, InterruptedException {
-    this.split = (CombineFileSplit)split;
+                         TaskAttemptContext context) throws IOException, InterruptedException {
+    this.split = (CombineFileSplit) split;
     this.context = context;
     if (null != this.curReader) {
       this.curReader.initialize(split, context);
     }
   }
-  
+
   public boolean nextKeyValue() throws IOException, InterruptedException {
 
     while ((curReader == null) || !curReader.nextKeyValue()) {
@@ -77,18 +79,18 @@ public class CombineFileRecordReader<K, V> extends RecordReader<K, V> {
   public K getCurrentKey() throws IOException, InterruptedException {
     return curReader.getCurrentKey();
   }
-  
+
   public V getCurrentValue() throws IOException, InterruptedException {
     return curReader.getCurrentValue();
   }
-  
+
   public void close() throws IOException {
     if (curReader != null) {
       curReader.close();
       curReader = null;
     }
   }
-  
+
   /**
    * return progress based on the amount of data processed so far.
    */
@@ -96,19 +98,19 @@ public class CombineFileRecordReader<K, V> extends RecordReader<K, V> {
     long subprogress = 0;    // bytes processed in current split
     if (null != curReader) {
       // idx is always one past the current subsplit's true index.
-      subprogress = (long)(curReader.getProgress() * split.getLength(idx - 1));
+      subprogress = (long) (curReader.getProgress() * split.getLength(idx - 1));
     }
-    return Math.min(1.0f,  (progress + subprogress)/(float)(split.getLength()));
+    return Math.min(1.0f, (progress + subprogress) / (float) (split.getLength()));
   }
-  
+
   /**
    * A generic RecordReader that can hand out different recordReaders
    * for each chunk in the CombineFileSplit.
    */
   public CombineFileRecordReader(CombineFileSplit split,
                                  TaskAttemptContext context,
-                                 Class<? extends RecordReader<K,V>> rrClass)
-    throws IOException {
+                                 Class<? extends RecordReader<K, V>> rrClass)
+      throws IOException {
     this.split = split;
     this.context = context;
     this.rrClass = rrClass;
@@ -120,12 +122,12 @@ public class CombineFileRecordReader<K, V> extends RecordReader<K, V> {
       rrConstructor = rrClass.getDeclaredConstructor(constructorSignature);
       rrConstructor.setAccessible(true);
     } catch (Exception e) {
-      throw new RuntimeException(rrClass.getName() + 
-                                 " does not have valid constructor", e);
+      throw new RuntimeException(rrClass.getName() +
+          " does not have valid constructor", e);
     }
     initNextRecordReader();
   }
-  
+
   /**
    * Get the record reader for the next chunk in this CombineFileSplit.
    */
@@ -135,7 +137,7 @@ public class CombineFileRecordReader<K, V> extends RecordReader<K, V> {
       curReader.close();
       curReader = null;
       if (idx > 0) {
-        progress += split.getLength(idx-1);    // done processing so far
+        progress += split.getLength(idx - 1);    // done processing so far
       }
     }
 
@@ -154,8 +156,8 @@ public class CombineFileRecordReader<K, V> extends RecordReader<K, V> {
       conf.setLong(MRJobConfig.MAP_INPUT_START, split.getOffset(idx));
       conf.setLong(MRJobConfig.MAP_INPUT_PATH, split.getLength(idx));
 
-      curReader =  rrConstructor.newInstance(new Object [] 
-                            {split, context, Integer.valueOf(idx)});
+      curReader = rrConstructor.newInstance(new Object[]
+          {split, context, Integer.valueOf(idx)});
 
       if (idx > 0) {
         // initialize() for the first RecordReader will be called by MapTask;
@@ -163,7 +165,7 @@ public class CombineFileRecordReader<K, V> extends RecordReader<K, V> {
         curReader.initialize(split, context);
       }
     } catch (Exception e) {
-      throw new RuntimeException (e);
+      throw new RuntimeException(e);
     }
     idx++;
     return true;

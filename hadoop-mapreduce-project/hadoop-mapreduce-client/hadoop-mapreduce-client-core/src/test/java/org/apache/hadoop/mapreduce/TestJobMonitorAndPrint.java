@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,22 +19,7 @@
 package org.apache.hadoop.mapreduce;
 
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.LineNumberReader;
-import java.io.StringReader;
-
 import junit.framework.TestCase;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapred.TaskReport;
 import org.apache.hadoop.mapreduce.JobStatus.State;
@@ -47,6 +32,16 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.LineNumberReader;
+import java.io.StringReader;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.*;
 
 /**
  * Test to make sure that command line output for 
@@ -65,8 +60,8 @@ public class TestJobMonitorAndPrint extends TestCase {
     Cluster cluster = mock(Cluster.class);
     when(cluster.getConf()).thenReturn(conf);
     when(cluster.getClient()).thenReturn(clientProtocol);
-    JobStatus jobStatus = new JobStatus(new JobID("job_000", 1), 0f, 0f, 0f, 0f, 
-        State.RUNNING, JobPriority.HIGH, "tmp-user", "tmp-jobname", 
+    JobStatus jobStatus = new JobStatus(new JobID("job_000", 1), 0f, 0f, 0f, 0f,
+        State.RUNNING, JobPriority.HIGH, "tmp-user", "tmp-jobname",
         "tmp-jobfile", "tmp-url");
     job = Job.getInstance(cluster, jobStatus, conf);
     job = spy(job);
@@ -89,7 +84,7 @@ public class TestJobMonitorAndPrint extends TestCase {
             return new TaskCompletionEvent[0];
           }
         }
-        ).when(job).getTaskCompletionEvents(anyInt(), anyInt());
+    ).when(job).getTaskCompletionEvents(anyInt(), anyInt());
 
     doReturn(new TaskReport[5]).when(job).getTaskReports(isA(TaskType.class));
     when(clientProtocol.getJobStatus(any(JobID.class))).thenReturn(jobStatus_1, jobStatus_2);
@@ -117,7 +112,7 @@ public class TestJobMonitorAndPrint extends TestCase {
       if (line.contains(uberModeMatch)) {
         foundUber = true;
       }
-      foundHundred = line.contains(progressMatch);      
+      foundHundred = line.contains(progressMatch);
       if (foundHundred)
         break;
     }

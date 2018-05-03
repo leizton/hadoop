@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,18 +18,13 @@
 
 package org.apache.hadoop.mapreduce.v2.hs;
 
-import java.util.Map;
-
-import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileContext;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.v2.api.records.JobId;
 import org.apache.hadoop.mapreduce.v2.api.records.JobState;
+import org.apache.hadoop.mapreduce.v2.app.job.Job;
 import org.apache.hadoop.mapreduce.v2.hs.HistoryFileManager.HistoryFileInfo;
 import org.apache.hadoop.mapreduce.v2.hs.HistoryFileManager.JobListCache;
 import org.apache.hadoop.mapreduce.v2.hs.webapp.dao.JobsInfo;
@@ -39,12 +34,13 @@ import org.junit.After;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
-import org.apache.hadoop.mapreduce.v2.app.job.Job;
+import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 public class TestJobHistory {
 
@@ -231,8 +227,8 @@ public class TestJobHistory {
 
       @Override
       public JobsInfo getPartialJobs(Long offset, Long count, String user,
-          String queue, Long sBegin, Long sEnd, Long fBegin, Long fEnd,
-          JobState jobState) {
+                                     String queue, Long sBegin, Long sEnd, Long fBegin, Long fEnd,
+                                     JobState jobState) {
         // TODO Auto-generated method stub
         return null;
       }
@@ -265,7 +261,7 @@ public class TestJobHistory {
 
     assertTrue(th instanceof UnsupportedOperationException);
   }
-  
+
   @After
   public void cleanUp() {
     if (jobHistory != null) {

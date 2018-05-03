@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,10 +18,6 @@
 
 package org.apache.hadoop.fs.slive;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Random;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -30,12 +26,16 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.slive.DataWriter.GenerateOutput;
 import org.apache.hadoop.fs.slive.OperationOutput.OutputType;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Random;
+
 /**
  * Operation which selects a random file and a random number of bytes to create
  * that file with (from the write size option) and selects a random block size
  * (from the block size option) and a random replication amount (from the
  * replication option) and attempts to create a file with those options.
- * 
+ *
  * This operation will capture statistics on success for bytes written, time
  * taken (milliseconds), and success count and on failure it will capture the
  * number of failures and the time taken (milliseconds) to fail.
@@ -56,7 +56,7 @@ class CreateOp extends Operation {
    * Returns the block size to use (aligned to nearest BYTES_PER_CHECKSUM if
    * configuration says a value exists) - this will avoid the warnings caused by
    * this not occurring and the file will not be created if it is not correct...
-   * 
+   *
    * @return long
    */
   private long determineBlockSize() {
@@ -84,7 +84,7 @@ class CreateOp extends Operation {
 
   /**
    * Gets the replication amount
-   * 
+   *
    * @return short
    */
   private short determineReplication() {
@@ -98,7 +98,7 @@ class CreateOp extends Operation {
 
   /**
    * Gets the output buffering size to use
-   * 
+   *
    * @return int
    */
   private int getBufferSize() {
@@ -107,7 +107,7 @@ class CreateOp extends Operation {
 
   /**
    * Gets the file to create
-   * 
+   *
    * @return Path
    */
   protected Path getCreateFile() {
@@ -115,7 +115,8 @@ class CreateOp extends Operation {
     return fn;
   }
 
-  @Override // Operation
+  @Override
+    // Operation
   List<OperationOutput> run(FileSystem fs) {
     List<OperationOutput> out = super.run(fs);
     FSDataOutputStream os = null;

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,32 +18,23 @@
 
 package org.apache.hadoop.mapreduce.v2.hs;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
 import org.apache.hadoop.classification.InterfaceStability.Unstable;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileAlreadyExistsException;
-import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.mapreduce.v2.api.MRDelegationTokenIdentifier;
 import org.apache.hadoop.mapreduce.v2.jobhistory.JHAdminConfig;
 import org.apache.hadoop.security.token.delegation.DelegationKey;
 import org.apache.hadoop.util.Shell;
+
+import java.io.*;
+import java.util.HashSet;
+import java.util.Set;
 
 @Private
 @Unstable
@@ -68,7 +59,7 @@ public class HistoryServerFileSystemStateStoreService
   private static final String TMP_FILE_PREFIX = "tmp-";
   private static final String UPDATE_TMP_FILE_PREFIX = "update-";
   private static final FsPermission DIR_PERMISSIONS =
-      new FsPermission((short)0700);
+      new FsPermission((short) 0700);
   private static final FsPermission FILE_PERMISSIONS = Shell.WINDOWS
       ? new FsPermission((short) 0700) : new FsPermission((short) 0400);
   private static final int NUM_TOKEN_BUCKETS = 1000;
@@ -99,7 +90,7 @@ public class HistoryServerFileSystemStateStoreService
     createDir(tokenStatePath);
     tokenKeysStatePath = new Path(tokenStatePath, TOKEN_KEYS_DIR_NAME);
     createDir(tokenKeysStatePath);
-    for (int i=0; i < NUM_TOKEN_BUCKETS; ++i) {
+    for (int i = 0; i < NUM_TOKEN_BUCKETS; ++i) {
       createDir(getTokenBucketPath(i));
     }
   }
@@ -124,7 +115,7 @@ public class HistoryServerFileSystemStateStoreService
 
   @Override
   public void storeToken(MRDelegationTokenIdentifier tokenId,
-      Long renewDate) throws IOException {
+                         Long renewDate) throws IOException {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Storing token " + tokenId.getSequenceNumber());
     }
@@ -139,7 +130,7 @@ public class HistoryServerFileSystemStateStoreService
 
   @Override
   public void updateToken(MRDelegationTokenIdentifier tokenId,
-      Long renewDate) throws IOException {
+                          Long renewDate) throws IOException {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Updating token " + tokenId.getSequenceNumber());
     }
@@ -274,7 +265,7 @@ public class HistoryServerFileSystemStateStoreService
   }
 
   private byte[] readFile(Path file, long numBytes) throws IOException {
-    byte[] data = new byte[(int)numBytes];
+    byte[] data = new byte[(int) numBytes];
     FSDataInputStream in = fs.open(file);
     try {
       in.readFully(data);
@@ -297,7 +288,7 @@ public class HistoryServerFileSystemStateStoreService
   }
 
   private byte[] buildTokenData(MRDelegationTokenIdentifier tokenId,
-      Long renewDate) throws IOException {
+                                Long renewDate) throws IOException {
     ByteArrayOutputStream memStream = new ByteArrayOutputStream();
     DataOutputStream dataStream = new DataOutputStream(memStream);
     try {
@@ -312,7 +303,7 @@ public class HistoryServerFileSystemStateStoreService
   }
 
   private void loadTokenMasterKey(HistoryServerState state, Path keyFile,
-      long numKeyFileBytes) throws IOException {
+                                  long numKeyFileBytes) throws IOException {
     DelegationKey key = new DelegationKey();
     byte[] keyData = readFile(keyFile, numKeyFileBytes);
     DataInputStream in =
@@ -326,8 +317,8 @@ public class HistoryServerFileSystemStateStoreService
   }
 
   private void loadTokenFromBucket(int bucketId,
-      HistoryServerState state, Path tokenFile, long numTokenFileBytes)
-          throws IOException {
+                                   HistoryServerState state, Path tokenFile, long numTokenFileBytes)
+      throws IOException {
     MRDelegationTokenIdentifier token =
         loadToken(state, tokenFile, numTokenFileBytes);
     int tokenBucketId = getBucketId(token);
@@ -339,7 +330,7 @@ public class HistoryServerFileSystemStateStoreService
   }
 
   private MRDelegationTokenIdentifier loadToken(HistoryServerState state,
-      Path tokenFile, long numTokenFileBytes) throws IOException {
+                                                Path tokenFile, long numTokenFileBytes) throws IOException {
     MRDelegationTokenIdentifier tokenId = new MRDelegationTokenIdentifier();
     long renewDate;
     byte[] tokenData = readFile(tokenFile, numTokenFileBytes);

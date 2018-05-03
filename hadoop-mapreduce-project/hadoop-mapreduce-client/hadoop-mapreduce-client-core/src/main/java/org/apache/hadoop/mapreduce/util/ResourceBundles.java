@@ -19,8 +19,8 @@
 package org.apache.hadoop.mapreduce.util;
 
 import java.util.Locale;
-import java.util.ResourceBundle;
 import java.util.MissingResourceException;
+import java.util.ResourceBundle;
 
 /**
  * Helper class to handle resource bundles in a saner way
@@ -29,6 +29,7 @@ public class ResourceBundles {
 
   /**
    * Get a resource bundle
+   *
    * @param bundleName of the resource
    * @return the resource bundle
    * @throws MissingResourceException
@@ -40,10 +41,11 @@ public class ResourceBundles {
 
   /**
    * Get a resource given bundle name and key
-   * @param <T> type of the resource
-   * @param bundleName name of the resource bundle
-   * @param key to lookup the resource
-   * @param suffix for the key to lookup
+   *
+   * @param <T>          type of the resource
+   * @param bundleName   name of the resource bundle
+   * @param key          to lookup the resource
+   * @param suffix       for the key to lookup
    * @param defaultValue of the resource
    * @return the resource or the defaultValue
    * @throws ClassCastException if the resource found doesn't match T
@@ -55,8 +57,7 @@ public class ResourceBundles {
     try {
       ResourceBundle bundle = getBundle(bundleName);
       value = (T) bundle.getObject(getLookupKey(key, suffix));
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       return defaultValue;
     }
     return value == null ? defaultValue : value;
@@ -69,7 +70,8 @@ public class ResourceBundles {
 
   /**
    * Get the counter group display name
-   * @param group the group name to lookup
+   *
+   * @param group        the group name to lookup
    * @param defaultValue of the group
    * @return the group display name
    */
@@ -79,8 +81,9 @@ public class ResourceBundles {
 
   /**
    * Get the counter display name
-   * @param group the counter group name for the counter
-   * @param counter the counter name to lookup
+   *
+   * @param group        the counter group name for the counter
+   * @param counter      the counter name to lookup
    * @param defaultValue of the counter
    * @return the counter display name
    */

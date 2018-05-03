@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,30 +18,18 @@
 
 package org.apache.hadoop.mapred.join;
 
+import org.apache.hadoop.classification.InterfaceAudience;
+import org.apache.hadoop.classification.InterfaceStability;
+import org.apache.hadoop.io.WritableComparator;
+import org.apache.hadoop.mapred.*;
+import org.apache.hadoop.util.ReflectionUtils;
+
 import java.io.CharArrayReader;
 import java.io.IOException;
 import java.io.StreamTokenizer;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Stack;
-
-import org.apache.hadoop.classification.InterfaceAudience;
-import org.apache.hadoop.classification.InterfaceStability;
-import org.apache.hadoop.io.WritableComparator;
-import org.apache.hadoop.mapred.FileInputFormat;
-import org.apache.hadoop.mapred.InputFormat;
-import org.apache.hadoop.mapred.InputSplit;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.RecordReader;
-import org.apache.hadoop.mapred.Reporter;
-import org.apache.hadoop.util.ReflectionUtils;
+import java.util.*;
 
 /**
  * Very simple shift-reduce parser for join expressions.
@@ -67,7 +55,9 @@ import org.apache.hadoop.util.ReflectionUtils;
 public class Parser {
   @InterfaceAudience.Public
   @InterfaceStability.Evolving
-  public enum TType { CIF, IDENT, COMMA, LPAREN, RPAREN, QUOT, NUM, }
+  public enum TType {
+    CIF, IDENT, COMMA, LPAREN, RPAREN, QUOT, NUM,
+  }
 
   /**
    * Tagged-union type for tokens from the join expression.
@@ -83,13 +73,18 @@ public class Parser {
       this.type = type;
     }
 
-    public TType getType() { return type; }
+    public TType getType() {
+      return type;
+    }
+
     public Node getNode() throws IOException {
       throw new IOException("Expected nodetype");
     }
+
     public double getNum() throws IOException {
       throw new IOException("Expected numtype");
     }
+
     public String getStr() throws IOException {
       throw new IOException("Expected strtype");
     }
@@ -99,21 +94,27 @@ public class Parser {
   @InterfaceStability.Evolving
   public static class NumToken extends Token {
     private double num;
+
     public NumToken(double num) {
       super(TType.NUM);
       this.num = num;
     }
-    public double getNum() { return num; }
+
+    public double getNum() {
+      return num;
+    }
   }
 
   @InterfaceAudience.Public
   @InterfaceStability.Evolving
   public static class NodeToken extends Token {
     private Node node;
+
     NodeToken(Node node) {
       super(TType.CIF);
       this.node = node;
     }
+
     public Node getNode() {
       return node;
     }
@@ -123,10 +124,12 @@ public class Parser {
   @InterfaceStability.Evolving
   public static class StrToken extends Token {
     private String str;
+
     public StrToken(TType type, String str) {
       super(type);
       this.str = str;
     }
+
     public String getStr() {
       return str;
     }
@@ -148,8 +151,8 @@ public class Parser {
       tok.ordinaryChar(',');
       tok.ordinaryChar('(');
       tok.ordinaryChar(')');
-      tok.wordChars('$','$');
-      tok.wordChars('_','_');
+      tok.wordChars('$', '$');
+      tok.wordChars('_', '_');
     }
 
     Token next() throws IOException {
@@ -197,21 +200,21 @@ public class Parser {
         }
         return nodeCstrMap.get(ident).newInstance(ident);
       } catch (IllegalAccessException e) {
-        throw (IOException)new IOException().initCause(e);
+        throw (IOException) new IOException().initCause(e);
       } catch (InstantiationException e) {
-        throw (IOException)new IOException().initCause(e);
+        throw (IOException) new IOException().initCause(e);
       } catch (InvocationTargetException e) {
-        throw (IOException)new IOException().initCause(e);
+        throw (IOException) new IOException().initCause(e);
       }
     }
 
-    private static final Class<?>[] ncstrSig = { String.class };
+    private static final Class<?>[] ncstrSig = {String.class};
     private static final
-        Map<String,Constructor<? extends Node>> nodeCstrMap =
-        new HashMap<String,Constructor<? extends Node>>();
+    Map<String, Constructor<? extends Node>> nodeCstrMap =
+        new HashMap<String, Constructor<? extends Node>>();
     protected static final
-        Map<String,Constructor<? extends ComposableRecordReader>> rrCstrMap =
-        new HashMap<String,Constructor<? extends ComposableRecordReader>>();
+    Map<String, Constructor<? extends ComposableRecordReader>> rrCstrMap =
+        new HashMap<String, Constructor<? extends ComposableRecordReader>>();
 
     /**
      * For a given identifier, add a mapping to the nodetype for the parse
@@ -221,15 +224,15 @@ public class Parser {
      * child node.
      */
     protected static void addIdentifier(String ident, Class<?>[] mcstrSig,
-                              Class<? extends Node> nodetype,
-                              Class<? extends ComposableRecordReader> cl)
+                                        Class<? extends Node> nodetype,
+                                        Class<? extends ComposableRecordReader> cl)
         throws NoSuchMethodException {
       Constructor<? extends Node> ncstr =
-        nodetype.getDeclaredConstructor(ncstrSig);
+          nodetype.getDeclaredConstructor(ncstrSig);
       ncstr.setAccessible(true);
       nodeCstrMap.put(ident, ncstr);
       Constructor<? extends ComposableRecordReader> mcstr =
-        cl.getDeclaredConstructor(mcstrSig);
+          cl.getDeclaredConstructor(mcstrSig);
       mcstr.setAccessible(true);
       rrCstrMap.put(ident, mcstr);
     }
@@ -250,6 +253,7 @@ public class Parser {
     protected void setKeyComparator(Class<? extends WritableComparator> cmpcl) {
       this.cmpcl = cmpcl;
     }
+
     abstract void parse(List<Token> args, JobConf job) throws IOException;
   }
 
@@ -258,7 +262,7 @@ public class Parser {
    */
   static class WNode extends Node {
     private static final Class<?>[] cstrSig =
-      { Integer.TYPE, RecordReader.class, Class.class };
+        {Integer.TYPE, RecordReader.class, Class.class};
 
     static void addIdentifier(String ident,
                               Class<? extends ComposableRecordReader> cl)
@@ -284,13 +288,13 @@ public class Parser {
         Token t = i.next();
         if (TType.COMMA.equals(t.getType())) {
           try {
-          	inf = (InputFormat)ReflectionUtils.newInstance(
-          			job.getClassByName(sb.toString()),
+            inf = (InputFormat) ReflectionUtils.newInstance(
+                job.getClassByName(sb.toString()),
                 job);
           } catch (ClassNotFoundException e) {
-            throw (IOException)new IOException().initCause(e);
+            throw (IOException) new IOException().initCause(e);
           } catch (IllegalArgumentException e) {
-            throw (IOException)new IOException().initCause(e);
+            throw (IOException) new IOException().initCause(e);
           }
           break;
         }
@@ -328,11 +332,11 @@ public class Parser {
         return rrCstrMap.get(ident).newInstance(id,
             inf.getRecordReader(split, getConf(job), reporter), cmpcl);
       } catch (IllegalAccessException e) {
-        throw (IOException)new IOException().initCause(e);
+        throw (IOException) new IOException().initCause(e);
       } catch (InstantiationException e) {
-        throw (IOException)new IOException().initCause(e);
+        throw (IOException) new IOException().initCause(e);
       } catch (InvocationTargetException e) {
-        throw (IOException)new IOException().initCause(e);
+        throw (IOException) new IOException().initCause(e);
       }
     }
 
@@ -347,7 +351,7 @@ public class Parser {
   static class CNode extends Node {
 
     private static final Class<?>[] cstrSig =
-      { Integer.TYPE, JobConf.class, Integer.TYPE, Class.class };
+        {Integer.TYPE, JobConf.class, Integer.TYPE, Class.class};
 
     static void addIdentifier(String ident,
                               Class<? extends ComposableRecordReader> cl)
@@ -381,9 +385,9 @@ public class Parser {
         if (null == tmp) {
           throw new IOException("Error gathering splits from child RReader");
         }
-        if (i > 0 && splits[i-1].length != tmp.length) {
+        if (i > 0 && splits[i - 1].length != tmp.length) {
           throw new IOException("Inconsistent split cardinality from child " +
-              i + " (" + splits[i-1].length + "/" + tmp.length + ")");
+              i + " (" + splits[i - 1].length + "/" + tmp.length + ")");
         }
         splits[i] = tmp;
       }
@@ -403,9 +407,9 @@ public class Parser {
         InputSplit split, JobConf job, Reporter reporter) throws IOException {
       if (!(split instanceof CompositeInputSplit)) {
         throw new IOException("Invalid split type:" +
-                              split.getClass().getName());
+            split.getClass().getName());
       }
-      final CompositeInputSplit spl = (CompositeInputSplit)split;
+      final CompositeInputSplit spl = (CompositeInputSplit) split;
       final int capacity = kids.size();
       CompositeRecordReader ret = null;
       try {
@@ -413,18 +417,18 @@ public class Parser {
           throw new IOException("No RecordReader for " + ident);
         }
         ret = (CompositeRecordReader)
-          rrCstrMap.get(ident).newInstance(id, job, capacity, cmpcl);
+            rrCstrMap.get(ident).newInstance(id, job, capacity, cmpcl);
       } catch (IllegalAccessException e) {
-        throw (IOException)new IOException().initCause(e);
+        throw (IOException) new IOException().initCause(e);
       } catch (InstantiationException e) {
-        throw (IOException)new IOException().initCause(e);
+        throw (IOException) new IOException().initCause(e);
       } catch (InvocationTargetException e) {
-        throw (IOException)new IOException().initCause(e);
+        throw (IOException) new IOException().initCause(e);
       }
       for (int i = 0; i < capacity; ++i) {
         ret.add(kids.get(i).getRecordReader(spl.get(i), job, reporter));
       }
-      return (ComposableRecordReader)ret;
+      return (ComposableRecordReader) ret;
     }
 
     /**
@@ -479,7 +483,7 @@ public class Parser {
       throw new IOException("Expression is null");
     }
     Class<? extends WritableComparator> cmpcl =
-      job.getClass("mapred.join.keycomparator", null, WritableComparator.class);
+        job.getClass("mapred.join.keycomparator", null, WritableComparator.class);
     Lexer lex = new Lexer(expr);
     Stack<Token> st = new Stack<Token>();
     Token tok;

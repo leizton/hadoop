@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,15 +28,14 @@ import org.apache.hadoop.mapreduce.v2.proto.MRServiceProtos.GetCountersResponseP
 import org.apache.hadoop.yarn.api.records.impl.pb.ProtoBase;
 
 
-    
 public class GetCountersResponsePBImpl extends ProtoBase<GetCountersResponseProto> implements GetCountersResponse {
   GetCountersResponseProto proto = GetCountersResponseProto.getDefaultInstance();
   GetCountersResponseProto.Builder builder = null;
   boolean viaProto = false;
-  
+
   private Counters counters = null;
-  
-  
+
+
   public GetCountersResponsePBImpl() {
     builder = GetCountersResponseProto.newBuilder();
   }
@@ -45,9 +44,9 @@ public class GetCountersResponsePBImpl extends ProtoBase<GetCountersResponseProt
     this.proto = proto;
     viaProto = true;
   }
-  
+
   public GetCountersResponseProto getProto() {
-      mergeLocalToProto();
+    mergeLocalToProto();
     proto = viaProto ? proto : builder.build();
     viaProto = true;
     return proto;
@@ -60,7 +59,7 @@ public class GetCountersResponsePBImpl extends ProtoBase<GetCountersResponseProt
   }
 
   private void mergeLocalToProto() {
-    if (viaProto) 
+    if (viaProto)
       maybeInitBuilder();
     mergeLocalToBuilder();
     proto = builder.build();
@@ -73,8 +72,8 @@ public class GetCountersResponsePBImpl extends ProtoBase<GetCountersResponseProt
     }
     viaProto = false;
   }
-    
-  
+
+
   @Override
   public Counters getCounters() {
     GetCountersResponseProtoOrBuilder p = viaProto ? proto : builder;
@@ -91,7 +90,7 @@ public class GetCountersResponsePBImpl extends ProtoBase<GetCountersResponseProt
   @Override
   public void setCounters(Counters counters) {
     maybeInitBuilder();
-    if (counters == null) 
+    if (counters == null)
       builder.clearCounters();
     this.counters = counters;
   }
@@ -101,9 +100,8 @@ public class GetCountersResponsePBImpl extends ProtoBase<GetCountersResponseProt
   }
 
   private CountersProto convertToProtoFormat(Counters t) {
-    return ((CountersPBImpl)t).getProto();
+    return ((CountersPBImpl) t).getProto();
   }
 
 
-
-}  
+}

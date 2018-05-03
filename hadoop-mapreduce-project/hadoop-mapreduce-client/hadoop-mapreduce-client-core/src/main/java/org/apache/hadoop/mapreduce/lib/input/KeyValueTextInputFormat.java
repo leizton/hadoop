@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,8 +18,6 @@
 
 package org.apache.hadoop.mapreduce.lib.input;
 
-import java.io.IOException;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.fs.Path;
@@ -27,11 +25,9 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.io.compress.CompressionCodecFactory;
 import org.apache.hadoop.io.compress.SplittableCompressionCodec;
-import org.apache.hadoop.mapreduce.InputFormat;
-import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.JobContext;
-import org.apache.hadoop.mapreduce.RecordReader;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.hadoop.mapreduce.*;
+
+import java.io.IOException;
 
 /**
  * An {@link InputFormat} for plain text files. Files are broken into lines.
@@ -49,7 +45,7 @@ public class KeyValueTextInputFormat extends FileInputFormat<Text, Text> {
   @Override
   protected boolean isSplitable(JobContext context, Path file) {
     final CompressionCodec codec =
-      new CompressionCodecFactory(context.getConfiguration()).getCodec(file);
+        new CompressionCodecFactory(context.getConfiguration()).getCodec(file);
     if (null == codec) {
       return true;
     }
@@ -57,8 +53,8 @@ public class KeyValueTextInputFormat extends FileInputFormat<Text, Text> {
   }
 
   public RecordReader<Text, Text> createRecordReader(InputSplit genericSplit,
-      TaskAttemptContext context) throws IOException {
-    
+                                                     TaskAttemptContext context) throws IOException {
+
     context.setStatus(genericSplit.toString());
     return new KeyValueLineRecordReader(context.getConfiguration());
   }

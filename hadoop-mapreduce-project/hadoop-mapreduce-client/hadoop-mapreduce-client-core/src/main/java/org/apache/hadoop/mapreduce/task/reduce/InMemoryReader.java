@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,16 +18,16 @@
 
 package org.apache.hadoop.mapreduce.task.reduce;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DataInputBuffer;
 import org.apache.hadoop.mapred.IFile.Reader;
 import org.apache.hadoop.mapreduce.TaskAttemptID;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 /**
  * <code>IFile.InMemoryReader</code> to read map-outputs present in-memory.
@@ -36,20 +36,20 @@ import org.apache.hadoop.mapreduce.TaskAttemptID;
 @InterfaceStability.Unstable
 public class InMemoryReader<K, V> extends Reader<K, V> {
   private final TaskAttemptID taskAttemptId;
-  private final MergeManagerImpl<K,V> merger;
+  private final MergeManagerImpl<K, V> merger;
   private final DataInputBuffer memDataIn = new DataInputBuffer();
   private final int start;
   private final int length;
-  
-  public InMemoryReader(MergeManagerImpl<K,V> merger, TaskAttemptID taskAttemptId,
+
+  public InMemoryReader(MergeManagerImpl<K, V> merger, TaskAttemptID taskAttemptId,
                         byte[] data, int start, int length, Configuration conf)
-  throws IOException {
+      throws IOException {
     super(conf, null, length - start, null, null);
     this.merger = merger;
     this.taskAttemptId = taskAttemptId;
 
     buffer = data;
-    bufferSize = (int)fileLength;
+    bufferSize = (int) fileLength;
     memDataIn.reset(buffer, start, length - start);
     this.start = start;
     this.length = length;
@@ -69,16 +69,16 @@ public class InMemoryReader<K, V> extends Reader<K, V> {
     // which will be correct since in-memory data is not compressed.
     return bytesRead;
   }
-  
+
   @Override
-  public long getLength() { 
+  public long getLength() {
     return fileLength;
   }
-  
+
   private void dumpOnError() {
     File dumpFile = new File("../output/" + taskAttemptId + ".dump");
-    System.err.println("Dumping corrupt map-output of " + taskAttemptId + 
-                       " to " + dumpFile.getAbsolutePath());
+    System.err.println("Dumping corrupt map-output of " + taskAttemptId +
+        " to " + dumpFile.getAbsolutePath());
     try {
       FileOutputStream fos = new FileOutputStream(dumpFile);
       fos.write(buffer, 0, bufferSize);
@@ -87,7 +87,7 @@ public class InMemoryReader<K, V> extends Reader<K, V> {
       System.err.println("Failed to dump map-output of " + taskAttemptId);
     }
   }
-  
+
   public boolean nextRawKey(DataInputBuffer key) throws IOException {
     try {
       if (!positionToNextRecord(memDataIn)) {
@@ -100,8 +100,8 @@ public class InMemoryReader<K, V> extends Reader<K, V> {
       // Position for the next value
       long skipped = memDataIn.skip(currentKeyLength);
       if (skipped != currentKeyLength) {
-        throw new IOException("Rec# " + recNo + 
-            ": Failed to skip past key of length: " + 
+        throw new IOException("Rec# " + recNo +
+            ": Failed to skip past key of length: " +
             currentKeyLength);
       }
 
@@ -113,7 +113,7 @@ public class InMemoryReader<K, V> extends Reader<K, V> {
       throw ioe;
     }
   }
-  
+
   public void nextRawValue(DataInputBuffer value) throws IOException {
     try {
       int pos = memDataIn.getPosition();
@@ -123,8 +123,8 @@ public class InMemoryReader<K, V> extends Reader<K, V> {
       // Position for the next record
       long skipped = memDataIn.skip(currentValueLength);
       if (skipped != currentValueLength) {
-        throw new IOException("Rec# " + recNo + 
-            ": Failed to skip past value of length: " + 
+        throw new IOException("Rec# " + recNo +
+            ": Failed to skip past value of length: " +
             currentValueLength);
       }
       // Record the byte
@@ -136,12 +136,12 @@ public class InMemoryReader<K, V> extends Reader<K, V> {
       throw ioe;
     }
   }
-    
+
   public void close() {
     // Release
     dataIn = null;
     buffer = null;
-      // Inform the MergeManager
+    // Inform the MergeManager
     if (merger != null) {
       merger.unreserve(bufferSize);
     }

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,15 +17,15 @@
  */
 package org.apache.hadoop.mapred;
 
-import java.io.IOException;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.server.tasktracker.TTConfig;
+
+import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 class IndexCache {
 
@@ -34,16 +34,16 @@ class IndexCache {
   private AtomicInteger totalMemoryUsed = new AtomicInteger();
   private static final Log LOG = LogFactory.getLog(IndexCache.class);
 
-  private final ConcurrentHashMap<String,IndexInformation> cache =
-    new ConcurrentHashMap<String,IndexInformation>();
-  
-  private final LinkedBlockingQueue<String> queue = 
-    new LinkedBlockingQueue<String>();
+  private final ConcurrentHashMap<String, IndexInformation> cache =
+      new ConcurrentHashMap<String, IndexInformation>();
+
+  private final LinkedBlockingQueue<String> queue =
+      new LinkedBlockingQueue<String>();
 
   public IndexCache(JobConf conf) {
     this.conf = conf;
     totalMemoryAllowed =
-      conf.getInt(TTConfig.TT_INDEX_CACHE, 10) * 1024 * 1024;
+        conf.getInt(TTConfig.TT_INDEX_CACHE, 10) * 1024 * 1024;
     LOG.info("IndexCache created with max memory = " + totalMemoryAllowed);
   }
 
@@ -60,14 +60,14 @@ class IndexCache {
    */
   public IndexRecord getIndexInformation(String mapId, int reduce,
                                          Path fileName, String expectedIndexOwner)
-    throws IOException {
+      throws IOException {
 
     IndexInformation info = cache.get(mapId);
 
     if (info == null) {
       info = readIndexFileToCache(fileName, mapId, expectedIndexOwner);
     } else {
-      synchronized(info) {
+      synchronized (info) {
         while (isUnderConstruction(info)) {
           try {
             info.wait();
@@ -82,14 +82,14 @@ class IndexCache {
     if (info.mapSpillRecord.size() == 0 ||
         info.mapSpillRecord.size() <= reduce) {
       throw new IOException("Invalid request " +
-        " Map Id = " + mapId + " Reducer = " + reduce +
-        " Index Info Length = " + info.mapSpillRecord.size());
+          " Map Id = " + mapId + " Reducer = " + reduce +
+          " Index Info Length = " + info.mapSpillRecord.size());
     }
     return info.mapSpillRecord.getIndex(reduce);
   }
 
   private boolean isUnderConstruction(IndexInformation info) {
-    synchronized(info) {
+    synchronized (info) {
       return (null == info.mapSpillRecord);
     }
   }
@@ -97,11 +97,11 @@ class IndexCache {
   private IndexInformation readIndexFileToCache(Path indexFileName,
                                                 String mapId,
                                                 String expectedIndexOwner)
-    throws IOException {
+      throws IOException {
     IndexInformation info;
     IndexInformation newInd = new IndexInformation();
     if ((info = cache.putIfAbsent(mapId, newInd)) != null) {
-      synchronized(info) {
+      synchronized (info) {
         while (isUnderConstruction(info)) {
           try {
             info.wait();
@@ -113,22 +113,22 @@ class IndexCache {
       LOG.debug("IndexCache HIT: MapId " + mapId + " found");
       return info;
     }
-    LOG.debug("IndexCache MISS: MapId " + mapId + " not found") ;
+    LOG.debug("IndexCache MISS: MapId " + mapId + " not found");
     SpillRecord tmp = null;
-    try { 
+    try {
       tmp = new SpillRecord(indexFileName, conf, expectedIndexOwner);
-    } catch (Throwable e) { 
+    } catch (Throwable e) {
       tmp = new SpillRecord(0);
       cache.remove(mapId);
       throw new IOException("Error Reading IndexFile", e);
-    } finally { 
-      synchronized (newInd) { 
+    } finally {
+      synchronized (newInd) {
         newInd.mapSpillRecord = tmp;
         newInd.notifyAll();
-      } 
-    } 
+      }
+    }
     queue.add(mapId);
-    
+
     if (totalMemoryUsed.addAndGet(newInd.getSize()) > totalMemoryAllowed) {
       freeIndexInformation();
     }
@@ -190,8 +190,8 @@ class IndexCache {
 
     int getSize() {
       return mapSpillRecord == null
-        ? 0
-        : mapSpillRecord.size() * MapTask.MAP_OUTPUT_INDEX_RECORD_LENGTH;
+          ? 0
+          : mapSpillRecord.size() * MapTask.MAP_OUTPUT_INDEX_RECORD_LENGTH;
     }
   }
 }

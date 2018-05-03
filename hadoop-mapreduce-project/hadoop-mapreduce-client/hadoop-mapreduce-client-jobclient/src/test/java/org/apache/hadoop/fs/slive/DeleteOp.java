@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,21 +18,21 @@
 
 package org.apache.hadoop.fs.slive;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.List;
-import java.util.Random;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.slive.OperationOutput.OutputType;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.List;
+import java.util.Random;
+
 /**
  * Operation which selects a random file and attempts to delete that file (if it
  * exists)
- * 
+ *
  * This operation will capture statistics on success the time taken to delete
  * and the number of successful deletions that occurred and on failure or error
  * it will capture the number of failures and the amount of time taken to fail
@@ -53,7 +53,8 @@ class DeleteOp extends Operation {
     return fn;
   }
 
-  @Override // Operation
+  @Override
+    // Operation
   List<OperationOutput> run(FileSystem fs) {
     List<OperationOutput> out = super.run(fs);
     try {

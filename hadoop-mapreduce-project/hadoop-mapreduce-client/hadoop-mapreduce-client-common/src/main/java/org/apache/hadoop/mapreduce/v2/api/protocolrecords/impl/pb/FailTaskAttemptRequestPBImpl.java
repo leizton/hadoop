@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,15 +28,14 @@ import org.apache.hadoop.mapreduce.v2.proto.MRServiceProtos.FailTaskAttemptReque
 import org.apache.hadoop.yarn.api.records.impl.pb.ProtoBase;
 
 
-    
 public class FailTaskAttemptRequestPBImpl extends ProtoBase<FailTaskAttemptRequestProto> implements FailTaskAttemptRequest {
   FailTaskAttemptRequestProto proto = FailTaskAttemptRequestProto.getDefaultInstance();
   FailTaskAttemptRequestProto.Builder builder = null;
   boolean viaProto = false;
-  
+
   private TaskAttemptId taskAttemptId = null;
-  
-  
+
+
   public FailTaskAttemptRequestPBImpl() {
     builder = FailTaskAttemptRequestProto.newBuilder();
   }
@@ -45,9 +44,9 @@ public class FailTaskAttemptRequestPBImpl extends ProtoBase<FailTaskAttemptReque
     this.proto = proto;
     viaProto = true;
   }
-  
+
   public FailTaskAttemptRequestProto getProto() {
-      mergeLocalToProto();
+    mergeLocalToProto();
     proto = viaProto ? proto : builder.build();
     viaProto = true;
     return proto;
@@ -60,7 +59,7 @@ public class FailTaskAttemptRequestPBImpl extends ProtoBase<FailTaskAttemptReque
   }
 
   private void mergeLocalToProto() {
-    if (viaProto) 
+    if (viaProto)
       maybeInitBuilder();
     mergeLocalToBuilder();
     proto = builder.build();
@@ -73,8 +72,8 @@ public class FailTaskAttemptRequestPBImpl extends ProtoBase<FailTaskAttemptReque
     }
     viaProto = false;
   }
-    
-  
+
+
   @Override
   public TaskAttemptId getTaskAttemptId() {
     FailTaskAttemptRequestProtoOrBuilder p = viaProto ? proto : builder;
@@ -91,7 +90,7 @@ public class FailTaskAttemptRequestPBImpl extends ProtoBase<FailTaskAttemptReque
   @Override
   public void setTaskAttemptId(TaskAttemptId taskAttemptId) {
     maybeInitBuilder();
-    if (taskAttemptId == null) 
+    if (taskAttemptId == null)
       builder.clearTaskAttemptId();
     this.taskAttemptId = taskAttemptId;
   }
@@ -101,9 +100,8 @@ public class FailTaskAttemptRequestPBImpl extends ProtoBase<FailTaskAttemptReque
   }
 
   private TaskAttemptIdProto convertToProtoFormat(TaskAttemptId t) {
-    return ((TaskAttemptIdPBImpl)t).getProto();
+    return ((TaskAttemptIdPBImpl) t).getProto();
   }
 
 
-
-}  
+}

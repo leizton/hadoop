@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,11 +19,6 @@
 package org.apache.hadoop.mapreduce.v2.hs;
 
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.util.UUID;
-
-import org.junit.Assert;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.CommonConfigurationKeysPublic;
 import org.apache.hadoop.fs.FileSystem;
@@ -32,18 +27,17 @@ import org.apache.hadoop.hdfs.HdfsConfiguration;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.apache.hadoop.hdfs.protocol.HdfsConstants;
 import org.apache.hadoop.mapreduce.v2.jobhistory.JHAdminConfig;
-import org.apache.hadoop.test.CoreTestDriver;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
 import org.apache.hadoop.yarn.util.Clock;
 import org.apache.hadoop.yarn.util.ControlledClock;
 import org.apache.hadoop.yarn.util.SystemClock;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.TestName;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.util.UUID;
 
 public class TestHistoryFileManager {
   private static MiniDFSCluster dfsCluster = null;
@@ -56,12 +50,12 @@ public class TestHistoryFileManager {
   @BeforeClass
   public static void setUpClass() throws Exception {
     coreSitePath = "." + File.separator + "target" + File.separator +
-            "test-classes" + File.separator + "core-site.xml";
+        "test-classes" + File.separator + "core-site.xml";
     Configuration conf = new HdfsConfiguration();
     Configuration conf2 = new HdfsConfiguration();
     dfsCluster = new MiniDFSCluster.Builder(conf).build();
     conf2.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR,
-            conf.get(MiniDFSCluster.HDFS_MINIDFS_BASEDIR) + "_2");
+        conf.get(MiniDFSCluster.HDFS_MINIDFS_BASEDIR) + "_2");
     dfsCluster2 = new MiniDFSCluster.Builder(conf2).build();
   }
 
@@ -120,7 +114,7 @@ public class TestHistoryFileManager {
     // Set default configuration to the first cluster
     Configuration conf = new Configuration(false);
     conf.set(CommonConfigurationKeysPublic.FS_DEFAULT_NAME_KEY,
-            dfsCluster.getURI().toString());
+        dfsCluster.getURI().toString());
     FileOutputStream os = new FileOutputStream(coreSitePath);
     conf.writeXml(os);
     os.close();
@@ -129,13 +123,13 @@ public class TestHistoryFileManager {
 
     // Directories should be created only in the default file system (dfsCluster)
     Assert.assertTrue(dfsCluster.getFileSystem()
-            .exists(new Path(getDoneDirNameForTest())));
+        .exists(new Path(getDoneDirNameForTest())));
     Assert.assertTrue(dfsCluster.getFileSystem()
-            .exists(new Path(getIntermediateDoneDirNameForTest())));
+        .exists(new Path(getIntermediateDoneDirNameForTest())));
     Assert.assertFalse(dfsCluster2.getFileSystem()
-            .exists(new Path(getDoneDirNameForTest())));
+        .exists(new Path(getDoneDirNameForTest())));
     Assert.assertFalse(dfsCluster2.getFileSystem()
-            .exists(new Path(getIntermediateDoneDirNameForTest())));
+        .exists(new Path(getIntermediateDoneDirNameForTest())));
   }
 
   @Test

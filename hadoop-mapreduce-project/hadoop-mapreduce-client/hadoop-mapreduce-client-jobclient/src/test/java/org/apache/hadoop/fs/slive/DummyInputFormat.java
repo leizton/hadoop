@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,15 +18,11 @@
 
 package org.apache.hadoop.fs.slive;
 
+import org.apache.hadoop.mapred.*;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-
-import org.apache.hadoop.mapred.InputFormat;
-import org.apache.hadoop.mapred.InputSplit;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.RecordReader;
-import org.apache.hadoop.mapred.Reporter;
 
 /**
  * A input format which returns one dummy key and value
@@ -58,7 +54,7 @@ class DummyInputFormat implements InputFormat<Object, Object> {
   }
 
   public RecordReader<Object, Object> getRecordReader(InputSplit split,
-      JobConf job, Reporter reporter) throws IOException {
+                                                      JobConf job, Reporter reporter) throws IOException {
     return new RecordReader<Object, Object>() {
 
       boolean once = false;

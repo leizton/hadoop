@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,14 +23,14 @@ import org.apache.hadoop.mapreduce.TaskType;
 
 /**
  * Event to record the normalized map/reduce requirements.
- * 
+ *
  */
 @InterfaceAudience.Private
 @InterfaceStability.Unstable
 public class NormalizedResourceEvent implements HistoryEvent {
   private int memory;
   private TaskType taskType;
-  
+
   /**
    * Normalized request when sent to the Resource Manager.
    * @param taskType the tasktype of the request.
@@ -40,7 +40,7 @@ public class NormalizedResourceEvent implements HistoryEvent {
     this.memory = memory;
     this.taskType = taskType;
   }
-  
+
   /**
    * the tasktype for the event.
    * @return the tasktype for the event.
@@ -48,7 +48,7 @@ public class NormalizedResourceEvent implements HistoryEvent {
   public TaskType getTaskType() {
     return this.taskType;
   }
-  
+
   /**
    * the normalized memory
    * @return the normalized memory
@@ -56,7 +56,7 @@ public class NormalizedResourceEvent implements HistoryEvent {
   public int getMemory() {
     return this.memory;
   }
-  
+
   @Override
   public EventType getEventType() {
     return EventType.NORMALIZED_RESOURCE;

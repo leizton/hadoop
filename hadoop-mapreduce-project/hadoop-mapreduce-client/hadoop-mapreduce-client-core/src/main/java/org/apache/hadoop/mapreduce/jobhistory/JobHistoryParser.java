@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,33 +18,28 @@
 
 package org.apache.hadoop.mapreduce.jobhistory;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.classification.InterfaceAudience;
+import org.apache.hadoop.classification.InterfaceAudience.Private;
+import org.apache.hadoop.classification.InterfaceStability;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapred.JobPriority;
+import org.apache.hadoop.mapred.JobStatus;
+import org.apache.hadoop.mapred.TaskStatus;
+import org.apache.hadoop.mapreduce.*;
+import org.apache.hadoop.security.authorize.AccessControlList;
+import org.apache.hadoop.util.StringInterner;
+import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
+import org.apache.hadoop.yarn.api.records.ContainerId;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.classification.InterfaceAudience;
-import org.apache.hadoop.classification.InterfaceStability;
-import org.apache.hadoop.classification.InterfaceAudience.Private;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapreduce.Counters;
-import org.apache.hadoop.mapreduce.JobACL;
-import org.apache.hadoop.mapreduce.JobID;
-import org.apache.hadoop.mapred.JobPriority;
-import org.apache.hadoop.mapred.JobStatus;
-import org.apache.hadoop.mapreduce.TaskAttemptID;
-import org.apache.hadoop.mapreduce.TaskID;
-import org.apache.hadoop.mapred.TaskStatus;
-import org.apache.hadoop.mapreduce.TaskType;
-import org.apache.hadoop.security.authorize.AccessControlList;
-import org.apache.hadoop.util.StringInterner;
-import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
-import org.apache.hadoop.yarn.api.records.ContainerId;
 
 /**
  * Default Parser for the JobHistory files. Typical usage is
@@ -57,12 +52,12 @@ import org.apache.hadoop.yarn.api.records.ContainerId;
 public class JobHistoryParser implements HistoryEventHandler {
 
   private static final Log LOG = LogFactory.getLog(JobHistoryParser.class);
-  
+
   private final FSDataInputStream in;
   private JobInfo info = null;
 
   private IOException parseException = null;
-  
+
   /**
    * Create a job history parser for the given history file using the 
    * given file system
@@ -73,7 +68,7 @@ public class JobHistoryParser implements HistoryEventHandler {
   public JobHistoryParser(FileSystem fs, String file) throws IOException {
     this(fs, new Path(file));
   }
-  
+
   /**
    * Create the job history parser for the given history file using the 
    * given file system
@@ -81,11 +76,11 @@ public class JobHistoryParser implements HistoryEventHandler {
    * @param historyFile
    * @throws IOException
    */
-  public JobHistoryParser(FileSystem fs, Path historyFile) 
-  throws IOException {
+  public JobHistoryParser(FileSystem fs, Path historyFile)
+      throws IOException {
     this(fs.open(historyFile));
   }
-  
+
   /**
    * Create the history parser based on the input stream
    * @param in
@@ -93,50 +88,50 @@ public class JobHistoryParser implements HistoryEventHandler {
   public JobHistoryParser(FSDataInputStream in) {
     this.in = in;
   }
-  
-  public synchronized void parse(HistoryEventHandler handler) 
-    throws IOException {
+
+  public synchronized void parse(HistoryEventHandler handler)
+      throws IOException {
     parse(new EventReader(in), handler);
   }
-  
+
   /**
    * Only used for unit tests.
    */
   @Private
   public synchronized void parse(EventReader reader, HistoryEventHandler handler)
-    throws IOException {
+      throws IOException {
     int eventCtr = 0;
     HistoryEvent event;
     try {
       while ((event = reader.getNextEvent()) != null) {
         handler.handleEvent(event);
         ++eventCtr;
-      } 
+      }
     } catch (IOException ioe) {
-      LOG.info("Caught exception parsing history file after " + eventCtr + 
+      LOG.info("Caught exception parsing history file after " + eventCtr +
           " events", ioe);
       parseException = ioe;
     } finally {
       in.close();
     }
   }
-  
-  
+
+
   /**
    * Parse the entire history file and populate the JobInfo object
    * The first invocation will populate the object, subsequent calls
    * will return the already parsed object. 
    * The input stream is closed on return 
-   * 
+   *
    * This api ignores partial records and stops parsing on encountering one.
    * {@link #getParseException()} can be used to fetch the exception, if any.
-   * 
+   *
    * @return The populated jobInfo object
    * @throws IOException
    * @see #getParseException()
    */
   public synchronized JobInfo parse() throws IOException {
-    return parse(new EventReader(in)); 
+    return parse(new EventReader(in));
   }
 
   /**
@@ -153,98 +148,98 @@ public class JobHistoryParser implements HistoryEventHandler {
     parse(reader, this);
     return info;
   }
-  
+
   /**
    * Get the parse exception, if any.
-   * 
+   *
    * @return the parse exception, if any
    * @see #parse()
    */
   public synchronized IOException getParseException() {
     return parseException;
   }
-  
+
   @Override
-  public void handleEvent(HistoryEvent event)  { 
+  public void handleEvent(HistoryEvent event) {
     EventType type = event.getEventType();
 
     switch (type) {
-    case JOB_SUBMITTED:
-      handleJobSubmittedEvent((JobSubmittedEvent)event);
-      break;
-    case JOB_STATUS_CHANGED:
-      break;
-    case JOB_INFO_CHANGED:
-      handleJobInfoChangeEvent((JobInfoChangeEvent) event);
-      break;
-    case JOB_INITED:
-      handleJobInitedEvent((JobInitedEvent) event);
-      break;
-    case JOB_PRIORITY_CHANGED:
-      handleJobPriorityChangeEvent((JobPriorityChangeEvent) event);
-      break;
-    case JOB_QUEUE_CHANGED:
-      handleJobQueueChangeEvent((JobQueueChangeEvent) event);
-      break;
-    case JOB_FAILED:
-    case JOB_KILLED:
-    case JOB_ERROR:
-      handleJobFailedEvent((JobUnsuccessfulCompletionEvent) event);
-      break;
-    case JOB_FINISHED:
-      handleJobFinishedEvent((JobFinishedEvent)event);
-      break;
-    case TASK_STARTED:
-      handleTaskStartedEvent((TaskStartedEvent) event);
-      break;
-    case TASK_FAILED:
-      handleTaskFailedEvent((TaskFailedEvent) event);
-      break;
-    case TASK_UPDATED:
-      handleTaskUpdatedEvent((TaskUpdatedEvent) event);
-      break;
-    case TASK_FINISHED:
-      handleTaskFinishedEvent((TaskFinishedEvent) event);
-      break;
-    case MAP_ATTEMPT_STARTED:
-    case CLEANUP_ATTEMPT_STARTED:
-    case REDUCE_ATTEMPT_STARTED:
-    case SETUP_ATTEMPT_STARTED:
-      handleTaskAttemptStartedEvent((TaskAttemptStartedEvent) event);
-      break;
-    case MAP_ATTEMPT_FAILED:
-    case CLEANUP_ATTEMPT_FAILED:
-    case REDUCE_ATTEMPT_FAILED:
-    case SETUP_ATTEMPT_FAILED:
-    case MAP_ATTEMPT_KILLED:
-    case CLEANUP_ATTEMPT_KILLED:
-    case REDUCE_ATTEMPT_KILLED:
-    case SETUP_ATTEMPT_KILLED:
-      handleTaskAttemptFailedEvent(
-          (TaskAttemptUnsuccessfulCompletionEvent) event);
-      break;
-    case MAP_ATTEMPT_FINISHED:
-      handleMapAttemptFinishedEvent((MapAttemptFinishedEvent) event);
-      break;
-    case REDUCE_ATTEMPT_FINISHED:
-      handleReduceAttemptFinishedEvent((ReduceAttemptFinishedEvent) event);
-      break;
-    case SETUP_ATTEMPT_FINISHED:
-    case CLEANUP_ATTEMPT_FINISHED:
-      handleTaskAttemptFinishedEvent((TaskAttemptFinishedEvent) event);
-      break;
-    case AM_STARTED:
-      handleAMStartedEvent((AMStartedEvent) event);
-      break;
-    default:
-      break;
+      case JOB_SUBMITTED:
+        handleJobSubmittedEvent((JobSubmittedEvent) event);
+        break;
+      case JOB_STATUS_CHANGED:
+        break;
+      case JOB_INFO_CHANGED:
+        handleJobInfoChangeEvent((JobInfoChangeEvent) event);
+        break;
+      case JOB_INITED:
+        handleJobInitedEvent((JobInitedEvent) event);
+        break;
+      case JOB_PRIORITY_CHANGED:
+        handleJobPriorityChangeEvent((JobPriorityChangeEvent) event);
+        break;
+      case JOB_QUEUE_CHANGED:
+        handleJobQueueChangeEvent((JobQueueChangeEvent) event);
+        break;
+      case JOB_FAILED:
+      case JOB_KILLED:
+      case JOB_ERROR:
+        handleJobFailedEvent((JobUnsuccessfulCompletionEvent) event);
+        break;
+      case JOB_FINISHED:
+        handleJobFinishedEvent((JobFinishedEvent) event);
+        break;
+      case TASK_STARTED:
+        handleTaskStartedEvent((TaskStartedEvent) event);
+        break;
+      case TASK_FAILED:
+        handleTaskFailedEvent((TaskFailedEvent) event);
+        break;
+      case TASK_UPDATED:
+        handleTaskUpdatedEvent((TaskUpdatedEvent) event);
+        break;
+      case TASK_FINISHED:
+        handleTaskFinishedEvent((TaskFinishedEvent) event);
+        break;
+      case MAP_ATTEMPT_STARTED:
+      case CLEANUP_ATTEMPT_STARTED:
+      case REDUCE_ATTEMPT_STARTED:
+      case SETUP_ATTEMPT_STARTED:
+        handleTaskAttemptStartedEvent((TaskAttemptStartedEvent) event);
+        break;
+      case MAP_ATTEMPT_FAILED:
+      case CLEANUP_ATTEMPT_FAILED:
+      case REDUCE_ATTEMPT_FAILED:
+      case SETUP_ATTEMPT_FAILED:
+      case MAP_ATTEMPT_KILLED:
+      case CLEANUP_ATTEMPT_KILLED:
+      case REDUCE_ATTEMPT_KILLED:
+      case SETUP_ATTEMPT_KILLED:
+        handleTaskAttemptFailedEvent(
+            (TaskAttemptUnsuccessfulCompletionEvent) event);
+        break;
+      case MAP_ATTEMPT_FINISHED:
+        handleMapAttemptFinishedEvent((MapAttemptFinishedEvent) event);
+        break;
+      case REDUCE_ATTEMPT_FINISHED:
+        handleReduceAttemptFinishedEvent((ReduceAttemptFinishedEvent) event);
+        break;
+      case SETUP_ATTEMPT_FINISHED:
+      case CLEANUP_ATTEMPT_FINISHED:
+        handleTaskAttemptFinishedEvent((TaskAttemptFinishedEvent) event);
+        break;
+      case AM_STARTED:
+        handleAMStartedEvent((AMStartedEvent) event);
+        break;
+      default:
+        break;
     }
   }
-  
+
   private void handleTaskAttemptFinishedEvent(TaskAttemptFinishedEvent event) {
     TaskInfo taskInfo = info.tasksMap.get(event.getTaskId());
-    TaskAttemptInfo attemptInfo = 
-      taskInfo.attemptsMap.get(event.getAttemptId());
+    TaskAttemptInfo attemptInfo =
+        taskInfo.attemptsMap.get(event.getAttemptId());
     attemptInfo.finishTime = event.getFinishTime();
     attemptInfo.status = StringInterner.weakIntern(event.getTaskStatus());
     attemptInfo.state = StringInterner.weakIntern(event.getState());
@@ -254,10 +249,10 @@ public class JobHistoryParser implements HistoryEventHandler {
   }
 
   private void handleReduceAttemptFinishedEvent
-  (ReduceAttemptFinishedEvent event) {
+      (ReduceAttemptFinishedEvent event) {
     TaskInfo taskInfo = info.tasksMap.get(event.getTaskId());
-    TaskAttemptInfo attemptInfo = 
-      taskInfo.attemptsMap.get(event.getAttemptId());
+    TaskAttemptInfo attemptInfo =
+        taskInfo.attemptsMap.get(event.getAttemptId());
     attemptInfo.finishTime = event.getFinishTime();
     attemptInfo.status = StringInterner.weakIntern(event.getTaskStatus());
     attemptInfo.state = StringInterner.weakIntern(event.getState());
@@ -272,8 +267,8 @@ public class JobHistoryParser implements HistoryEventHandler {
 
   private void handleMapAttemptFinishedEvent(MapAttemptFinishedEvent event) {
     TaskInfo taskInfo = info.tasksMap.get(event.getTaskId());
-    TaskAttemptInfo attemptInfo = 
-      taskInfo.attemptsMap.get(event.getAttemptId());
+    TaskAttemptInfo attemptInfo =
+        taskInfo.attemptsMap.get(event.getAttemptId());
     attemptInfo.finishTime = event.getFinishTime();
     attemptInfo.status = StringInterner.weakIntern(event.getTaskStatus());
     attemptInfo.state = StringInterner.weakIntern(event.getState());
@@ -288,14 +283,14 @@ public class JobHistoryParser implements HistoryEventHandler {
   private void handleTaskAttemptFailedEvent(
       TaskAttemptUnsuccessfulCompletionEvent event) {
     TaskInfo taskInfo = info.tasksMap.get(event.getTaskId());
-    if(taskInfo == null) {
+    if (taskInfo == null) {
       LOG.warn("TaskInfo is null for TaskAttemptUnsuccessfulCompletionEvent"
           + " taskId:  " + event.getTaskId().toString());
       return;
     }
-    TaskAttemptInfo attemptInfo = 
-      taskInfo.attemptsMap.get(event.getTaskAttemptId());
-    if(attemptInfo == null) {
+    TaskAttemptInfo attemptInfo =
+        taskInfo.attemptsMap.get(event.getTaskAttemptId());
+    if (attemptInfo == null) {
       LOG.warn("AttemptInfo is null for TaskAttemptUnsuccessfulCompletionEvent"
           + " taskAttemptId:  " + event.getTaskAttemptId().toString());
       return;
@@ -310,11 +305,9 @@ public class JobHistoryParser implements HistoryEventHandler {
     attemptInfo.sortFinishTime = event.getFinishTime();
     attemptInfo.mapFinishTime = event.getFinishTime();
     attemptInfo.counters = event.getCounters();
-    if(TaskStatus.State.SUCCEEDED.toString().equals(taskInfo.status))
-    {
+    if (TaskStatus.State.SUCCEEDED.toString().equals(taskInfo.status)) {
       //this is a successful task
-      if(attemptInfo.getAttemptId().equals(taskInfo.getSuccessfulAttemptId()))
-      {
+      if (attemptInfo.getAttemptId().equals(taskInfo.getSuccessfulAttemptId())) {
         // the failed attempt is the one that made this task successful
         // so its no longer successful. Reset fields set in
         // handleTaskFinishedEvent()
@@ -330,7 +323,7 @@ public class JobHistoryParser implements HistoryEventHandler {
   private void handleTaskAttemptStartedEvent(TaskAttemptStartedEvent event) {
     TaskAttemptID attemptId = event.getTaskAttemptId();
     TaskInfo taskInfo = info.tasksMap.get(event.getTaskId());
-    
+
     TaskAttemptInfo attemptInfo = new TaskAttemptInfo();
     attemptInfo.startTime = event.getStartTime();
     attemptInfo.attemptId = event.getTaskAttemptId();
@@ -339,7 +332,7 @@ public class JobHistoryParser implements HistoryEventHandler {
     attemptInfo.taskType = event.getTaskType();
     attemptInfo.shufflePort = event.getShufflePort();
     attemptInfo.containerId = event.getContainerId();
-    
+
     taskInfo.attemptsMap.put(attemptId, attemptInfo);
   }
 
@@ -397,7 +390,7 @@ public class JobHistoryParser implements HistoryEventHandler {
   private void handleJobPriorityChangeEvent(JobPriorityChangeEvent event) {
     info.priority = event.getPriority();
   }
-  
+
   private void handleJobQueueChangeEvent(JobQueueChangeEvent event) {
     info.jobQueueName = event.getJobQueueName();
   }
@@ -408,7 +401,7 @@ public class JobHistoryParser implements HistoryEventHandler {
     info.totalReduces = event.getTotalReduces();
     info.uberized = event.getUberized();
   }
-  
+
   private void handleAMStartedEvent(AMStartedEvent event) {
     AMInfo amInfo = new AMInfo();
     amInfo.appAttemptId = event.getAppAttemptId();
@@ -464,13 +457,13 @@ public class JobHistoryParser implements HistoryEventHandler {
     Counters reduceCounters;
     JobPriority priority;
     Map<JobACL, AccessControlList> jobACLs;
-    
+
     Map<TaskID, TaskInfo> tasksMap;
     Map<TaskAttemptID, TaskAttemptInfo> completedTaskAttemptsMap;
     List<AMInfo> amInfos;
     AMInfo latestAmInfo;
     boolean uberized;
-    
+
     /** Create a job info object where job information will be stored
      * after a parse
      */
@@ -484,7 +477,7 @@ public class JobHistoryParser implements HistoryEventHandler {
       jobACLs = new HashMap<JobACL, AccessControlList>();
       priority = JobPriority.NORMAL;
     }
-    
+
     /** Print all the job information */
     public void printAll() {
       System.out.println("JOBNAME: " + jobname);
@@ -511,63 +504,142 @@ public class JobHistoryParser implements HistoryEventHandler {
           amInfo.printAll();
         }
       }
-      for (TaskInfo ti: tasksMap.values()) {
+      for (TaskInfo ti : tasksMap.values()) {
         ti.printAll();
       }
     }
 
     /** @return the job submit time */
-    public long getSubmitTime() { return submitTime; }
+    public long getSubmitTime() {
+      return submitTime;
+    }
+
     /** @return the job finish time */
-    public long getFinishTime() { return finishTime; }
+    public long getFinishTime() {
+      return finishTime;
+    }
+
     /** @return the job id */
-    public JobID getJobId() { return jobid; }
+    public JobID getJobId() {
+      return jobid;
+    }
+
     /** @return the user name */
-    public String getUsername() { return username; }
+    public String getUsername() {
+      return username;
+    }
+
     /** @return the job name */
-    public String getJobname() { return jobname; }
+    public String getJobname() {
+      return jobname;
+    }
+
     /** @return the job queue name */
-    public String getJobQueueName() { return jobQueueName; }
+    public String getJobQueueName() {
+      return jobQueueName;
+    }
+
     /** @return the path for the job configuration file */
-    public String getJobConfPath() { return jobConfPath; }
+    public String getJobConfPath() {
+      return jobConfPath;
+    }
+
     /** @return the job launch time */
-    public long getLaunchTime() { return launchTime; }
+    public long getLaunchTime() {
+      return launchTime;
+    }
+
     /** @return the total number of maps */
-    public long getTotalMaps() { return totalMaps; }
+    public long getTotalMaps() {
+      return totalMaps;
+    }
+
     /** @return the total number of reduces */
-    public long getTotalReduces() { return totalReduces; }
+    public long getTotalReduces() {
+      return totalReduces;
+    }
+
     /** @return the total number of failed maps */
-    public long getFailedMaps() { return failedMaps; }
+    public long getFailedMaps() {
+      return failedMaps;
+    }
+
     /** @return the number of failed reduces */
-    public long getFailedReduces() { return failedReduces; }
+    public long getFailedReduces() {
+      return failedReduces;
+    }
+
     /** @return the number of finished maps */
-    public long getFinishedMaps() { return finishedMaps; }
+    public long getFinishedMaps() {
+      return finishedMaps;
+    }
+
     /** @return the number of finished reduces */
-    public long getFinishedReduces() { return finishedReduces; }
+    public long getFinishedReduces() {
+      return finishedReduces;
+    }
+
     /** @return the job status */
-    public String getJobStatus() { return jobStatus; }
-    public String getErrorInfo() { return errorInfo; }
+    public String getJobStatus() {
+      return jobStatus;
+    }
+
+    public String getErrorInfo() {
+      return errorInfo;
+    }
+
     /** @return the counters for the job */
-    public Counters getTotalCounters() { return totalCounters; }
+    public Counters getTotalCounters() {
+      return totalCounters;
+    }
+
     /** @return the map counters for the job */
-    public Counters getMapCounters() { return mapCounters; }
+    public Counters getMapCounters() {
+      return mapCounters;
+    }
+
     /** @return the reduce counters for the job */
-    public Counters getReduceCounters() { return reduceCounters; }
+    public Counters getReduceCounters() {
+      return reduceCounters;
+    }
+
     /** @return the map of all tasks in this job */
-    public Map<TaskID, TaskInfo> getAllTasks() { return tasksMap; }
+    public Map<TaskID, TaskInfo> getAllTasks() {
+      return tasksMap;
+    }
+
     /** @return the map of all completed task attempts in this job */
-    public Map<TaskAttemptID, TaskAttemptInfo> getAllCompletedTaskAttempts() { return completedTaskAttemptsMap; }
+    public Map<TaskAttemptID, TaskAttemptInfo> getAllCompletedTaskAttempts() {
+      return completedTaskAttemptsMap;
+    }
+
     /** @return the priority of this job */
-    public String getPriority() { return priority.toString(); }
-    public Map<JobACL, AccessControlList> getJobACLs() { return jobACLs; }
+    public String getPriority() {
+      return priority.toString();
+    }
+
+    public Map<JobACL, AccessControlList> getJobACLs() {
+      return jobACLs;
+    }
+
     /** @return the uberized status of this job */
-    public boolean getUberized() { return uberized; }
+    public boolean getUberized() {
+      return uberized;
+    }
+
     /** @return the AMInfo for the job's AppMaster */
-    public List<AMInfo> getAMInfos() { return amInfos; }
+    public List<AMInfo> getAMInfos() {
+      return amInfos;
+    }
+
     /** @return the AMInfo for the newest AppMaster */
-    public AMInfo getLatestAMInfo() { return latestAmInfo; };
+    public AMInfo getLatestAMInfo() {
+      return latestAmInfo;
+    }
+
+    ;
   }
-  
+
   /**
    * TaskInformation is aggregated in this class after parsing
    */
@@ -589,7 +661,7 @@ public class JobHistoryParser implements HistoryEventHandler {
       error = splitLocations = "";
       attemptsMap = new HashMap<TaskAttemptID, TaskAttemptInfo>();
     }
-    
+
     public void printAll() {
       System.out.println("TASK_ID:" + taskId.toString());
       System.out.println("START_TIME: " + startTime);
@@ -598,42 +670,68 @@ public class JobHistoryParser implements HistoryEventHandler {
       if (counters != null) {
         System.out.println("COUNTERS:" + counters.toString());
       }
-      
-      for (TaskAttemptInfo tinfo: attemptsMap.values()) {
+
+      for (TaskAttemptInfo tinfo : attemptsMap.values()) {
         tinfo.printAll();
       }
     }
-    
+
     /** @return the Task ID */
-    public TaskID getTaskId() { return taskId; }
+    public TaskID getTaskId() {
+      return taskId;
+    }
+
     /** @return the start time of this task */
-    public long getStartTime() { return startTime; }
+    public long getStartTime() {
+      return startTime;
+    }
+
     /** @return the finish time of this task */
-    public long getFinishTime() { return finishTime; }
+    public long getFinishTime() {
+      return finishTime;
+    }
+
     /** @return the task type */
-    public TaskType getTaskType() { return taskType; }
+    public TaskType getTaskType() {
+      return taskType;
+    }
+
     /** @return the split locations */
-    public String getSplitLocations() { return splitLocations; }
+    public String getSplitLocations() {
+      return splitLocations;
+    }
+
     /** @return the counters for this task */
-    public Counters getCounters() { return counters; }
+    public Counters getCounters() {
+      return counters;
+    }
+
     /** @return the task status */
-    public String getTaskStatus() { return status; }
+    public String getTaskStatus() {
+      return status;
+    }
+
     /** @return the attempt Id that caused this task to fail */
     public TaskAttemptID getFailedDueToAttemptId() {
       return failedDueToAttemptId;
     }
+
     /** @return the attempt Id that caused this task to succeed */
     public TaskAttemptID getSuccessfulAttemptId() {
       return successfulAttemptId;
     }
+
     /** @return the error */
-    public String getError() { return error; }
+    public String getError() {
+      return error;
+    }
+
     /** @return the map of all attempts for this task */
     public Map<TaskAttemptID, TaskAttemptInfo> getAllTaskAttempts() {
       return attemptsMap;
     }
   }
-  
+
   /**
    * Task Attempt Information is aggregated in this class after parsing
    */
@@ -661,13 +759,14 @@ public class JobHistoryParser implements HistoryEventHandler {
      * on a history parse.
      */
     public TaskAttemptInfo() {
-      startTime = finishTime = shuffleFinishTime = sortFinishTime = 
-        mapFinishTime = -1;
-      error =  state =  trackerName = hostname = rackname = "";
+      startTime = finishTime = shuffleFinishTime = sortFinishTime =
+          mapFinishTime = -1;
+      error = state = trackerName = hostname = rackname = "";
       port = -1;
       httpPort = -1;
       shufflePort = -1;
     }
+
     /**
      * Print all the information about this attempt.
      */
@@ -689,41 +788,94 @@ public class JobHistoryParser implements HistoryEventHandler {
     }
 
     /** @return the attempt Id */
-    public TaskAttemptID getAttemptId() { return attemptId; }
+    public TaskAttemptID getAttemptId() {
+      return attemptId;
+    }
+
     /** @return the start time of the attempt */
-    public long getStartTime() { return startTime; }
+    public long getStartTime() {
+      return startTime;
+    }
+
     /** @return the finish time of the attempt */
-    public long getFinishTime() { return finishTime; }
+    public long getFinishTime() {
+      return finishTime;
+    }
+
     /** @return the shuffle finish time. Applicable only for reduce attempts */
-    public long getShuffleFinishTime() { return shuffleFinishTime; }
+    public long getShuffleFinishTime() {
+      return shuffleFinishTime;
+    }
+
     /** @return the sort finish time. Applicable only for reduce attempts */
-    public long getSortFinishTime() { return sortFinishTime; }
+    public long getSortFinishTime() {
+      return sortFinishTime;
+    }
+
     /** @return the map finish time. Applicable only for map attempts */
-    public long getMapFinishTime() { return mapFinishTime; }
+    public long getMapFinishTime() {
+      return mapFinishTime;
+    }
+
     /** @return the error string */
-    public String getError() { return error; }
+    public String getError() {
+      return error;
+    }
+
     /** @return the state */
-    public String getState() { return state; }
+    public String getState() {
+      return state;
+    }
+
     /** @return the task status */
-    public String getTaskStatus() { return status; }
+    public String getTaskStatus() {
+      return status;
+    }
+
     /** @return the task type */
-    public TaskType getTaskType() { return taskType; }
+    public TaskType getTaskType() {
+      return taskType;
+    }
+
     /** @return the tracker name where the attempt executed */
-    public String getTrackerName() { return trackerName; }
+    public String getTrackerName() {
+      return trackerName;
+    }
+
     /** @return the host name */
-    public String getHostname() { return hostname; }
+    public String getHostname() {
+      return hostname;
+    }
+
     /** @return the port */
-    public int getPort() { return port; }
+    public int getPort() {
+      return port;
+    }
+
     /** @return the rack name */
-    public String getRackname() { return rackname; }
+    public String getRackname() {
+      return rackname;
+    }
+
     /** @return the counters for the attempt */
-    public Counters getCounters() { return counters; }
+    public Counters getCounters() {
+      return counters;
+    }
+
     /** @return the HTTP port for the tracker */
-    public int getHttpPort() { return httpPort; }
+    public int getHttpPort() {
+      return httpPort;
+    }
+
     /** @return the Shuffle port for the tracker */
-    public int getShufflePort() { return shufflePort; }
+    public int getShufflePort() {
+      return shufflePort;
+    }
+
     /** @return the ContainerId for the tracker */
-    public ContainerId getContainerId() { return containerId; }
+    public ContainerId getContainerId() {
+      return containerId;
+    }
   }
 
   /**
@@ -748,8 +900,8 @@ public class JobHistoryParser implements HistoryEventHandler {
     }
 
     public AMInfo(ApplicationAttemptId appAttemptId, long startTime,
-        ContainerId containerId, String nodeManagerHost, int nodeManagerPort,
-        int nodeManagerHttpPort) {
+                  ContainerId containerId, String nodeManagerHost, int nodeManagerPort,
+                  int nodeManagerHttpPort) {
       this.appAttemptId = appAttemptId;
       this.startTime = startTime;
       this.containerId = containerId;

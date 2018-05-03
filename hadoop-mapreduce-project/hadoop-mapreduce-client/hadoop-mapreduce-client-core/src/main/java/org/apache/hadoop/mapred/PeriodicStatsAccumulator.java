@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -57,7 +57,7 @@ public abstract class PeriodicStatsAccumulator {
   //  than two terabytes of virtual memory. 
   protected final int count;
   protected final int[] values;
-    
+
   static class StatsetState {
     int oldValue = 0;
     double oldProgress = 0.0D;
@@ -86,6 +86,7 @@ public abstract class PeriodicStatsAccumulator {
   //  accumulates more data into the current progress segment.
   //  newProgress [from the call] and oldProgress [from the object]
   //  must be in [or at the border of] a single progress segment.
+
   /**
    *
    * adds a new reading to the current bucket.
@@ -112,6 +113,7 @@ public abstract class PeriodicStatsAccumulator {
   protected abstract void extendInternal(double newProgress, int newValue);
 
   // What has to be done when you open a new interval
+
   /**
    * initializes the state variables to be ready for a new interval
    */
@@ -120,6 +122,7 @@ public abstract class PeriodicStatsAccumulator {
   }
 
   // called for each new reading
+
   /**
    * This method calls {@code extendInternal} at least once.  It
    *  divides the current progress interval [from the last call's
@@ -128,7 +131,7 @@ public abstract class PeriodicStatsAccumulator {
    *  is an interval boundary if there are any such points.  It
    *  then calls {@code extendInternal} for each subinterval, or the
    *  whole interval if there are no splitting points.
-   * 
+   *
    *  <p>For example, if the value was {@code 300} last time with
    *  {@code 0.3}  progress, and count is {@code 5}, and you get a
    *  new reading with the variable at {@code 700} and progress at
@@ -141,18 +144,18 @@ public abstract class PeriodicStatsAccumulator {
    * @param newProgress the endpoint of the progress range this new
    *                      reading covers
    * @param newValue the value of the reading at {@code newProgress} 
-   */    
+   */
   protected void extend(double newProgress, int newValue) {
     if (state == null || newProgress < state.oldProgress) {
       return;
     }
 
     // This correctness of this code depends on 100% * count = count.
-    int oldIndex = (int)(state.oldProgress * count);
-    int newIndex = (int)(newProgress * count);
+    int oldIndex = (int) (state.oldProgress * count);
+    int newIndex = (int) (newProgress * count);
     int originalOldValue = state.oldValue;
 
-    double fullValueDistance = (double)newValue - state.oldValue;
+    double fullValueDistance = (double) newValue - state.oldValue;
     double fullProgressDistance = newProgress - state.oldProgress;
     double originalOldProgress = state.oldProgress;
 
@@ -164,7 +167,7 @@ public abstract class PeriodicStatsAccumulator {
     //  in the data for each trapazoid where no such trapazoid
     //  crosses a boundary.
     for (int closee = oldIndex; closee < newIndex; ++closee) {
-      double interpolationProgress = (double)(closee + 1) / count;
+      double interpolationProgress = (double) (closee + 1) / count;
       // In floats, x * y / y might not equal y.
       interpolationProgress = Math.min(interpolationProgress, newProgress);
 
@@ -172,17 +175,17 @@ public abstract class PeriodicStatsAccumulator {
       double interpolationProportion = progressLength / fullProgressDistance;
 
       double interpolationValueDistance
-        = fullValueDistance * interpolationProportion;
+          = fullValueDistance * interpolationProportion;
 
       // estimates the value at the next [interpolated] subsegment boundary
       int interpolationValue
-        = (int)interpolationValueDistance + originalOldValue;
+          = (int) interpolationValueDistance + originalOldValue;
 
       extendInternal(interpolationProgress, interpolationValue);
 
       advanceState(interpolationProgress, interpolationValue);
 
-      values[closee] = (int)state.currentAccumulation;
+      values[closee] = (int) state.currentAccumulation;
       initializeInterval();
 
     }
@@ -198,7 +201,7 @@ public abstract class PeriodicStatsAccumulator {
   protected void advanceState(double newProgress, int newValue) {
     state.oldValue = newValue;
     state.oldProgress = newProgress;
-  }    
+  }
 
   int getCount() {
     return count;

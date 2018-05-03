@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,10 +28,10 @@ import org.apache.hadoop.security.token.delegation.AbstractDelegationTokenIdenti
  */
 @InterfaceAudience.Private
 @InterfaceStability.Unstable
-public class DelegationTokenIdentifier 
+public class DelegationTokenIdentifier
     extends AbstractDelegationTokenIdentifier {
-  public static final Text MAPREDUCE_DELEGATION_KIND = 
-    new Text("MAPREDUCE_DELEGATION_TOKEN");
+  public static final Text MAPREDUCE_DELEGATION_KIND =
+      new Text("MAPREDUCE_DELEGATION_TOKEN");
 
   /**
    * Create an empty delegation token identifier for reading into.

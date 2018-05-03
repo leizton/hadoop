@@ -1,35 +1,22 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2.hs;
-
-import java.io.IOException;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -44,19 +31,10 @@ import org.apache.hadoop.mapreduce.TypeConverter;
 import org.apache.hadoop.mapreduce.jobhistory.JobHistoryParser;
 import org.apache.hadoop.mapreduce.jobhistory.JobHistoryParser.JobInfo;
 import org.apache.hadoop.mapreduce.jobhistory.JobHistoryParser.TaskInfo;
-import org.apache.hadoop.mapreduce.v2.api.records.AMInfo;
-import org.apache.hadoop.mapreduce.v2.api.records.JobId;
-import org.apache.hadoop.mapreduce.v2.api.records.JobReport;
-import org.apache.hadoop.mapreduce.v2.api.records.JobState;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptCompletionEvent;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptCompletionEventStatus;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskType;
+import org.apache.hadoop.mapreduce.v2.api.records.*;
 import org.apache.hadoop.mapreduce.v2.app.job.Task;
 import org.apache.hadoop.mapreduce.v2.app.job.TaskAttempt;
 import org.apache.hadoop.mapreduce.v2.hs.HistoryFileManager.HistoryFileInfo;
-import org.apache.hadoop.mapreduce.v2.jobhistory.JobHistoryUtils;
 import org.apache.hadoop.mapreduce.v2.util.MRBuilderUtils;
 import org.apache.hadoop.mapreduce.v2.util.MRWebAppUtil;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -64,13 +42,20 @@ import org.apache.hadoop.security.authorize.AccessControlList;
 import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
 import org.apache.hadoop.yarn.util.Records;
 
+import java.io.IOException;
+import java.net.UnknownHostException;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 
 /**
  * Loads the basic job level data upfront.
  * Data from job history file is loaded lazily.
  */
 public class CompletedJob implements org.apache.hadoop.mapreduce.v2.app.job.Job {
-  
+
   static final Log LOG = LogFactory.getLog(CompletedJob.class);
   private final Configuration conf;
   private final JobId jobId; //Can be picked from JobInfo with a conversion.
@@ -86,12 +71,12 @@ public class CompletedJob implements org.apache.hadoop.mapreduce.v2.app.job.Job 
   private List<TaskAttemptCompletionEvent> completionEvents = null;
   private List<TaskAttemptCompletionEvent> mapCompletionEvents = null;
   private JobACLsManager aclsMgr;
-  
-  
-  public CompletedJob(Configuration conf, JobId jobId, Path historyFile, 
-      boolean loadTasks, String userName, HistoryFileInfo info,
-      JobACLsManager aclsMgr) 
-          throws IOException {
+
+
+  public CompletedJob(Configuration conf, JobId jobId, Path historyFile,
+                      boolean loadTasks, String userName, HistoryFileInfo info,
+                      JobACLsManager aclsMgr)
+      throws IOException {
     LOG.info("Loading job: " + jobId + " from file: " + historyFile);
     this.conf = conf;
     this.jobId = jobId;
@@ -322,12 +307,12 @@ public class CompletedJob implements org.apache.hadoop.mapreduce.v2.app.job.Job 
 
   //History data is leisurely loaded when task level data is requested
   protected synchronized void loadFullHistoryData(boolean loadTasks,
-      Path historyFileAbsolute) throws IOException {
+                                                  Path historyFileAbsolute) throws IOException {
     LOG.info("Loading history file: [" + historyFileAbsolute + "]");
     if (this.jobInfo != null) {
       return;
     }
-    
+
     if (historyFileAbsolute != null) {
       JobHistoryParser parser = null;
       try {
@@ -339,10 +324,10 @@ public class CompletedJob implements org.apache.hadoop.mapreduce.v2.app.job.Job 
         throw new YarnRuntimeException("Could not load history file "
             + historyFileAbsolute, e);
       }
-      IOException parseException = parser.getParseException(); 
+      IOException parseException = parser.getParseException();
       if (parseException != null) {
         throw new YarnRuntimeException(
-            "Could not parse history file " + historyFileAbsolute, 
+            "Could not parse history file " + historyFileAbsolute,
             parseException);
       }
     } else {
@@ -351,7 +336,7 @@ public class CompletedJob implements org.apache.hadoop.mapreduce.v2.app.job.Job 
     if (loadTasks) {
       loadAllTasks();
       LOG.info("TaskInfo loaded");
-    }    
+    }
   }
 
   @Override
@@ -395,26 +380,25 @@ public class CompletedJob implements org.apache.hadoop.mapreduce.v2.app.job.Job 
   }
 
   @Override
-  public
-      boolean checkAccess(UserGroupInformation callerUGI, JobACL jobOperation) {
+  public boolean checkAccess(UserGroupInformation callerUGI, JobACL jobOperation) {
     Map<JobACL, AccessControlList> jobACLs = jobInfo.getJobACLs();
     AccessControlList jobACL = jobACLs.get(jobOperation);
     if (jobACL == null) {
       return true;
     }
-    return aclsMgr.checkAccess(callerUGI, jobOperation, 
+    return aclsMgr.checkAccess(callerUGI, jobOperation,
         jobInfo.getUsername(), jobACL);
   }
-  
+
   /*
    * (non-Javadoc)
    * @see org.apache.hadoop.mapreduce.v2.app.job.Job#getJobACLs()
    */
   @Override
-  public  Map<JobACL, AccessControlList> getJobACLs() {
+  public Map<JobACL, AccessControlList> getJobACLs() {
     return jobInfo.getJobACLs();
   }
-  
+
   @Override
   public String getUserName() {
     return user;
@@ -428,7 +412,7 @@ public class CompletedJob implements org.apache.hadoop.mapreduce.v2.app.job.Job 
   public Path getConfFile() {
     return info.getConfFile();
   }
-  
+
   /*
    * (non-Javadoc)
    * @see org.apache.hadoop.mapreduce.v2.app.job.Job#loadConfFile()
@@ -448,7 +432,7 @@ public class CompletedJob implements org.apache.hadoop.mapreduce.v2.app.job.Job 
               jhAmInfo.getStartTime(), jhAmInfo.getContainerId(),
               jhAmInfo.getNodeManagerHost(), jhAmInfo.getNodeManagerPort(),
               jhAmInfo.getNodeManagerHttpPort());
-   
+
       amInfos.add(amInfo);
     }
     return amInfos;

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,6 +17,26 @@
  */
 package org.apache.hadoop.mapreduce.lib.input;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.*;
+import org.apache.hadoop.mapred.SplitLocationInfo;
+import org.apache.hadoop.mapreduce.InputSplit;
+import org.apache.hadoop.mapreduce.Job;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
+
+import javax.annotation.Nullable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
@@ -24,59 +44,29 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.Nullable;
-
-import org.junit.Assert;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.BlockLocation;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.LocatedFileStatus;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.PathFilter;
-import org.apache.hadoop.fs.RawLocalFileSystem;
-import org.apache.hadoop.fs.RemoteIterator;
-import org.apache.hadoop.mapred.SplitLocationInfo;
-import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.Job;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
-
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 @RunWith(value = Parameterized.class)
 public class TestFileInputFormat {
-  
+
   private static final Log LOG = LogFactory.getLog(TestFileInputFormat.class);
-  
+
   private static String testTmpDir = System.getProperty("test.build.data", "/tmp");
   private static final Path TEST_ROOT_DIR = new Path(testTmpDir, "TestFIF");
-  
+
   private static FileSystem localFs;
-  
+
   private int numThreads;
-  
+
   public TestFileInputFormat(int numThreads) {
     this.numThreads = numThreads;
     LOG.info("Running with numThreads: " + numThreads);
   }
-  
+
   @Parameters
   public static Collection<Object[]> data() {
-    Object[][] data = new Object[][] { { 1 }, { 5 }};
+    Object[][] data = new Object[][]{{1}, {5}};
     return Arrays.asList(data);
   }
-  
+
   @Before
   public void setup() throws IOException {
     LOG.info("Using Test Dir: " + TEST_ROOT_DIR);
@@ -84,7 +74,7 @@ public class TestFileInputFormat {
     localFs.delete(TEST_ROOT_DIR, true);
     localFs.mkdirs(TEST_ROOT_DIR);
   }
-  
+
   @After
   public void cleanup() throws IOException {
     localFs.delete(TEST_ROOT_DIR, true);
@@ -140,7 +130,7 @@ public class TestFileInputFormat {
         1, mockFs.numListLocatedStatusCalls);
     FileSystem.closeAll();
   }
-  
+
   @Test
   public void testSplitLocationInfo() throws Exception {
     Configuration conf = getConfiguration();
@@ -169,8 +159,8 @@ public class TestFileInputFormat {
     conf.setInt(FileInputFormat.LIST_STATUS_NUM_THREADS, numThreads);
 
     List<Path> expectedPaths = configureTestSimple(conf, localFs);
-    
-    Job job  = Job.getInstance(conf);
+
+    Job job = Job.getInstance(conf);
     FileInputFormat<?, ?> fif = new TextInputFormat();
     List<FileStatus> statuses = fif.listStatus(job);
 
@@ -183,7 +173,7 @@ public class TestFileInputFormat {
     conf.setInt(FileInputFormat.LIST_STATUS_NUM_THREADS, numThreads);
 
     List<Path> expectedPaths = configureTestNestedRecursive(conf, localFs);
-    Job job  = Job.getInstance(conf);
+    Job job = Job.getInstance(conf);
     FileInputFormat<?, ?> fif = new TextInputFormat();
     List<FileStatus> statuses = fif.listStatus(job);
 
@@ -197,7 +187,7 @@ public class TestFileInputFormat {
     conf.setInt(FileInputFormat.LIST_STATUS_NUM_THREADS, numThreads);
 
     List<Path> expectedPaths = configureTestNestedNonRecursive(conf, localFs);
-    Job job  = Job.getInstance(conf);
+    Job job = Job.getInstance(conf);
     FileInputFormat<?, ?> fif = new TextInputFormat();
     List<FileStatus> statuses = fif.listStatus(job);
 
@@ -210,7 +200,7 @@ public class TestFileInputFormat {
     conf.setInt(FileInputFormat.LIST_STATUS_NUM_THREADS, numThreads);
 
     configureTestErrorOnNonExistantDir(conf, localFs);
-    Job job  = Job.getInstance(conf);
+    Job job = Job.getInstance(conf);
     FileInputFormat<?, ?> fif = new TextInputFormat();
     try {
       fif.listStatus(job);
@@ -249,7 +239,7 @@ public class TestFileInputFormat {
   }
 
   public static List<Path> configureTestNestedRecursive(Configuration conf,
-      FileSystem localFs) throws IOException {
+                                                        FileSystem localFs) throws IOException {
     Path base1 = new Path(TEST_ROOT_DIR, "input1");
     conf.set(org.apache.hadoop.mapreduce.lib.input.FileInputFormat.INPUT_DIR,
         localFs.makeQualified(base1).toString());
@@ -283,7 +273,7 @@ public class TestFileInputFormat {
   }
 
   public static List<Path> configureTestNestedNonRecursive(Configuration conf,
-      FileSystem localFs) throws IOException {
+                                                           FileSystem localFs) throws IOException {
     Path base1 = new Path(TEST_ROOT_DIR, "input1");
     conf.set(org.apache.hadoop.mapreduce.lib.input.FileInputFormat.INPUT_DIR,
         localFs.makeQualified(base1).toString());
@@ -316,7 +306,7 @@ public class TestFileInputFormat {
   }
 
   public static List<Path> configureTestErrorOnNonExistantDir(Configuration conf,
-      FileSystem localFs) throws IOException {
+                                                              FileSystem localFs) throws IOException {
     Path base1 = new Path(TEST_ROOT_DIR, "input1");
     Path base2 = new Path(TEST_ROOT_DIR, "input2");
     conf.set(org.apache.hadoop.mapreduce.lib.input.FileInputFormat.INPUT_DIR,
@@ -337,7 +327,7 @@ public class TestFileInputFormat {
   }
 
   public static void verifyFileStatuses(List<Path> expectedPaths,
-      List<FileStatus> fetchedStatuses, final FileSystem localFs) {
+                                        List<FileStatus> fetchedStatuses, final FileSystem localFs) {
     Assert.assertEquals(expectedPaths.size(), fetchedStatuses.size());
 
     Iterable<Path> fqExpectedPaths = Iterables.transform(expectedPaths,
@@ -379,7 +369,7 @@ public class TestFileInputFormat {
         "Not all expectedPaths matched: " + expectedSet.toString(), 0,
         expectedSet.size());
   }
-  
+
   private Configuration getConfiguration() {
     Configuration conf = new Configuration();
     conf.set("fs.test.impl.disable.cache", "true");
@@ -395,15 +385,15 @@ public class TestFileInputFormat {
     public FileStatus[] listStatus(Path f) throws FileNotFoundException,
         IOException {
       if (f.toString().equals("test:/a1")) {
-        return new FileStatus[] {
+        return new FileStatus[]{
             new FileStatus(0, true, 1, 150, 150, new Path("test:/a1/a2")),
-            new FileStatus(10, false, 1, 150, 150, new Path("test:/a1/file1")) };
+            new FileStatus(10, false, 1, 150, 150, new Path("test:/a1/file1"))};
       } else if (f.toString().equals("test:/a1/a2")) {
-        return new FileStatus[] {
+        return new FileStatus[]{
             new FileStatus(10, false, 1, 150, 150,
                 new Path("test:/a1/a2/file2")),
             new FileStatus(10, false, 1, 151, 150,
-                new Path("test:/a1/a2/file3")) };
+                new Path("test:/a1/a2/file3"))};
       }
       return new FileStatus[0];
     }
@@ -411,8 +401,8 @@ public class TestFileInputFormat {
     @Override
     public FileStatus[] globStatus(Path pathPattern, PathFilter filter)
         throws IOException {
-      return new FileStatus[] { new FileStatus(10, true, 1, 150, 150,
-          pathPattern) };
+      return new FileStatus[]{new FileStatus(10, true, 1, 150, 150,
+          pathPattern)};
     }
 
     @Override
@@ -424,14 +414,15 @@ public class TestFileInputFormat {
     @Override
     public BlockLocation[] getFileBlockLocations(Path p, long start, long len)
         throws IOException {
-      return new BlockLocation[] {
-          new BlockLocation(new String[] { "localhost:50010", "otherhost:50010" },
-              new String[] { "localhost", "otherhost" }, new String[] { "localhost" },
-              new String[0], 0, len, false) };    }
+      return new BlockLocation[]{
+          new BlockLocation(new String[]{"localhost:50010", "otherhost:50010"},
+              new String[]{"localhost", "otherhost"}, new String[]{"localhost"},
+              new String[0], 0, len, false)};
+    }
 
     @Override
     protected RemoteIterator<LocatedFileStatus> listLocatedStatus(Path f,
-        PathFilter filter) throws FileNotFoundException, IOException {
+                                                                  PathFilter filter) throws FileNotFoundException, IOException {
       ++numListLocatedStatusCalls;
       return super.listLocatedStatus(f, filter);
     }

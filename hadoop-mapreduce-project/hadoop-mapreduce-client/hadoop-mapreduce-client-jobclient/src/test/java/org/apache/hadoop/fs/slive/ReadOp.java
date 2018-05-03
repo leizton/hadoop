@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,12 +18,6 @@
 
 package org.apache.hadoop.fs.slive;
 
-import java.io.DataInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.List;
-import java.util.Random;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FileSystem;
@@ -31,11 +25,17 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.slive.DataVerifier.VerifyOutput;
 import org.apache.hadoop.fs.slive.OperationOutput.OutputType;
 
+import java.io.DataInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.List;
+import java.util.Random;
+
 /**
  * Operation which selects a random file and selects a random read size (from
  * the read size option) and reads from the start of that file to the read size
  * (or the full file) and verifies the bytes that were written there.
- * 
+ *
  * This operation will capture statistics on success the time taken to read that
  * file and the number of successful readings that occurred as well as the
  * number of bytes read and the number of chunks verified and the number of
@@ -51,7 +51,7 @@ class ReadOp extends Operation {
 
   /**
    * Gets the file name to read
-   * 
+   *
    * @return Path
    */
   protected Path getReadFile() {
@@ -59,7 +59,8 @@ class ReadOp extends Operation {
     return fn;
   }
 
-  @Override // Operation
+  @Override
+    // Operation
   List<OperationOutput> run(FileSystem fs) {
     List<OperationOutput> out = super.run(fs);
     DataInputStream is = null;

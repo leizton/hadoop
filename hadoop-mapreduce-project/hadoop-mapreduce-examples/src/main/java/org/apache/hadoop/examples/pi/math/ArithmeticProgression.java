@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -47,7 +47,7 @@ public class ArithmeticProgression implements Comparable<ArithmeticProgression> 
     if (this == obj)
       return true;
     else if (obj != null && obj instanceof ArithmeticProgression) {
-      final ArithmeticProgression that = (ArithmeticProgression)obj;
+      final ArithmeticProgression that = (ArithmeticProgression) obj;
       if (this.symbol != that.symbol)
         throw new IllegalArgumentException("this.symbol != that.symbol, this="
             + this + ", that=" + that);
@@ -55,8 +55,8 @@ public class ArithmeticProgression implements Comparable<ArithmeticProgression> 
           && this.delta == that.delta
           && this.limit == that.limit;
     }
-    throw new IllegalArgumentException(obj == null? "obj == null":
-      "obj.getClass()=" + obj.getClass());
+    throw new IllegalArgumentException(obj == null ? "obj == null" :
+        "obj.getClass()=" + obj.getClass());
   }
 
   /** Not supported */
@@ -74,7 +74,7 @@ public class ArithmeticProgression implements Comparable<ArithmeticProgression> 
       throw new IllegalArgumentException("this.delta != that.delta, this="
           + this + ", that=" + that);
     final long d = this.limit - that.limit;
-    return d > 0? 1: d == 0? 0: -1;
+    return d > 0 ? 1 : d == 0 ? 0 : -1;
   }
 
   /** Does this contain that? */
@@ -90,19 +90,19 @@ public class ArithmeticProgression implements Comparable<ArithmeticProgression> 
       else if (this.delta > 0)
         return this.value < that.value && this.limit >= that.limit;
     }
-    return false;    
+    return false;
   }
 
   /** Skip some steps */
   long skip(long steps) {
     if (steps < 0)
       throw new IllegalArgumentException("steps < 0, steps=" + steps);
-    return value + steps*delta; 
+    return value + steps * delta;
   }
 
   /** Get the number of steps */
   public long getSteps() {
-    return (limit - value)/delta;
+    return (limit - value) / delta;
   }
 
   /** {@inheritDoc} */

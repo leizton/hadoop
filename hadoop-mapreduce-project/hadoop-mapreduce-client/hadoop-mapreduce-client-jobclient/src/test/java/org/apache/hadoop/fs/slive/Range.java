@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,7 +22,7 @@ import java.util.Random;
 
 /**
  * Class that represents a numeric minimum and a maximum
- * 
+ *
  * @param <T>
  *          the type of number being used
  */
@@ -58,10 +58,10 @@ class Range<T extends Number> {
 
   /**
    * Gets a long number between two values
-   * 
+   *
    * @param rnd
    * @param range
-   * 
+   *
    * @return long
    */
   static long betweenPositive(Random rnd, Range<Long> range) {

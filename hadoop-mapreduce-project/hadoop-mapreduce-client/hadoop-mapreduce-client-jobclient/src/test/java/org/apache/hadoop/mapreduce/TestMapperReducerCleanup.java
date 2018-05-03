@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,13 +17,6 @@
  */
 
 package org.apache.hadoop.mapreduce;
-
-import java.io.BufferedWriter;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.util.StringTokenizer;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -41,20 +34,23 @@ import org.apache.hadoop.mapreduce.lib.reduce.IntSumReducer;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.*;
+import java.util.StringTokenizer;
+
 public class TestMapperReducerCleanup {
 
   static boolean mapCleanup = false;
   static boolean reduceCleanup = false;
   static boolean recordReaderCleanup = false;
   static boolean recordWriterCleanup = false;
-  
+
   static void reset() {
     mapCleanup = false;
-    reduceCleanup = false; 
+    reduceCleanup = false;
     recordReaderCleanup = false;
     recordWriterCleanup = false;
   }
-  
+
   private static class FailingMapper
       extends Mapper<LongWritable, Text, LongWritable, Text> {
 
@@ -64,21 +60,21 @@ public class TestMapperReducerCleanup {
       throw new IOException("TestMapperReducerCleanup");
     }
 
-    protected void cleanup(Context context) 
+    protected void cleanup(Context context)
         throws IOException, InterruptedException {
       mapCleanup = true;
       super.cleanup(context);
     }
   }
 
-  private static class TrackingTokenizerMapper 
-  extends Mapper<Object, Text, Text, IntWritable> {
+  private static class TrackingTokenizerMapper
+      extends Mapper<Object, Text, Text, IntWritable> {
 
     private final static IntWritable one = new IntWritable(1);
     private Text word = new Text();
-      
+
     public void map(Object key, Text value, Context context
-                    ) throws IOException, InterruptedException {
+    ) throws IOException, InterruptedException {
       StringTokenizer itr = new StringTokenizer(value.toString());
       while (itr.hasMoreTokens()) {
         word.set(itr.nextToken());
@@ -86,14 +82,14 @@ public class TestMapperReducerCleanup {
       }
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     protected void cleanup(org.apache.hadoop.mapreduce.Mapper.Context context)
         throws IOException, InterruptedException {
       mapCleanup = true;
       super.cleanup(context);
     }
-    
+
   }
 
   private static class FailingReducer
@@ -104,7 +100,7 @@ public class TestMapperReducerCleanup {
       throw new IOException("TestMapperReducerCleanup");
     }
 
-    protected void cleanup(Context context) 
+    protected void cleanup(Context context)
         throws IOException, InterruptedException {
       reduceCleanup = true;
       super.cleanup(context);
@@ -115,12 +111,12 @@ public class TestMapperReducerCleanup {
   private static class TrackingIntSumReducer extends IntSumReducer {
 
     @SuppressWarnings("unchecked")
-    protected void cleanup(Context context) 
+    protected void cleanup(Context context)
         throws IOException, InterruptedException {
       reduceCleanup = true;
       super.cleanup(context);
     }
-}
+  }
 
   public static class TrackingTextInputFormat extends TextInputFormat {
 
@@ -141,7 +137,7 @@ public class TestMapperReducerCleanup {
 
   @SuppressWarnings("rawtypes")
   public static class TrackingTextOutputFormat extends TextOutputFormat {
-    
+
     public static class TrackingRecordWriter extends LineRecordWriter {
 
       public TrackingRecordWriter(DataOutputStream out) {
@@ -156,7 +152,7 @@ public class TestMapperReducerCleanup {
       }
 
     }
-    
+
     @Override
     public RecordWriter getRecordWriter(TaskAttemptContext job)
         throws IOException, InterruptedException {
@@ -165,10 +161,10 @@ public class TestMapperReducerCleanup {
       Path file = getDefaultWorkFile(job, "");
       FileSystem fs = file.getFileSystem(conf);
       FSDataOutputStream fileOut = fs.create(file, false);
-      
+
       return new TrackingRecordWriter(fileOut);
     }
-  
+
   }
 
 
@@ -236,7 +232,7 @@ public class TestMapperReducerCleanup {
   @Test
   public void testMapCleanup() throws Exception {
     reset();
-    
+
     Job job = Job.getInstance();
 
     Path inputPath = createInput();
@@ -266,7 +262,7 @@ public class TestMapperReducerCleanup {
   @Test
   public void testReduceCleanup() throws Exception {
     reset();
-    
+
     Job job = Job.getInstance();
 
     Path inputPath = createInput();
@@ -296,11 +292,11 @@ public class TestMapperReducerCleanup {
     Assert.assertTrue(recordReaderCleanup);
     Assert.assertTrue(recordWriterCleanup);
   }
-  
+
   @Test
   public void testJobSuccessCleanup() throws Exception {
     reset();
-    
+
     Job job = Job.getInstance();
 
     Path inputPath = createInput();

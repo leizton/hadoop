@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,12 +17,6 @@
  */
 
 package org.apache.hadoop.mapreduce;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
@@ -37,6 +31,12 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Random;
 
 /**
  * A sample MR job that helps with testing large sorts in the MapReduce
@@ -63,28 +63,30 @@ public class LargeSorter extends Configured implements Tool {
   private static final String MIN_VALUE = LS_PREFIX + "min-value";
   private static final String MIN_KEY = LS_PREFIX + "min-key";
   private static final String MAX_KEY = LS_PREFIX + "max-key";
-  
+
   /**
    * User counters
    */
-  static enum Counters { RECORDS_WRITTEN, BYTES_WRITTEN }
-  
+  static enum Counters {
+    RECORDS_WRITTEN, BYTES_WRITTEN
+  }
+
   /**
    * A custom input format that creates virtual inputs of a single string
    * for each map.
    */
   static class RandomInputFormat extends InputFormat<Text, Text> {
 
-    /** 
+    /**
      * Generate the requested number of file splits, with the filename
      * set to the filename of the output file.
      */
     public List<InputSplit> getSplits(JobContext job) throws IOException {
       List<InputSplit> result = new ArrayList<InputSplit>();
       Path outDir = FileOutputFormat.getOutputPath(job);
-      int numSplits = 
-            job.getConfiguration().getInt(MRJobConfig.NUM_MAPS, 1);
-      for(int i=0; i < numSplits; ++i) {
+      int numSplits =
+          job.getConfiguration().getInt(MRJobConfig.NUM_MAPS, 1);
+      for (int i = 0; i < numSplits; ++i) {
         result.add(new FileSplit(
             new Path(outDir, "dummy-split-" + i), 0, 1, null));
       }
@@ -99,16 +101,17 @@ public class LargeSorter extends Configured implements Tool {
       Path name;
       Text key = null;
       Text value = new Text();
+
       public RandomRecordReader(Path p) {
         name = p;
       }
-      
+
       public void initialize(InputSplit split,
                              TaskAttemptContext context)
-      throws IOException, InterruptedException {
-    	  
+          throws IOException, InterruptedException {
+
       }
-      
+
       public boolean nextKeyValue() {
         if (name != null) {
           key = new Text();
@@ -118,16 +121,17 @@ public class LargeSorter extends Configured implements Tool {
         }
         return false;
       }
-      
+
       public Text getCurrentKey() {
         return key;
       }
-      
+
       public Text getCurrentValue() {
         return value;
       }
-      
-      public void close() {}
+
+      public void close() {
+      }
 
       public float getProgress() {
         return 0.0f;
@@ -135,14 +139,14 @@ public class LargeSorter extends Configured implements Tool {
     }
 
     public RecordReader<Text, Text> createRecordReader(InputSplit split,
-        TaskAttemptContext context) throws IOException, InterruptedException {
+                                                       TaskAttemptContext context) throws IOException, InterruptedException {
       return new RandomRecordReader(((FileSplit) split).getPath());
     }
   }
 
   static class RandomMapper extends Mapper<WritableComparable, Writable,
-                      BytesWritable, BytesWritable> {
-    
+      BytesWritable, BytesWritable> {
+
     private long numBytesToWrite;
     private int minKeySize;
     private int keySizeRange;
@@ -151,9 +155,9 @@ public class LargeSorter extends Configured implements Tool {
     private Random random = new Random();
     private BytesWritable randomKey = new BytesWritable();
     private BytesWritable randomValue = new BytesWritable();
-    
+
     private void randomizeBytes(byte[] data, int offset, int length) {
-      for(int i=offset + length - 1; i >= offset; --i) {
+      for (int i = offset + length - 1; i >= offset; --i) {
         data[i] = (byte) random.nextInt(256);
       }
     }
@@ -174,17 +178,17 @@ public class LargeSorter extends Configured implements Tool {
     /**
      * Given an output filename, write a bunch of random records to it.
      */
-    public void map(WritableComparable key, 
+    public void map(WritableComparable key,
                     Writable value,
-                    Context context) throws IOException,InterruptedException {
+                    Context context) throws IOException, InterruptedException {
       int itemCount = 0;
       while (numBytesToWrite > 0) {
-        int keyLength = minKeySize + 
-          (keySizeRange != 0 ? random.nextInt(keySizeRange) : 0);
+        int keyLength = minKeySize +
+            (keySizeRange != 0 ? random.nextInt(keySizeRange) : 0);
         randomKey.setSize(keyLength);
         randomizeBytes(randomKey.getBytes(), 0, randomKey.getLength());
         int valueLength = minValueSize +
-          (valueSizeRange != 0 ? random.nextInt(valueSizeRange) : 0);
+            (valueSizeRange != 0 ? random.nextInt(valueSizeRange) : 0);
         randomValue.setSize(valueLength);
         randomizeBytes(randomValue.getBytes(), 0, randomValue.getLength());
         context.write(randomKey, randomValue);
@@ -192,8 +196,8 @@ public class LargeSorter extends Configured implements Tool {
         context.getCounter(Counters.BYTES_WRITTEN).increment(keyLength + valueLength);
         context.getCounter(Counters.RECORDS_WRITTEN).increment(1);
         if (++itemCount % 200 == 0) {
-          context.setStatus("wrote record " + itemCount + ". " + 
-                             numBytesToWrite + " bytes left.");
+          context.setStatus("wrote record " + itemCount + ". " +
+              numBytesToWrite + " bytes left.");
         }
       }
       context.setStatus("done with " + itemCount + " records.");
@@ -204,7 +208,7 @@ public class LargeSorter extends Configured implements Tool {
       WritableComparable, Writable> {
     @Override
     public void reduce(BytesWritable key, Iterable<BytesWritable> values,
-        Context context) throws IOException, InterruptedException {
+                       Context context) throws IOException, InterruptedException {
       // Do nothing
     }
   }
@@ -239,7 +243,7 @@ public class LargeSorter extends Configured implements Tool {
     job.setOutputKeyClass(BytesWritable.class);
     job.setOutputValueClass(BytesWritable.class);
     job.setInputFormatClass(RandomInputFormat.class);
-    job.setMapperClass(RandomMapper.class);        
+    job.setMapperClass(RandomMapper.class);
     job.setReducerClass(Discarder.class);
     job.setOutputFormatClass(SequenceFileOutputFormat.class);
     job.setNumReduceTasks(conf.getInt(NUM_REDUCE_TASKS, 1));
@@ -254,13 +258,13 @@ public class LargeSorter extends Configured implements Tool {
     }
     Date endTime = new Date();
     System.out.println("Job ended: " + endTime);
-    System.out.println("The job took " + 
-                       (endTime.getTime() - startTime.getTime()) /1000 + 
-                       " seconds.");
-    
+    System.out.println("The job took " +
+        (endTime.getTime() - startTime.getTime()) / 1000 +
+        " seconds.");
+
     return ret;
   }
-  
+
   public static void main(String[] args) throws Exception {
     int res = ToolRunner.run(new Configuration(), new LargeSorter(), args);
     System.exit(res);

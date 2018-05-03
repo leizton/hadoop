@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,10 +18,6 @@
 
 package org.apache.hadoop.mapred.lib.aggregate;
 
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.Map.Entry;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.io.Text;
@@ -30,14 +26,18 @@ import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reporter;
 
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.Map.Entry;
+
 /**
  * This class implements the generic mapper of Aggregate.
  */
 @InterfaceAudience.Public
 @InterfaceStability.Stable
 public class ValueAggregatorMapper<K1 extends WritableComparable,
-                                   V1 extends Writable>
-  extends ValueAggregatorJobBase<K1, V1> {
+    V1 extends Writable>
+    extends ValueAggregatorJobBase<K1, V1> {
 
   /**
    *  the map function. It iterates through the value aggregator descriptor 
@@ -50,7 +50,7 @@ public class ValueAggregatorMapper<K1 extends WritableComparable,
     while (iter.hasNext()) {
       ValueAggregatorDescriptor ad = (ValueAggregatorDescriptor) iter.next();
       Iterator<Entry<Text, Text>> ens =
-        ad.generateKeyValPairs(key, value).iterator();
+          ad.generateKeyValPairs(key, value).iterator();
       while (ens.hasNext()) {
         Entry<Text, Text> en = ens.next();
         output.collect(en.getKey(), en.getValue());

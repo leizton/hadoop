@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,35 +18,11 @@
 
 package org.apache.hadoop.mapred;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicLong;
-
+import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.fs.FileContext;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.FileUtil;
-import org.apache.hadoop.fs.LocalDirAllocator;
-import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.mapreduce.MRConfig;
 import org.apache.hadoop.mapreduce.MRJobConfig;
 import org.apache.hadoop.mapreduce.filecache.DistributedCache;
@@ -58,8 +34,18 @@ import org.apache.hadoop.yarn.api.records.LocalResourceType;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.FSDownload;
 
-import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * A helper class for managing the distributed cache for {@link LocalJobRunner}.
@@ -67,16 +53,16 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 @SuppressWarnings("deprecation")
 class LocalDistributedCacheManager {
   public static final Log LOG =
-    LogFactory.getLog(LocalDistributedCacheManager.class);
-  
+      LogFactory.getLog(LocalDistributedCacheManager.class);
+
   private List<String> localArchives = new ArrayList<String>();
   private List<String> localFiles = new ArrayList<String>();
   private List<String> localClasspaths = new ArrayList<String>();
-  
+
   private List<File> symlinksCreated = new ArrayList<File>();
-  
+
   private boolean setupCalled = false;
-  
+
   /**
    * Set up the distributed cache by localizing the resources, and updating
    * the configuration with references to the localized resources.
@@ -85,16 +71,16 @@ class LocalDistributedCacheManager {
    */
   public void setup(JobConf conf) throws IOException {
     File workDir = new File(System.getProperty("user.dir"));
-    
+
     // Generate YARN local resources objects corresponding to the distributed
     // cache configuration
-    Map<String, LocalResource> localResources = 
-      new LinkedHashMap<String, LocalResource>();
+    Map<String, LocalResource> localResources =
+        new LinkedHashMap<String, LocalResource>();
     MRApps.setupDistributedCache(conf, localResources);
     // Generating unique numbers for FSDownload.
     AtomicLong uniqueNumberGenerator =
         new AtomicLong(System.currentTimeMillis());
-    
+
     // Find which resources are to be put on the local classpath
     Map<String, Path> classpaths = new HashMap<String, Path>();
     Path[] archiveClassPaths = DistributedCache.getArchiveClassPaths(conf);
@@ -115,18 +101,18 @@ class LocalDistributedCacheManager {
         classpaths.put(p.toUri().getPath().toString(), p);
       }
     }
-    
+
     // Localize the resources
     LocalDirAllocator localDirAllocator =
-      new LocalDirAllocator(MRConfig.LOCAL_DIR);
+        new LocalDirAllocator(MRConfig.LOCAL_DIR);
     FileContext localFSFileContext = FileContext.getLocalFSFileContext();
     UserGroupInformation ugi = UserGroupInformation.getCurrentUser();
-    
+
     ExecutorService exec = null;
     try {
       ThreadFactory tf = new ThreadFactoryBuilder()
-      .setNameFormat("LocalDistributedCacheManager Downloader #%d")
-      .build();
+          .setNameFormat("LocalDistributedCacheManager Downloader #%d")
+          .build();
       exec = Executors.newCachedThreadPool(tf);
       Path destPath = localDirAllocator.getLocalPathForWrite(".", conf);
       Map<LocalResource, Future<Path>> resourcesToPaths = Maps.newHashMap();
@@ -152,7 +138,7 @@ class LocalDistributedCacheManager {
         String link = entry.getKey();
         String target = new File(path.toUri()).getPath();
         symlink(workDir, target, link);
-        
+
         if (resource.getType() == LocalResourceType.ARCHIVE) {
           localArchives.add(pathString);
         } else if (resource.getType() == LocalResourceType.FILE) {
@@ -160,7 +146,7 @@ class LocalDistributedCacheManager {
         } else if (resource.getType() == LocalResourceType.PATTERN) {
           //PATTERN is not currently used in local mode
           throw new IllegalArgumentException("Resource type PATTERN is not " +
-          		"implemented yet. " + resource.getResource());
+              "implemented yet. " + resource.getResource());
         }
         Path resourcePath;
         try {
@@ -178,7 +164,7 @@ class LocalDistributedCacheManager {
       if (exec != null) {
         exec.shutdown();
       }
-    }    
+    }
     // Update the configuration object with localized data.
     if (!localArchives.isEmpty()) {
       conf.set(MRJobConfig.CACHE_LOCALARCHIVES, StringUtils
@@ -192,7 +178,7 @@ class LocalDistributedCacheManager {
     }
     setupCalled = true;
   }
-  
+
   /**
    * Utility method for creating a symlink and warning on errors.
    *
@@ -214,11 +200,11 @@ class LocalDistributedCacheManager {
       }
     }
   }
-  
-  /** 
+
+  /**
    * Are the resources that should be added to the classpath? 
    * Should be called after setup().
-   * 
+   *
    */
   public boolean hasLocalClasspaths() {
     if (!setupCalled) {
@@ -227,7 +213,7 @@ class LocalDistributedCacheManager {
     }
     return !localClasspaths.isEmpty();
   }
-  
+
   /**
    * Creates a class loader that includes the designated
    * files and archives.

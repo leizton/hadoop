@@ -6,25 +6,17 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-package org.apache.hadoop.mapreduce.lib.input;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.security.DigestException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
+package org.apache.hadoop.mapreduce.lib.input;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -40,6 +32,14 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.util.ReflectionUtils;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.security.DigestException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+
 /**
  * A class that allows a map/red job to work on a sample of sequence files.
  * The sample is decided by the filter class set by the job.
@@ -49,31 +49,31 @@ import org.apache.hadoop.util.ReflectionUtils;
 public class SequenceFileInputFilter<K, V>
     extends SequenceFileInputFormat<K, V> {
   public static final Log LOG = LogFactory.getLog(FileInputFormat.class);
-  
-  final public static String FILTER_CLASS = 
-    "mapreduce.input.sequencefileinputfilter.class";
-  final public static String FILTER_FREQUENCY = 
-    "mapreduce.input.sequencefileinputfilter.frequency";
-  final public static String FILTER_REGEX = 
-    "mapreduce.input.sequencefileinputfilter.regex";
-    
+
+  final public static String FILTER_CLASS =
+      "mapreduce.input.sequencefileinputfilter.class";
+  final public static String FILTER_FREQUENCY =
+      "mapreduce.input.sequencefileinputfilter.frequency";
+  final public static String FILTER_REGEX =
+      "mapreduce.input.sequencefileinputfilter.regex";
+
   public SequenceFileInputFilter() {
   }
-    
+
   /** Create a record reader for the given split
    * @param split file split
    * @param context the task-attempt context
    * @return RecordReader
    */
   public RecordReader<K, V> createRecordReader(InputSplit split,
-      TaskAttemptContext context) throws IOException {
+                                               TaskAttemptContext context) throws IOException {
     context.setStatus(split.toString());
     return new FilterRecordReader<K, V>(context.getConfiguration());
   }
 
 
   /** set the filter class
-   * 
+   *
    * @param job The job
    * @param filterClass filter class
    */
@@ -81,7 +81,7 @@ public class SequenceFileInputFilter<K, V>
     job.getConfiguration().set(FILTER_CLASS, filterClass.getName());
   }
 
-         
+
   /**
    * filter interface
    */
@@ -93,22 +93,23 @@ public class SequenceFileInputFilter<K, V>
      */
     public abstract boolean accept(Object key);
   }
-    
+
   /**
    * base class for Filters
    */
   public static abstract class FilterBase implements Filter {
     Configuration conf;
-        
+
     public Configuration getConf() {
       return conf;
     }
   }
-    
+
   /** Records filter by matching key to regex
    */
   public static class RegexFilter extends FilterBase {
     private Pattern p;
+
     /** Define the filtering regex and stores it in conf
      * @param conf where the regex is set
      * @param regex regex used as a filter
@@ -118,13 +119,14 @@ public class SequenceFileInputFilter<K, V>
       try {
         Pattern.compile(regex);
       } catch (PatternSyntaxException e) {
-        throw new IllegalArgumentException("Invalid pattern: "+regex);
+        throw new IllegalArgumentException("Invalid pattern: " + regex);
       }
       conf.set(FILTER_REGEX, regex);
     }
-        
-    public RegexFilter() { }
-        
+
+    public RegexFilter() {
+    }
+
     /** configure the Filter by checking the configuration
      */
     public void setConf(Configuration conf) {
@@ -161,21 +163,22 @@ public class SequenceFileInputFilter<K, V>
     public static void setFrequency(Configuration conf, int frequency) {
       if (frequency <= 0)
         throw new IllegalArgumentException(
-          "Negative " + FILTER_FREQUENCY + ": " + frequency);
+            "Negative " + FILTER_FREQUENCY + ": " + frequency);
       conf.setInt(FILTER_FREQUENCY, frequency);
     }
-        
-    public PercentFilter() { }
-        
+
+    public PercentFilter() {
+    }
+
     /** configure the filter by checking the configuration
-     * 
+     *
      * @param conf configuration
      */
     public void setConf(Configuration conf) {
       this.frequency = conf.getInt(FILTER_FREQUENCY, 10);
       if (this.frequency <= 0) {
         throw new RuntimeException(
-          "Negative "+FILTER_FREQUENCY + ": " + this.frequency);
+            "Negative " + FILTER_FREQUENCY + ": " + this.frequency);
       }
       this.conf = conf;
     }
@@ -203,8 +206,8 @@ public class SequenceFileInputFilter<K, V>
     private int frequency;
     private static final MessageDigest DIGESTER;
     public static final int MD5_LEN = 16;
-    private byte [] digest = new byte[MD5_LEN];
-        
+    private byte[] digest = new byte[MD5_LEN];
+
     static {
       try {
         DIGESTER = MessageDigest.getInstance("MD5");
@@ -215,28 +218,29 @@ public class SequenceFileInputFilter<K, V>
 
 
     /** set the filtering frequency in configuration
-     * 
+     *
      * @param conf configuration
      * @param frequency filtering frequency
      */
     public static void setFrequency(Configuration conf, int frequency) {
       if (frequency <= 0)
         throw new IllegalArgumentException(
-          "Negative " + FILTER_FREQUENCY + ": " + frequency);
+            "Negative " + FILTER_FREQUENCY + ": " + frequency);
       conf.setInt(FILTER_FREQUENCY, frequency);
     }
-        
-    public MD5Filter() { }
-        
+
+    public MD5Filter() {
+    }
+
     /** configure the filter according to configuration
-     * 
+     *
      * @param conf configuration
      */
     public void setConf(Configuration conf) {
       this.frequency = conf.getInt(FILTER_FREQUENCY, 10);
       if (this.frequency <= 0) {
         throw new RuntimeException(
-          "Negative " + FILTER_FREQUENCY + ": " + this.frequency);
+            "Negative " + FILTER_FREQUENCY + ": " + this.frequency);
       }
       this.conf = conf;
     }
@@ -249,9 +253,9 @@ public class SequenceFileInputFilter<K, V>
       try {
         long hashcode;
         if (key instanceof Text) {
-          hashcode = MD5Hashcode((Text)key);
+          hashcode = MD5Hashcode((Text) key);
         } else if (key instanceof BytesWritable) {
-          hashcode = MD5Hashcode((BytesWritable)key);
+          hashcode = MD5Hashcode((BytesWritable) key);
         } else {
           ByteBuffer bb;
           bb = Text.encode(key.toString());
@@ -259,48 +263,48 @@ public class SequenceFileInputFilter<K, V>
         }
         if (hashcode / frequency * frequency == hashcode)
           return true;
-      } catch(Exception e) {
+      } catch (Exception e) {
         LOG.warn(e);
         throw new RuntimeException(e);
       }
       return false;
     }
-        
+
     private long MD5Hashcode(Text key) throws DigestException {
       return MD5Hashcode(key.getBytes(), 0, key.getLength());
     }
-        
+
     private long MD5Hashcode(BytesWritable key) throws DigestException {
       return MD5Hashcode(key.getBytes(), 0, key.getLength());
     }
-    
-    synchronized private long MD5Hashcode(byte[] bytes, 
-        int start, int length) throws DigestException {
+
+    synchronized private long MD5Hashcode(byte[] bytes,
+                                          int start, int length) throws DigestException {
       DIGESTER.update(bytes, 0, length);
       DIGESTER.digest(digest, 0, MD5_LEN);
-      long hashcode=0;
+      long hashcode = 0;
       for (int i = 0; i < 8; i++)
         hashcode |= ((digest[i] & 0xffL) << (8 * (7 - i)));
       return hashcode;
     }
   }
-    
+
   private static class FilterRecordReader<K, V>
       extends SequenceFileRecordReader<K, V> {
-    
+
     private Filter filter;
     private K key;
     private V value;
-        
+
     public FilterRecordReader(Configuration conf)
         throws IOException {
       super();
       // instantiate filter
-      filter = (Filter)ReflectionUtils.newInstance(
-        conf.getClass(FILTER_CLASS, PercentFilter.class), conf);
+      filter = (Filter) ReflectionUtils.newInstance(
+          conf.getClass(FILTER_CLASS, PercentFilter.class), conf);
     }
-    
-    public synchronized boolean nextKeyValue() 
+
+    public synchronized boolean nextKeyValue()
         throws IOException, InterruptedException {
       while (super.nextKeyValue()) {
         key = super.getCurrentKey();
@@ -311,12 +315,12 @@ public class SequenceFileInputFilter<K, V>
       }
       return false;
     }
-    
+
     @Override
     public K getCurrentKey() {
       return key;
     }
-    
+
     @Override
     public V getCurrentValue() {
       return value;

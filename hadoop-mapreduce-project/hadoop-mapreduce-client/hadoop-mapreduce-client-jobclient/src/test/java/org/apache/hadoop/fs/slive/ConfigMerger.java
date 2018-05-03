@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,16 +18,16 @@
 
 package org.apache.hadoop.fs.slive;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.slive.ArgumentParser.ParsedOutput;
 import org.apache.hadoop.fs.slive.Constants.Distribution;
 import org.apache.hadoop.fs.slive.Constants.OperationType;
 import org.apache.hadoop.util.StringUtils;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Class which merges options given from a config file and the command line and
@@ -55,7 +55,7 @@ class ConfigMerger {
    * Merges the given command line parsed output with the given configuration
    * object and returns the new configuration object with the correct options
    * overwritten
-   * 
+   *
    * @param opts
    *          the parsed command line option output
    * @param base
@@ -71,7 +71,7 @@ class ConfigMerger {
 
   /**
    * Gets the base set of operations to use
-   * 
+   *
    * @return Map
    */
   private Map<OperationType, OperationData> getBaseOperations() {
@@ -88,7 +88,7 @@ class ConfigMerger {
   /**
    * Handles the specific task of merging operations from the command line or
    * extractor object into the base configuration provided
-   * 
+   *
    * @param opts
    *          the parsed command line option output
    * @param base
@@ -101,7 +101,7 @@ class ConfigMerger {
    *           when verification fails
    */
   private Configuration handleOperations(ParsedOutput opts, Configuration base,
-      ConfigExtractor extractor) throws ConfigException {
+                                         ConfigExtractor extractor) throws ConfigException {
     // get the base set to start off with
     Map<OperationType, OperationData> operations = getBaseOperations();
     // merge with what is coming from config
@@ -189,7 +189,7 @@ class ConfigMerger {
    * Handles merging all options and verifying from the given command line
    * output and the given base configuration and returns the merged
    * configuration
-   * 
+   *
    * @param opts
    *          the parsed command line option output
    * @param base

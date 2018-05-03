@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,23 +17,11 @@
  */
 package org.apache.hadoop.mapred;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
+import com.google.common.collect.Lists;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.BlockLocation;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.LocatedFileStatus;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.PathFilter;
-import org.apache.hadoop.fs.RawLocalFileSystem;
-import org.apache.hadoop.fs.RemoteIterator;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.junit.After;
 import org.junit.Assert;
@@ -43,31 +31,35 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.google.common.collect.Lists;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 @RunWith(value = Parameterized.class)
 public class TestFileInputFormat {
-  
+
   private static final Log LOG = LogFactory.getLog(TestFileInputFormat.class);
-  
+
   private static String testTmpDir = System.getProperty("test.build.data", "/tmp");
   private static final Path TEST_ROOT_DIR = new Path(testTmpDir, "TestFIF");
-  
+
   private static FileSystem localFs;
-  
+
   private int numThreads;
-  
+
   public TestFileInputFormat(int numThreads) {
     this.numThreads = numThreads;
     LOG.info("Running with numThreads: " + numThreads);
   }
-  
+
   @Parameters
   public static Collection<Object[]> data() {
-    Object[][] data = new Object[][] { { 1 }, { 5 }};
+    Object[][] data = new Object[][]{{1}, {5}};
     return Arrays.asList(data);
   }
-  
+
   @Before
   public void setup() throws IOException {
     LOG.info("Using Test Dir: " + TEST_ROOT_DIR);
@@ -75,12 +67,12 @@ public class TestFileInputFormat {
     localFs.delete(TEST_ROOT_DIR, true);
     localFs.mkdirs(TEST_ROOT_DIR);
   }
-  
+
   @After
   public void cleanup() throws IOException {
     localFs.delete(TEST_ROOT_DIR, true);
   }
-  
+
   @Test
   public void testListLocatedStatus() throws Exception {
     Configuration conf = getConfiguration();
@@ -101,7 +93,7 @@ public class TestFileInputFormat {
         1, mockFs.numListLocatedStatusCalls);
     FileSystem.closeAll();
   }
-  
+
   @Test
   public void testSplitLocationInfo() throws Exception {
     Configuration conf = getConfiguration();
@@ -124,7 +116,7 @@ public class TestFileInputFormat {
     Assert.assertTrue(otherhostInfo.isOnDisk());
     Assert.assertFalse(otherhostInfo.isInMemory());
   }
-  
+
   @Test
   public void testListStatusSimple() throws IOException {
     Configuration conf = new Configuration();
@@ -216,15 +208,15 @@ public class TestFileInputFormat {
     public FileStatus[] listStatus(Path f) throws FileNotFoundException,
         IOException {
       if (f.toString().equals("test:/a1")) {
-        return new FileStatus[] {
+        return new FileStatus[]{
             new FileStatus(0, true, 1, 150, 150, new Path("test:/a1/a2")),
-            new FileStatus(10, false, 1, 150, 150, new Path("test:/a1/file1")) };
+            new FileStatus(10, false, 1, 150, 150, new Path("test:/a1/file1"))};
       } else if (f.toString().equals("test:/a1/a2")) {
-        return new FileStatus[] {
+        return new FileStatus[]{
             new FileStatus(10, false, 1, 150, 150,
                 new Path("test:/a1/a2/file2")),
             new FileStatus(10, false, 1, 151, 150,
-                new Path("test:/a1/a2/file3")) };
+                new Path("test:/a1/a2/file3"))};
       }
       return new FileStatus[0];
     }
@@ -232,8 +224,8 @@ public class TestFileInputFormat {
     @Override
     public FileStatus[] globStatus(Path pathPattern, PathFilter filter)
         throws IOException {
-      return new FileStatus[] { new FileStatus(10, true, 1, 150, 150,
-          pathPattern) };
+      return new FileStatus[]{new FileStatus(10, true, 1, 150, 150,
+          pathPattern)};
     }
 
     @Override
@@ -245,15 +237,15 @@ public class TestFileInputFormat {
     @Override
     public BlockLocation[] getFileBlockLocations(Path p, long start, long len)
         throws IOException {
-      return new BlockLocation[] {
-          new BlockLocation(new String[] { "localhost:50010", "otherhost:50010" },
-              new String[] { "localhost", "otherhost" }, new String[] { "localhost" },
-              new String[0], 0, len, false) };
+      return new BlockLocation[]{
+          new BlockLocation(new String[]{"localhost:50010", "otherhost:50010"},
+              new String[]{"localhost", "otherhost"}, new String[]{"localhost"},
+              new String[0], 0, len, false)};
     }
 
     @Override
     protected RemoteIterator<LocatedFileStatus> listLocatedStatus(Path f,
-        PathFilter filter) throws FileNotFoundException, IOException {
+                                                                  PathFilter filter) throws FileNotFoundException, IOException {
       ++numListLocatedStatusCalls;
       return super.listLocatedStatus(f, filter);
     }

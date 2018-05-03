@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,8 +18,6 @@
 
 package org.apache.hadoop.mapreduce.lib.input;
 
-import java.io.IOException;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
@@ -27,6 +25,8 @@ import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.MRJobConfig;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
+
+import java.io.IOException;
 
 /**
  * A wrapper class for a record reader that handles a single file split. It
@@ -44,24 +44,24 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
  */
 @InterfaceAudience.Public
 @InterfaceStability.Stable
-public abstract class CombineFileRecordReaderWrapper<K,V>
-  extends RecordReader<K,V> {
+public abstract class CombineFileRecordReaderWrapper<K, V>
+    extends RecordReader<K, V> {
   private final FileSplit fileSplit;
-  private final RecordReader<K,V> delegate;
+  private final RecordReader<K, V> delegate;
 
-  protected CombineFileRecordReaderWrapper(FileInputFormat<K,V> inputFormat,
-    CombineFileSplit split, TaskAttemptContext context, Integer idx)
-    throws IOException, InterruptedException {
+  protected CombineFileRecordReaderWrapper(FileInputFormat<K, V> inputFormat,
+                                           CombineFileSplit split, TaskAttemptContext context, Integer idx)
+      throws IOException, InterruptedException {
     fileSplit = new FileSplit(split.getPath(idx),
-      split.getOffset(idx),
-      split.getLength(idx),
-      split.getLocations());
+        split.getOffset(idx),
+        split.getLength(idx),
+        split.getLocations());
 
     delegate = inputFormat.createRecordReader(fileSplit, context);
   }
 
   public void initialize(InputSplit split, TaskAttemptContext context)
-    throws IOException, InterruptedException {
+      throws IOException, InterruptedException {
     // it really should be the same file split at the time the wrapper instance
     // was created
     assert fileSplitIsValid(context);

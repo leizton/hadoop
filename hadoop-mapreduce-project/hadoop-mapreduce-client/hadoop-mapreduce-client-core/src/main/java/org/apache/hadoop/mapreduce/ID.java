@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,19 +18,19 @@
 
 package org.apache.hadoop.mapreduce;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.io.WritableComparable;
+
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 
 /**
  * A general identifier, which internally stores the id
  * as an integer. This is the super class of {@link JobID}, 
  * {@link TaskID} and {@link TaskAttemptID}.
- * 
+ *
  * @see JobID
  * @see TaskID
  * @see TaskAttemptID
@@ -68,13 +68,12 @@ public abstract class ID implements WritableComparable<ID> {
   public boolean equals(Object o) {
     if (this == o)
       return true;
-    if(o == null)
+    if (o == null)
       return false;
     if (o.getClass() == this.getClass()) {
       ID that = (ID) o;
       return this.id == that.id;
-    }
-    else
+    } else
       return false;
   }
 
@@ -90,5 +89,5 @@ public abstract class ID implements WritableComparable<ID> {
   public void write(DataOutput out) throws IOException {
     out.writeInt(id);
   }
-  
+
 }

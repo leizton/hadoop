@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,10 +17,6 @@
  */
 
 package org.apache.hadoop.mapred.pipes;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.apache.hadoop.io.FloatWritable;
 import org.apache.hadoop.io.NullWritable;
@@ -31,32 +27,37 @@ import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.RecordReader;
 import org.apache.hadoop.mapred.Reporter;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Handles the upward (C++ to Java) messages from the application.
  */
 class OutputHandler<K extends WritableComparable,
-                    V extends Writable>
-  implements UpwardProtocol<K, V> {
-  
+    V extends Writable>
+    implements UpwardProtocol<K, V> {
+
   private Reporter reporter;
   private OutputCollector<K, V> collector;
   private float progressValue = 0.0f;
   private boolean done = false;
-  
+
   private Throwable exception = null;
-  RecordReader<FloatWritable,NullWritable> recordReader = null;
-  private Map<Integer, Counters.Counter> registeredCounters = 
-    new HashMap<Integer, Counters.Counter>();
+  RecordReader<FloatWritable, NullWritable> recordReader = null;
+  private Map<Integer, Counters.Counter> registeredCounters =
+      new HashMap<Integer, Counters.Counter>();
 
   private String expectedDigest = null;
   private boolean digestReceived = false;
+
   /**
    * Create a handler that will handle any records output from the application.
    * @param collector the "real" collector that takes the output
    * @param reporter the reporter for reporting progress
    */
-  public OutputHandler(OutputCollector<K, V> collector, Reporter reporter, 
-                       RecordReader<FloatWritable,NullWritable> recordReader,
+  public OutputHandler(OutputCollector<K, V> collector, Reporter reporter,
+                       RecordReader<FloatWritable, NullWritable> recordReader,
                        String expectedDigest) {
     this.reporter = reporter;
     this.collector = collector;
@@ -74,7 +75,7 @@ class OutputHandler<K extends WritableComparable,
   /**
    * The task output a record with a partition number attached.
    */
-  public void partitionedOutput(int reduce, K key, 
+  public void partitionedOutput(int reduce, K key,
                                 V value) throws IOException {
     PipesPartitioner.setNextPartition(reduce);
     collector.collect(key, value);
@@ -89,13 +90,14 @@ class OutputHandler<K extends WritableComparable,
 
   private FloatWritable progressKey = new FloatWritable(0.0f);
   private NullWritable nullValue = NullWritable.get();
+
   /**
    * Update the amount done and call progress on the reporter.
    */
   public void progress(float progress) throws IOException {
     progressValue = progress;
     reporter.progress();
-    
+
     if (recordReader != null) {
       progressKey.set(progress);
       recordReader.next(progressKey, nullValue);
@@ -158,7 +160,7 @@ class OutputHandler<K extends WritableComparable,
       throw new IOException("Invalid counter with id: " + id);
     }
   }
-  
+
   public synchronized boolean authenticate(String digest) throws IOException {
     boolean success = true;
     if (!expectedDigest.equals(digest)) {

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,37 +18,24 @@
 
 package org.apache.hadoop.examples.terasort;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.*;
+import org.apache.hadoop.mapreduce.*;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.util.PureJavaCrc32;
+import org.apache.hadoop.util.Tool;
+import org.apache.hadoop.util.ToolRunner;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.Checksum;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.conf.Configured;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.Writable;
-import org.apache.hadoop.io.WritableUtils;
-import org.apache.hadoop.mapreduce.Cluster;
-import org.apache.hadoop.mapreduce.Counter;
-import org.apache.hadoop.mapreduce.InputFormat;
-import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.JobContext;
-import org.apache.hadoop.mapreduce.MRJobConfig;
-import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.RecordReader;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.util.PureJavaCrc32;
-import org.apache.hadoop.util.Tool;
-import org.apache.hadoop.util.ToolRunner;
 
 /**
  * Generate the official GraySort input data set.
@@ -71,12 +58,13 @@ public class TeraGen extends Configured implements Tool {
   public static enum Counters {CHECKSUM}
 
   public static final String NUM_ROWS = "mapreduce.terasort.num-rows";
+
   /**
    * An input format that assigns ranges of longs to each mapper.
    */
-  static class RangeInputFormat 
+  static class RangeInputFormat
       extends InputFormat<LongWritable, NullWritable> {
-    
+
     /**
      * An input split consisting of a range on numbers.
      */
@@ -84,7 +72,8 @@ public class TeraGen extends Configured implements Tool {
       long firstRow;
       long rowCount;
 
-      public RangeInputSplit() { }
+      public RangeInputSplit() {
+      }
 
       public RangeInputSplit(long offset, long length) {
         firstRow = offset;
@@ -109,11 +98,11 @@ public class TeraGen extends Configured implements Tool {
         WritableUtils.writeVLong(out, rowCount);
       }
     }
-    
+
     /**
      * A record reader that will generate a range of numbers.
      */
-    static class RangeRecordReader 
+    static class RangeRecordReader
         extends RecordReader<LongWritable, NullWritable> {
       long startRow;
       long finishedRows;
@@ -122,12 +111,12 @@ public class TeraGen extends Configured implements Tool {
 
       public RangeRecordReader() {
       }
-      
-      public void initialize(InputSplit split, TaskAttemptContext context) 
+
+      public void initialize(InputSplit split, TaskAttemptContext context)
           throws IOException, InterruptedException {
-        startRow = ((RangeInputSplit)split).firstRow;
+        startRow = ((RangeInputSplit) split).firstRow;
         finishedRows = 0;
-        totalRows = ((RangeInputSplit)split).rowCount;
+        totalRows = ((RangeInputSplit) split).rowCount;
       }
 
       public void close() throws IOException {
@@ -158,11 +147,11 @@ public class TeraGen extends Configured implements Tool {
           return false;
         }
       }
-      
+
     }
 
-    public RecordReader<LongWritable, NullWritable> 
-        createRecordReader(InputSplit split, TaskAttemptContext context) 
+    public RecordReader<LongWritable, NullWritable>
+    createRecordReader(InputSplit split, TaskAttemptContext context)
         throws IOException {
       return new RangeRecordReader();
     }
@@ -177,9 +166,9 @@ public class TeraGen extends Configured implements Tool {
       LOG.info("Generating " + totalRows + " using " + numSplits);
       List<InputSplit> splits = new ArrayList<InputSplit>();
       long currentRow = 0;
-      for(int split = 0; split < numSplits; ++split) {
-        long goal = 
-          (long) Math.ceil(totalRows * (double)(split + 1) / numSplits);
+      for (int split = 0; split < numSplits; ++split) {
+        long goal =
+            (long) Math.ceil(totalRows * (double) (split + 1) / numSplits);
         splits.add(new RangeInputSplit(currentRow, goal - currentRow));
         currentRow = goal;
       }
@@ -187,11 +176,11 @@ public class TeraGen extends Configured implements Tool {
     }
 
   }
-  
+
   static long getNumberOfRows(JobContext job) {
     return job.getConfiguration().getLong(NUM_ROWS, 0);
   }
-  
+
   static void setNumberOfRows(Job job, long numRows) {
     job.getConfiguration().setLong(NUM_ROWS, numRows);
   }
@@ -200,7 +189,7 @@ public class TeraGen extends Configured implements Tool {
    * The Mapper class that given a row number, will generate the appropriate 
    * output line.
    */
-  public static class SortGenMapper 
+  public static class SortGenMapper
       extends Mapper<LongWritable, NullWritable, Text, Text> {
 
     private Text key = new Text();
@@ -212,11 +201,11 @@ public class TeraGen extends Configured implements Tool {
     private Unsigned16 total = new Unsigned16();
     private static final Unsigned16 ONE = new Unsigned16(1);
     private byte[] buffer = new byte[TeraInputFormat.KEY_LENGTH +
-                                     TeraInputFormat.VALUE_LENGTH];
+        TeraInputFormat.VALUE_LENGTH];
     private Counter checksumCounter;
 
     public void map(LongWritable row, NullWritable ignored,
-        Context context) throws IOException, InterruptedException {
+                    Context context) throws IOException, InterruptedException {
       if (rand == null) {
         rowId = new Unsigned16(row.get());
         rand = Random16.skipAhead(rowId);
@@ -225,12 +214,12 @@ public class TeraGen extends Configured implements Tool {
       Random16.nextRand(rand);
       GenSort.generateRecord(buffer, rand, rowId);
       key.set(buffer, 0, TeraInputFormat.KEY_LENGTH);
-      value.set(buffer, TeraInputFormat.KEY_LENGTH, 
-                TeraInputFormat.VALUE_LENGTH);
+      value.set(buffer, TeraInputFormat.KEY_LENGTH,
+          TeraInputFormat.VALUE_LENGTH);
       context.write(key, value);
       crc32.reset();
-      crc32.update(buffer, 0, 
-                   TeraInputFormat.KEY_LENGTH + TeraInputFormat.VALUE_LENGTH);
+      crc32.update(buffer, 0,
+          TeraInputFormat.KEY_LENGTH + TeraInputFormat.VALUE_LENGTH);
       checksum.set(crc32.getValue());
       total.add(checksum);
       rowId.add(ONE);
@@ -257,30 +246,30 @@ public class TeraGen extends Configured implements Tool {
     char tail = str.charAt(str.length() - 1);
     long base = 1;
     switch (tail) {
-    case 't':
-      base *= 1000 * 1000 * 1000 * 1000;
-      break;
-    case 'b':
-      base *= 1000 * 1000 * 1000;
-      break;
-    case 'm':
-      base *= 1000 * 1000;
-      break;
-    case 'k':
-      base *= 1000;
-      break;
-    default:
+      case 't':
+        base *= 1000 * 1000 * 1000 * 1000;
+        break;
+      case 'b':
+        base *= 1000 * 1000 * 1000;
+        break;
+      case 'm':
+        base *= 1000 * 1000;
+        break;
+      case 'k':
+        base *= 1000;
+        break;
+      default:
     }
     if (base != 1) {
       str = str.substring(0, str.length() - 1);
     }
     return Long.parseLong(str) * base;
   }
-  
+
   /**
    * @param args the cli arguments
    */
-  public int run(String[] args) 
+  public int run(String[] args)
       throws IOException, InterruptedException, ClassNotFoundException {
     Job job = Job.getInstance(getConf());
     if (args.length != 2) {
@@ -290,8 +279,8 @@ public class TeraGen extends Configured implements Tool {
     setNumberOfRows(job, parseHumanLong(args[0]));
     Path outputDir = new Path(args[1]);
     if (outputDir.getFileSystem(getConf()).exists(outputDir)) {
-      throw new IOException("Output directory " + outputDir + 
-                            " already exists.");
+      throw new IOException("Output directory " + outputDir +
+          " already exists.");
     }
     FileOutputFormat.setOutputPath(job, outputDir);
     job.setJobName("TeraGen");

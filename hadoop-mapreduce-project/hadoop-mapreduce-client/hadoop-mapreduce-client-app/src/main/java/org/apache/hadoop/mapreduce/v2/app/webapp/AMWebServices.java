@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,60 +18,36 @@
 
 package org.apache.hadoop.mapreduce.v2.app.webapp;
 
-import java.io.IOException;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
-
+import com.google.inject.Inject;
 import org.apache.hadoop.mapreduce.JobACL;
-import org.apache.hadoop.mapreduce.v2.api.records.AMInfo;
-import org.apache.hadoop.mapreduce.v2.api.records.JobId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskType;
+import org.apache.hadoop.mapreduce.v2.api.records.*;
 import org.apache.hadoop.mapreduce.v2.app.AppContext;
 import org.apache.hadoop.mapreduce.v2.app.job.Job;
 import org.apache.hadoop.mapreduce.v2.app.job.Task;
 import org.apache.hadoop.mapreduce.v2.app.job.TaskAttempt;
-import org.apache.hadoop.mapreduce.v2.app.webapp.dao.AppInfo;
-import org.apache.hadoop.mapreduce.v2.app.webapp.dao.AMAttemptInfo;
-import org.apache.hadoop.mapreduce.v2.app.webapp.dao.AMAttemptsInfo;
-import org.apache.hadoop.mapreduce.v2.app.webapp.dao.BlacklistedNodesInfo;
-import org.apache.hadoop.mapreduce.v2.app.webapp.dao.ConfInfo;
-import org.apache.hadoop.mapreduce.v2.app.webapp.dao.JobCounterInfo;
-import org.apache.hadoop.mapreduce.v2.app.webapp.dao.JobInfo;
-import org.apache.hadoop.mapreduce.v2.app.webapp.dao.JobTaskAttemptCounterInfo;
-import org.apache.hadoop.mapreduce.v2.app.webapp.dao.JobTaskCounterInfo;
-import org.apache.hadoop.mapreduce.v2.app.webapp.dao.JobsInfo;
-import org.apache.hadoop.mapreduce.v2.app.webapp.dao.ReduceTaskAttemptInfo;
-import org.apache.hadoop.mapreduce.v2.app.webapp.dao.TaskAttemptInfo;
-import org.apache.hadoop.mapreduce.v2.app.webapp.dao.TaskAttemptsInfo;
-import org.apache.hadoop.mapreduce.v2.app.webapp.dao.TaskInfo;
-import org.apache.hadoop.mapreduce.v2.app.webapp.dao.TasksInfo;
+import org.apache.hadoop.mapreduce.v2.app.webapp.dao.*;
 import org.apache.hadoop.mapreduce.v2.util.MRApps;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
 import org.apache.hadoop.yarn.webapp.BadRequestException;
 import org.apache.hadoop.yarn.webapp.NotFoundException;
 
-import com.google.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
+import java.io.IOException;
 
 @Path("/ws/v1/mapreduce")
 public class AMWebServices {
   private final AppContext appCtx;
   private final App app;
 
-  private @Context HttpServletResponse response;
-  
+  private @Context
+  HttpServletResponse response;
+
   @Inject
   public AMWebServices(final App app, final AppContext context) {
     this.appCtx = context;
@@ -98,7 +74,7 @@ public class AMWebServices {
   /**
    * convert a job id string to an actual job and handle all the error checking.
    */
- public static Job getJobFromJobIdString(String jid, AppContext appCtx) throws NotFoundException {
+  public static Job getJobFromJobIdString(String jid, AppContext appCtx) throws NotFoundException {
     JobId jobId;
     Job job;
     try {
@@ -145,7 +121,7 @@ public class AMWebServices {
       throw new NotFoundException(ne.getMessage());
     } catch (IllegalArgumentException e) {
       throw new NotFoundException(e.getMessage());
-    } 
+    }
     if (taskID == null) {
       throw new NotFoundException("taskid " + tid + " not found or invalid");
     }
@@ -205,22 +181,22 @@ public class AMWebServices {
   }
 
   @GET
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public AppInfo get() {
     return getAppInfo();
   }
 
   @GET
   @Path("/info")
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public AppInfo getAppInfo() {
     init();
     return new AppInfo(this.app, this.app.context);
   }
-  
+
   @GET
   @Path("/blacklistednodes")
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public BlacklistedNodesInfo getBlacklistedNodes() {
     init();
     return new BlacklistedNodesInfo(this.app.context);
@@ -228,7 +204,7 @@ public class AMWebServices {
 
   @GET
   @Path("/jobs")
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public JobsInfo getJobs(@Context HttpServletRequest hsr) {
     init();
     JobsInfo allJobs = new JobsInfo();
@@ -245,9 +221,9 @@ public class AMWebServices {
 
   @GET
   @Path("/jobs/{jobid}")
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public JobInfo getJob(@Context HttpServletRequest hsr,
-      @PathParam("jobid") String jid) {
+                        @PathParam("jobid") String jid) {
     init();
     Job job = getJobFromJobIdString(jid, appCtx);
     return new JobInfo(job, hasAccess(job, hsr));
@@ -255,14 +231,14 @@ public class AMWebServices {
 
   @GET
   @Path("/jobs/{jobid}/jobattempts")
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public AMAttemptsInfo getJobAttempts(@PathParam("jobid") String jid) {
     init();
     Job job = getJobFromJobIdString(jid, appCtx);
     AMAttemptsInfo amAttempts = new AMAttemptsInfo();
     for (AMInfo amInfo : job.getAMInfos()) {
       AMAttemptInfo attempt = new AMAttemptInfo(amInfo, MRApps.toString(
-            job.getID()), job.getUserName());
+          job.getID()), job.getUserName());
       amAttempts.add(attempt);
     }
     return amAttempts;
@@ -270,9 +246,9 @@ public class AMWebServices {
 
   @GET
   @Path("/jobs/{jobid}/counters")
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public JobCounterInfo getJobCounters(@Context HttpServletRequest hsr,
-      @PathParam("jobid") String jid) {
+                                       @PathParam("jobid") String jid) {
     init();
     Job job = getJobFromJobIdString(jid, appCtx);
     checkAccess(job, hsr);
@@ -281,9 +257,9 @@ public class AMWebServices {
 
   @GET
   @Path("/jobs/{jobid}/conf")
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public ConfInfo getJobConf(@Context HttpServletRequest hsr,
-      @PathParam("jobid") String jid) {
+                             @PathParam("jobid") String jid) {
 
     init();
     Job job = getJobFromJobIdString(jid, appCtx);
@@ -300,9 +276,9 @@ public class AMWebServices {
 
   @GET
   @Path("/jobs/{jobid}/tasks")
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public TasksInfo getJobTasks(@Context HttpServletRequest hsr,
-      @PathParam("jobid") String jid, @QueryParam("type") String type) {
+                               @PathParam("jobid") String jid, @QueryParam("type") String type) {
 
     init();
     Job job = getJobFromJobIdString(jid, appCtx);
@@ -327,9 +303,9 @@ public class AMWebServices {
 
   @GET
   @Path("/jobs/{jobid}/tasks/{taskid}")
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public TaskInfo getJobTask(@Context HttpServletRequest hsr,
-      @PathParam("jobid") String jid, @PathParam("taskid") String tid) {
+                             @PathParam("jobid") String jid, @PathParam("taskid") String tid) {
 
     init();
     Job job = getJobFromJobIdString(jid, appCtx);
@@ -340,7 +316,7 @@ public class AMWebServices {
 
   @GET
   @Path("/jobs/{jobid}/tasks/{taskid}/counters")
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public JobTaskCounterInfo getSingleTaskCounters(
       @Context HttpServletRequest hsr, @PathParam("jobid") String jid,
       @PathParam("taskid") String tid) {
@@ -354,9 +330,9 @@ public class AMWebServices {
 
   @GET
   @Path("/jobs/{jobid}/tasks/{taskid}/attempts")
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public TaskAttemptsInfo getJobTaskAttempts(@Context HttpServletRequest hsr,
-      @PathParam("jobid") String jid, @PathParam("taskid") String tid) {
+                                             @PathParam("jobid") String jid, @PathParam("taskid") String tid) {
 
     init();
     TaskAttemptsInfo attempts = new TaskAttemptsInfo();
@@ -378,10 +354,10 @@ public class AMWebServices {
 
   @GET
   @Path("/jobs/{jobid}/tasks/{taskid}/attempts/{attemptid}")
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public TaskAttemptInfo getJobTaskAttemptId(@Context HttpServletRequest hsr,
-      @PathParam("jobid") String jid, @PathParam("taskid") String tid,
-      @PathParam("attemptid") String attId) {
+                                             @PathParam("jobid") String jid, @PathParam("taskid") String tid,
+                                             @PathParam("attemptid") String attId) {
 
     init();
     Job job = getJobFromJobIdString(jid, appCtx);
@@ -397,7 +373,7 @@ public class AMWebServices {
 
   @GET
   @Path("/jobs/{jobid}/tasks/{taskid}/attempts/{attemptid}/counters")
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public JobTaskAttemptCounterInfo getJobTaskAttemptIdCounters(
       @Context HttpServletRequest hsr, @PathParam("jobid") String jid,
       @PathParam("taskid") String tid, @PathParam("attemptid") String attId) {

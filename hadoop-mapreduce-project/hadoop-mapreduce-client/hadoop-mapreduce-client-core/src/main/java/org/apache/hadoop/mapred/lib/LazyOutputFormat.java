@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,8 +17,6 @@
  */
 
 package org.apache.hadoop.mapred.lib;
-
-import java.io.IOException;
 
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
@@ -29,6 +27,8 @@ import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.util.Progressable;
 import org.apache.hadoop.util.ReflectionUtils;
+
+import java.io.IOException;
 
 /**
  * A Convenience class that creates output lazily. 
@@ -42,15 +42,15 @@ public class LazyOutputFormat<K, V> extends FilterOutputFormat<K, V> {
    * @param theClass the underlying class
    */
   @SuppressWarnings("unchecked")
-  public static void  setOutputFormatClass(JobConf job, 
-      Class<? extends OutputFormat> theClass) {
-      job.setOutputFormat(LazyOutputFormat.class);
-      job.setClass("mapreduce.output.lazyoutputformat.outputformat", theClass, OutputFormat.class);
+  public static void setOutputFormatClass(JobConf job,
+                                          Class<? extends OutputFormat> theClass) {
+    job.setOutputFormat(LazyOutputFormat.class);
+    job.setClass("mapreduce.output.lazyoutputformat.outputformat", theClass, OutputFormat.class);
   }
 
   @Override
-  public RecordWriter<K, V> getRecordWriter(FileSystem ignored, JobConf job, 
-      String name, Progressable progress) throws IOException {
+  public RecordWriter<K, V> getRecordWriter(FileSystem ignored, JobConf job,
+                                            String name, Progressable progress) throws IOException {
     if (baseOut == null) {
       getBaseOutputFormat(job);
     }
@@ -58,8 +58,8 @@ public class LazyOutputFormat<K, V> extends FilterOutputFormat<K, V> {
   }
 
   @Override
-  public void checkOutputSpecs(FileSystem ignored, JobConf job) 
-  throws IOException {
+  public void checkOutputSpecs(FileSystem ignored, JobConf job)
+      throws IOException {
     if (baseOut == null) {
       getBaseOutputFormat(job);
     }
@@ -69,19 +69,19 @@ public class LazyOutputFormat<K, V> extends FilterOutputFormat<K, V> {
   @SuppressWarnings("unchecked")
   private void getBaseOutputFormat(JobConf job) throws IOException {
     baseOut = ReflectionUtils.newInstance(
-        job.getClass("mapreduce.output.lazyoutputformat.outputformat", null, OutputFormat.class), 
-        job); 
+        job.getClass("mapreduce.output.lazyoutputformat.outputformat", null, OutputFormat.class),
+        job);
     if (baseOut == null) {
       throw new IOException("Ouput format not set for LazyOutputFormat");
     }
   }
-  
+
   /**
    * <code>LazyRecordWriter</code> is a convenience 
    * class that works with LazyOutputFormat.
    */
 
-  private static class LazyRecordWriter<K,V> extends FilterRecordWriter<K,V> {
+  private static class LazyRecordWriter<K, V> extends FilterRecordWriter<K, V> {
 
     final OutputFormat of;
     final String name;
@@ -89,7 +89,7 @@ public class LazyOutputFormat<K, V> extends FilterOutputFormat<K, V> {
     final JobConf job;
 
     public LazyRecordWriter(JobConf job, OutputFormat of, String name,
-        Progressable progress)  throws IOException {
+                            Progressable progress) throws IOException {
       this.of = of;
       this.job = job;
       this.name = name;
@@ -115,6 +115,6 @@ public class LazyOutputFormat<K, V> extends FilterOutputFormat<K, V> {
     private void createRecordWriter() throws IOException {
       FileSystem fs = FileSystem.get(job);
       rawWriter = of.getRecordWriter(fs, job, name, progress);
-    }  
+    }
   }
 }

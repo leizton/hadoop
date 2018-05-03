@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,31 +17,27 @@
  */
 package org.apache.hadoop.mapreduce;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
+import junit.framework.TestCase;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.fs.*;
 import org.apache.hadoop.mapred.LocalJobRunner;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.ReflectionUtils;
-
 import org.junit.Test;
-import junit.framework.TestCase;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Stress tests for the LocalJobRunner
@@ -51,11 +47,11 @@ public class TestLocalRunner extends TestCase {
   private static final Log LOG = LogFactory.getLog(TestLocalRunner.class);
 
   private static int INPUT_SIZES[] =
-    new int[] { 50000, 500, 500, 20,  5000, 500};
+      new int[]{50000, 500, 500, 20, 5000, 500};
   private static int OUTPUT_SIZES[] =
-    new int[] { 1,     500, 500, 500, 500, 500};
+      new int[]{1, 500, 500, 500, 500, 500};
   private static int SLEEP_INTERVALS[] =
-    new int[] { 10000, 15,  15, 20, 250, 60 };
+      new int[]{10000, 15, 15, 20, 250, 60};
 
   private static class StressMapper
       extends Mapper<LongWritable, Text, LongWritable, Text> {
@@ -166,6 +162,7 @@ public class TestLocalRunner extends TestCase {
   // based on input file sizes (see createMultiMapsInput()) and the behavior
   // of the different StressMapper threads.
   private static int TOTAL_RECORDS = 0;
+
   static {
     for (int i = 0; i < 6; i++) {
       TOTAL_RECORDS += INPUT_SIZES[i] * OUTPUT_SIZES[i];
@@ -285,7 +282,7 @@ public class TestLocalRunner extends TestCase {
    * Run a test with several mappers in parallel, operating at different
    * speeds. Verify that the correct amount of output is created.
    */
-  @Test(timeout=120*1000)
+  @Test(timeout = 120 * 1000)
   public void testMultiMaps() throws Exception {
     Job job = Job.getInstance();
 
@@ -311,9 +308,10 @@ public class TestLocalRunner extends TestCase {
     Thread interrupter = new Thread() {
       public void run() {
         try {
-          Thread.sleep(120*1000); // 2m
+          Thread.sleep(120 * 1000); // 2m
           toInterrupt.interrupt();
-        } catch (InterruptedException ie) {}
+        } catch (InterruptedException ie) {
+        }
       }
     };
     LOG.info("Submitting job...");
@@ -380,7 +378,7 @@ public class TestLocalRunner extends TestCase {
     }
 
     public RecordReader<Object, Object> createRecordReader(InputSplit split,
-        TaskAttemptContext context) {
+                                                           TaskAttemptContext context) {
       return new EmptyRecordReader();
     }
   }
@@ -487,7 +485,7 @@ public class TestLocalRunner extends TestCase {
     Configuration conf = new Configuration();
     FileSystem fs = FileSystem.getLocal(conf);
 
-    FileStatus [] stats = fs.listStatus(outputDir);
+    FileStatus[] stats = fs.listStatus(outputDir);
     int valueSum = 0;
     for (FileStatus f : stats) {
       FSDataInputStream istream = fs.open(f.getPath());
@@ -511,7 +509,7 @@ public class TestLocalRunner extends TestCase {
    * job over a set of generated number files.
    */
   private void doMultiReducerTest(int numMaps, int numReduces,
-      int parallelMaps, int parallelReduces) throws Exception {
+                                  int parallelMaps, int parallelReduces) throws Exception {
 
     Path in = getNumberDirPath();
     Path out = getOutputPath();
@@ -548,7 +546,7 @@ public class TestLocalRunner extends TestCase {
 
     verifyNumberJob(numMaps);
   }
-  
+
   @Test
   public void testOneMapMultiReduce() throws Exception {
     doMultiReducerTest(1, 2, 1, 1);

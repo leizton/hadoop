@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,12 +17,6 @@
  */
 
 package org.apache.hadoop.mapreduce.lib.partition;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -36,17 +30,18 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.RawComparator;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.WritableComparable;
-import org.apache.hadoop.mapreduce.InputFormat;
-import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.RecordReader;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.TaskAttemptID;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
 import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 
 /**
  * Utility for collecting samples and writing a partition file for
@@ -54,20 +49,20 @@ import org.apache.hadoop.util.ToolRunner;
  */
 @InterfaceAudience.Public
 @InterfaceStability.Stable
-public class InputSampler<K,V> extends Configured implements Tool  {
+public class InputSampler<K, V> extends Configured implements Tool {
 
   private static final Log LOG = LogFactory.getLog(InputSampler.class);
 
   static int printUsage() {
     System.out.println("sampler -r <reduces>\n" +
-      "      [-inFormat <input format class>]\n" +
-      "      [-keyClass <map input & output key class>]\n" +
-      "      [-splitRandom <double pcnt> <numSamples> <maxsplits> | " +
-      "             // Sample from random splits at random (general)\n" +
-      "       -splitSample <numSamples> <maxsplits> | " +
-      "             // Sample from first records in splits (random data)\n"+
-      "       -splitInterval <double pcnt> <maxsplits>]" +
-      "             // Sample from splits at intervals (sorted data)");
+        "      [-inFormat <input format class>]\n" +
+        "      [-keyClass <map input & output key class>]\n" +
+        "      [-splitRandom <double pcnt> <numSamples> <maxsplits> | " +
+        "             // Sample from random splits at random (general)\n" +
+        "       -splitSample <numSamples> <maxsplits> | " +
+        "             // Sample from first records in splits (random data)\n" +
+        "       -splitInterval <double pcnt> <maxsplits>]" +
+        "             // Sample from splits at intervals (sorted data)");
     System.out.println("Default sampler: -splitRandom 0.1 10000 10");
     ToolRunner.printGenericCommandUsage(System.out);
     return -1;
@@ -81,20 +76,20 @@ public class InputSampler<K,V> extends Configured implements Tool  {
    * Interface to sample using an 
    * {@link org.apache.hadoop.mapreduce.InputFormat}.
    */
-  public interface Sampler<K,V> {
+  public interface Sampler<K, V> {
     /**
      * For a given job, collect and return a subset of the keys from the
      * input data.
      */
-    K[] getSample(InputFormat<K,V> inf, Job job) 
-    throws IOException, InterruptedException;
+    K[] getSample(InputFormat<K, V> inf, Job job)
+        throws IOException, InterruptedException;
   }
 
   /**
    * Samples the first n records from s splits.
    * Inexpensive way to sample random data.
    */
-  public static class SplitSampler<K,V> implements Sampler<K,V> {
+  public static class SplitSampler<K, V> implements Sampler<K, V> {
 
     protected final int numSamples;
     protected final int maxSplitsSampled;
@@ -124,7 +119,7 @@ public class InputSampler<K,V> extends Configured implements Tool  {
      * From each split sampled, take the first numSamples / numSplits records.
      */
     @SuppressWarnings("unchecked") // ArrayList::toArray doesn't preserve type
-    public K[] getSample(InputFormat<K,V> inf, Job job) 
+    public K[] getSample(InputFormat<K, V> inf, Job job)
         throws IOException, InterruptedException {
       List<InputSplit> splits = inf.getSplits(job);
       ArrayList<K> samples = new ArrayList<K>(numSamples);
@@ -134,20 +129,20 @@ public class InputSampler<K,V> extends Configured implements Tool  {
       for (int i = 0; i < splitsToSample; ++i) {
         TaskAttemptContext samplingContext = new TaskAttemptContextImpl(
             job.getConfiguration(), new TaskAttemptID());
-        RecordReader<K,V> reader = inf.createRecordReader(
+        RecordReader<K, V> reader = inf.createRecordReader(
             splits.get(i), samplingContext);
         reader.initialize(splits.get(i), samplingContext);
         while (reader.nextKeyValue()) {
           samples.add(ReflectionUtils.copy(job.getConfiguration(),
-                                           reader.getCurrentKey(), null));
+              reader.getCurrentKey(), null));
           ++records;
-          if ((i+1) * samplesPerSplit <= records) {
+          if ((i + 1) * samplesPerSplit <= records) {
             break;
           }
         }
         reader.close();
       }
-      return (K[])samples.toArray();
+      return (K[]) samples.toArray();
     }
   }
 
@@ -156,7 +151,7 @@ public class InputSampler<K,V> extends Configured implements Tool  {
    * General-purpose sampler. Takes numSamples / maxSplitsSampled inputs from
    * each split.
    */
-  public static class RandomSampler<K,V> implements Sampler<K,V> {
+  public static class RandomSampler<K, V> implements Sampler<K, V> {
     protected double freq;
     protected final int numSamples;
     protected final int maxSplitsSampled;
@@ -192,7 +187,7 @@ public class InputSampler<K,V> extends Configured implements Tool  {
      * the quota of keys from that split is satisfied.
      */
     @SuppressWarnings("unchecked") // ArrayList::toArray doesn't preserve type
-    public K[] getSample(InputFormat<K,V> inf, Job job) 
+    public K[] getSample(InputFormat<K, V> inf, Job job)
         throws IOException, InterruptedException {
       List<InputSplit> splits = inf.getSplits(job);
       ArrayList<K> samples = new ArrayList<K>(numSamples);
@@ -213,17 +208,17 @@ public class InputSampler<K,V> extends Configured implements Tool  {
       // but we accept the possibility of sampling additional splits to hit
       // the target sample keyset
       for (int i = 0; i < splitsToSample ||
-                     (i < splits.size() && samples.size() < numSamples); ++i) {
+          (i < splits.size() && samples.size() < numSamples); ++i) {
         TaskAttemptContext samplingContext = new TaskAttemptContextImpl(
             job.getConfiguration(), new TaskAttemptID());
-        RecordReader<K,V> reader = inf.createRecordReader(
+        RecordReader<K, V> reader = inf.createRecordReader(
             splits.get(i), samplingContext);
         reader.initialize(splits.get(i), samplingContext);
         while (reader.nextKeyValue()) {
           if (r.nextDouble() <= freq) {
             if (samples.size() < numSamples) {
               samples.add(ReflectionUtils.copy(job.getConfiguration(),
-                                               reader.getCurrentKey(), null));
+                  reader.getCurrentKey(), null));
             } else {
               // When exceeding the maximum number of samples, replace a
               // random element with this one, then adjust the frequency
@@ -232,7 +227,7 @@ public class InputSampler<K,V> extends Configured implements Tool  {
               int ind = r.nextInt(numSamples);
               if (ind != numSamples) {
                 samples.set(ind, ReflectionUtils.copy(job.getConfiguration(),
-                                 reader.getCurrentKey(), null));
+                    reader.getCurrentKey(), null));
               }
               freq *= (numSamples - 1) / (double) numSamples;
             }
@@ -240,7 +235,7 @@ public class InputSampler<K,V> extends Configured implements Tool  {
         }
         reader.close();
       }
-      return (K[])samples.toArray();
+      return (K[]) samples.toArray();
     }
   }
 
@@ -248,7 +243,7 @@ public class InputSampler<K,V> extends Configured implements Tool  {
    * Sample from s splits at regular intervals.
    * Useful for sorted data.
    */
-  public static class IntervalSampler<K,V> implements Sampler<K,V> {
+  public static class IntervalSampler<K, V> implements Sampler<K, V> {
     protected final double freq;
     protected final int maxSplitsSampled;
 
@@ -277,7 +272,7 @@ public class InputSampler<K,V> extends Configured implements Tool  {
      * frequency.
      */
     @SuppressWarnings("unchecked") // ArrayList::toArray doesn't preserve type
-    public K[] getSample(InputFormat<K,V> inf, Job job) 
+    public K[] getSample(InputFormat<K, V> inf, Job job)
         throws IOException, InterruptedException {
       List<InputSplit> splits = inf.getSplits(job);
       ArrayList<K> samples = new ArrayList<K>();
@@ -287,20 +282,20 @@ public class InputSampler<K,V> extends Configured implements Tool  {
       for (int i = 0; i < splitsToSample; ++i) {
         TaskAttemptContext samplingContext = new TaskAttemptContextImpl(
             job.getConfiguration(), new TaskAttemptID());
-        RecordReader<K,V> reader = inf.createRecordReader(
+        RecordReader<K, V> reader = inf.createRecordReader(
             splits.get(i), samplingContext);
         reader.initialize(splits.get(i), samplingContext);
         while (reader.nextKeyValue()) {
           ++records;
           if ((double) kept / records < freq) {
             samples.add(ReflectionUtils.copy(job.getConfiguration(),
-                                 reader.getCurrentKey(), null));
+                reader.getCurrentKey(), null));
             ++kept;
           }
         }
         reader.close();
       }
-      return (K[])samples.toArray();
+      return (K[]) samples.toArray();
     }
   }
 
@@ -311,28 +306,28 @@ public class InputSampler<K,V> extends Configured implements Tool  {
    * returned from {@link TotalOrderPartitioner#getPartitionFile}.
    */
   @SuppressWarnings("unchecked") // getInputFormat, getOutputKeyComparator
-  public static <K,V> void writePartitionFile(Job job, Sampler<K,V> sampler) 
+  public static <K, V> void writePartitionFile(Job job, Sampler<K, V> sampler)
       throws IOException, ClassNotFoundException, InterruptedException {
     Configuration conf = job.getConfiguration();
-    final InputFormat inf = 
+    final InputFormat inf =
         ReflectionUtils.newInstance(job.getInputFormatClass(), conf);
     int numPartitions = job.getNumReduceTasks();
-    K[] samples = (K[])sampler.getSample(inf, job);
+    K[] samples = (K[]) sampler.getSample(inf, job);
     LOG.info("Using " + samples.length + " samples");
     RawComparator<K> comparator =
-      (RawComparator<K>) job.getSortComparator();
+        (RawComparator<K>) job.getSortComparator();
     Arrays.sort(samples, comparator);
     Path dst = new Path(TotalOrderPartitioner.getPartitionFile(conf));
     FileSystem fs = dst.getFileSystem(conf);
     if (fs.exists(dst)) {
       fs.delete(dst, false);
     }
-    SequenceFile.Writer writer = SequenceFile.createWriter(fs, 
-      conf, dst, job.getMapOutputKeyClass(), NullWritable.class);
+    SequenceFile.Writer writer = SequenceFile.createWriter(fs,
+        conf, dst, job.getMapOutputKeyClass(), NullWritable.class);
     NullWritable nullValue = NullWritable.get();
     float stepSize = samples.length / (float) numPartitions;
     int last = -1;
-    for(int i = 1; i < numPartitions; ++i) {
+    for (int i = 1; i < numPartitions; ++i) {
       int k = Math.round(stepSize * i);
       while (last >= k && comparator.compare(samples[last], samples[k]) == 0) {
         ++k;
@@ -350,8 +345,8 @@ public class InputSampler<K,V> extends Configured implements Tool  {
   public int run(String[] args) throws Exception {
     Job job = new Job(getConf());
     ArrayList<String> otherArgs = new ArrayList<String>();
-    Sampler<K,V> sampler = null;
-    for(int i=0; i < args.length; ++i) {
+    Sampler<K, V> sampler = null;
+    for (int i = 0; i < args.length; ++i) {
       try {
         if ("-r".equals(args[i])) {
           job.setNumReduceTasks(Integer.parseInt(args[++i]));
@@ -365,18 +360,18 @@ public class InputSampler<K,V> extends Configured implements Tool  {
           int numSamples = Integer.parseInt(args[++i]);
           int maxSplits = Integer.parseInt(args[++i]);
           if (0 >= maxSplits) maxSplits = Integer.MAX_VALUE;
-          sampler = new SplitSampler<K,V>(numSamples, maxSplits);
+          sampler = new SplitSampler<K, V>(numSamples, maxSplits);
         } else if ("-splitRandom".equals(args[i])) {
           double pcnt = Double.parseDouble(args[++i]);
           int numSamples = Integer.parseInt(args[++i]);
           int maxSplits = Integer.parseInt(args[++i]);
           if (0 >= maxSplits) maxSplits = Integer.MAX_VALUE;
-          sampler = new RandomSampler<K,V>(pcnt, numSamples, maxSplits);
+          sampler = new RandomSampler<K, V>(pcnt, numSamples, maxSplits);
         } else if ("-splitInterval".equals(args[i])) {
           double pcnt = Double.parseDouble(args[++i]);
           int maxSplits = Integer.parseInt(args[++i]);
           if (0 >= maxSplits) maxSplits = Integer.MAX_VALUE;
-          sampler = new IntervalSampler<K,V>(pcnt, maxSplits);
+          sampler = new IntervalSampler<K, V>(pcnt, maxSplits);
         } else {
           otherArgs.add(args[i]);
         }
@@ -385,7 +380,7 @@ public class InputSampler<K,V> extends Configured implements Tool  {
         return printUsage();
       } catch (ArrayIndexOutOfBoundsException except) {
         System.out.println("ERROR: Required parameter missing from " +
-            args[i-1]);
+            args[i - 1]);
         return printUsage();
       }
     }
@@ -398,7 +393,7 @@ public class InputSampler<K,V> extends Configured implements Tool  {
       return printUsage();
     }
     if (null == sampler) {
-      sampler = new RandomSampler<K,V>(0.1, 10000, 10);
+      sampler = new RandomSampler<K, V>(0.1, 10000, 10);
     }
 
     Path outf = new Path(otherArgs.remove(otherArgs.size() - 1));
@@ -406,13 +401,13 @@ public class InputSampler<K,V> extends Configured implements Tool  {
     for (String s : otherArgs) {
       FileInputFormat.addInputPath(job, new Path(s));
     }
-    InputSampler.<K,V>writePartitionFile(job, sampler);
+    InputSampler.<K, V>writePartitionFile(job, sampler);
 
     return 0;
   }
 
   public static void main(String[] args) throws Exception {
-    InputSampler<?,?> sampler = new InputSampler(new Configuration());
+    InputSampler<?, ?> sampler = new InputSampler(new Configuration());
     int res = ToolRunner.run(sampler, args);
     System.exit(res);
   }

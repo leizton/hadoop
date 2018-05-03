@@ -1,45 +1,43 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapred;
-
-import java.net.InetSocketAddress;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.TaskLog.LogName;
-import org.apache.hadoop.mapreduce.ID;
 import org.apache.hadoop.mapreduce.MRJobConfig;
 import org.apache.hadoop.mapreduce.v2.util.MRApps;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.ApplicationConstants.Environment;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 
+import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Vector;
+
 @SuppressWarnings("deprecation")
 public class MapReduceChildJVM {
 
   private static String getTaskLogFile(LogName filter) {
-    return ApplicationConstants.LOG_DIR_EXPANSION_VAR + Path.SEPARATOR + 
+    return ApplicationConstants.LOG_DIR_EXPANSION_VAR + Path.SEPARATOR +
         filter.toString();
   }
 
@@ -55,19 +53,19 @@ public class MapReduceChildJVM {
   private static String getChildLogLevel(JobConf conf, boolean isMap) {
     if (isMap) {
       return conf.get(
-          MRJobConfig.MAP_LOG_LEVEL, 
+          MRJobConfig.MAP_LOG_LEVEL,
           JobConf.DEFAULT_LOG_LEVEL.toString()
-          );
+      );
     } else {
       return conf.get(
-          MRJobConfig.REDUCE_LOG_LEVEL, 
+          MRJobConfig.REDUCE_LOG_LEVEL,
           JobConf.DEFAULT_LOG_LEVEL.toString()
-          );
+      );
     }
   }
-  
+
   public static void setVMEnv(Map<String, String> environment,
-      Task task) {
+                              Task task) {
 
     JobConf conf = task.conf;
     // Add the env variables passed by the user
@@ -78,7 +76,7 @@ public class MapReduceChildJVM {
     // This is so that, if the child forks another "bin/hadoop" (common in
     // streaming) it will have the correct loglevel.
     environment.put(
-        "HADOOP_ROOT_LOGGER", 
+        "HADOOP_ROOT_LOGGER",
         getChildLogLevel(conf, task.isMapTask()) + ",console");
 
     // TODO: The following is useful for instance in streaming tasks. Should be
@@ -90,13 +88,13 @@ public class MapReduceChildJVM {
       hadoopClientOpts = hadoopClientOpts + " ";
     }
     environment.put("HADOOP_CLIENT_OPTS", hadoopClientOpts);
-    
+
     // setEnvFromInputString above will add env variable values from
     // mapredChildEnv to existing variables. We want to overwrite
     // HADOOP_ROOT_LOGGER and HADOOP_CLIENT_OPTS if the user set it explicitly.
     Map<String, String> tmpEnv = new HashMap<String, String>();
     MRApps.setEnvFromInputString(tmpEnv, mapredChildEnv, conf);
-    String[] keys = { "HADOOP_ROOT_LOGGER", "HADOOP_CLIENT_OPTS" };
+    String[] keys = {"HADOOP_ROOT_LOGGER", "HADOOP_CLIENT_OPTS"};
     for (String key : keys) {
       if (tmpEnv.containsKey(key)) {
         environment.put(key, tmpEnv.get(key));
@@ -107,49 +105,49 @@ public class MapReduceChildJVM {
     environment.put(
         MRJobConfig.STDOUT_LOGFILE_ENV,
         getTaskLogFile(TaskLog.LogName.STDOUT)
-        );
+    );
     environment.put(
         MRJobConfig.STDERR_LOGFILE_ENV,
         getTaskLogFile(TaskLog.LogName.STDERR)
-        );
+    );
   }
 
   private static String getChildJavaOpts(JobConf jobConf, boolean isMapTask) {
     String userClasspath = "";
     String adminClasspath = "";
     if (isMapTask) {
-      userClasspath = 
+      userClasspath =
           jobConf.get(
-              JobConf.MAPRED_MAP_TASK_JAVA_OPTS, 
+              JobConf.MAPRED_MAP_TASK_JAVA_OPTS,
               jobConf.get(
-                  JobConf.MAPRED_TASK_JAVA_OPTS, 
+                  JobConf.MAPRED_TASK_JAVA_OPTS,
                   JobConf.DEFAULT_MAPRED_TASK_JAVA_OPTS)
           );
-      adminClasspath = 
+      adminClasspath =
           jobConf.get(
               MRJobConfig.MAPRED_MAP_ADMIN_JAVA_OPTS,
               MRJobConfig.DEFAULT_MAPRED_ADMIN_JAVA_OPTS);
     } else {
       userClasspath =
           jobConf.get(
-              JobConf.MAPRED_REDUCE_TASK_JAVA_OPTS, 
+              JobConf.MAPRED_REDUCE_TASK_JAVA_OPTS,
               jobConf.get(
                   JobConf.MAPRED_TASK_JAVA_OPTS,
                   JobConf.DEFAULT_MAPRED_TASK_JAVA_OPTS)
-              );
+          );
       adminClasspath =
           jobConf.get(
               MRJobConfig.MAPRED_REDUCE_ADMIN_JAVA_OPTS,
               MRJobConfig.DEFAULT_MAPRED_ADMIN_JAVA_OPTS);
     }
-    
+
     // Add admin classpath first so it can be overridden by user.
     return adminClasspath + " " + userClasspath;
   }
 
   private static void setupLog4jProperties(Task task,
-      Vector<String> vargs,
-      long logSize, Configuration conf) {
+                                           Vector<String> vargs,
+                                           long logSize, Configuration conf) {
     String logLevel = getChildLogLevel(task.conf, task.isMapTask());
     int numBackups = task.conf.getInt(MRJobConfig.TASK_LOG_BACKUPS,
         MRJobConfig.DEFAULT_TASK_LOG_BACKUPS);
@@ -157,7 +155,7 @@ public class MapReduceChildJVM {
   }
 
   public static List<String> getVMCommand(
-      InetSocketAddress taskAttemptListenerAddr, Task task, 
+      InetSocketAddress taskAttemptListenerAddr, Task task,
       JVMId jvmID) {
 
     TaskAttemptID attemptID = task.getTaskID();
@@ -198,7 +196,7 @@ public class MapReduceChildJVM {
     //
     String javaOpts = getChildJavaOpts(conf, task.isMapTask());
     javaOpts = javaOpts.replace("@taskid@", attemptID.toString());
-    String [] javaOptsSplit = javaOpts.split(" ");
+    String[] javaOptsSplit = javaOpts.split(" ");
     for (int i = 0; i < javaOptsSplit.length; i++) {
       vargs.add(javaOptsSplit[i]);
     }
@@ -213,7 +211,7 @@ public class MapReduceChildJVM {
 
     if (conf.getProfileEnabled()) {
       if (conf.getProfileTaskRange(task.isMapTask()
-                                   ).isIncluded(task.getPartition())) {
+      ).isIncluded(task.getPartition())) {
         final String profileParams = conf.get(task.isMapTask()
             ? MRJobConfig.TASK_MAP_PROFILE_PARAMS
             : MRJobConfig.TASK_REDUCE_PROFILE_PARAMS, conf.getProfileParams());
@@ -225,8 +223,8 @@ public class MapReduceChildJVM {
     // Add main class and its arguments 
     vargs.add(YarnChild.class.getName());  // main of Child
     // pass TaskAttemptListener's address
-    vargs.add(taskAttemptListenerAddr.getAddress().getHostAddress()); 
-    vargs.add(Integer.toString(taskAttemptListenerAddr.getPort())); 
+    vargs.add(taskAttemptListenerAddr.getAddress().getHostAddress());
+    vargs.add(Integer.toString(taskAttemptListenerAddr.getPort()));
     vargs.add(attemptID.toString());                      // pass task identifier
 
     // Finally add the jvmID

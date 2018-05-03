@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,27 +18,22 @@
 
 package org.apache.hadoop.io;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-
-import org.apache.hadoop.fs.*;
-import org.apache.hadoop.io.*;
+import junit.framework.TestCase;
+import org.apache.commons.logging.Log;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.SequenceFile.CompressionType;
 import org.apache.hadoop.io.SequenceFile.Sorter.RawKeyValueIterator;
-import org.apache.hadoop.io.SequenceFile.Sorter.SegmentDescriptor;
-import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.io.compress.DefaultCodec;
-import org.apache.hadoop.mapred.*;
+import org.apache.hadoop.mapred.FileInputFormat;
+import org.apache.hadoop.mapred.JobConf;
 
-import junit.framework.TestCase;
-import org.apache.commons.logging.*;
+import java.io.IOException;
 
 public class TestSequenceFileMergeProgress extends TestCase {
   private static final Log LOG = FileInputFormat.LOG;
   private static final int RECORDS = 10000;
-  
+
   public void testMergeProgressWithNoCompression() throws IOException {
     runTest(SequenceFile.CompressionType.NONE);
   }
@@ -54,7 +49,7 @@ public class TestSequenceFileMergeProgress extends TestCase {
   public void runTest(CompressionType compressionType) throws IOException {
     JobConf job = new JobConf();
     FileSystem fs = FileSystem.getLocal(job);
-    Path dir = new Path(System.getProperty("test.build.data",".") + "/mapred");
+    Path dir = new Path(System.getProperty("test.build.data", ".") + "/mapred");
     Path file = new Path(dir, "test.seq");
     Path tempDir = new Path(dir, "tmp");
 
@@ -66,8 +61,8 @@ public class TestSequenceFileMergeProgress extends TestCase {
     Text tval = new Text();
 
     SequenceFile.Writer writer =
-      SequenceFile.createWriter(fs, job, file, LongWritable.class, Text.class,
-        compressionType, new DefaultCodec());
+        SequenceFile.createWriter(fs, job, file, LongWritable.class, Text.class,
+            compressionType, new DefaultCodec());
     try {
       for (int i = 0; i < RECORDS; ++i) {
         tkey.set(1234);
@@ -77,15 +72,15 @@ public class TestSequenceFileMergeProgress extends TestCase {
     } finally {
       writer.close();
     }
-    
+
     long fileLength = fs.getFileStatus(file).getLen();
     LOG.info("With compression = " + compressionType + ": "
         + "compressed length = " + fileLength);
-    
-    SequenceFile.Sorter sorter = new SequenceFile.Sorter(fs, 
+
+    SequenceFile.Sorter sorter = new SequenceFile.Sorter(fs,
         job.getOutputKeyComparator(), job.getMapOutputKeyClass(),
         job.getMapOutputValueClass(), job);
-    Path[] paths = new Path[] {file};
+    Path[] paths = new Path[]{file};
     RawKeyValueIterator rIter = sorter.merge(paths, tempDir, false);
     int count = 0;
     while (rIter.next()) {

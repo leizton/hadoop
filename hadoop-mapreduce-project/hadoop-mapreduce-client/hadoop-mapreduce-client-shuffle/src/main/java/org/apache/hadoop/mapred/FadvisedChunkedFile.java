@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,16 +18,16 @@
 
 package org.apache.hadoop.mapred;
 
-import java.io.FileDescriptor;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.io.ReadaheadPool;
 import org.apache.hadoop.io.ReadaheadPool.ReadaheadRequest;
 import org.apache.hadoop.io.nativeio.NativeIO;
 import org.jboss.netty.handler.stream.ChunkedFile;
+
+import java.io.FileDescriptor;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 
 public class FadvisedChunkedFile extends ChunkedFile {
 
@@ -42,8 +42,8 @@ public class FadvisedChunkedFile extends ChunkedFile {
   private ReadaheadRequest readaheadRequest;
 
   public FadvisedChunkedFile(RandomAccessFile file, long position, long count,
-      int chunkSize, boolean manageOsCache, int readaheadLength,
-      ReadaheadPool readaheadPool, String identifier) throws IOException {
+                             int chunkSize, boolean manageOsCache, int readaheadLength,
+                             ReadaheadPool readaheadPool, String identifier) throws IOException {
     super(file, position, count, chunkSize);
     this.manageOsCache = manageOsCache;
     this.readaheadLength = readaheadLength;

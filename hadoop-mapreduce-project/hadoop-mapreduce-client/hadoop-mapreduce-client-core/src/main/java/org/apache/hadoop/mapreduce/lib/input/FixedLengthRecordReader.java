@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,9 +18,8 @@
 
 package org.apache.hadoop.mapreduce.lib.input;
 
-import java.io.IOException;
-import java.io.InputStream;
-
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
@@ -30,16 +29,13 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.Seekable;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.compress.CodecPool;
-import org.apache.hadoop.io.compress.CompressionCodec;
-import org.apache.hadoop.io.compress.CompressionCodecFactory;
-import org.apache.hadoop.io.compress.CompressionInputStream;
-import org.apache.hadoop.io.compress.Decompressor;
+import org.apache.hadoop.io.compress.*;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.commons.logging.LogFactory;
-import org.apache.commons.logging.Log;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * A reader to read fixed length records from a split.  Record offset is
@@ -49,14 +45,14 @@ import org.apache.commons.logging.Log;
 @InterfaceStability.Evolving
 public class FixedLengthRecordReader
     extends RecordReader<LongWritable, BytesWritable> {
-  private static final Log LOG 
+  private static final Log LOG
       = LogFactory.getLog(FixedLengthRecordReader.class);
 
   private int recordLength;
   private long start;
   private long pos;
   private long end;
-  private long  numRecordsRemainingInSplit;
+  private long numRecordsRemainingInSplit;
   private FSDataInputStream fileIn;
   private Seekable filePosition;
   private LongWritable key;
@@ -95,7 +91,7 @@ public class FixedLengthRecordReader
 
     CompressionCodec codec = new CompressionCodecFactory(job).getCodec(file);
     if (null != codec) {
-      isCompressedInput = true;	
+      isCompressedInput = true;
       decompressor = CodecPool.getDecompressor(codec);
       CompressionInputStream cIn
           = codec.createInputStream(fileIn, decompressor);
@@ -109,7 +105,7 @@ public class FixedLengthRecordReader
       filePosition = fileIn;
       inputStream = fileIn;
       long splitSize = end - start - numBytesToSkip;
-      numRecordsRemainingInSplit = (splitSize + recordLength - 1)/recordLength;
+      numRecordsRemainingInSplit = (splitSize + recordLength - 1) / recordLength;
       if (numRecordsRemainingInSplit < 0) {
         numRecordsRemainingInSplit = 0;
       }
@@ -183,10 +179,10 @@ public class FixedLengthRecordReader
     if (start == end) {
       return 0.0f;
     } else {
-      return Math.min(1.0f, (getFilePosition() - start) / (float)(end - start));
+      return Math.min(1.0f, (getFilePosition() - start) / (float) (end - start));
     }
   }
-  
+
   @Override
   public synchronized void close() throws IOException {
     try {

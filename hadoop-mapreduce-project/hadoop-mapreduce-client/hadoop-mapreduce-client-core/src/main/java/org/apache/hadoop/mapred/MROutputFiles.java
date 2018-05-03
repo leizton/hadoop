@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,8 +18,6 @@
 
 package org.apache.hadoop.mapred;
 
-import java.io.IOException;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
@@ -27,6 +25,8 @@ import org.apache.hadoop.fs.LocalDirAllocator;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.MRConfig;
 import org.apache.hadoop.mapreduce.MRJobConfig;
+
+import java.io.IOException;
 
 /**
  * Manipulate the working area for the transient store for maps and reduces.
@@ -40,7 +40,7 @@ import org.apache.hadoop.mapreduce.MRJobConfig;
 public class MROutputFiles extends MapOutputFile {
 
   private LocalDirAllocator lDirAlloc =
-    new LocalDirAllocator(MRConfig.LOCAL_DIR);
+      new LocalDirAllocator(MRConfig.LOCAL_DIR);
 
   public MROutputFiles() {
   }
@@ -90,7 +90,7 @@ public class MROutputFiles extends MapOutputFile {
   public Path getOutputIndexFile()
       throws IOException {
     return lDirAlloc.getLocalPathToRead(MRJobConfig.OUTPUT + Path.SEPARATOR
-        + MAP_OUTPUT_FILENAME_STRING + MAP_OUTPUT_INDEX_SUFFIX_STRING,
+            + MAP_OUTPUT_FILENAME_STRING + MAP_OUTPUT_INDEX_SUFFIX_STRING,
         getConf());
   }
 
@@ -105,7 +105,7 @@ public class MROutputFiles extends MapOutputFile {
   public Path getOutputIndexFileForWrite(long size)
       throws IOException {
     return lDirAlloc.getLocalPathForWrite(MRJobConfig.OUTPUT + Path.SEPARATOR
-        + MAP_OUTPUT_FILENAME_STRING + MAP_OUTPUT_INDEX_SUFFIX_STRING,
+            + MAP_OUTPUT_FILENAME_STRING + MAP_OUTPUT_INDEX_SUFFIX_STRING,
         size, getConf());
   }
 
@@ -212,7 +212,7 @@ public class MROutputFiles extends MapOutputFile {
   @Override
   public void removeAll()
       throws IOException {
-    ((JobConf)getConf()).deleteLocalFiles(MRJobConfig.OUTPUT);
+    ((JobConf) getConf()).deleteLocalFiles(MRJobConfig.OUTPUT);
   }
 
   @Override

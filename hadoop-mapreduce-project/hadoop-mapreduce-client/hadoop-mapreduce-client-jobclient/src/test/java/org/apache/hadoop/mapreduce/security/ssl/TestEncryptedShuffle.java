@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,38 +23,21 @@ import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
-import org.apache.hadoop.mapred.JobClient;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.MiniMRClientCluster;
-import org.apache.hadoop.mapred.MiniMRClientClusterFactory;
-import org.apache.hadoop.mapred.RunningJob;
-
+import org.apache.hadoop.mapred.*;
 import org.apache.hadoop.mapreduce.MRConfig;
 import org.apache.hadoop.security.ssl.KeyStoreTestUtil;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.Assert;
+import org.junit.*;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.net.URL;
+import java.io.*;
 
 public class TestEncryptedShuffle {
 
   private static final String BASEDIR =
-    System.getProperty("test.build.dir", "target/test-dir") + "/" +
-    TestEncryptedShuffle.class.getSimpleName();
-  
+      System.getProperty("test.build.dir", "target/test-dir") + "/" +
+          TestEncryptedShuffle.class.getSimpleName();
+
   private String classpathDir;
 
   @BeforeClass
@@ -80,7 +63,7 @@ public class TestEncryptedShuffle {
   private MiniDFSCluster dfsCluster = null;
   private MiniMRClientCluster mrCluster = null;
 
-  private void startCluster(Configuration  conf) throws Exception {
+  private void startCluster(Configuration conf) throws Exception {
     if (System.getProperty("hadoop.log.dir") == null) {
       System.setProperty("hadoop.log.dir", "target/test-dir");
     }
@@ -98,11 +81,11 @@ public class TestEncryptedShuffle {
     fileSystem.mkdirs(new Path("/user"));
     fileSystem.mkdirs(new Path("/hadoop/mapred/system"));
     fileSystem.setPermission(
-      new Path("/tmp"), FsPermission.valueOf("-rwxrwxrwx"));
+        new Path("/tmp"), FsPermission.valueOf("-rwxrwxrwx"));
     fileSystem.setPermission(
-      new Path("/user"), FsPermission.valueOf("-rwxrwxrwx"));
+        new Path("/user"), FsPermission.valueOf("-rwxrwxrwx"));
     fileSystem.setPermission(
-      new Path("/hadoop/mapred/system"), FsPermission.valueOf("-rwx------"));
+        new Path("/hadoop/mapred/system"), FsPermission.valueOf("-rwx------"));
     FileSystem.setDefaultUri(conf, fileSystem.getUri());
     mrCluster = MiniMRClientClusterFactory.create(this.getClass(), 1, conf);
 
@@ -126,21 +109,21 @@ public class TestEncryptedShuffle {
   }
 
   private void encryptedShuffleWithCerts(boolean useClientCerts)
-    throws Exception {
+      throws Exception {
     try {
       Configuration conf = new Configuration();
       String keystoresDir = new File(BASEDIR).getAbsolutePath();
       String sslConfsDir =
-        KeyStoreTestUtil.getClasspathDir(TestEncryptedShuffle.class);
+          KeyStoreTestUtil.getClasspathDir(TestEncryptedShuffle.class);
       KeyStoreTestUtil.setupSSLConfig(keystoresDir, sslConfsDir, conf,
-                                      useClientCerts);
+          useClientCerts);
       conf.setBoolean(MRConfig.SHUFFLE_SSL_ENABLED_KEY, true);
       startCluster(conf);
       FileSystem fs = FileSystem.get(getJobConf());
       Path inputDir = new Path("input");
       fs.mkdirs(inputDir);
       Writer writer =
-        new OutputStreamWriter(fs.create(new Path(inputDir, "data.txt")));
+          new OutputStreamWriter(fs.create(new Path(inputDir, "data.txt")));
       writer.write("hello");
       writer.close();
 

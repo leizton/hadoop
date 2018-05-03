@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,7 +18,6 @@
 
 package org.apache.hadoop.mapreduce;
 
-import org.junit.Assert;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.RawComparator;
@@ -26,14 +25,10 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -47,7 +42,7 @@ public class TestNewCombinerGrouping {
 
     @Override
     protected void map(LongWritable key, Text value,
-        Context context)
+                       Context context)
         throws IOException, InterruptedException {
       String v = value.toString();
       String k = v.substring(0, v.indexOf(","));
@@ -61,7 +56,7 @@ public class TestNewCombinerGrouping {
 
     @Override
     protected void reduce(Text key, Iterable<LongWritable> values,
-        Context context)
+                          Context context)
         throws IOException, InterruptedException {
       LongWritable maxValue = null;
       for (LongWritable value : values) {
@@ -81,7 +76,7 @@ public class TestNewCombinerGrouping {
   public static class GroupComparator implements RawComparator<Text> {
     @Override
     public int compare(byte[] bytes, int i, int i2, byte[] bytes2, int i3,
-        int i4) {
+                       int i4) {
       byte[] b1 = new byte[i2];
       System.arraycopy(bytes, i, b1, 0, i2);
 

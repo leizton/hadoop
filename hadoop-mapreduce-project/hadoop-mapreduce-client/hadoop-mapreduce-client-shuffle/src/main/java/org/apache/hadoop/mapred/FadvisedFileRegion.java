@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,13 +18,7 @@
 
 package org.apache.hadoop.mapred;
 
-import java.io.FileDescriptor;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.channels.WritableByteChannel;
-
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.io.ReadaheadPool;
@@ -32,7 +26,12 @@ import org.apache.hadoop.io.ReadaheadPool.ReadaheadRequest;
 import org.apache.hadoop.io.nativeio.NativeIO;
 import org.jboss.netty.channel.DefaultFileRegion;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.io.FileDescriptor;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.channels.WritableByteChannel;
 
 public class FadvisedFileRegion extends DefaultFileRegion {
 
@@ -48,13 +47,13 @@ public class FadvisedFileRegion extends DefaultFileRegion {
   private final int shuffleBufferSize;
   private final boolean shuffleTransferToAllowed;
   private final FileChannel fileChannel;
-  
+
   private ReadaheadRequest readaheadRequest;
 
   public FadvisedFileRegion(RandomAccessFile file, long position, long count,
-      boolean manageOsCache, int readaheadLength, ReadaheadPool readaheadPool,
-      String identifier, int shuffleBufferSize, 
-      boolean shuffleTransferToAllowed) throws IOException {
+                            boolean manageOsCache, int readaheadLength, ReadaheadPool readaheadPool,
+                            String identifier, int shuffleBufferSize,
+                            boolean shuffleTransferToAllowed) throws IOException {
     super(file.getChannel(), position, count);
     this.manageOsCache = manageOsCache;
     this.readaheadLength = readaheadLength;
@@ -76,12 +75,12 @@ public class FadvisedFileRegion extends DefaultFileRegion {
           getPosition() + position, readaheadLength,
           getPosition() + getCount(), readaheadRequest);
     }
-    
-    if(this.shuffleTransferToAllowed) {
+
+    if (this.shuffleTransferToAllowed) {
       return super.transferTo(target, position);
     } else {
       return customShuffleTransfer(target, position);
-    } 
+    }
   }
 
   /**
@@ -100,20 +99,20 @@ public class FadvisedFileRegion extends DefaultFileRegion {
     if (actualCount < 0 || position < 0) {
       throw new IllegalArgumentException(
           "position out of range: " + position +
-          " (expected: 0 - " + (this.count - 1) + ')');
+              " (expected: 0 - " + (this.count - 1) + ')');
     }
     if (actualCount == 0) {
       return 0L;
     }
-    
+
     long trans = actualCount;
     int readSize;
     ByteBuffer byteBuffer = ByteBuffer.allocate(this.shuffleBufferSize);
-    
-    while(trans > 0L &&
-        (readSize = fileChannel.read(byteBuffer, this.position+position)) > 0) {
+
+    while (trans > 0L &&
+        (readSize = fileChannel.read(byteBuffer, this.position + position)) > 0) {
       //adjust counters and buffer limit
-      if(readSize < trans) {
+      if (readSize < trans) {
         trans -= readSize;
         position += readSize;
         byteBuffer.flip();
@@ -121,24 +120,24 @@ public class FadvisedFileRegion extends DefaultFileRegion {
         //We can read more than we need if the actualCount is not multiple 
         //of the byteBuffer size and file is big enough. In that case we cannot
         //use flip method but we need to set buffer limit manually to trans.
-        byteBuffer.limit((int)trans);
+        byteBuffer.limit((int) trans);
         byteBuffer.position(0);
-        position += trans; 
+        position += trans;
         trans = 0;
       }
-      
+
       //write data to the target
-      while(byteBuffer.hasRemaining()) {
+      while (byteBuffer.hasRemaining()) {
         target.write(byteBuffer);
       }
-      
+
       byteBuffer.clear();
     }
-    
+
     return actualCount - trans;
   }
 
-  
+
   @Override
   public void releaseExternalResources() {
     if (readaheadRequest != null) {
@@ -146,7 +145,7 @@ public class FadvisedFileRegion extends DefaultFileRegion {
     }
     super.releaseExternalResources();
   }
-  
+
   /**
    * Call when the transfer completes successfully so we can advise the OS that
    * we don't need the region to be cached anymore.
@@ -155,8 +154,8 @@ public class FadvisedFileRegion extends DefaultFileRegion {
     if (manageOsCache && getCount() > 0) {
       try {
         NativeIO.POSIX.getCacheManipulator().posixFadviseIfPossible(identifier,
-           fd, getPosition(), getCount(),
-           NativeIO.POSIX.POSIX_FADV_DONTNEED);
+            fd, getPosition(), getCount(),
+            NativeIO.POSIX.POSIX_FADV_DONTNEED);
       } catch (Throwable t) {
         LOG.warn("Failed to manage OS cache for " + identifier, t);
       }

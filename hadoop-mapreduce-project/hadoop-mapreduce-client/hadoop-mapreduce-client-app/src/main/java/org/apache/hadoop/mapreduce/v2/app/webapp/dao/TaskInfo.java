@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,11 +16,6 @@
  * limitations under the License.
  */
 package org.apache.hadoop.mapreduce.v2.app.webapp.dao;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 
 import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptState;
 import org.apache.hadoop.mapreduce.v2.api.records.TaskReport;
@@ -30,6 +25,11 @@ import org.apache.hadoop.mapreduce.v2.app.job.Task;
 import org.apache.hadoop.mapreduce.v2.app.job.TaskAttempt;
 import org.apache.hadoop.mapreduce.v2.util.MRApps;
 import org.apache.hadoop.yarn.util.Times;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 @XmlRootElement(name = "task")
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -62,12 +62,12 @@ public class TaskInfo {
     this.finishTime = report.getFinishTime();
     this.state = report.getTaskState();
     this.elapsedTime = Times.elapsed(this.startTime, this.finishTime,
-      this.state == TaskState.RUNNING);
+        this.state == TaskState.RUNNING);
     if (this.elapsedTime == -1) {
       this.elapsedTime = 0;
     }
     this.progress = report.getProgress() * 100;
-    this.status =  report.getStatus();
+    this.status = report.getStatus();
     this.id = MRApps.toString(task.getID());
     this.taskNum = task.getID().getId();
     this.successful = getSuccessfulAttempt(task);

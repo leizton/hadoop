@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,95 +18,84 @@
 
 package org.apache.hadoop.mapred.pipes;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.FileOutputStream;
-import java.io.FilterOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.io.*;
+import org.apache.hadoop.mapred.InputSplit;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.util.StringUtils;
+
+import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.io.DataOutputBuffer;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.Writable;
-import org.apache.hadoop.io.WritableComparable;
-import org.apache.hadoop.io.WritableUtils;
-import org.apache.hadoop.mapred.InputSplit;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.util.StringUtils;
-
 /**
  * This protocol is a binary implementation of the Pipes protocol.
  */
 class BinaryProtocol<K1 extends WritableComparable, V1 extends Writable,
-                     K2 extends WritableComparable, V2 extends Writable>
-  implements DownwardProtocol<K1, V1> {
-  
+    K2 extends WritableComparable, V2 extends Writable>
+    implements DownwardProtocol<K1, V1> {
+
   public static final int CURRENT_PROTOCOL_VERSION = 0;
   /**
    * The buffer size for the command socket
    */
-  private static final int BUFFER_SIZE = 128*1024;
+  private static final int BUFFER_SIZE = 128 * 1024;
 
   private DataOutputStream stream;
   private DataOutputBuffer buffer = new DataOutputBuffer();
-  private static final Log LOG = 
-    LogFactory.getLog(BinaryProtocol.class.getName());
+  private static final Log LOG =
+      LogFactory.getLog(BinaryProtocol.class.getName());
   private UplinkReaderThread uplink;
 
   /**
    * The integer codes to represent the different messages. These must match
    * the C++ codes or massive confusion will result.
    */
-  private static enum MessageType { START(0),
-                                    SET_JOB_CONF(1),
-                                    SET_INPUT_TYPES(2),
-                                    RUN_MAP(3),
-                                    MAP_ITEM(4),
-                                    RUN_REDUCE(5),
-                                    REDUCE_KEY(6),
-                                    REDUCE_VALUE(7),
-                                    CLOSE(8),
-                                    ABORT(9),
-                                    AUTHENTICATION_REQ(10),
-                                    OUTPUT(50),
-                                    PARTITIONED_OUTPUT(51),
-                                    STATUS(52),
-                                    PROGRESS(53),
-                                    DONE(54),
-                                    REGISTER_COUNTER(55),
-                                    INCREMENT_COUNTER(56),
-                                    AUTHENTICATION_RESP(57);
+  private static enum MessageType {
+    START(0),
+    SET_JOB_CONF(1),
+    SET_INPUT_TYPES(2),
+    RUN_MAP(3),
+    MAP_ITEM(4),
+    RUN_REDUCE(5),
+    REDUCE_KEY(6),
+    REDUCE_VALUE(7),
+    CLOSE(8),
+    ABORT(9),
+    AUTHENTICATION_REQ(10),
+    OUTPUT(50),
+    PARTITIONED_OUTPUT(51),
+    STATUS(52),
+    PROGRESS(53),
+    DONE(54),
+    REGISTER_COUNTER(55),
+    INCREMENT_COUNTER(56),
+    AUTHENTICATION_RESP(57);
     final int code;
+
     MessageType(int code) {
       this.code = code;
     }
   }
 
   private static class UplinkReaderThread<K2 extends WritableComparable,
-                                          V2 extends Writable>  
-    extends Thread {
-    
+      V2 extends Writable>
+      extends Thread {
+
     private DataInputStream inStream;
     private UpwardProtocol<K2, V2> handler;
     private K2 key;
     private V2 value;
     private boolean authPending = true;
-    
+
     public UplinkReaderThread(InputStream stream,
-                              UpwardProtocol<K2, V2> handler, 
-                              K2 key, V2 value) throws IOException{
-      inStream = new DataInputStream(new BufferedInputStream(stream, 
-                                                             BUFFER_SIZE));
+                              UpwardProtocol<K2, V2> handler,
+                              K2 key, V2 value) throws IOException {
+      inStream = new DataInputStream(new BufferedInputStream(stream,
+          BUFFER_SIZE));
       this.handler = handler;
       this.key = key;
       this.value = value;
@@ -169,7 +158,7 @@ class BinaryProtocol<K1 extends WritableComparable, V1 extends Writable,
         }
       }
     }
-    
+
     private void readObject(Writable obj) throws IOException {
       int numBytes = WritableUtils.readVInt(inStream);
       byte[] buffer;
@@ -195,13 +184,15 @@ class BinaryProtocol<K1 extends WritableComparable, V1 extends Writable,
    */
   private static class TeeOutputStream extends FilterOutputStream {
     private OutputStream file;
+
     TeeOutputStream(String filename, OutputStream base) throws IOException {
       super(base);
       file = new FileOutputStream(filename);
     }
+
     public void write(byte b[], int off, int len) throws IOException {
-      file.write(b,off,len);
-      out.write(b,off,len);
+      file.write(b, off, len);
+      out.write(b, off, len);
     }
 
     public void write(int b) throws IOException {
@@ -232,7 +223,7 @@ class BinaryProtocol<K1 extends WritableComparable, V1 extends Writable,
    * @param config The job's configuration
    * @throws IOException
    */
-  public BinaryProtocol(Socket sock, 
+  public BinaryProtocol(Socket sock,
                         UpwardProtocol<K2, V2> handler,
                         K2 key,
                         V2 value,
@@ -242,10 +233,10 @@ class BinaryProtocol<K1 extends WritableComparable, V1 extends Writable,
     if (Submitter.getKeepCommandFile(config)) {
       raw = new TeeOutputStream("downlink.data", raw);
     }
-    stream = new DataOutputStream(new BufferedOutputStream(raw, 
-                                                           BUFFER_SIZE)) ;
+    stream = new DataOutputStream(new BufferedOutputStream(raw,
+        BUFFER_SIZE));
     uplink = new UplinkReaderThread<K2, V2>(sock.getInputStream(),
-                                            handler, key, value);
+        handler, key, value);
     uplink.setName("pipe-uplink-handler");
     uplink.start();
   }
@@ -262,7 +253,7 @@ class BinaryProtocol<K1 extends WritableComparable, V1 extends Writable,
     uplink.interrupt();
     uplink.join();
   }
-  
+
   public void authenticate(String digest, String challenge)
       throws IOException {
     LOG.debug("Sending AUTHENTICATION_REQ, digest=" + digest + ", challenge="
@@ -281,24 +272,24 @@ class BinaryProtocol<K1 extends WritableComparable, V1 extends Writable,
   public void setJobConf(JobConf job) throws IOException {
     WritableUtils.writeVInt(stream, MessageType.SET_JOB_CONF.code);
     List<String> list = new ArrayList<String>();
-    for(Map.Entry<String, String> itm: job) {
+    for (Map.Entry<String, String> itm : job) {
       list.add(itm.getKey());
       list.add(itm.getValue());
     }
     WritableUtils.writeVInt(stream, list.size());
-    for(String entry: list){
+    for (String entry : list) {
       Text.writeString(stream, entry);
     }
   }
 
-  public void setInputTypes(String keyType, 
+  public void setInputTypes(String keyType,
                             String valueType) throws IOException {
     WritableUtils.writeVInt(stream, MessageType.SET_INPUT_TYPES.code);
     Text.writeString(stream, keyType);
     Text.writeString(stream, valueType);
   }
 
-  public void runMap(InputSplit split, int numReduces, 
+  public void runMap(InputSplit split, int numReduces,
                      boolean pipedInput) throws IOException {
     WritableUtils.writeVInt(stream, MessageType.RUN_MAP.code);
     writeObject(split);
@@ -306,7 +297,7 @@ class BinaryProtocol<K1 extends WritableComparable, V1 extends Writable,
     WritableUtils.writeVInt(stream, pipedInput ? 1 : 0);
   }
 
-  public void mapItem(WritableComparable key, 
+  public void mapItem(WritableComparable key,
                       Writable value) throws IOException {
     WritableUtils.writeVInt(stream, MessageType.MAP_ITEM.code);
     writeObject(key);
@@ -333,7 +324,7 @@ class BinaryProtocol<K1 extends WritableComparable, V1 extends Writable,
     WritableUtils.writeVInt(stream, MessageType.CLOSE.code);
     LOG.debug("Sent close command");
   }
-  
+
   public void abort() throws IOException {
     WritableUtils.writeVInt(stream, MessageType.ABORT.code);
     LOG.debug("Sent abort command");

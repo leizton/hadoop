@@ -1,50 +1,31 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapred;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-
 import com.google.common.annotations.VisibleForTesting;
-
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.fs.FSError;
-import org.apache.hadoop.fs.FileContext;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.UnsupportedFileSystemException;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.mapreduce.JobContext;
-import org.apache.hadoop.mapreduce.JobCounter;
-import org.apache.hadoop.mapreduce.MRConfig;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.TaskID;
-import org.apache.hadoop.mapreduce.TypeConverter;
 import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId;
 import org.apache.hadoop.mapreduce.v2.api.records.TaskType;
 import org.apache.hadoop.mapreduce.v2.app.AppContext;
@@ -63,7 +44,12 @@ import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.yarn.api.ApplicationConstants.Environment;
 import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.concurrent.*;
 
 /**
  * Runs the container task locally in a thread.
@@ -90,16 +76,16 @@ public class LocalContainerLauncher extends AbstractService implements
     super(LocalContainerLauncher.class.getName());
     this.context = context;
     this.umbilical = umbilical;
-        // umbilical:  MRAppMaster creates (taskAttemptListener), passes to us
-        // (TODO/FIXME:  pointless to use RPC to talk to self; should create
-        // LocalTaskAttemptListener or similar:  implement umbilical protocol
-        // but skip RPC stuff)
+    // umbilical:  MRAppMaster creates (taskAttemptListener), passes to us
+    // (TODO/FIXME:  pointless to use RPC to talk to self; should create
+    // LocalTaskAttemptListener or similar:  implement umbilical protocol
+    // but skip RPC stuff)
 
     try {
       curFC = FileContext.getFileContext(curDir.toURI());
     } catch (UnsupportedFileSystemException ufse) {
       LOG.error("Local filesystem " + curDir.toURI().toString()
-                + " is unsupported?? (should never happen)");
+          + " is unsupported?? (should never happen)");
     }
 
     // Save list of files/dirs that are supposed to be present so can delete
@@ -185,8 +171,8 @@ public class LocalContainerLauncher extends AbstractService implements
     private boolean doneWithMaps = false;
     private int finishedSubMaps = 0;
 
-    private final Map<TaskAttemptId,Future<?>> futures =
-        new ConcurrentHashMap<TaskAttemptId,Future<?>>();
+    private final Map<TaskAttemptId, Future<?>> futures =
+        new ConcurrentHashMap<TaskAttemptId, Future<?>>();
 
     EventHandler() {
     }
@@ -199,7 +185,7 @@ public class LocalContainerLauncher extends AbstractService implements
       // Collect locations of map outputs to give to reduces
       final Map<TaskAttemptID, MapOutputFile> localMapFiles =
           new HashMap<TaskAttemptID, MapOutputFile>();
-      
+
       // _must_ either run subtasks sequentially or accept expense of new JVMs
       // (i.e., fork()), else will get weird failures when maps try to create/
       // write same dirname or filename:  no chdir() in Java
@@ -216,8 +202,8 @@ public class LocalContainerLauncher extends AbstractService implements
         if (event.getType() == EventType.CONTAINER_REMOTE_LAUNCH) {
 
           final ContainerRemoteLaunchEvent launchEv =
-              (ContainerRemoteLaunchEvent)event;
-          
+              (ContainerRemoteLaunchEvent) event;
+
           // execute the task on a separate thread
           Future<?> future = taskRunner.submit(new Runnable() {
             public void run() {
@@ -254,8 +240,8 @@ public class LocalContainerLauncher extends AbstractService implements
 
     @SuppressWarnings("unchecked")
     private void runTask(ContainerRemoteLaunchEvent launchEv,
-        Map<TaskAttemptID, MapOutputFile> localMapFiles) {
-      TaskAttemptId attemptID = launchEv.getTaskAttemptID(); 
+                         Map<TaskAttemptID, MapOutputFile> localMapFiles) {
+      TaskAttemptId attemptID = launchEv.getTaskAttemptID();
 
       Job job = context.getAllJobs().get(attemptID.getTaskId().getJobId());
       int numMapTasks = job.getTotalMaps();
@@ -270,7 +256,7 @@ public class LocalContainerLauncher extends AbstractService implements
       // after "launching," send launched event to task attempt to move
       // state from ASSIGNED to RUNNING (also nukes "remoteTask", so must
       // do getRemoteTask() call first)
-      
+
       //There is no port number because we are not really talking to a task
       // tracker.  The shuffle is just done through local files.  So the
       // port number is set to -1 in this case.
@@ -293,8 +279,8 @@ public class LocalContainerLauncher extends AbstractService implements
           context.getEventHandler().handle(jce);
         }
         runSubtask(remoteTask, ytask.getType(), attemptID, numMapTasks,
-                   (numReduceTasks > 0), localMapFiles);
-        
+            (numReduceTasks > 0), localMapFiles);
+
       } catch (RuntimeException re) {
         JobCounterUpdateEvent jce = new JobCounterUpdateEvent(attemptID.getTaskId().getJobId());
         jce.addCounterUpdate(JobCounter.NUM_FAILED_UBERTASKS, 1);
@@ -327,7 +313,7 @@ public class LocalContainerLauncher extends AbstractService implements
                             final int numMapTasks,
                             boolean renameOutputs,
                             Map<TaskAttemptID, MapOutputFile> localMapFiles)
-    throws RuntimeException, IOException {
+        throws RuntimeException, IOException {
       org.apache.hadoop.mapred.TaskAttemptID classicAttemptID =
           TypeConverter.fromYarn(attemptID);
 
@@ -360,11 +346,11 @@ public class LocalContainerLauncher extends AbstractService implements
         if (taskType == TaskType.MAP) {
           if (doneWithMaps) {
             LOG.error("CONTAINER_REMOTE_LAUNCH contains a map task ("
-                      + attemptID + "), but should be finished with maps");
+                + attemptID + "), but should be finished with maps");
             throw new RuntimeException();
           }
 
-          MapTask map = (MapTask)task;
+          MapTask map = (MapTask) task;
           map.setConf(conf);
 
           map.run(conf, umbilical);
@@ -388,7 +374,7 @@ public class LocalContainerLauncher extends AbstractService implements
             // (assuming no "lost events") at LocalMRAppMaster [CURRENT BUG(?): 
             // doesn't send reduce event until maps all done]
             LOG.error("CONTAINER_REMOTE_LAUNCH contains a reduce task ("
-                      + attemptID + "), but not yet finished with maps");
+                + attemptID + "), but not yet finished with maps");
             throw new RuntimeException();
           }
 
@@ -397,9 +383,9 @@ public class LocalContainerLauncher extends AbstractService implements
           conf.set(MRConfig.FRAMEWORK_NAME, MRConfig.LOCAL_FRAMEWORK_NAME);
           conf.set(MRConfig.MASTER_ADDRESS, "local");  // bypass shuffle
 
-          ReduceTask reduce = (ReduceTask)task;
+          ReduceTask reduce = (ReduceTask) task;
           reduce.setLocalMapFiles(localMapFiles);
-          reduce.setConf(conf);          
+          reduce.setConf(conf);
 
           reduce.run(conf, umbilical);
           relocalize();
@@ -426,7 +412,7 @@ public class LocalContainerLauncher extends AbstractService implements
               + StringUtils.stringifyException(e));
         }
         // Report back any failures, for diagnostic purposes
-        umbilical.reportDiagnosticInfo(classicAttemptID, 
+        umbilical.reportDiagnosticInfo(classicAttemptID,
             StringUtils.stringifyException(exception));
         throw new RuntimeException();
 
@@ -462,7 +448,7 @@ public class LocalContainerLauncher extends AbstractService implements
           try {
             if (curFC != null) {
               // this is recursive, unlike File delete():
-              deleted = curFC.delete(new Path(curLocalFiles[j].getName()),true);
+              deleted = curFC.delete(new Path(curLocalFiles[j].getName()), true);
             }
           } catch (IOException e) {
             deleted = false;
@@ -490,7 +476,7 @@ public class LocalContainerLauncher extends AbstractService implements
    */
   @VisibleForTesting
   protected static MapOutputFile renameMapOutputForReduce(JobConf conf,
-      TaskAttemptId mapId, MapOutputFile subMapOutputFile) throws IOException {
+                                                          TaskAttemptId mapId, MapOutputFile subMapOutputFile) throws IOException {
     FileSystem localFs = FileSystem.getLocal(conf);
     // move map output to reduce input
     Path mapOut = subMapOutputFile.getOutputFile();
@@ -518,11 +504,11 @@ public class LocalContainerLauncher extends AbstractService implements
 
   private static class RenamedMapOutputFile extends MapOutputFile {
     private Path path;
-    
+
     public RenamedMapOutputFile(Path path) {
       this.path = path;
     }
-    
+
     @Override
     public Path getOutputFile() throws IOException {
       return path;
@@ -532,49 +518,60 @@ public class LocalContainerLauncher extends AbstractService implements
     public Path getOutputFileForWrite(long size) throws IOException {
       throw new UnsupportedOperationException();
     }
+
     @Override
     public Path getOutputFileForWriteInVolume(Path existing) {
       throw new UnsupportedOperationException();
     }
+
     @Override
     public Path getOutputIndexFile() throws IOException {
       throw new UnsupportedOperationException();
     }
+
     @Override
     public Path getOutputIndexFileForWrite(long size) throws IOException {
       throw new UnsupportedOperationException();
     }
+
     @Override
     public Path getOutputIndexFileForWriteInVolume(Path existing) {
       throw new UnsupportedOperationException();
     }
+
     @Override
     public Path getSpillFile(int spillNumber) throws IOException {
       throw new UnsupportedOperationException();
     }
+
     @Override
     public Path getSpillFileForWrite(int spillNumber, long size)
         throws IOException {
       throw new UnsupportedOperationException();
     }
+
     @Override
     public Path getSpillIndexFile(int spillNumber) throws IOException {
       throw new UnsupportedOperationException();
     }
+
     @Override
     public Path getSpillIndexFileForWrite(int spillNumber, long size)
         throws IOException {
       throw new UnsupportedOperationException();
     }
+
     @Override
     public Path getInputFile(int mapId) throws IOException {
       throw new UnsupportedOperationException();
     }
+
     @Override
     public Path getInputFileForWrite(TaskID mapId, long size)
         throws IOException {
       throw new UnsupportedOperationException();
     }
+
     @Override
     public void removeAll() throws IOException {
       throw new UnsupportedOperationException();

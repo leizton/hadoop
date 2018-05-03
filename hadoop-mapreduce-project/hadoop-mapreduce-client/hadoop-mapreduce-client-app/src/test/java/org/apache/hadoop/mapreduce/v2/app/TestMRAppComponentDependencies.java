@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,10 +17,6 @@
  */
 
 package org.apache.hadoop.mapreduce.v2.app;
-
-import java.io.IOException;
-
-import org.junit.Assert;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.jobhistory.JobHistoryEvent;
@@ -35,7 +31,10 @@ import org.apache.hadoop.mapreduce.v2.app.job.impl.JobImpl;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.yarn.event.EventHandler;
 import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
+import org.junit.Assert;
 import org.junit.Test;
+
+import java.io.IOException;
 
 public class TestMRAppComponentDependencies {
 
@@ -64,7 +63,7 @@ public class TestMRAppComponentDependencies {
     int numStops;
 
     public TestMRApp(int maps, int reduces, boolean autoComplete,
-        String testName, boolean cleanOnStart) {
+                     String testName, boolean cleanOnStart) {
       super(maps, reduces, autoComplete, testName, cleanOnStart);
       JobHistoryEventHandlerStopped = 0;
       clientServiceStopped = 0;
@@ -73,7 +72,7 @@ public class TestMRAppComponentDependencies {
 
     @Override
     protected Job createJob(Configuration conf, JobStateInternal forcedState,
-        String diagnostic) {
+                            String diagnostic) {
       UserGroupInformation currentUser = null;
       try {
         currentUser = UserGroupInformation.getCurrentUser();
@@ -82,13 +81,13 @@ public class TestMRAppComponentDependencies {
       }
       Job newJob =
           new TestJob(getJobId(), getAttemptID(), conf, getDispatcher()
-            .getEventHandler(), getTaskAttemptListener(), getContext()
-            .getClock(), getCommitter(), isNewApiCommitter(),
-            currentUser.getUserName(), getContext(), forcedState, diagnostic);
+              .getEventHandler(), getTaskAttemptListener(), getContext()
+              .getClock(), getCommitter(), isNewApiCommitter(),
+              currentUser.getUserName(), getContext(), forcedState, diagnostic);
       ((AppContext) getContext()).getAllJobs().put(newJob.getID(), newJob);
 
       getDispatcher().register(JobFinishEvent.Type.class,
-        createJobFinishEventHandler());
+          createJobFinishEventHandler());
 
       return newJob;
     }

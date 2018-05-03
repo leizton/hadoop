@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,15 +16,6 @@
  * limitations under the License.
  */
 package org.apache.hadoop.mapreduce.v2.hs.webapp.dao;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 
 import org.apache.hadoop.mapreduce.JobACL;
 import org.apache.hadoop.mapreduce.v2.api.records.JobReport;
@@ -39,6 +30,14 @@ import org.apache.hadoop.mapreduce.v2.hs.CompletedJob;
 import org.apache.hadoop.mapreduce.v2.util.MRApps;
 import org.apache.hadoop.mapreduce.v2.util.MRApps.TaskAttemptStateUI;
 import org.apache.hadoop.security.authorize.AccessControlList;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 @XmlRootElement(name = "job")
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -81,7 +80,7 @@ public class JobInfo {
   public JobInfo(Job job) {
     this.id = MRApps.toString(job.getID());
     JobReport report = job.getReport();
-    
+
     this.mapsTotal = job.getTotalMaps();
     this.mapsCompleted = job.getCompletedMaps();
     this.reducesTotal = job.getTotalReduces();
@@ -95,7 +94,7 @@ public class JobInfo {
     this.state = job.getState().toString();
 
     this.acls = new ArrayList<ConfEntryInfo>();
-    
+
     if (job instanceof CompletedJob) {
       avgMapTime = 0l;
       avgReduceTime = 0l;
@@ -219,7 +218,7 @@ public class JobInfo {
   }
 
   public long getSubmitTime() {
-      return this.submitTime;
+    return this.submitTime;
   }
 
   public long getStartTime() {
@@ -275,29 +274,29 @@ public class JobInfo {
         }
 
         switch (task.getType()) {
-        case MAP:
-          successfulMapAttempts += successful;
-          failedMapAttempts += failed;
-          killedMapAttempts += killed;
-          if (attempt.getState() == TaskAttemptState.SUCCEEDED) {
-            numMaps++;
-            avgMapTime += (attempt.getFinishTime() - attempt.getLaunchTime());
-          }
-          break;
-        case REDUCE:
-          successfulReduceAttempts += successful;
-          failedReduceAttempts += failed;
-          killedReduceAttempts += killed;
-          if (attempt.getState() == TaskAttemptState.SUCCEEDED) {
-            numReduces++;
-            avgShuffleTime += (attempt.getShuffleFinishTime() - attempt
-                .getLaunchTime());
-            avgMergeTime += attempt.getSortFinishTime()
-                - attempt.getShuffleFinishTime();
-            avgReduceTime += (attempt.getFinishTime() - attempt
-                .getSortFinishTime());
-          }
-          break;
+          case MAP:
+            successfulMapAttempts += successful;
+            failedMapAttempts += failed;
+            killedMapAttempts += killed;
+            if (attempt.getState() == TaskAttemptState.SUCCEEDED) {
+              numMaps++;
+              avgMapTime += (attempt.getFinishTime() - attempt.getLaunchTime());
+            }
+            break;
+          case REDUCE:
+            successfulReduceAttempts += successful;
+            failedReduceAttempts += failed;
+            killedReduceAttempts += killed;
+            if (attempt.getState() == TaskAttemptState.SUCCEEDED) {
+              numReduces++;
+              avgShuffleTime += (attempt.getShuffleFinishTime() - attempt
+                  .getLaunchTime());
+              avgMergeTime += attempt.getSortFinishTime()
+                  - attempt.getShuffleFinishTime();
+              avgReduceTime += (attempt.getFinishTime() - attempt
+                  .getSortFinishTime());
+            }
+            break;
         }
       }
     }

@@ -1,31 +1,24 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2.app.rm;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.util.EnumSet;
-import java.util.Map;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
-
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -58,9 +51,15 @@ import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
 import org.apache.hadoop.yarn.factories.RecordFactory;
 import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
-
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.hadoop.yarn.proto.YarnServiceProtos.SchedulerResourceTypes;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Registers/unregisters to RM and sends heartbeats to RM.
@@ -115,7 +114,7 @@ public abstract class RMCommunicator extends AbstractService
 
   @Override
   protected void serviceStart() throws Exception {
-    scheduler= createSchedulerProxy();
+    scheduler = createSchedulerProxy();
     JobID id = TypeConverter.fromYarn(this.applicationId);
     JobId jobId = TypeConverter.toYarn(id);
     job = context.getJob(jobId);
@@ -145,12 +144,12 @@ public abstract class RMCommunicator extends AbstractService
   protected void register() {
     //Register
     InetSocketAddress serviceAddr = null;
-    if (clientService != null ) {
+    if (clientService != null) {
       serviceAddr = clientService.getBindAddress();
     }
     try {
       RegisterApplicationMasterRequest request =
-        recordFactory.newRecordInstance(RegisterApplicationMasterRequest.class);
+          recordFactory.newRecordInstance(RegisterApplicationMasterRequest.class);
       if (serviceAddr != null) {
         request.setHost(serviceAddr.getHostName());
         request.setRpcPort(serviceAddr.getPort());
@@ -159,13 +158,13 @@ public abstract class RMCommunicator extends AbstractService
             + serviceAddr.getHostName() + ":" + clientService.getHttpPort());
       }
       RegisterApplicationMasterResponse response =
-        scheduler.registerApplicationMaster(request);
+          scheduler.registerApplicationMaster(request);
       isApplicationMasterRegistered = true;
       maxContainerCapability = response.getMaximumResourceCapability();
       this.context.getClusterInfo().setMaxContainerCapability(
           maxContainerCapability);
       if (UserGroupInformation.isSecurityEnabled()) {
-        setClientToAMToken(response.getClientToAMTokenMasterKey());        
+        setClientToAMToken(response.getClientToAMTokenMasterKey());
       }
       this.applicationACLs = response.getApplicationACLs();
       LOG.info("maxContainerCapability: " + maxContainerCapability);
@@ -187,7 +186,7 @@ public abstract class RMCommunicator extends AbstractService
   protected void unregister() {
     try {
       doUnregistration();
-    } catch(Exception are) {
+    } catch (Exception are) {
       LOG.error("Exception while unregistering ", are);
       // if unregistration failed, isLastAMRetry needs to be recalculated
       // to see whether AM really has the chance to retry
@@ -200,7 +199,7 @@ public abstract class RMCommunicator extends AbstractService
   protected void doUnregistration()
       throws YarnException, IOException, InterruptedException {
     FinalApplicationStatus finishState = FinalApplicationStatus.UNDEFINED;
-    JobImpl jobImpl = (JobImpl)job;
+    JobImpl jobImpl = (JobImpl) job;
     if (jobImpl.getInternalState() == JobStateInternal.SUCCEEDED) {
       finishState = FinalApplicationStatus.SUCCEEDED;
     } else if (jobImpl.getInternalState() == JobStateInternal.KILLED
@@ -222,7 +221,7 @@ public abstract class RMCommunicator extends AbstractService
     LOG.info("History url is " + historyUrl);
     FinishApplicationMasterRequest request =
         FinishApplicationMasterRequest.newInstance(finishState,
-          sb.toString(), historyUrl);
+            sb.toString(), historyUrl);
     try {
       while (true) {
         FinishApplicationMasterResponse response =
@@ -281,7 +280,7 @@ public abstract class RMCommunicator extends AbstractService
             try {
               heartbeat();
             } catch (YarnRuntimeException e) {
-              LOG.error("Error communicating with RM: " + e.getMessage() , e);
+              LOG.error("Error communicating with RM: " + e.getMessage(), e);
               return;
             } catch (Exception e) {
               LOG.error("ERROR IN CONTACTING RM. ", e);
@@ -335,13 +334,13 @@ public abstract class RMCommunicator extends AbstractService
 
   public void setShouldUnregister(boolean shouldUnregister) {
     this.shouldUnregister = shouldUnregister;
-    LOG.info("RMCommunicator notified that shouldUnregistered is: " 
+    LOG.info("RMCommunicator notified that shouldUnregistered is: "
         + shouldUnregister);
   }
-  
+
   public void setSignalled(boolean isSignalled) {
     this.isSignalled = isSignalled;
-    LOG.info("RMCommunicator notified that isSignalled is: " 
+    LOG.info("RMCommunicator notified that isSignalled is: "
         + isSignalled);
   }
 

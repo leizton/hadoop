@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,11 +17,11 @@
  */
 package org.apache.hadoop.mapred;
 
-import java.net.InetAddress;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.ipc.Server;
+
+import java.net.InetAddress;
 
 /** Manages MapReduce audit logs. Audit logs provides information about
  * authorization/authentication events (success/failure).
@@ -31,8 +31,10 @@ import org.apache.hadoop.ipc.Server;
 class AuditLogger {
   private static final Log LOG = LogFactory.getLog(AuditLogger.class);
 
-  static enum Keys {USER, OPERATION, TARGET, RESULT, IP, PERMISSIONS,
-                    DESCRIPTION}
+  static enum Keys {
+    USER, OPERATION, TARGET, RESULT, IP, PERMISSIONS,
+    DESCRIPTION
+  }
 
   static class Constants {
     static final String SUCCESS = "SUCCESS";
@@ -62,7 +64,7 @@ class AuditLogger {
     start(Keys.USER, user, b);
     addRemoteIP(b);
     add(Keys.OPERATION, operation, b);
-    add(Keys.TARGET, target ,b);
+    add(Keys.TARGET, target, b);
     add(Keys.RESULT, Constants.SUCCESS, b);
     return b.toString();
   }
@@ -95,7 +97,7 @@ class AuditLogger {
     start(Keys.USER, user, b);
     addRemoteIP(b);
     add(Keys.OPERATION, operation, b);
-    add(Keys.TARGET, target ,b);
+    add(Keys.TARGET, target, b);
     add(Keys.RESULT, Constants.FAILURE, b);
     add(Keys.DESCRIPTION, description, b);
     add(Keys.PERMISSIONS, perm, b);
@@ -149,6 +151,6 @@ class AuditLogger {
    */
   static void add(Keys key, String value, StringBuilder b) {
     b.append(Constants.PAIR_SEPARATOR).append(key.name())
-     .append(Constants.KEY_VAL_SEPARATOR).append(value);
+        .append(Constants.KEY_VAL_SEPARATOR).append(value);
   }
 }

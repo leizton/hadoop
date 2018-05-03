@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,33 +18,34 @@
 
 package org.apache.hadoop.mapreduce.filecache;
 
-import java.io.*;
-import java.util.*;
-
 import org.apache.hadoop.classification.InterfaceAudience;
-import org.apache.hadoop.conf.*;
-import org.apache.hadoop.util.*;
-import org.apache.hadoop.fs.*;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.MRJobConfig;
+import org.apache.hadoop.util.StringUtils;
 
+import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Distribute application-specific large, read-only files efficiently.
- * 
+ *
  * <p><code>DistributedCache</code> is a facility provided by the Map-Reduce
  * framework to cache files (text, archives, jars etc.) needed by applications.
  * </p>
- * 
+ *
  * <p>Applications specify the files, via urls (hdfs:// or http://) to be cached 
  * via the {@link org.apache.hadoop.mapred.JobConf}. The
  * <code>DistributedCache</code> assumes that the files specified via urls are
  * already present on the {@link FileSystem} at the path specified by the url
  * and are accessible by every machine in the cluster.</p>
- * 
+ *
  * <p>The framework will copy the necessary files on to the slave node before 
  * any tasks for the job are executed on that node. Its efficiency stems from 
  * the fact that the files are only copied once per job and the ability to 
@@ -61,27 +62,27 @@ import java.net.URI;
  * the name of the file or directory will be used. If multiple files or 
  * directories map to the same link name, the last one added, will be used.  All
  * others will not even be downloaded.</p>
- * 
+ *
  * <p><code>DistributedCache</code> tracks modification timestamps of the cache 
  * files. Clearly the cache files should not be modified by the application 
  * or externally while the job is executing.</p>
- * 
+ *
  * <p>Here is an illustrative example on how to use the 
  * <code>DistributedCache</code>:</p>
  * <p><blockquote><pre>
  *     // Setting up the cache for the application
- *     
+ *
  *     1. Copy the requisite files to the <code>FileSystem</code>:
- *     
+ *
  *     $ bin/hadoop fs -copyFromLocal lookup.dat /myapp/lookup.dat  
  *     $ bin/hadoop fs -copyFromLocal map.zip /myapp/map.zip  
  *     $ bin/hadoop fs -copyFromLocal mylib.jar /myapp/mylib.jar
  *     $ bin/hadoop fs -copyFromLocal mytar.tar /myapp/mytar.tar
  *     $ bin/hadoop fs -copyFromLocal mytgz.tgz /myapp/mytgz.tgz
  *     $ bin/hadoop fs -copyFromLocal mytargz.tar.gz /myapp/mytargz.tar.gz
- *     
+ *
  *     2. Setup the application's <code>JobConf</code>:
- *     
+ *
  *     JobConf job = new JobConf();
  *     DistributedCache.addCacheFile(new URI("/myapp/lookup.dat#lookup.dat"), 
  *                                   job);
@@ -90,21 +91,21 @@ import java.net.URI;
  *     DistributedCache.addCacheArchive(new URI("/myapp/mytar.tar", job);
  *     DistributedCache.addCacheArchive(new URI("/myapp/mytgz.tgz", job);
  *     DistributedCache.addCacheArchive(new URI("/myapp/mytargz.tar.gz", job);
- *     
+ *
  *     3. Use the cached files in the {@link org.apache.hadoop.mapred.Mapper}
  *     or {@link org.apache.hadoop.mapred.Reducer}:
- *     
+ *
  *     public static class MapClass extends MapReduceBase  
  *     implements Mapper&lt;K, V, K, V&gt; {
- *     
+ *
  *       private Path[] localArchives;
  *       private Path[] localFiles;
- *       
+ *
  *       public void configure(JobConf job) {
  *         // Get the cached archives/files
  *         File f = new File("./map.zip/some/file/in/zip.txt");
  *       }
- *       
+ *
  *       public void map(K key, V value, 
  *                       OutputCollector&lt;K, V&gt; output, Reporter reporter) 
  *       throws IOException {
@@ -114,7 +115,7 @@ import java.net.URI;
  *         output.collect(k, v);
  *       }
  *     }
- *     
+ *
  * </pre></blockquote></p>
  *
  * It is also very common to use the DistributedCache by using
@@ -132,7 +133,7 @@ import java.net.URI;
 @Deprecated
 @InterfaceAudience.Private
 public class DistributedCache {
-  
+
   /**
    * Set the configuration with the given set of archives.  Intended
    * to be used by user code.
@@ -195,9 +196,9 @@ public class DistributedCache {
    */
   @Deprecated
   public static Path[] getLocalCacheArchives(Configuration conf)
-    throws IOException {
+      throws IOException {
     return StringUtils.stringToPath(conf
-                                    .getStrings(MRJobConfig.CACHE_LOCALARCHIVES));
+        .getStrings(MRJobConfig.CACHE_LOCALARCHIVES));
   }
 
   /**
@@ -210,7 +211,7 @@ public class DistributedCache {
    */
   @Deprecated
   public static Path[] getLocalCacheFiles(Configuration conf)
-    throws IOException {
+      throws IOException {
     return StringUtils.stringToPath(conf.getStrings(MRJobConfig.CACHE_LOCALFILES));
   }
 
@@ -224,7 +225,7 @@ public class DistributedCache {
       return null;
     }
     long[] result = new long[strs.length];
-    for(int i=0; i < strs.length; ++i) {
+    for (int i = 0; i < strs.length; ++i) {
       result[i] = Long.parseLong(strs[i]);
     }
     return result;
@@ -270,9 +271,9 @@ public class DistributedCache {
   public static void addCacheArchive(URI uri, Configuration conf) {
     String archives = conf.get(MRJobConfig.CACHE_ARCHIVES);
     conf.set(MRJobConfig.CACHE_ARCHIVES, archives == null ? uri.toString()
-             : archives + "," + uri.toString());
+        : archives + "," + uri.toString());
   }
-  
+
   /**
    * Add a file to be localized to the conf.  Intended
    * to be used by user code.
@@ -284,7 +285,7 @@ public class DistributedCache {
   public static void addCacheFile(URI uri, Configuration conf) {
     String files = conf.get(MRJobConfig.CACHE_FILES);
     conf.set(MRJobConfig.CACHE_FILES, files == null ? uri.toString() : files + ","
-             + uri.toString());
+        + uri.toString());
   }
 
   /**
@@ -297,8 +298,8 @@ public class DistributedCache {
    */
   @Deprecated
   public static void addFileToClassPath(Path file, Configuration conf)
-    throws IOException {
-	  addFileToClassPath(file, conf, file.getFileSystem(conf));
+      throws IOException {
+    addFileToClassPath(file, conf, file.getFileSystem(conf));
   }
 
   /**
@@ -311,11 +312,11 @@ public class DistributedCache {
    *              be interpreted.
    */
   public static void addFileToClassPath
-           (Path file, Configuration conf, FileSystem fs)
-        throws IOException {
+  (Path file, Configuration conf, FileSystem fs)
+      throws IOException {
     String classpath = conf.get(MRJobConfig.CLASSPATH_FILES);
     conf.set(MRJobConfig.CLASSPATH_FILES, classpath == null ? file.toString()
-             : classpath + "," + file.toString());
+        : classpath + "," + file.toString());
     URI uri = fs.makeQualified(file).toUri();
     addCacheFile(uri, conf);
   }
@@ -323,16 +324,16 @@ public class DistributedCache {
   /**
    * Get the file entries in classpath as an array of Path.
    * Used by internal DistributedCache code.
-   * 
+   *
    * @param conf Configuration that contains the classpath setting
    * @deprecated Use {@link JobContext#getFileClassPaths()} instead 
    */
   @Deprecated
   public static Path[] getFileClassPaths(Configuration conf) {
-    ArrayList<String> list = (ArrayList<String>)conf.getStringCollection(
-                                MRJobConfig.CLASSPATH_FILES);
-    if (list.size() == 0) { 
-      return null; 
+    ArrayList<String> list = (ArrayList<String>) conf.getStringCollection(
+        MRJobConfig.CLASSPATH_FILES);
+    if (list.size() == 0) {
+      return null;
     }
     Path[] paths = new Path[list.size()];
     for (int i = 0; i < list.size(); i++) {
@@ -344,14 +345,14 @@ public class DistributedCache {
   /**
    * Add an archive path to the current set of classpath entries. It adds the
    * archive to cache as well.  Intended to be used by user code.
-   * 
+   *
    * @param archive Path of the archive to be added
    * @param conf Configuration that contains the classpath setting
    * @deprecated Use {@link Job#addArchiveToClassPath(Path)} instead
    */
   @Deprecated
   public static void addArchiveToClassPath(Path archive, Configuration conf)
-    throws IOException {
+      throws IOException {
     addArchiveToClassPath(archive, conf, archive.getFileSystem(conf));
   }
 
@@ -364,11 +365,11 @@ public class DistributedCache {
    * @param fs FileSystem with respect to which {@code archive} should be interpreted.
    */
   public static void addArchiveToClassPath
-         (Path archive, Configuration conf, FileSystem fs)
+  (Path archive, Configuration conf, FileSystem fs)
       throws IOException {
     String classpath = conf.get(MRJobConfig.CLASSPATH_ARCHIVES);
     conf.set(MRJobConfig.CLASSPATH_ARCHIVES, classpath == null ? archive
-             .toString() : classpath + "," + archive.toString());
+        .toString() : classpath + "," + archive.toString());
     URI uri = fs.makeQualified(archive).toUri();
 
     addCacheArchive(uri, conf);
@@ -377,16 +378,16 @@ public class DistributedCache {
   /**
    * Get the archive entries in classpath as an array of Path.
    * Used by internal DistributedCache code.
-   * 
+   *
    * @param conf Configuration that contains the classpath setting
    * @deprecated Use {@link JobContext#getArchiveClassPaths()} instead 
    */
   @Deprecated
   public static Path[] getArchiveClassPaths(Configuration conf) {
-    ArrayList<String> list = (ArrayList<String>)conf.getStringCollection(
-                                MRJobConfig.CLASSPATH_ARCHIVES);
-    if (list.size() == 0) { 
-      return null; 
+    ArrayList<String> list = (ArrayList<String>) conf.getStringCollection(
+        MRJobConfig.CLASSPATH_ARCHIVES);
+    if (list.size() == 0) {
+      return null;
     }
     Path[] paths = new Path[list.size()];
     for (int i = 0; i < list.size(); i++) {
@@ -402,10 +403,10 @@ public class DistributedCache {
    * @deprecated This is a NO-OP. 
    */
   @Deprecated
-  public static void createSymlink(Configuration conf){
+  public static void createSymlink(Configuration conf) {
     //NOOP
   }
-  
+
   /**
    * Originally intended to check if symlinks should be used, but currently
    * symlinks cannot be disabled.
@@ -414,7 +415,7 @@ public class DistributedCache {
    * @deprecated symlinks are always created.
    */
   @Deprecated
-  public static boolean getSymlink(Configuration conf){
+  public static boolean getSymlink(Configuration conf) {
     return true;
   }
 
@@ -423,7 +424,7 @@ public class DistributedCache {
       return null;
     }
     boolean[] result = new boolean[strs.length];
-    for(int i=0; i < strs.length; ++i) {
+    for (int i = 0; i < strs.length; ++i) {
       result[i] = Boolean.parseBoolean(strs[i]);
     }
     return result;
@@ -465,7 +466,7 @@ public class DistributedCache {
     // check if fragment is null for any uri
     // also check if there are any conflicts in fragment names
     Set<String> fragments = new HashSet<String>();
-    
+
     // iterate over file uris
     if (uriFiles != null) {
       for (int i = 0; i < uriFiles.length; i++) {
@@ -480,7 +481,7 @@ public class DistributedCache {
         fragments.add(lowerCaseFragment);
       }
     }
-    
+
     // iterate over archive uris
     if (uriArchives != null) {
       for (int i = 0; i < uriArchives.length; i++) {

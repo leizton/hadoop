@@ -1,34 +1,24 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2.hs.webapp;
 
-import static org.apache.hadoop.mapreduce.v2.app.webapp.AMParams.TASK_ID;
-import static org.apache.hadoop.mapreduce.v2.app.webapp.AMParams.TASK_TYPE;
-import static org.apache.hadoop.yarn.webapp.view.JQueryUI.ACCORDION;
-import static org.apache.hadoop.yarn.webapp.view.JQueryUI.DATATABLES;
-import static org.apache.hadoop.yarn.webapp.view.JQueryUI.DATATABLES_ID;
-import static org.apache.hadoop.yarn.webapp.view.JQueryUI.initID;
-import static org.apache.hadoop.yarn.webapp.view.JQueryUI.postInitID;
-import static org.apache.hadoop.yarn.webapp.view.JQueryUI.tableInit;
-
-import java.util.Collection;
-
+import com.google.inject.Inject;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.hadoop.mapreduce.v2.api.records.TaskId;
 import org.apache.hadoop.mapreduce.v2.api.records.TaskType;
@@ -40,16 +30,15 @@ import org.apache.hadoop.mapreduce.v2.util.MRWebAppUtil;
 import org.apache.hadoop.yarn.util.Times;
 import org.apache.hadoop.yarn.webapp.SubView;
 import org.apache.hadoop.yarn.webapp.hamlet.Hamlet;
-import org.apache.hadoop.yarn.webapp.hamlet.Hamlet.TABLE;
-import org.apache.hadoop.yarn.webapp.hamlet.Hamlet.TBODY;
-import org.apache.hadoop.yarn.webapp.hamlet.Hamlet.TFOOT;
-import org.apache.hadoop.yarn.webapp.hamlet.Hamlet.THEAD;
-import org.apache.hadoop.yarn.webapp.hamlet.Hamlet.TR;
+import org.apache.hadoop.yarn.webapp.hamlet.Hamlet.*;
 import org.apache.hadoop.yarn.webapp.hamlet.HamletSpec.InputType;
 import org.apache.hadoop.yarn.webapp.view.HtmlBlock;
 
-import com.google.common.base.Joiner;
-import com.google.inject.Inject;
+import java.util.Collection;
+
+import static org.apache.hadoop.mapreduce.v2.app.webapp.AMParams.TASK_ID;
+import static org.apache.hadoop.mapreduce.v2.app.webapp.AMParams.TASK_TYPE;
+import static org.apache.hadoop.yarn.webapp.view.JQueryUI.*;
 
 /**
  * A Page the shows the status of a given task
@@ -71,7 +60,7 @@ public class HsTaskPage extends HsView {
     protected void render(Block html) {
       if (!isValidRequest()) {
         html.
-          h2($(TITLE));
+            h2($(TITLE));
         return;
       }
       TaskType type = null;
@@ -81,41 +70,41 @@ public class HsTaskPage extends HsView {
       } else {
         type = app.getTask().getType();
       }
-      
+
       TR<THEAD<TABLE<Hamlet>>> headRow = html.
-      table("#attempts").
-        thead().
+          table("#attempts").
+          thead().
           tr();
-      
+
       headRow.
-            th(".id", "Attempt").
-            th(".state", "State").
-            th(".status", "Status").
-            th(".node", "Node").
-            th(".logs", "Logs").
-            th(".tsh", "Start Time");
-      
-      if(type == TaskType.REDUCE) {
+          th(".id", "Attempt").
+          th(".state", "State").
+          th(".status", "Status").
+          th(".node", "Node").
+          th(".logs", "Logs").
+          th(".tsh", "Start Time");
+
+      if (type == TaskType.REDUCE) {
         headRow.th("Shuffle Finish Time");
         headRow.th("Merge Finish Time");
       }
-      
+
       headRow.th("Finish Time"); //Attempt
-      
-      if(type == TaskType.REDUCE) {
+
+      if (type == TaskType.REDUCE) {
         headRow.th("Elapsed Time Shuffle"); //Attempt
         headRow.th("Elapsed Time Merge"); //Attempt
         headRow.th("Elapsed Time Reduce"); //Attempt
       }
       headRow.th("Elapsed Time").
-              th(".note", "Note");
-      
-       TBODY<TABLE<Hamlet>> tbody = headRow._()._().tbody();
-       // Write all the data into a JavaScript array of arrays for JQuery
-       // DataTables to display
-       StringBuilder attemptsTableData = new StringBuilder("[\n");
+          th(".note", "Note");
 
-       for (TaskAttempt attempt : getTaskAttempts()) {
+      TBODY<TABLE<Hamlet>> tbody = headRow._()._().tbody();
+      // Write all the data into a JavaScript array of arrays for JQuery
+      // DataTables to display
+      StringBuilder attemptsTableData = new StringBuilder("[\n");
+
+      for (TaskAttempt attempt : getTaskAttempts()) {
         final TaskAttemptInfo ta = new TaskAttemptInfo(attempt, false);
         String taid = ta.getId();
 
@@ -131,7 +120,7 @@ public class HsTaskPage extends HsView {
         long elapsedShuffleTime = -1;
         long elapsedSortTime = -1;
         long elapsedReduceTime = -1;
-        if(type == TaskType.REDUCE) {
+        if (type == TaskType.REDUCE) {
           shuffleFinishTime = attempt.getShuffleFinishTime();
           sortFinishTime = attempt.getSortFinishTime();
           elapsedShuffleTime =
@@ -139,98 +128,98 @@ public class HsTaskPage extends HsView {
           elapsedSortTime =
               Times.elapsed(shuffleFinishTime, sortFinishTime, false);
           elapsedReduceTime =
-              Times.elapsed(sortFinishTime, attemptFinishTime, false); 
+              Times.elapsed(sortFinishTime, attemptFinishTime, false);
         }
         long attemptElapsed =
             Times.elapsed(attemptStartTime, attemptFinishTime, false);
         int sortId = attempt.getID().getId()
-                   + (attempt.getID().getTaskId().getId() * 10000);
+            + (attempt.getID().getTaskId().getId() * 10000);
 
         attemptsTableData.append("[\"")
-        .append(sortId + " ").append(taid).append("\",\"")
-        .append(ta.getState()).append("\",\"")
-        .append(StringEscapeUtils.escapeJavaScript(
-              StringEscapeUtils.escapeHtml(ta.getStatus()))).append("\",\"")
+            .append(sortId + " ").append(taid).append("\",\"")
+            .append(ta.getState()).append("\",\"")
+            .append(StringEscapeUtils.escapeJavaScript(
+                StringEscapeUtils.escapeHtml(ta.getStatus()))).append("\",\"")
 
-        .append("<a class='nodelink' href='" + MRWebAppUtil.getYARNWebappScheme() + nodeHttpAddr + "'>")
-        .append(nodeRackName + "/" + nodeHttpAddr + "</a>\",\"")
+            .append("<a class='nodelink' href='" + MRWebAppUtil.getYARNWebappScheme() + nodeHttpAddr + "'>")
+            .append(nodeRackName + "/" + nodeHttpAddr + "</a>\",\"")
 
-        .append("<a class='logslink' href='").append(url("logs", nodeIdString
-          , containerIdString, taid, app.getJob().getUserName()))
-          .append("'>logs</a>\",\"")
+            .append("<a class='logslink' href='").append(url("logs", nodeIdString
+            , containerIdString, taid, app.getJob().getUserName()))
+            .append("'>logs</a>\",\"")
 
-          .append(attemptStartTime).append("\",\"");
+            .append(attemptStartTime).append("\",\"");
 
-        if(type == TaskType.REDUCE) {
+        if (type == TaskType.REDUCE) {
           attemptsTableData.append(shuffleFinishTime).append("\",\"")
-          .append(sortFinishTime).append("\",\"");
+              .append(sortFinishTime).append("\",\"");
         }
         attemptsTableData.append(attemptFinishTime).append("\",\"");
 
-        if(type == TaskType.REDUCE) {
+        if (type == TaskType.REDUCE) {
           attemptsTableData.append(elapsedShuffleTime).append("\",\"")
-          .append(elapsedSortTime).append("\",\"")
-          .append(elapsedReduceTime).append("\",\"");
+              .append(elapsedSortTime).append("\",\"")
+              .append(elapsedReduceTime).append("\",\"");
         }
-          attemptsTableData.append(attemptElapsed).append("\",\"")
-          .append(StringEscapeUtils.escapeJavaScript(
-              StringEscapeUtils.escapeHtml(ta.getNote())))
-          .append("\"],\n");
+        attemptsTableData.append(attemptElapsed).append("\",\"")
+            .append(StringEscapeUtils.escapeJavaScript(
+                StringEscapeUtils.escapeHtml(ta.getNote())))
+            .append("\"],\n");
       }
-       //Remove the last comma and close off the array of arrays
-       if(attemptsTableData.charAt(attemptsTableData.length() - 2) == ',') {
-         attemptsTableData.delete(attemptsTableData.length()-2, attemptsTableData.length()-1);
-       }
-       attemptsTableData.append("]");
-       html.script().$type("text/javascript").
-       _("var attemptsTableData=" + attemptsTableData)._();
+      //Remove the last comma and close off the array of arrays
+      if (attemptsTableData.charAt(attemptsTableData.length() - 2) == ',') {
+        attemptsTableData.delete(attemptsTableData.length() - 2, attemptsTableData.length() - 1);
+      }
+      attemptsTableData.append("]");
+      html.script().$type("text/javascript").
+          _("var attemptsTableData=" + attemptsTableData)._();
 
       TR<TFOOT<TABLE<Hamlet>>> footRow = tbody._().tfoot().tr();
       footRow.
           th().input("search_init").$type(InputType.text).
-              $name("attempt_name").$value("Attempt")._()._().
+          $name("attempt_name").$value("Attempt")._()._().
           th().input("search_init").$type(InputType.text).
-              $name("attempt_state").$value("State")._()._().
+          $name("attempt_state").$value("State")._()._().
           th().input("search_init").$type(InputType.text).
-              $name("attempt_status").$value("Status")._()._().
+          $name("attempt_status").$value("Status")._()._().
           th().input("search_init").$type(InputType.text).
-              $name("attempt_node").$value("Node")._()._().
+          $name("attempt_node").$value("Node")._()._().
           th().input("search_init").$type(InputType.text).
-              $name("attempt_node").$value("Logs")._()._().
+          $name("attempt_node").$value("Logs")._()._().
           th().input("search_init").$type(InputType.text).
-              $name("attempt_start_time").$value("Start Time")._()._();
-      
-      if(type == TaskType.REDUCE) {
+          $name("attempt_start_time").$value("Start Time")._()._();
+
+      if (type == TaskType.REDUCE) {
         footRow.
-        th().input("search_init").$type(InputType.text).
+            th().input("search_init").$type(InputType.text).
             $name("shuffle_time").$value("Shuffle Time")._()._();
         footRow.
-        th().input("search_init").$type(InputType.text).
+            th().input("search_init").$type(InputType.text).
             $name("merge_time").$value("Merge Time")._()._();
       }
-      
+
       footRow.
-        th().input("search_init").$type(InputType.text).
-            $name("attempt_finish").$value("Finish Time")._()._();
-      
-      if(type == TaskType.REDUCE) {
+          th().input("search_init").$type(InputType.text).
+          $name("attempt_finish").$value("Finish Time")._()._();
+
+      if (type == TaskType.REDUCE) {
         footRow.
-        th().input("search_init").$type(InputType.text).
+            th().input("search_init").$type(InputType.text).
             $name("elapsed_shuffle_time").$value("Elapsed Shuffle Time")._()._();
         footRow.
-        th().input("search_init").$type(InputType.text).
+            th().input("search_init").$type(InputType.text).
             $name("elapsed_merge_time").$value("Elapsed Merge Time")._()._();
         footRow.
-        th().input("search_init").$type(InputType.text).
+            th().input("search_init").$type(InputType.text).
             $name("elapsed_reduce_time").$value("Elapsed Reduce Time")._()._();
       }
 
       footRow.
-        th().input("search_init").$type(InputType.text).
-            $name("attempt_elapsed").$value("Elapsed Time")._()._().
-        th().input("search_init").$type(InputType.text).
-            $name("note").$value("Note")._()._();
-      
+          th().input("search_init").$type(InputType.text).
+          $name("attempt_elapsed").$value("Elapsed Time")._()._().
+          th().input("search_init").$type(InputType.text).
+          $name("note").$value("Note")._()._();
+
       footRow._()._()._();
     }
 
@@ -253,7 +242,8 @@ public class HsTaskPage extends HsView {
    * (non-Javadoc)
    * @see org.apache.hadoop.mapreduce.v2.hs.webapp.HsView#preHead(org.apache.hadoop.yarn.webapp.hamlet.Hamlet.HTML)
    */
-  @Override protected void preHead(Page.HTML<_> html) {
+  @Override
+  protected void preHead(Page.HTML<_> html) {
     commonPreHead(html);
     //override the nav config from commonPReHead
     set(initID(ACCORDION, "nav"), "{autoHeight:false, active:2}");
@@ -268,7 +258,8 @@ public class HsTaskPage extends HsView {
    * The content of this page is the attempts block
    * @return AttemptsBlock.class
    */
-  @Override protected Class<? extends SubView> content() {
+  @Override
+  protected Class<? extends SubView> content() {
     return AttemptsBlock.class;
   }
 
@@ -286,54 +277,54 @@ public class HsTaskPage extends HsView {
       type = taskID.getTaskType();
     }
     StringBuilder b = tableInit()
-      .append(", 'aaData': attemptsTableData")
-      .append(", bDeferRender: true")
-      .append(", bProcessing: true")
-      .append("\n,aoColumnDefs:[\n")
+        .append(", 'aaData': attemptsTableData")
+        .append(", bDeferRender: true")
+        .append(", bProcessing: true")
+        .append("\n,aoColumnDefs:[\n")
 
-      //logs column should not filterable (it includes container ID which may pollute searches)
-      .append("\n{'aTargets': [ 4 ]")
-      .append(", 'bSearchable': false }")
+        //logs column should not filterable (it includes container ID which may pollute searches)
+        .append("\n{'aTargets': [ 4 ]")
+        .append(", 'bSearchable': false }")
 
-      .append("\n, {'sType':'numeric', 'aTargets': [ 0 ]")
-      .append(", 'mRender': parseHadoopAttemptID }")
+        .append("\n, {'sType':'numeric', 'aTargets': [ 0 ]")
+        .append(", 'mRender': parseHadoopAttemptID }")
 
-      .append("\n, {'sType':'numeric', 'aTargets': [ 5, 6")
-      //Column numbers are different for maps and reduces
-      .append(type == TaskType.REDUCE ? ", 7, 8" : "")
-      .append(" ], 'mRender': renderHadoopDate }")
+        .append("\n, {'sType':'numeric', 'aTargets': [ 5, 6")
+        //Column numbers are different for maps and reduces
+        .append(type == TaskType.REDUCE ? ", 7, 8" : "")
+        .append(" ], 'mRender': renderHadoopDate }")
 
-      .append("\n, {'sType':'numeric', 'aTargets': [")
-      .append(type == TaskType.REDUCE ? "9, 10, 11, 12" : "7")
-      .append(" ], 'mRender': renderHadoopElapsedTime }]")
+        .append("\n, {'sType':'numeric', 'aTargets': [")
+        .append(type == TaskType.REDUCE ? "9, 10, 11, 12" : "7")
+        .append(" ], 'mRender': renderHadoopElapsedTime }]")
 
-      // Sort by id upon page load
-      .append("\n, aaSorting: [[0, 'asc']]")
-      .append("}");
-      return b.toString();
+        // Sort by id upon page load
+        .append("\n, aaSorting: [[0, 'asc']]")
+        .append("}");
+    return b.toString();
   }
 
   private String attemptsPostTableInit() {
     return "var asInitVals = new Array();\n" +
-           "$('tfoot input').keyup( function () \n{"+
-           "  attemptsDataTable.fnFilter( this.value, $('tfoot input').index(this) );\n"+
-           "} );\n"+
-           "$('tfoot input').each( function (i) {\n"+
-           "  asInitVals[i] = this.value;\n"+
-           "} );\n"+
-           "$('tfoot input').focus( function () {\n"+
-           "  if ( this.className == 'search_init' )\n"+
-           "  {\n"+
-           "    this.className = '';\n"+
-           "    this.value = '';\n"+
-           "  }\n"+
-           "} );\n"+
-           "$('tfoot input').blur( function (i) {\n"+
-           "  if ( this.value == '' )\n"+
-           "  {\n"+
-           "    this.className = 'search_init';\n"+
-           "    this.value = asInitVals[$('tfoot input').index(this)];\n"+
-           "  }\n"+
-           "} );\n";
+        "$('tfoot input').keyup( function () \n{" +
+        "  attemptsDataTable.fnFilter( this.value, $('tfoot input').index(this) );\n" +
+        "} );\n" +
+        "$('tfoot input').each( function (i) {\n" +
+        "  asInitVals[i] = this.value;\n" +
+        "} );\n" +
+        "$('tfoot input').focus( function () {\n" +
+        "  if ( this.className == 'search_init' )\n" +
+        "  {\n" +
+        "    this.className = '';\n" +
+        "    this.value = '';\n" +
+        "  }\n" +
+        "} );\n" +
+        "$('tfoot input').blur( function (i) {\n" +
+        "  if ( this.value == '' )\n" +
+        "  {\n" +
+        "    this.className = 'search_init';\n" +
+        "    this.value = asInitVals[$('tfoot input').index(this)];\n" +
+        "  }\n" +
+        "} );\n";
   }
 }

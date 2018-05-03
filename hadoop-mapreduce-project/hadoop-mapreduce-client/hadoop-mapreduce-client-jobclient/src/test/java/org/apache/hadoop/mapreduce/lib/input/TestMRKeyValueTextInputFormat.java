@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,43 +18,35 @@
 
 package org.apache.hadoop.mapreduce.lib.input;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.util.BitSet;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-
-import org.apache.commons.logging.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.*;
-import org.apache.hadoop.io.*;
-import org.apache.hadoop.io.compress.*;
-import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.MapContext;
-import org.apache.hadoop.mapreduce.MapReduceTestUtil;
-import org.apache.hadoop.mapreduce.RecordReader;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.compress.CompressionCodec;
+import org.apache.hadoop.io.compress.GzipCodec;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.task.MapContextImpl;
 import org.apache.hadoop.util.LineReader;
 import org.apache.hadoop.util.ReflectionUtils;
-
 import org.junit.Test;
-import static org.junit.Assert.*;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.List;
+import java.util.Random;
+
+import static org.junit.Assert.*;
 
 public class TestMRKeyValueTextInputFormat {
   private static final Log LOG =
-    LogFactory.getLog(TestMRKeyValueTextInputFormat.class.getName());
+      LogFactory.getLog(TestMRKeyValueTextInputFormat.class.getName());
 
   private static Configuration defaultConf = new Configuration();
-  private static FileSystem localFs = null; 
+  private static FileSystem localFs = null;
+
   static {
     try {
       defaultConf.set("fs.defaultFS", "file:///");
@@ -63,10 +55,11 @@ public class TestMRKeyValueTextInputFormat {
       throw new RuntimeException("init failure", e);
     }
   }
-  private static Path workDir = 
-    new Path(new Path(System.getProperty("test.build.data", "."), "data"),
-             "TestKeyValueTextInputFormat");
-  
+
+  private static Path workDir =
+      new Path(new Path(System.getProperty("test.build.data", "."), "data"),
+          "TestKeyValueTextInputFormat");
+
   @Test
   public void testFormat() throws Exception {
     Job job = Job.getInstance(new Configuration(defaultConf));
@@ -110,18 +103,18 @@ public class TestMRKeyValueTextInputFormat {
         // check each split
         BitSet bits = new BitSet(length);
         for (int j = 0; j < splits.size(); j++) {
-          LOG.debug("split["+j+"]= " + splits.get(j));
+          LOG.debug("split[" + j + "]= " + splits.get(j));
           TaskAttemptContext context = MapReduceTestUtil.
-            createDummyMapTaskAttemptContext(job.getConfiguration());
+              createDummyMapTaskAttemptContext(job.getConfiguration());
           RecordReader<Text, Text> reader = format.createRecordReader(
-            splits.get(j), context);
+              splits.get(j), context);
           Class<?> clazz = reader.getClass();
-          assertEquals("reader class is KeyValueLineRecordReader.", 
-            KeyValueLineRecordReader.class, clazz);
-          MapContext<Text, Text, Text, Text> mcontext = 
-            new MapContextImpl<Text, Text, Text, Text>(job.getConfiguration(), 
-            context.getTaskAttemptID(), reader, null, null, 
-            MapReduceTestUtil.createDummyReporter(), splits.get(j));
+          assertEquals("reader class is KeyValueLineRecordReader.",
+              KeyValueLineRecordReader.class, clazz);
+          MapContext<Text, Text, Text, Text> mcontext =
+              new MapContextImpl<Text, Text, Text, Text>(job.getConfiguration(),
+                  context.getTaskAttemptID(), reader, null, null,
+                  MapReduceTestUtil.createDummyReporter(), splits.get(j));
           reader.initialize(splits.get(j), mcontext);
 
           Text key = null;
@@ -144,7 +137,7 @@ public class TestMRKeyValueTextInputFormat {
               bits.set(v);
               count++;
             }
-            LOG.debug("splits[" + j + "]=" + splits.get(j) +" count=" + count);
+            LOG.debug("splits[" + j + "]=" + splits.get(j) + " count=" + count);
           } finally {
             reader.close();
           }
@@ -164,11 +157,11 @@ public class TestMRKeyValueTextInputFormat {
     CompressionCodec codec = null;
     try {
       codec = (CompressionCodec)
-      ReflectionUtils.newInstance(conf.getClassByName("org.apache.hadoop.io.compress.BZip2Codec"), conf);
+          ReflectionUtils.newInstance(conf.getClassByName("org.apache.hadoop.io.compress.BZip2Codec"), conf);
     } catch (ClassNotFoundException cnfe) {
       throw new IOException("Illegal codec!");
     }
-    Path file = new Path(workDir, "test"+codec.getDefaultExtension());
+    Path file = new Path(workDir, "test" + codec.getDefaultExtension());
 
     int seed = new Random().nextInt();
     LOG.info("seed = " + seed);
@@ -187,7 +180,7 @@ public class TestMRKeyValueTextInputFormat {
 
       // create a file with length entries
       Writer writer =
-        new OutputStreamWriter(codec.createOutputStream(localFs.create(file)));
+          new OutputStreamWriter(codec.createOutputStream(localFs.create(file)));
       try {
         for (int i = 0; i < length; i++) {
           writer.write(Integer.toString(i * 2));
@@ -211,16 +204,16 @@ public class TestMRKeyValueTextInputFormat {
         // check each split
         BitSet bits = new BitSet(length);
         for (int j = 0; j < splits.size(); j++) {
-          LOG.debug("split["+j+"]= " + splits.get(j));
+          LOG.debug("split[" + j + "]= " + splits.get(j));
           TaskAttemptContext context = MapReduceTestUtil.
-            createDummyMapTaskAttemptContext(job.getConfiguration());
+              createDummyMapTaskAttemptContext(job.getConfiguration());
           RecordReader<Text, Text> reader = format.createRecordReader(
-            splits.get(j), context);
+              splits.get(j), context);
           Class<?> clazz = reader.getClass();
           MapContext<Text, Text, Text, Text> mcontext =
-            new MapContextImpl<Text, Text, Text, Text>(job.getConfiguration(),
-            context.getTaskAttemptID(), reader, null, null,
-            MapReduceTestUtil.createDummyReporter(), splits.get(j));
+              new MapContextImpl<Text, Text, Text, Text>(job.getConfiguration(),
+                  context.getTaskAttemptID(), reader, null, null,
+                  MapReduceTestUtil.createDummyReporter(), splits.get(j));
           reader.initialize(splits.get(j), mcontext);
 
           Text key = null;
@@ -235,14 +228,14 @@ public class TestMRKeyValueTextInputFormat {
               assertEquals("Bad key", 0, k % 2);
               assertEquals("Mismatched key/value", k / 2, v);
               LOG.debug("read " + k + "," + v);
-              assertFalse(k + "," + v + " in multiple partitions.",bits.get(v));
+              assertFalse(k + "," + v + " in multiple partitions.", bits.get(v));
               bits.set(v);
               count++;
             }
             if (count > 0) {
-              LOG.info("splits["+j+"]="+splits.get(j)+" count=" + count);
+              LOG.info("splits[" + j + "]=" + splits.get(j) + " count=" + count);
             } else {
-              LOG.debug("splits["+j+"]="+splits.get(j)+" count=" + count);
+              LOG.debug("splits[" + j + "]=" + splits.get(j) + " count=" + count);
             }
           } finally {
             reader.close();
@@ -256,17 +249,17 @@ public class TestMRKeyValueTextInputFormat {
 
   private LineReader makeStream(String str) throws IOException {
     return new LineReader(new ByteArrayInputStream
-                                           (str.getBytes("UTF-8")), 
-                                           defaultConf);
+        (str.getBytes("UTF-8")),
+        defaultConf);
   }
-  
+
   @Test
   public void testUTF8() throws Exception {
     LineReader in = makeStream("abcd\u20acbdcd\u20ac");
     Text line = new Text();
     in.readLine(line);
-    assertEquals("readLine changed utf8 characters", 
-                 "abcd\u20acbdcd\u20ac", line.toString());
+    assertEquals("readLine changed utf8 characters",
+        "abcd\u20acbdcd\u20ac", line.toString());
     in = makeStream("abc\u200axyz");
     in.readLine(line);
     assertEquals("split on fake newline", "abc\u200axyz", line.toString());
@@ -290,8 +283,8 @@ public class TestMRKeyValueTextInputFormat {
     assertEquals("line5 length", 5, out.getLength());
     assertEquals("end of file", 0, in.readLine(out));
   }
-  
-  private static void writeFile(FileSystem fs, Path name, 
+
+  private static void writeFile(FileSystem fs, Path name,
                                 CompressionCodec codec,
                                 String contents) throws IOException {
     OutputStream stm;
@@ -303,20 +296,20 @@ public class TestMRKeyValueTextInputFormat {
     stm.write(contents.getBytes());
     stm.close();
   }
-  
-  private static List<Text> readSplit(KeyValueTextInputFormat format, 
-      InputSplit split, Job job) throws IOException, InterruptedException {
+
+  private static List<Text> readSplit(KeyValueTextInputFormat format,
+                                      InputSplit split, Job job) throws IOException, InterruptedException {
     List<Text> result = new ArrayList<Text>();
     Configuration conf = job.getConfiguration();
     TaskAttemptContext context = MapReduceTestUtil.
-      createDummyMapTaskAttemptContext(conf);
-    RecordReader<Text, Text> reader = format.createRecordReader(split, 
-      MapReduceTestUtil.createDummyMapTaskAttemptContext(conf));
-    MapContext<Text, Text, Text, Text> mcontext = 
-      new MapContextImpl<Text, Text, Text, Text>(conf, 
-      context.getTaskAttemptID(), reader, null, null,
-      MapReduceTestUtil.createDummyReporter(), 
-      split);
+        createDummyMapTaskAttemptContext(conf);
+    RecordReader<Text, Text> reader = format.createRecordReader(split,
+        MapReduceTestUtil.createDummyMapTaskAttemptContext(conf));
+    MapContext<Text, Text, Text, Text> mcontext =
+        new MapContextImpl<Text, Text, Text, Text>(conf,
+            context.getTaskAttemptID(), reader, null, null,
+            MapReduceTestUtil.createDummyReporter(),
+            split);
     reader.initialize(split, mcontext);
     while (reader.nextKeyValue()) {
       result.add(new Text(reader.getCurrentValue()));
@@ -324,7 +317,7 @@ public class TestMRKeyValueTextInputFormat {
     reader.close();
     return result;
   }
-  
+
   /**
    * Test using the gzip codec for reading
    */
@@ -334,11 +327,11 @@ public class TestMRKeyValueTextInputFormat {
     CompressionCodec gzip = new GzipCodec();
     ReflectionUtils.setConf(gzip, conf);
     localFs.delete(workDir, true);
-    writeFile(localFs, new Path(workDir, "part1.txt.gz"), gzip, 
-              "line-1\tthe quick\nline-2\tbrown\nline-3\t" +
-              "fox jumped\nline-4\tover\nline-5\t the lazy\nline-6\t dog\n");
+    writeFile(localFs, new Path(workDir, "part1.txt.gz"), gzip,
+        "line-1\tthe quick\nline-2\tbrown\nline-3\t" +
+            "fox jumped\nline-4\tover\nline-5\t the lazy\nline-6\t dog\n");
     writeFile(localFs, new Path(workDir, "part2.txt.gz"), gzip,
-              "line-1\tthis is a test\nline-1\tof gzip\n");
+        "line-1\tthis is a test\nline-1\tof gzip\n");
     Job job = Job.getInstance(conf);
     FileInputFormat.setInputPaths(job, workDir);
     KeyValueTextInputFormat format = new KeyValueTextInputFormat();
@@ -359,12 +352,12 @@ public class TestMRKeyValueTextInputFormat {
     assertEquals("splits[0][5]", " dog", results.get(5).toString());
     results = readSplit(format, splits.get(1), job);
     assertEquals("splits[1] length", 2, results.size());
-    assertEquals("splits[1][0]", "this is a test", 
-                 results.get(0).toString());    
-    assertEquals("splits[1][1]", "of gzip", 
-                 results.get(1).toString());    
+    assertEquals("splits[1][0]", "this is a test",
+        results.get(0).toString());
+    assertEquals("splits[1][1]", "of gzip",
+        results.get(1).toString());
   }
-  
+
   public static void main(String[] args) throws Exception {
     new TestMRKeyValueTextInputFormat().testFormat();
   }

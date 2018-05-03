@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -119,10 +119,10 @@ class DataWriter {
   /**
    * Inits with given buffer size (must be greater than bytes per long and a
    * multiple of bytes per long)
-   * 
+   *
    * @param rnd
    *          random number generator to use for hash value creation
-   * 
+   *
    * @param bufferSize
    *          size which must be greater than BYTES_PER_LONG and which also must
    *          be a multiple of BYTES_PER_LONG
@@ -149,18 +149,18 @@ class DataWriter {
 
   /**
    * Generates a partial segment which is less than bytes per long size
-   * 
+   *
    * @param byteAm
    *          the number of bytes to generate (less than bytes per long)
    * @param offset
    *          the staring offset
    * @param hasher
    *          hasher to use for generating data given an offset
-   * 
+   *
    * @return GenerateResult containing new offset and byte buffer
    */
   private GenerateResult generatePartialSegment(int byteAm, long offset,
-      DataHasher hasher) {
+                                                DataHasher hasher) {
     if (byteAm > BYTES_PER_LONG) {
       throw new IllegalArgumentException(
           "Partial bytes must be less or equal to " + BYTES_PER_LONG);
@@ -183,7 +183,7 @@ class DataWriter {
   /**
    * Generates a full segment (aligned to bytes per long) of the given byte
    * amount size
-   * 
+   *
    * @param byteAm
    *          long aligned size
    * @param startOffset
@@ -193,7 +193,7 @@ class DataWriter {
    * @return GenerateResult containing new offset and byte buffer
    */
   private GenerateResult generateFullSegment(int byteAm, long startOffset,
-      DataHasher hasher) {
+                                             DataHasher hasher) {
     if (byteAm <= 0) {
       throw new IllegalArgumentException(
           "Byte amount must be greater than zero and not " + byteAm);
@@ -222,7 +222,7 @@ class DataWriter {
    * out the complete segment but for partial segments, ie when the last
    * position does not fill up a full long then a partial set will be written
    * out containing the needed bytes from the expected full segment
-   * 
+   *
    * @param byteAm
    *          the amount of bytes to write
    * @param startPos
@@ -235,7 +235,7 @@ class DataWriter {
    * @throws IOException
    */
   private GenerateOutput writePieces(long byteAm, long startPos,
-      DataHasher hasher, OutputStream out) throws IOException {
+                                     DataHasher hasher, OutputStream out) throws IOException {
     if (byteAm <= 0) {
       return new GenerateOutput(0, 0);
     }
@@ -299,15 +299,15 @@ class DataWriter {
 
   /**
    * Writes to a stream the given number of bytes specified
-   * 
+   *
    * @param byteAm
    *          the file size in number of bytes to write
-   * 
+   *
    * @param out
    *          the outputstream to write to
-   * 
+   *
    * @return the number of bytes written + time taken
-   * 
+   *
    * @throws IOException
    */
   GenerateOutput writeSegment(long byteAm, OutputStream out)
@@ -332,7 +332,7 @@ class DataWriter {
 
   /**
    * Gets the header length
-   * 
+   *
    * @return int
    */
   static int getHeaderLength() {
@@ -341,15 +341,15 @@ class DataWriter {
 
   /**
    * Writes a header to the given output stream
-   * 
+   *
    * @param os
    *          output stream to write to
-   * 
+   *
    * @param fileSize
    *          the file size to write
-   * 
+   *
    * @return WriteInfo
-   * 
+   *
    * @throws IOException
    *           if a write failure occurs
    */

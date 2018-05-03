@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,68 +17,47 @@
  */
 package org.apache.hadoop.mapreduce.lib.input;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.concurrent.TimeoutException;
-import java.util.zip.GZIPOutputStream;
-
-import org.junit.Assert;
+import com.google.common.collect.HashMultiset;
 import junit.framework.TestCase;
-
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.BlockLocation;
-import org.apache.hadoop.fs.CommonConfigurationKeys;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.HdfsBlockLocation;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.PathFilter;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.hdfs.DFSTestUtil;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.InputFormat;
-import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.JobContext;
-import org.apache.hadoop.mapreduce.RecordReader;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.TaskAttemptID;
-import org.apache.hadoop.mapreduce.TaskType;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.lib.input.CombineFileInputFormat.OneBlockInfo;
 import org.apache.hadoop.mapreduce.lib.input.CombineFileInputFormat.OneFileInfo;
 import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
+import org.junit.Assert;
 import org.junit.Test;
 
-import com.google.common.collect.HashMultiset;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.URI;
+import java.util.*;
+import java.util.concurrent.TimeoutException;
+import java.util.zip.GZIPOutputStream;
 
 public class TestCombineFileInputFormat extends TestCase {
 
-  private static final String rack1[] = new String[] {
-    "/r1"
+  private static final String rack1[] = new String[]{
+      "/r1"
   };
-  private static final String hosts1[] = new String[] {
-    "host1.rack1.com"
+  private static final String hosts1[] = new String[]{
+      "host1.rack1.com"
   };
-  private static final String rack2[] = new String[] {
-    "/r2"
+  private static final String rack2[] = new String[]{
+      "/r2"
   };
-  private static final String hosts2[] = new String[] {
-    "host2.rack2.com"
+  private static final String hosts2[] = new String[]{
+      "host2.rack2.com"
   };
-  private static final String rack3[] = new String[] {
-    "/r3"
+  private static final String rack3[] = new String[]{
+      "/r3"
   };
-  private static final String hosts3[] = new String[] {
-    "host3.rack3.com"
+  private static final String hosts3[] = new String[]{
+      "host3.rack3.com"
   };
   final Path inDir = new Path("/racktesting");
   final Path outputPath = new Path("/output");
@@ -96,8 +75,8 @@ public class TestCombineFileInputFormat extends TestCase {
   /** Dummy class to extend CombineFileInputFormat*/
   private class DummyInputFormat extends CombineFileInputFormat<Text, Text> {
     @Override
-    public RecordReader<Text,Text> createRecordReader(InputSplit split, 
-        TaskAttemptContext context) throws IOException {
+    public RecordReader<Text, Text> createRecordReader(InputSplit split,
+                                                       TaskAttemptContext context) throws IOException {
       return null;
     }
   }
@@ -141,7 +120,7 @@ public class TestCombineFileInputFormat extends TestCase {
       System.out.println("File " + stat.getPath());
       String name = stat.getPath().toUri().getPath();
       BlockLocation[] locs =
-        super.getFileBlockLocations(stat, start, len);
+          super.getFileBlockLocations(stat, start, len);
       if (name.equals(fileWithMissingBlocks)) {
         System.out.println("Returning missing blocks for " + fileWithMissingBlocks);
         locs[0] = new HdfsBlockLocation(new BlockLocation(new String[0],
@@ -164,7 +143,7 @@ public class TestCombineFileInputFormat extends TestCase {
     private boolean used;
 
     public DummyRecordReader(CombineFileSplit split, TaskAttemptContext context,
-        Integer i) {
+                             Integer i) {
       this.context = context;
       this.idx = i;
       this.s = split;
@@ -214,8 +193,8 @@ public class TestCombineFileInputFormat extends TestCase {
   private class ChildRRInputFormat extends CombineFileInputFormat<Text, Text> {
     @SuppressWarnings("unchecked")
     @Override
-    public RecordReader<Text,Text> createRecordReader(InputSplit split, 
-        TaskAttemptContext context) throws IOException {
+    public RecordReader<Text, Text> createRecordReader(InputSplit split,
+                                                       TaskAttemptContext context) throws IOException {
       return new CombineFileRecordReader((CombineFileSplit) split, context,
           (Class) DummyRecordReader.class);
     }
@@ -234,8 +213,8 @@ public class TestCombineFileInputFormat extends TestCase {
     // DummyRecordReader.
     InputFormat inputFormat = new ChildRRInputFormat();
 
-    Path [] files = { new Path("file1") };
-    long [] lengths = { 1 };
+    Path[] files = {new Path("file1")};
+    long[] lengths = {1};
 
     CombineFileSplit split = new CombineFileSplit(files, lengths);
 
@@ -245,7 +224,7 @@ public class TestCombineFileInputFormat extends TestCase {
     // Verify that the initial configuration is the one being used.
     // Right after construction the dummy key should have value "STATE1"
     assertEquals("Invalid initial dummy key value", "STATE1",
-      rr.getCurrentKey().toString());
+        rr.getCurrentKey().toString());
 
     // Switch the active context for the RecordReader...
     Configuration conf2 = new Configuration();
@@ -255,7 +234,7 @@ public class TestCombineFileInputFormat extends TestCase {
 
     // And verify that the new context is updated into the child record reader.
     assertEquals("Invalid secondary dummy key value", "STATE2",
-      rr.getCurrentKey().toString());
+        rr.getCurrentKey().toString());
   }
 
   public void testReinit() throws Exception {
@@ -270,8 +249,8 @@ public class TestCombineFileInputFormat extends TestCase {
     // DummyRecordReader.
     InputFormat inputFormat = new ChildRRInputFormat();
 
-    Path [] files = { new Path("file1"), new Path("file2") };
-    long [] lengths = { 1, 1 };
+    Path[] files = {new Path("file1"), new Path("file2")};
+    long[] lengths = {1, 1};
 
     CombineFileSplit split = new CombineFileSplit(files, lengths);
     RecordReader rr = inputFormat.createRecordReader(split, context);
@@ -287,10 +266,10 @@ public class TestCombineFileInputFormat extends TestCase {
     // The inner RR will return false, because it only emits one (k, v) pair.
     // But there's another sub-split to process. This returns true to us.
     assertTrue(rr.nextKeyValue());
-    
+
     // And the 2nd rr will have its initialize method called correctly.
     assertEquals("file2", rr.getCurrentValue().toString());
-    
+
     // But after both child RR's have returned their singleton (k, v), this
     // should also return false.
     assertFalse(rr.nextKeyValue());
@@ -301,15 +280,15 @@ public class TestCombineFileInputFormat extends TestCase {
     FileSystem fileSys = null;
     try {
       /* Start 3 datanodes, one each in rack r1, r2, r3. Create five files
-       * 1) file1 and file5, just after starting the datanode on r1, with 
+       * 1) file1 and file5, just after starting the datanode on r1, with
        *    a repl factor of 1, and,
-       * 2) file2, just after starting the datanode on r2, with 
+       * 2) file2, just after starting the datanode on r2, with
        *    a repl factor of 2, and,
-       * 3) file3, file4 after starting the all three datanodes, with a repl 
+       * 3) file3, file4 after starting the all three datanodes, with a repl
        *    factor of 3.
-       * At the end, file1, file5 will be present on only datanode1, file2 will 
-       * be present on datanode 1 and datanode2 and 
-       * file3, file4 will be present on all datanodes. 
+       * At the end, file1, file5 will be present on only datanode1, file2 will
+       * be present on datanode 1 and datanode2 and
+       * file3, file4 will be present on all datanodes.
        */
       Configuration conf = new Configuration();
       conf.setBoolean("dfs.replication.considerLoad", false);
@@ -322,10 +301,10 @@ public class TestCombineFileInputFormat extends TestCase {
         throw new IOException("Mkdirs failed to create " + inDir.toString());
       }
       Path file1 = new Path(dir1 + "/file1");
-      writeFile(conf, file1, (short)1, 1);
+      writeFile(conf, file1, (short) 1, 1);
       // create another file on the same datanode
       Path file5 = new Path(dir5 + "/file5");
-      writeFile(conf, file5, (short)1, 1);
+      writeFile(conf, file5, (short) 1, 1);
       // split it using a CombinedFile input format
       DummyInputFormat inFormat = new DummyInputFormat();
       Job job = Job.getInstance(conf);
@@ -346,13 +325,13 @@ public class TestCombineFileInputFormat extends TestCase {
       assertEquals(0, fileSplit.getOffset(1));
       assertEquals(BLOCKSIZE, fileSplit.getLength(1));
       assertEquals(hosts1[0], fileSplit.getLocations()[0]);
-      
+
       dfs.startDataNodes(conf, 1, true, null, rack2, hosts2, null);
       dfs.waitActive();
 
       // create file on two datanodes.
       Path file2 = new Path(dir2 + "/file2");
-      writeFile(conf, file2, (short)2, 2);
+      writeFile(conf, file2, (short) 2, 2);
 
       // split it using a CombinedFile input format
       inFormat = new DummyInputFormat();
@@ -388,7 +367,7 @@ public class TestCombineFileInputFormat extends TestCase {
       dfs.startDataNodes(conf, 1, true, null, rack3, hosts3, null);
       dfs.waitActive();
       Path file3 = new Path(dir3 + "/file3");
-      writeFile(conf, new Path(dir3 + "/file3"), (short)3, 3);
+      writeFile(conf, new Path(dir3 + "/file3"), (short) 3, 3);
       inFormat = new DummyInputFormat();
       FileInputFormat.setInputPaths(job, dir1 + "," + dir2 + "," + dir3);
       inFormat.setMinSplitSizeRack(BLOCKSIZE);
@@ -430,7 +409,7 @@ public class TestCombineFileInputFormat extends TestCase {
 
       // create file4 on all three racks
       Path file4 = new Path(dir4 + "/file4");
-      writeFile(conf, file4, (short)3, 3);
+      writeFile(conf, file4, (short) 3, 3);
       inFormat = new DummyInputFormat();
       FileInputFormat.setInputPaths(job, dir1 + "," + dir2 + "," + dir3 + "," + dir4);
       inFormat.setMinSplitSizeRack(BLOCKSIZE);
@@ -473,9 +452,9 @@ public class TestCombineFileInputFormat extends TestCase {
       // maximum split size is 2 blocks 
       inFormat = new DummyInputFormat();
       inFormat.setMinSplitSizeNode(BLOCKSIZE);
-      inFormat.setMaxSplitSize(2*BLOCKSIZE);
-      FileInputFormat.setInputPaths(job, 
-        dir1 + "," + dir2 + "," + dir3 + "," + dir4);
+      inFormat.setMaxSplitSize(2 * BLOCKSIZE);
+      FileInputFormat.setInputPaths(job,
+          dir1 + "," + dir2 + "," + dir3 + "," + dir4);
       splits = inFormat.getSplits(job);
       for (InputSplit split : splits) {
         System.out.println("File split(Test4): " + split);
@@ -513,9 +492,9 @@ public class TestCombineFileInputFormat extends TestCase {
       // maximum split size is 3 blocks 
       inFormat = new DummyInputFormat();
       inFormat.setMinSplitSizeNode(BLOCKSIZE);
-      inFormat.setMaxSplitSize(3*BLOCKSIZE);
-      FileInputFormat.setInputPaths(job, 
-        dir1 + "," + dir2 + "," + dir3 + "," + dir4);
+      inFormat.setMaxSplitSize(3 * BLOCKSIZE);
+      FileInputFormat.setInputPaths(job,
+          dir1 + "," + dir2 + "," + dir3 + "," + dir4);
       splits = inFormat.getSplits(job);
       for (InputSplit split : splits) {
         System.out.println("File split(Test5): " + split);
@@ -555,13 +534,13 @@ public class TestCombineFileInputFormat extends TestCase {
       assertEquals(BLOCKSIZE, fileSplit.getOffset(1));
       assertEquals(BLOCKSIZE, fileSplit.getLength(1));
       assertEquals(file4.getName(), fileSplit.getPath(2).getName());
-      assertEquals(2*BLOCKSIZE, fileSplit.getOffset(2));
+      assertEquals(2 * BLOCKSIZE, fileSplit.getOffset(2));
       assertEquals(BLOCKSIZE, fileSplit.getLength(2));
       assertEquals("host1.rack1.com", fileSplit.getLocations()[0]);
 
       // maximum split size is 4 blocks 
       inFormat = new DummyInputFormat();
-      inFormat.setMaxSplitSize(4*BLOCKSIZE);
+      inFormat.setMaxSplitSize(4 * BLOCKSIZE);
       FileInputFormat.setInputPaths(job, dir1 + "," + dir2 + "," + dir3 + "," + dir4);
       splits = inFormat.getSplits(job);
       for (InputSplit split : splits) {
@@ -593,7 +572,7 @@ public class TestCombineFileInputFormat extends TestCase {
       assertEquals(BLOCKSIZE, fileSplit.getOffset(2));
       assertEquals(BLOCKSIZE, fileSplit.getLength(2));
       assertEquals(file4.getName(), fileSplit.getPath(3).getName());
-      assertEquals( 2 * BLOCKSIZE, fileSplit.getOffset(3));
+      assertEquals(2 * BLOCKSIZE, fileSplit.getOffset(3));
       assertEquals(BLOCKSIZE, fileSplit.getLength(3));
       assertEquals("host2.rack2.com", fileSplit.getLocations()[0]);
       fileSplit = (CombineFileSplit) splits.get(2);
@@ -606,11 +585,11 @@ public class TestCombineFileInputFormat extends TestCase {
 
       // maximum split size is 7 blocks and min is 3 blocks
       inFormat = new DummyInputFormat();
-      inFormat.setMaxSplitSize(7*BLOCKSIZE);
-      inFormat.setMinSplitSizeNode(3*BLOCKSIZE);
-      inFormat.setMinSplitSizeRack(3*BLOCKSIZE);
-      FileInputFormat.setInputPaths(job, 
-        dir1 + "," + dir2 + "," + dir3 + "," + dir4);
+      inFormat.setMaxSplitSize(7 * BLOCKSIZE);
+      inFormat.setMinSplitSizeNode(3 * BLOCKSIZE);
+      inFormat.setMinSplitSizeRack(3 * BLOCKSIZE);
+      FileInputFormat.setInputPaths(job,
+          dir1 + "," + dir2 + "," + dir3 + "," + dir4);
       splits = inFormat.getSplits(job);
       for (InputSplit split : splits) {
         System.out.println("File split(Test7): " + split);
@@ -632,8 +611,8 @@ public class TestCombineFileInputFormat extends TestCase {
       inFormat = new DummyInputFormat();
       FileInputFormat.addInputPath(job, inDir);
       inFormat.setMinSplitSizeRack(1); // everything is at least rack local
-      inFormat.createPool(new TestFilter(dir1), 
-                          new TestFilter(dir2));
+      inFormat.createPool(new TestFilter(dir1),
+          new TestFilter(dir2));
       splits = inFormat.getSplits(job);
       for (InputSplit split : splits) {
         System.out.println("File split(Test1): " + split);
@@ -664,20 +643,20 @@ public class TestCombineFileInputFormat extends TestCase {
       final Path dirNoMatch1 = new Path(inDir, "/dirxx");
       final Path dirNoMatch2 = new Path(inDir, "/diryy");
       for (int i = 0; i < numPools; i++) {
-        inFormat1.createPool(new TestFilter(dirNoMatch1), 
-                            new TestFilter(dirNoMatch2));
+        inFormat1.createPool(new TestFilter(dirNoMatch1),
+            new TestFilter(dirNoMatch2));
       }
       long start = System.currentTimeMillis();
       splits = inFormat1.getSplits(job);
       long end = System.currentTimeMillis();
       System.out.println("Elapsed time for " + numPools + " pools " +
-                         " and " + numFiles + " files is " + 
-                         ((end - start)/1000) + " seconds.");
+          " and " + numFiles + " files is " +
+          ((end - start) / 1000) + " seconds.");
 
       // This file has three whole blocks. If the maxsplit size is
       // half the block size, then there should be six splits.
       inFormat = new DummyInputFormat();
-      inFormat.setMaxSplitSize(BLOCKSIZE/2);
+      inFormat.setMaxSplitSize(BLOCKSIZE / 2);
       FileInputFormat.setInputPaths(job, dir3);
       splits = inFormat.getSplits(job);
       for (InputSplit split : splits) {
@@ -698,14 +677,14 @@ public class TestCombineFileInputFormat extends TestCase {
     FileSystem fileSys = FileSystem.get(conf);
 
     FSDataOutputStream stm = fileSys.create(name, true,
-                                            conf.getInt("io.file.buffer.size", 4096),
-                                            replication, (long)BLOCKSIZE);
+        conf.getInt("io.file.buffer.size", 4096),
+        replication, (long) BLOCKSIZE);
     writeDataAndSetReplication(fileSys, name, stm, replication, numBlocks);
   }
 
   // Creates the gzip file and return the FileStatus
   static FileStatus writeGzipFile(Configuration conf, Path name,
-      short replication, int numBlocks)
+                                  short replication, int numBlocks)
       throws IOException, TimeoutException, InterruptedException {
     FileSystem fileSys = FileSystem.get(conf);
 
@@ -716,7 +695,7 @@ public class TestCombineFileInputFormat extends TestCase {
   }
 
   private static void writeDataAndSetReplication(FileSystem fileSys, Path name,
-        OutputStream out, short replication, int numBlocks)
+                                                 OutputStream out, short replication, int numBlocks)
       throws IOException, TimeoutException, InterruptedException {
     for (int i = 0; i < numBlocks; i++) {
       out.write(databuf);
@@ -769,7 +748,7 @@ public class TestCombineFileInputFormat extends TestCase {
 
     OneFileInfo.populateBlockInfo(blocks, rackToBlocks, blockToNodes,
         nodeToBlocks, rackToNodes);
-    
+
     inFormat.createSplits(nodeToBlocks, blockToNodes, rackToBlocks, totLength,
         maxSplitSize, minSizeNode, minSizeRack, splits);
 
@@ -787,7 +766,7 @@ public class TestCombineFileInputFormat extends TestCase {
     }
     Assert.assertTrue(numLocalSplits >= 0.9 * splits.size());
   }
-  
+
   public void testNodeInputSplit() throws IOException, InterruptedException {
     // Regression test for MAPREDUCE-4892. There are 2 nodes with all blocks on 
     // both nodes. The grouping ensures that both nodes get splits instead of 
@@ -799,36 +778,36 @@ public class TestCombineFileInputFormat extends TestCase {
     long maxSize = 200;
     long minSizeNode = 50;
     long minSizeRack = 50;
-    String[] locations = { "h1", "h2" };
+    String[] locations = {"h1", "h2"};
     String[] racks = new String[0];
     Path path = new Path("hdfs://file");
-    
+
     OneBlockInfo[] blocks = new OneBlockInfo[numBlocks];
-    for(int i=0; i<numBlocks; ++i) {
-      blocks[i] = new OneBlockInfo(path, i*blockSize, blockSize, locations, racks);
+    for (int i = 0; i < numBlocks; ++i) {
+      blocks[i] = new OneBlockInfo(path, i * blockSize, blockSize, locations, racks);
       totLength += blockSize;
     }
-    
+
     List<InputSplit> splits = new ArrayList<InputSplit>();
-    HashMap<String, Set<String>> rackToNodes = 
-                              new HashMap<String, Set<String>>();
-    HashMap<String, List<OneBlockInfo>> rackToBlocks = 
-                              new HashMap<String, List<OneBlockInfo>>();
-    HashMap<OneBlockInfo, String[]> blockToNodes = 
-                              new HashMap<OneBlockInfo, String[]>();
-    HashMap<String, Set<OneBlockInfo>> nodeToBlocks = 
-                              new HashMap<String, Set<OneBlockInfo>>();
-    
-    OneFileInfo.populateBlockInfo(blocks, rackToBlocks, blockToNodes, 
-                             nodeToBlocks, rackToNodes);
-    
-    inFormat.createSplits(nodeToBlocks, blockToNodes, rackToBlocks, totLength,  
-                          maxSize, minSizeNode, minSizeRack, splits);
-    
-    int expectedSplitCount = (int)(totLength/maxSize);
+    HashMap<String, Set<String>> rackToNodes =
+        new HashMap<String, Set<String>>();
+    HashMap<String, List<OneBlockInfo>> rackToBlocks =
+        new HashMap<String, List<OneBlockInfo>>();
+    HashMap<OneBlockInfo, String[]> blockToNodes =
+        new HashMap<OneBlockInfo, String[]>();
+    HashMap<String, Set<OneBlockInfo>> nodeToBlocks =
+        new HashMap<String, Set<OneBlockInfo>>();
+
+    OneFileInfo.populateBlockInfo(blocks, rackToBlocks, blockToNodes,
+        nodeToBlocks, rackToNodes);
+
+    inFormat.createSplits(nodeToBlocks, blockToNodes, rackToBlocks, totLength,
+        maxSize, minSizeNode, minSizeRack, splits);
+
+    int expectedSplitCount = (int) (totLength / maxSize);
     Assert.assertEquals(expectedSplitCount, splits.size());
     HashMultiset<String> nodeSplits = HashMultiset.create();
-    for(int i=0; i<expectedSplitCount; ++i) {
+    for (int i = 0; i < expectedSplitCount; ++i) {
       InputSplit inSplit = splits.get(i);
       Assert.assertEquals(maxSize, inSplit.getLength());
       Assert.assertEquals(1, inSplit.getLocations().length);
@@ -837,22 +816,22 @@ public class TestCombineFileInputFormat extends TestCase {
     Assert.assertEquals(3, nodeSplits.count(locations[0]));
     Assert.assertEquals(3, nodeSplits.count(locations[1]));
   }
-  
+
   public void testSplitPlacementForCompressedFiles() throws Exception {
     MiniDFSCluster dfs = null;
     FileSystem fileSys = null;
     try {
       /* Start 3 datanodes, one each in rack r1, r2, r3. Create five gzipped
        *  files
-       * 1) file1 and file5, just after starting the datanode on r1, with 
+       * 1) file1 and file5, just after starting the datanode on r1, with
        *    a repl factor of 1, and,
-       * 2) file2, just after starting the datanode on r2, with 
+       * 2) file2, just after starting the datanode on r2, with
        *    a repl factor of 2, and,
-       * 3) file3, file4 after starting the all three datanodes, with a repl 
+       * 3) file3, file4 after starting the all three datanodes, with a repl
        *    factor of 3.
-       * At the end, file1, file5 will be present on only datanode1, file2 will 
-       * be present on datanode 1 and datanode2 and 
-       * file3, file4 will be present on all datanodes. 
+       * At the end, file1, file5 will be present on only datanode1, file2 will
+       * be present on datanode 1 and datanode2 and
+       * file3, file4 will be present on all datanodes.
        */
       Configuration conf = new Configuration();
       conf.setBoolean("dfs.replication.considerLoad", false);
@@ -865,10 +844,10 @@ public class TestCombineFileInputFormat extends TestCase {
         throw new IOException("Mkdirs failed to create " + inDir.toString());
       }
       Path file1 = new Path(dir1 + "/file1.gz");
-      FileStatus f1 = writeGzipFile(conf, file1, (short)1, 1);
+      FileStatus f1 = writeGzipFile(conf, file1, (short) 1, 1);
       // create another file on the same datanode
       Path file5 = new Path(dir5 + "/file5.gz");
-      FileStatus f5 = writeGzipFile(conf, file5, (short)1, 1);
+      FileStatus f5 = writeGzipFile(conf, file5, (short) 1, 1);
       // split it using a CombinedFile input format
       DummyInputFormat inFormat = new DummyInputFormat();
       Job job = Job.getInstance(conf);
@@ -889,13 +868,13 @@ public class TestCombineFileInputFormat extends TestCase {
       assertEquals(0, fileSplit.getOffset(1));
       assertEquals(f5.getLen(), fileSplit.getLength(1));
       assertEquals(hosts1[0], fileSplit.getLocations()[0]);
-      
+
       dfs.startDataNodes(conf, 1, true, null, rack2, hosts2, null);
       dfs.waitActive();
 
       // create file on two datanodes.
       Path file2 = new Path(dir2 + "/file2.gz");
-      FileStatus f2 = writeGzipFile(conf, file2, (short)2, 2);
+      FileStatus f2 = writeGzipFile(conf, file2, (short) 2, 2);
 
       // split it using a CombinedFile input format
       inFormat = new DummyInputFormat();
@@ -928,7 +907,7 @@ public class TestCombineFileInputFormat extends TestCase {
       dfs.startDataNodes(conf, 1, true, null, rack3, hosts3, null);
       dfs.waitActive();
       Path file3 = new Path(dir3 + "/file3.gz");
-      FileStatus f3 = writeGzipFile(conf, file3, (short)3, 3);
+      FileStatus f3 = writeGzipFile(conf, file3, (short) 3, 3);
       inFormat = new DummyInputFormat();
       FileInputFormat.setInputPaths(job, dir1 + "," + dir2 + "," + dir3);
       inFormat.setMinSplitSizeRack(f1.getLen());
@@ -961,7 +940,7 @@ public class TestCombineFileInputFormat extends TestCase {
 
       // create file4 on all three racks
       Path file4 = new Path(dir4 + "/file4.gz");
-      FileStatus f4 = writeGzipFile(conf, file4, (short)3, 3);
+      FileStatus f4 = writeGzipFile(conf, file4, (short) 3, 3);
       inFormat = new DummyInputFormat();
       FileInputFormat.setInputPaths(job,
           dir1 + "," + dir2 + "," + dir3 + "," + dir4);
@@ -1000,8 +979,8 @@ public class TestCombineFileInputFormat extends TestCase {
       inFormat = new DummyInputFormat();
       inFormat.setMinSplitSizeNode(f1.getLen());
       inFormat.setMaxSplitSize(f1.getLen());
-      FileInputFormat.setInputPaths(job, 
-        dir1 + "," + dir2 + "," + dir3 + "," + dir4);
+      FileInputFormat.setInputPaths(job,
+          dir1 + "," + dir2 + "," + dir3 + "," + dir4);
       splits = inFormat.getSplits(job);
       for (InputSplit split : splits) {
         System.out.println("File split(Test4): " + split);
@@ -1038,8 +1017,8 @@ public class TestCombineFileInputFormat extends TestCase {
       inFormat = new DummyInputFormat();
       inFormat.setMinSplitSizeNode(f1.getLen());
       inFormat.setMaxSplitSize(2 * f1.getLen());
-      FileInputFormat.setInputPaths(job, 
-        dir1 + "," + dir2 + "," + dir3 + "," + dir4);
+      FileInputFormat.setInputPaths(job,
+          dir1 + "," + dir2 + "," + dir3 + "," + dir4);
       splits = inFormat.getSplits(job);
       for (InputSplit split : splits) {
         System.out.println("File split(Test5): " + split);
@@ -1105,8 +1084,8 @@ public class TestCombineFileInputFormat extends TestCase {
       inFormat = new DummyInputFormat();
       inFormat.setMaxSplitSize(4 * f1.getLen());
       inFormat.setMinSplitSizeRack(4 * f1.getLen());
-      FileInputFormat.setInputPaths(job, 
-        dir1 + "," + dir2 + "," + dir3 + "," + dir4);
+      FileInputFormat.setInputPaths(job,
+          dir1 + "," + dir2 + "," + dir3 + "," + dir4);
       splits = inFormat.getSplits(job);
       for (InputSplit split : splits) {
         System.out.println("File split(Test7): " + split);
@@ -1120,8 +1099,8 @@ public class TestCombineFileInputFormat extends TestCase {
       // minimum split size per node is 4 times file1's length
       inFormat = new DummyInputFormat();
       inFormat.setMinSplitSizeNode(4 * f1.getLen());
-      FileInputFormat.setInputPaths(job, 
-        dir1 + "," + dir2 + "," + dir3 + "," + dir4);
+      FileInputFormat.setInputPaths(job,
+          dir1 + "," + dir2 + "," + dir3 + "," + dir4);
       splits = inFormat.getSplits(job);
       for (InputSplit split : splits) {
         System.out.println("File split(Test8): " + split);
@@ -1139,8 +1118,8 @@ public class TestCombineFileInputFormat extends TestCase {
       inFormat = new DummyInputFormat();
       FileInputFormat.addInputPath(job, inDir);
       inFormat.setMinSplitSizeRack(1); // everything is at least rack local
-      inFormat.createPool(new TestFilter(dir1), 
-                          new TestFilter(dir2));
+      inFormat.createPool(new TestFilter(dir1),
+          new TestFilter(dir2));
       splits = inFormat.getSplits(job);
       for (InputSplit split : splits) {
         System.out.println("File split(Test9): " + split);
@@ -1171,15 +1150,15 @@ public class TestCombineFileInputFormat extends TestCase {
       final Path dirNoMatch1 = new Path(inDir, "/dirxx");
       final Path dirNoMatch2 = new Path(inDir, "/diryy");
       for (int i = 0; i < numPools; i++) {
-        inFormat1.createPool(new TestFilter(dirNoMatch1), 
-                            new TestFilter(dirNoMatch2));
+        inFormat1.createPool(new TestFilter(dirNoMatch1),
+            new TestFilter(dirNoMatch2));
       }
       long start = System.currentTimeMillis();
       splits = inFormat1.getSplits(job);
       long end = System.currentTimeMillis();
       System.out.println("Elapsed time for " + numPools + " pools " +
-                         " and " + numFiles + " files is " + 
-                         ((end - start)) + " milli seconds.");
+          " and " + numFiles + " files is " +
+          ((end - start)) + " milli seconds.");
     } finally {
       if (dfs != null) {
         dfs.shutdown();
@@ -1204,7 +1183,7 @@ public class TestCombineFileInputFormat extends TestCase {
       dfs.waitActive();
 
       namenode = (dfs.getFileSystem()).getUri().getHost() + ":" +
-                 (dfs.getFileSystem()).getUri().getPort();
+          (dfs.getFileSystem()).getUri().getPort();
 
       fileSys = dfs.getFileSystem();
       if (!fileSys.mkdirs(inDir)) {
@@ -1212,12 +1191,12 @@ public class TestCombineFileInputFormat extends TestCase {
       }
 
       Path file1 = new Path(dir1 + "/file1");
-      writeFile(conf, file1, (short)1, 1);
+      writeFile(conf, file1, (short) 1, 1);
       // create another file on the same datanode
       Path file5 = new Path(dir5 + "/file5");
-      writeFile(conf, file5, (short)1, 1);
+      writeFile(conf, file5, (short) 1, 1);
 
-      ((MissingBlockFileSystem)fileSys).setFileWithMissingBlocks(file1.toUri().getPath());
+      ((MissingBlockFileSystem) fileSys).setFileWithMissingBlocks(file1.toUri().getPath());
       // split it using a CombinedFile input format
       DummyInputFormat inFormat = new DummyInputFormat();
       Job job = Job.getInstance(conf);
@@ -1245,7 +1224,7 @@ public class TestCombineFileInputFormat extends TestCase {
       }
     }
   }
-  
+
   /**
    * Test when the input file's length is 0.
    */
@@ -1350,7 +1329,7 @@ public class TestCombineFileInputFormat extends TestCase {
     List<InputSplit> splits = inFormat.getSplits(job);
     assertTrue(splits.size() > 0);
     for (InputSplit s : splits) {
-      CombineFileSplit cfs = (CombineFileSplit)s;
+      CombineFileSplit cfs = (CombineFileSplit) s;
       for (Path p : cfs.getPaths()) {
         assertEquals(p.toUri().getScheme(), "file");
       }
@@ -1406,7 +1385,7 @@ public class TestCombineFileInputFormat extends TestCase {
     }
   }
 
-  public static void main(String[] args) throws Exception{
+  public static void main(String[] args) throws Exception {
 
     // if there are some parameters specified, then use those paths
     if (args.length != 0) {

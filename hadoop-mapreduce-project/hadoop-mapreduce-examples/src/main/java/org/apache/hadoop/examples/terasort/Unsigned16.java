@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,11 +18,11 @@
 
 package org.apache.hadoop.examples.terasort;
 
+import org.apache.hadoop.io.Writable;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-
-import org.apache.hadoop.io.Writable;
 
 /**
  * An unsigned 16 byte integer class that supports addition, multiplication,
@@ -46,7 +46,7 @@ class Unsigned16 implements Writable {
     hi8 = other.hi8;
     lo8 = other.lo8;
   }
-  
+
   @Override
   public boolean equals(Object o) {
     if (o instanceof Unsigned16) {
@@ -87,7 +87,7 @@ class Unsigned16 implements Writable {
       hi8 |= (lo8 & lastDigit) >>> 60;
       lo8 <<= 4;
       lo8 |= digit;
-    }    
+    }
   }
 
   /**
@@ -123,7 +123,7 @@ class Unsigned16 implements Writable {
   public static Unsigned16 fromDecimal(String s) throws NumberFormatException {
     Unsigned16 result = new Unsigned16();
     Unsigned16 tmp = new Unsigned16();
-    for(int i=0; i < s.length(); i++) {
+    for (int i = 0; i < s.length(); i++) {
       char ch = s.charAt(i);
       if (ch < '0' || ch > '9') {
         throw new NumberFormatException(ch + " not a valid decimal digit");
@@ -146,7 +146,7 @@ class Unsigned16 implements Writable {
       StringBuilder result = new StringBuilder();
       result.append(Long.toHexString(hi8));
       String loString = Long.toHexString(lo8);
-      for(int i=loString.length(); i < 16; ++i) {
+      for (int i = loString.length(); i < 16; ++i) {
         result.append('0');
       }
       result.append(loString);
@@ -162,9 +162,9 @@ class Unsigned16 implements Writable {
   public byte getByte(int b) {
     if (b >= 0 && b < 16) {
       if (b < 8) {
-        return (byte) (hi8 >> (56 - 8*b));
+        return (byte) (hi8 >> (56 - 8 * b));
       } else {
-        return (byte) (lo8 >> (120 - 8*b));
+        return (byte) (lo8 >> (120 - 8 * b));
       }
     }
     return 0;
@@ -194,7 +194,7 @@ class Unsigned16 implements Writable {
   public long getHigh8() {
     return hi8;
   }
-  
+
   /**
    * Get the low 8 bytes as a long.
    */
@@ -226,11 +226,11 @@ class Unsigned16 implements Writable {
     // clear the cur value
     set(0);
     Unsigned16 tmp = new Unsigned16();
-    for(int l=0; l < 4; ++l) {
-      for (int r=0; r < 5; ++r) {
+    for (int l = 0; l < 4; ++l) {
+      for (int r = 0; r < 5; ++r) {
         long prod = left[l] * right[r];
         if (prod != 0) {
-          int off = l*32 + r*31;
+          int off = l * 32 + r * 31;
           tmp.set(prod);
           tmp.shiftLeft(off);
           add(tmp);
@@ -246,7 +246,7 @@ class Unsigned16 implements Writable {
   public void add(Unsigned16 b) {
     long sumHi;
     long sumLo;
-    long  reshibit, hibit0, hibit1;
+    long reshibit, hibit0, hibit1;
 
     sumHi = hi8 + b.hi8;
 
@@ -280,7 +280,7 @@ class Unsigned16 implements Writable {
       }
     }
   }
-  
+
   @Override
   public void readFields(DataInput in) throws IOException {
     hi8 = in.readLong();
@@ -292,6 +292,6 @@ class Unsigned16 implements Writable {
     out.writeLong(hi8);
     out.writeLong(lo8);
   }
-  
-  
+
+
 }

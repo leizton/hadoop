@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,11 +19,6 @@
 package org.apache.hadoop.mapreduce.v2.api.records.impl.pb;
 
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.hadoop.mapreduce.v2.api.records.Counter;
 import org.apache.hadoop.mapreduce.v2.api.records.CounterGroup;
 import org.apache.hadoop.mapreduce.v2.proto.MRProtos.CounterGroupProto;
@@ -32,16 +27,20 @@ import org.apache.hadoop.mapreduce.v2.proto.MRProtos.CounterProto;
 import org.apache.hadoop.mapreduce.v2.proto.MRProtos.StringCounterMapProto;
 import org.apache.hadoop.yarn.api.records.impl.pb.ProtoBase;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
-    
+
 public class CounterGroupPBImpl extends ProtoBase<CounterGroupProto> implements CounterGroup {
   CounterGroupProto proto = CounterGroupProto.getDefaultInstance();
   CounterGroupProto.Builder builder = null;
   boolean viaProto = false;
-  
+
   private Map<String, Counter> counters = null;
-  
-  
+
+
   public CounterGroupPBImpl() {
     builder = CounterGroupProto.newBuilder();
   }
@@ -50,9 +49,9 @@ public class CounterGroupPBImpl extends ProtoBase<CounterGroupProto> implements 
     this.proto = proto;
     viaProto = true;
   }
-  
+
   public CounterGroupProto getProto() {
-      mergeLocalToProto();
+    mergeLocalToProto();
     proto = viaProto ? proto : builder.build();
     viaProto = true;
     return proto;
@@ -65,7 +64,7 @@ public class CounterGroupPBImpl extends ProtoBase<CounterGroupProto> implements 
   }
 
   private void mergeLocalToProto() {
-    if (viaProto) 
+    if (viaProto)
       maybeInitBuilder();
     mergeLocalToBuilder();
     proto = builder.build();
@@ -78,8 +77,8 @@ public class CounterGroupPBImpl extends ProtoBase<CounterGroupProto> implements 
     }
     viaProto = false;
   }
-    
-  
+
+
   @Override
   public String getName() {
     CounterGroupProtoOrBuilder p = viaProto ? proto : builder;
@@ -98,6 +97,7 @@ public class CounterGroupPBImpl extends ProtoBase<CounterGroupProto> implements 
     }
     builder.setName((name));
   }
+
   @Override
   public String getDisplayName() {
     CounterGroupProtoOrBuilder p = viaProto ? proto : builder;
@@ -116,17 +116,19 @@ public class CounterGroupPBImpl extends ProtoBase<CounterGroupProto> implements 
     }
     builder.setDisplayName((displayName));
   }
+
   @Override
   public Map<String, Counter> getAllCounters() {
     initCounters();
     return this.counters;
   }
+
   @Override
   public Counter getCounter(String key) {
     initCounters();
     return this.counters.get(key);
   }
-  
+
   private void initCounters() {
     if (this.counters != null) {
       return;
@@ -139,7 +141,7 @@ public class CounterGroupPBImpl extends ProtoBase<CounterGroupProto> implements 
       this.counters.put(c.getKey(), convertFromProtoFormat(c.getValue()));
     }
   }
-  
+
   @Override
   public void addAllCounters(final Map<String, Counter> counters) {
     if (counters == null)
@@ -147,31 +149,31 @@ public class CounterGroupPBImpl extends ProtoBase<CounterGroupProto> implements 
     initCounters();
     this.counters.putAll(counters);
   }
-  
+
   private void addContersToProto() {
     maybeInitBuilder();
     builder.clearCounters();
     if (counters == null)
       return;
     Iterable<StringCounterMapProto> iterable = new Iterable<StringCounterMapProto>() {
-      
+
       @Override
       public Iterator<StringCounterMapProto> iterator() {
         return new Iterator<StringCounterMapProto>() {
-          
+
           Iterator<String> keyIter = counters.keySet().iterator();
-          
+
           @Override
           public void remove() {
             throw new UnsupportedOperationException();
           }
-          
+
           @Override
           public StringCounterMapProto next() {
             String key = keyIter.next();
             return StringCounterMapProto.newBuilder().setKey(key).setValue(convertToProtoFormat(counters.get(key))).build();
           }
-          
+
           @Override
           public boolean hasNext() {
             return keyIter.hasNext();
@@ -181,16 +183,19 @@ public class CounterGroupPBImpl extends ProtoBase<CounterGroupProto> implements 
     };
     builder.addAllCounters(iterable);
   }
+
   @Override
   public void setCounter(String key, Counter val) {
     initCounters();
     this.counters.put(key, val);
   }
+
   @Override
   public void removeCounter(String key) {
     initCounters();
     this.counters.remove(key);
   }
+
   @Override
   public void clearCounters() {
     initCounters();
@@ -202,6 +207,6 @@ public class CounterGroupPBImpl extends ProtoBase<CounterGroupProto> implements 
   }
 
   private CounterProto convertToProtoFormat(Counter t) {
-    return ((CounterPBImpl)t).getProto();
+    return ((CounterPBImpl) t).getProto();
   }
 }  

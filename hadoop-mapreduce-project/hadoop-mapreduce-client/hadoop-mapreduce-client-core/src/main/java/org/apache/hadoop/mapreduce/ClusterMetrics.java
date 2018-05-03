@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,17 +17,17 @@
  */
 package org.apache.hadoop.mapreduce;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.io.Writable;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+
 /**
  * Status information on the current state of the Map-Reduce cluster.
- * 
+ *
  * <p><code>ClusterMetrics</code> provides clients with information such as:
  * <ol>
  *   <li>
@@ -49,10 +49,10 @@ import org.apache.hadoop.io.Writable;
  *   The number of job submissions.
  *   </li>
  * </ol></p>
- * 
+ *
  * <p>Clients can query for the latest <code>ClusterMetrics</code>, via 
  * {@link Cluster#getClusterStatus()}.</p>
- * 
+ *
  * @see Cluster
  */
 @InterfaceAudience.Public
@@ -74,23 +74,23 @@ public class ClusterMetrics implements Writable {
 
   public ClusterMetrics() {
   }
-  
+
   public ClusterMetrics(int runningMaps, int runningReduces,
-      int occupiedMapSlots, int occupiedReduceSlots, int reservedMapSlots,
-      int reservedReduceSlots, int mapSlots, int reduceSlots,
-      int totalJobSubmissions, int numTrackers, int numBlacklistedTrackers,
-      int numDecommissionedNodes) {
+                        int occupiedMapSlots, int occupiedReduceSlots, int reservedMapSlots,
+                        int reservedReduceSlots, int mapSlots, int reduceSlots,
+                        int totalJobSubmissions, int numTrackers, int numBlacklistedTrackers,
+                        int numDecommissionedNodes) {
     this(runningMaps, runningReduces, occupiedMapSlots, occupiedReduceSlots,
-      reservedMapSlots, reservedReduceSlots, mapSlots, reduceSlots,
-      totalJobSubmissions, numTrackers, numBlacklistedTrackers, 0,
-      numDecommissionedNodes);
+        reservedMapSlots, reservedReduceSlots, mapSlots, reduceSlots,
+        totalJobSubmissions, numTrackers, numBlacklistedTrackers, 0,
+        numDecommissionedNodes);
   }
 
   public ClusterMetrics(int runningMaps, int runningReduces,
-      int occupiedMapSlots, int occupiedReduceSlots, int reservedMapSlots,
-      int reservedReduceSlots, int mapSlots, int reduceSlots,
-      int totalJobSubmissions, int numTrackers, int numBlacklistedTrackers,
-      int numGraylistedTrackers, int numDecommissionedNodes) {
+                        int occupiedMapSlots, int occupiedReduceSlots, int reservedMapSlots,
+                        int reservedReduceSlots, int mapSlots, int reduceSlots,
+                        int totalJobSubmissions, int numTrackers, int numBlacklistedTrackers,
+                        int numGraylistedTrackers, int numDecommissionedNodes) {
     this.runningMaps = runningMaps;
     this.runningReduces = runningReduces;
     this.occupiedMapSlots = occupiedMapSlots;
@@ -108,115 +108,115 @@ public class ClusterMetrics implements Writable {
 
   /**
    * Get the number of running map tasks in the cluster.
-   * 
+   *
    * @return running maps
    */
   public int getRunningMaps() {
     return runningMaps;
   }
-  
+
   /**
    * Get the number of running reduce tasks in the cluster.
-   * 
+   *
    * @return running reduces
    */
   public int getRunningReduces() {
     return runningReduces;
   }
-  
+
   /**
    * Get number of occupied map slots in the cluster.
-   * 
+   *
    * @return occupied map slot count
    */
-  public int getOccupiedMapSlots() { 
+  public int getOccupiedMapSlots() {
     return occupiedMapSlots;
   }
-  
+
   /**
    * Get the number of occupied reduce slots in the cluster.
-   * 
+   *
    * @return occupied reduce slot count
    */
-  public int getOccupiedReduceSlots() { 
-    return occupiedReduceSlots; 
+  public int getOccupiedReduceSlots() {
+    return occupiedReduceSlots;
   }
 
   /**
    * Get number of reserved map slots in the cluster.
-   * 
+   *
    * @return reserved map slot count
    */
-  public int getReservedMapSlots() { 
+  public int getReservedMapSlots() {
     return reservedMapSlots;
   }
-  
+
   /**
    * Get the number of reserved reduce slots in the cluster.
-   * 
+   *
    * @return reserved reduce slot count
    */
-  public int getReservedReduceSlots() { 
-    return reservedReduceSlots; 
+  public int getReservedReduceSlots() {
+    return reservedReduceSlots;
   }
 
   /**
    * Get the total number of map slots in the cluster.
-   * 
+   *
    * @return map slot capacity
    */
   public int getMapSlotCapacity() {
     return totalMapSlots;
   }
-  
+
   /**
    * Get the total number of reduce slots in the cluster.
-   * 
+   *
    * @return reduce slot capacity
    */
   public int getReduceSlotCapacity() {
     return totalReduceSlots;
   }
-  
+
   /**
    * Get the total number of job submissions in the cluster.
-   * 
+   *
    * @return total number of job submissions
    */
   public int getTotalJobSubmissions() {
     return totalJobSubmissions;
   }
-  
+
   /**
    * Get the number of active trackers in the cluster.
-   * 
+   *
    * @return active tracker count.
    */
   public int getTaskTrackerCount() {
     return numTrackers;
   }
-  
+
   /**
    * Get the number of blacklisted trackers in the cluster.
-   * 
+   *
    * @return blacklisted tracker count
    */
   public int getBlackListedTaskTrackerCount() {
     return numBlacklistedTrackers;
   }
-  
+
   /**
    * Get the number of graylisted trackers in the cluster.
-   * 
+   *
    * @return graylisted tracker count
    */
   public int getGrayListedTaskTrackerCount() {
     return numGraylistedTrackers;
   }
-  
+
   /**
    * Get the number of decommissioned trackers in the cluster.
-   * 
+   *
    * @return decommissioned tracker count
    */
   public int getDecommissionedTaskTrackerCount() {

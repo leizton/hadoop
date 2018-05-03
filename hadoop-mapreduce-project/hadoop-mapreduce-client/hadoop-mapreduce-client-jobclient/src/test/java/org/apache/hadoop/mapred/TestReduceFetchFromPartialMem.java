@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,7 +30,6 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableComparator;
 import org.apache.hadoop.mapreduce.TaskCounter;
-import org.apache.hadoop.mapreduce.MRConfig;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -46,13 +45,13 @@ public class TestReduceFetchFromPartialMem extends TestCase {
   protected static TestSuite mySuite;
 
   protected static void setSuite(Class<? extends TestCase> klass) {
-    mySuite  = new TestSuite(klass);
+    mySuite = new TestSuite(klass);
   }
 
   static {
     setSuite(TestReduceFetchFromPartialMem.class);
   }
-  
+
   public static Test suite() {
     TestSetup setup = new TestSetup(mySuite) {
       protected void setUp() throws Exception {
@@ -61,9 +60,14 @@ public class TestReduceFetchFromPartialMem extends TestCase {
         mrCluster = new MiniMRCluster(2,
             dfsCluster.getFileSystem().getUri().toString(), 1);
       }
+
       protected void tearDown() throws Exception {
-        if (dfsCluster != null) { dfsCluster.shutdown(); }
-        if (mrCluster != null) { mrCluster.shutdown(); }
+        if (dfsCluster != null) {
+          dfsCluster.shutdown();
+        }
+        if (mrCluster != null) {
+          mrCluster.shutdown();
+        }
       }
     };
     return setup;
@@ -102,7 +106,7 @@ public class TestReduceFetchFromPartialMem extends TestCase {
    * data so the in-memory fetch semantics can be tested.
    */
   public static class MapMB implements
-    Mapper<NullWritable,NullWritable,Text,Text> {
+      Mapper<NullWritable, NullWritable, Text, Text> {
 
     private int id;
     private int nMaps;
@@ -115,13 +119,13 @@ public class TestReduceFetchFromPartialMem extends TestCase {
     public void configure(JobConf conf) {
       nMaps = conf.getNumMapTasks();
       id = nMaps - conf.getInt(JobContext.TASK_PARTITION, -1) - 1;
-      Arrays.fill(b, 0, 4096, (byte)'V');
-      ((StringBuilder)fmt.out()).append(keyfmt);
+      Arrays.fill(b, 0, 4096, (byte) 'V');
+      ((StringBuilder) fmt.out()).append(keyfmt);
     }
 
     @Override
     public void map(NullWritable nk, NullWritable nv,
-        OutputCollector<Text, Text> output, Reporter reporter)
+                    OutputCollector<Text, Text> output, Reporter reporter)
         throws IOException {
       // Emit 4096 fixed-size records
       val.set(b, 0, 1000);
@@ -129,7 +133,7 @@ public class TestReduceFetchFromPartialMem extends TestCase {
       for (int i = 0; i < 4096; ++i) {
         key.set(fmt.format(tagfmt, i).toString());
         output.collect(key, val);
-        ((StringBuilder)fmt.out()).setLength(keylen);
+        ((StringBuilder) fmt.out()).setLength(keylen);
       }
 
       // Emit two "tagged" records from the map. To validate the merge, segments
@@ -141,19 +145,20 @@ public class TestReduceFetchFromPartialMem extends TestCase {
       // Add small, tagged record
       val.set(b, 0, getValLen(id, nMaps) - 128);
       val.getBytes()[0] = (byte) id;
-      ((StringBuilder)fmt.out()).setLength(keylen);
+      ((StringBuilder) fmt.out()).setLength(keylen);
       key.set("A" + fmt.format(tagfmt, id).toString());
       output.collect(key, val);
       // Add large, tagged record
       val.set(b, 0, getValLen(id, nMaps));
       val.getBytes()[0] = (byte) id;
-      ((StringBuilder)fmt.out()).setLength(keylen);
+      ((StringBuilder) fmt.out()).setLength(keylen);
       key.set("B" + fmt.format(tagfmt, id).toString());
       output.collect(key, val);
     }
 
     @Override
-    public void close() throws IOException { }
+    public void close() throws IOException {
+    }
   }
 
   /**
@@ -162,13 +167,14 @@ public class TestReduceFetchFromPartialMem extends TestCase {
    * all non-ID record data is consistent.
    */
   public static class MBValidate
-      implements Reducer<Text,Text,Text,Text> {
+      implements Reducer<Text, Text, Text, Text> {
 
     private static int nMaps;
     private static final Text vb = new Text();
+
     static {
       byte[] v = new byte[4096];
-      Arrays.fill(v, (byte)'V');
+      Arrays.fill(v, (byte) 'V');
       vb.set(v);
     }
 
@@ -182,22 +188,22 @@ public class TestReduceFetchFromPartialMem extends TestCase {
     @Override
     public void configure(JobConf conf) {
       nMaps = conf.getNumMapTasks();
-      ((StringBuilder)fmt.out()).append(keyfmt);
+      ((StringBuilder) fmt.out()).append(keyfmt);
     }
 
     @Override
     public void reduce(Text key, Iterator<Text> values,
-        OutputCollector<Text,Text> out, Reporter reporter)
+                       OutputCollector<Text, Text> out, Reporter reporter)
         throws IOException {
       int vc = 0;
       final int vlen;
       final int preRec = nRec;
       final int vcCheck, recCheck;
-      ((StringBuilder)fmt.out()).setLength(keylen);
+      ((StringBuilder) fmt.out()).setLength(keylen);
       if (25 == key.getLength()) {
         // tagged record
         recCheck = 1;   // expect only 1 record
-        switch ((char)key.getBytes()[0]) {
+        switch ((char) key.getBytes()[0]) {
           case 'A':
             vlen = getValLen(++aKey, nMaps) - 128;
             vcCheck = aKey; // expect eq id
@@ -208,9 +214,9 @@ public class TestReduceFetchFromPartialMem extends TestCase {
             break;
           default:
             vlen = vcCheck = -1;
-            fail("Unexpected tag on record: " + ((char)key.getBytes()[24]));
+            fail("Unexpected tag on record: " + ((char) key.getBytes()[24]));
         }
-        kb.set((char)key.getBytes()[0] + fmt.format(tagfmt,vcCheck).toString());
+        kb.set((char) key.getBytes()[0] + fmt.format(tagfmt, vcCheck).toString());
       } else {
         kb.set(fmt.format(tagfmt, ++nKey).toString());
         vlen = 1000;
@@ -224,8 +230,8 @@ public class TestReduceFetchFromPartialMem extends TestCase {
         vc += val.getBytes()[0];
         // verify that all the fixed characters 'V' match
         assertEquals(0, WritableComparator.compareBytes(
-              vb.getBytes(), 1, vlen - 1,
-              val.getBytes(), 1, val.getLength() - 1));
+            vb.getBytes(), 1, vlen - 1,
+            val.getBytes(), 1, val.getLength() - 1));
         out.collect(key, val);
         ++nRec;
       }
@@ -243,16 +249,26 @@ public class TestReduceFetchFromPartialMem extends TestCase {
   }
 
   public static class FakeSplit implements InputSplit {
-    public void write(DataOutput out) throws IOException { }
-    public void readFields(DataInput in) throws IOException { }
-    public long getLength() { return 0L; }
-    public String[] getLocations() { return new String[0]; }
+    public void write(DataOutput out) throws IOException {
+    }
+
+    public void readFields(DataInput in) throws IOException {
+    }
+
+    public long getLength() {
+      return 0L;
+    }
+
+    public String[] getLocations() {
+      return new String[0];
+    }
   }
 
   public static class FakeIF
-      implements InputFormat<NullWritable,NullWritable> {
+      implements InputFormat<NullWritable, NullWritable> {
 
-    public FakeIF() { }
+    public FakeIF() {
+    }
 
     public InputSplit[] getSplits(JobConf conf, int numSplits) {
       InputSplit[] splits = new InputSplit[numSplits];
@@ -262,10 +278,11 @@ public class TestReduceFetchFromPartialMem extends TestCase {
       return splits;
     }
 
-    public RecordReader<NullWritable,NullWritable> getRecordReader(
+    public RecordReader<NullWritable, NullWritable> getRecordReader(
         InputSplit ignored, JobConf conf, Reporter reporter) {
-      return new RecordReader<NullWritable,NullWritable>() {
+      return new RecordReader<NullWritable, NullWritable>() {
         private boolean done = false;
+
         public boolean next(NullWritable key, NullWritable value)
             throws IOException {
           if (done)
@@ -273,11 +290,25 @@ public class TestReduceFetchFromPartialMem extends TestCase {
           done = true;
           return true;
         }
-        public NullWritable createKey() { return NullWritable.get(); }
-        public NullWritable createValue() { return NullWritable.get(); }
-        public long getPos() throws IOException { return 0L; }
-        public void close() throws IOException { }
-        public float getProgress() throws IOException { return 0.0f; }
+
+        public NullWritable createKey() {
+          return NullWritable.get();
+        }
+
+        public NullWritable createValue() {
+          return NullWritable.get();
+        }
+
+        public long getPos() throws IOException {
+          return 0L;
+        }
+
+        public void close() throws IOException {
+        }
+
+        public float getProgress() throws IOException {
+          return 0.0f;
+        }
       };
     }
   }

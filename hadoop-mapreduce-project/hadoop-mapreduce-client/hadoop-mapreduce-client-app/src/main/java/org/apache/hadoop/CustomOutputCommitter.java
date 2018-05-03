@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,15 +18,11 @@
 
 package org.apache.hadoop;
 
-import java.io.IOException;
-
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapred.FileOutputFormat;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.JobContext;
-import org.apache.hadoop.mapred.OutputCommitter;
-import org.apache.hadoop.mapred.TaskAttemptContext;
+import org.apache.hadoop.mapred.*;
+
+import java.io.IOException;
 
 public class CustomOutputCommitter extends OutputCommitter {
 
@@ -49,12 +45,12 @@ public class CustomOutputCommitter extends OutputCommitter {
   }
 
   @Override
-  public void abortJob(JobContext jobContext, int status) 
-  throws IOException {
+  public void abortJob(JobContext jobContext, int status)
+      throws IOException {
     super.abortJob(jobContext, status);
     writeFile(jobContext.getJobConf(), JOB_ABORT_FILE_NAME);
   }
-  
+
   @Override
   public void setupTask(TaskAttemptContext taskContext) throws IOException {
     writeFile(taskContext.getJobConf(), TASK_SETUP_FILE_NAME);
@@ -76,7 +72,7 @@ public class CustomOutputCommitter extends OutputCommitter {
     writeFile(taskContext.getJobConf(), TASK_ABORT_FILE_NAME);
   }
 
-  private void writeFile(JobConf conf , String filename) throws IOException {
+  private void writeFile(JobConf conf, String filename) throws IOException {
     System.out.println("writing file ----" + filename);
     Path outputPath = FileOutputFormat.getOutputPath(conf);
     FileSystem fs = outputPath.getFileSystem(conf);

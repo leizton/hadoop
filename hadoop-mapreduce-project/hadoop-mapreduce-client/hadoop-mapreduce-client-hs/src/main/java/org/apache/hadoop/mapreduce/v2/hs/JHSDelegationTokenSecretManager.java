@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,9 +18,6 @@
 
 package org.apache.hadoop.mapreduce.v2.hs;
 
-import java.io.IOException;
-import java.util.Map.Entry;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
@@ -29,6 +26,9 @@ import org.apache.hadoop.mapreduce.v2.api.MRDelegationTokenIdentifier;
 import org.apache.hadoop.mapreduce.v2.hs.HistoryServerStateStoreService.HistoryServerState;
 import org.apache.hadoop.security.token.delegation.AbstractDelegationTokenSecretManager;
 import org.apache.hadoop.security.token.delegation.DelegationKey;
+
+import java.io.IOException;
+import java.util.Map.Entry;
 
 /**
  * A MapReduce specific delegation token secret manager.
@@ -57,12 +57,12 @@ public class JHSDelegationTokenSecretManager
    * @param store history server state store for persisting state
    */
   public JHSDelegationTokenSecretManager(long delegationKeyUpdateInterval,
-                                      long delegationTokenMaxLifetime, 
-                                      long delegationTokenRenewInterval,
-                                      long delegationTokenRemoverScanInterval,
-                                      HistoryServerStateStoreService store) {
+                                         long delegationTokenMaxLifetime,
+                                         long delegationTokenRenewInterval,
+                                         long delegationTokenRemoverScanInterval,
+                                         HistoryServerStateStoreService store) {
     super(delegationKeyUpdateInterval, delegationTokenMaxLifetime,
-          delegationTokenRenewInterval, delegationTokenRemoverScanInterval);
+        delegationTokenRenewInterval, delegationTokenRemoverScanInterval);
     this.store = store;
   }
 
@@ -97,7 +97,7 @@ public class JHSDelegationTokenSecretManager
 
   @Override
   protected void storeNewToken(MRDelegationTokenIdentifier tokenId,
-      long renewDate) {
+                               long renewDate) {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Storing token " + tokenId.getSequenceNumber());
     }
@@ -123,7 +123,7 @@ public class JHSDelegationTokenSecretManager
 
   @Override
   protected void updateStoredToken(MRDelegationTokenIdentifier tokenId,
-      long renewDate) {
+                                   long renewDate) {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Updating token " + tokenId.getSequenceNumber());
     }

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -32,7 +32,7 @@ import org.apache.hadoop.mapreduce.TaskType;
  */
 @InterfaceAudience.Private
 @InterfaceStability.Unstable
-public class TaskAttemptFinishedEvent  implements HistoryEvent {
+public class TaskAttemptFinishedEvent implements HistoryEvent {
 
   private TaskAttemptFinished datum = null;
 
@@ -56,10 +56,10 @@ public class TaskAttemptFinishedEvent  implements HistoryEvent {
    * @param state State string
    * @param counters Counters for the attempt
    */
-  public TaskAttemptFinishedEvent(TaskAttemptID id, 
-      TaskType taskType, String taskStatus, 
-      long finishTime, String rackName,
-      String hostname, String state, Counters counters) {
+  public TaskAttemptFinishedEvent(TaskAttemptID id,
+                                  TaskType taskType, String taskStatus,
+                                  long finishTime, String rackName,
+                                  String hostname, String state, Counters counters) {
     this.attemptId = id;
     this.taskType = taskType;
     this.taskStatus = taskStatus;
@@ -70,7 +70,8 @@ public class TaskAttemptFinishedEvent  implements HistoryEvent {
     this.counters = counters;
   }
 
-  TaskAttemptFinishedEvent() {}
+  TaskAttemptFinishedEvent() {
+  }
 
   public Object getDatum() {
     if (datum == null) {
@@ -89,8 +90,9 @@ public class TaskAttemptFinishedEvent  implements HistoryEvent {
     }
     return datum;
   }
+
   public void setDatum(Object oDatum) {
-    this.datum = (TaskAttemptFinished)oDatum;
+    this.datum = (TaskAttemptFinished) oDatum;
     this.attemptId = TaskAttemptID.forName(datum.attemptId.toString());
     this.taskType = TaskType.valueOf(datum.taskType.toString());
     this.taskStatus = datum.taskStatus.toString();
@@ -102,38 +104,57 @@ public class TaskAttemptFinishedEvent  implements HistoryEvent {
   }
 
   /** Get the task ID */
-  public TaskID getTaskId() { return attemptId.getTaskID(); }
+  public TaskID getTaskId() {
+    return attemptId.getTaskID();
+  }
+
   /** Get the task attempt id */
   public TaskAttemptID getAttemptId() {
     return attemptId;
   }
+
   /** Get the task type */
   public TaskType getTaskType() {
     return taskType;
   }
+
   /** Get the task status */
-  public String getTaskStatus() { return taskStatus.toString(); }
+  public String getTaskStatus() {
+    return taskStatus.toString();
+  }
+
   /** Get the attempt finish time */
-  public long getFinishTime() { return finishTime; }
+  public long getFinishTime() {
+    return finishTime;
+  }
+
   /** Get the host where the attempt executed */
-  public String getHostname() { return hostname.toString(); }
-  
+  public String getHostname() {
+    return hostname.toString();
+  }
+
   /** Get the rackname where the attempt executed */
   public String getRackName() {
     return rackName == null ? null : rackName.toString();
   }
-  
+
   /** Get the state string */
-  public String getState() { return state.toString(); }
+  public String getState() {
+    return state.toString();
+  }
+
   /** Get the counters for the attempt */
-  Counters getCounters() { return counters; }
+  Counters getCounters() {
+    return counters;
+  }
+
   /** Get the event type */
   public EventType getEventType() {
     // Note that the task type can be setup/map/reduce/cleanup but the 
     // attempt-type can only be map/reduce.
-    return getTaskId().getTaskType() == TaskType.MAP 
-           ? EventType.MAP_ATTEMPT_FINISHED
-           : EventType.REDUCE_ATTEMPT_FINISHED;
+    return getTaskId().getTaskType() == TaskType.MAP
+        ? EventType.MAP_ATTEMPT_FINISHED
+        : EventType.REDUCE_ATTEMPT_FINISHED;
   }
 
 }

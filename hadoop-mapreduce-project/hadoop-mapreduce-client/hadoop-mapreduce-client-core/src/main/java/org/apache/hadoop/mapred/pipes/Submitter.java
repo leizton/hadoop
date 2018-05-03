@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,6 +17,26 @@
  */
 
 package org.apache.hadoop.mapred.pipes;
+
+import org.apache.commons.cli.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.classification.InterfaceAudience;
+import org.apache.hadoop.classification.InterfaceStability;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.*;
+import org.apache.hadoop.mapred.lib.HashPartitioner;
+import org.apache.hadoop.mapred.lib.LazyOutputFormat;
+import org.apache.hadoop.mapred.lib.NullOutputFormat;
+import org.apache.hadoop.mapreduce.MRJobConfig;
+import org.apache.hadoop.mapreduce.filecache.DistributedCache;
+import org.apache.hadoop.util.ExitUtil;
+import org.apache.hadoop.util.GenericOptionsParser;
+import org.apache.hadoop.util.Tool;
 
 import java.io.IOException;
 import java.net.URI;
@@ -27,41 +47,6 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.StringTokenizer;
 
-import org.apache.commons.cli.BasicParser;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.OptionBuilder;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.Parser;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.classification.InterfaceAudience;
-import org.apache.hadoop.classification.InterfaceStability;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.conf.Configured;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.FileInputFormat;
-import org.apache.hadoop.mapred.FileOutputFormat;
-import org.apache.hadoop.mapred.InputFormat;
-import org.apache.hadoop.mapred.JobClient;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.Mapper;
-import org.apache.hadoop.mapred.OutputFormat;
-import org.apache.hadoop.mapred.Partitioner;
-import org.apache.hadoop.mapred.Reducer;
-import org.apache.hadoop.mapred.RunningJob;
-import org.apache.hadoop.mapred.lib.HashPartitioner;
-import org.apache.hadoop.mapred.lib.LazyOutputFormat;
-import org.apache.hadoop.mapred.lib.NullOutputFormat;
-import org.apache.hadoop.mapreduce.MRJobConfig;
-import org.apache.hadoop.mapreduce.filecache.DistributedCache;
-import org.apache.hadoop.util.ExitUtil;
-import org.apache.hadoop.util.GenericOptionsParser;
-import org.apache.hadoop.util.Tool;
-
 /**
  * The main entry point and job submitter. It may either be used as a command
  * line-based or API-based method to launch Pipes jobs.
@@ -71,11 +56,11 @@ import org.apache.hadoop.util.Tool;
 public class Submitter extends Configured implements Tool {
 
   protected static final Log LOG = LogFactory.getLog(Submitter.class);
-  public static final String PRESERVE_COMMANDFILE = 
-    "mapreduce.pipes.commandfile.preserve";
+  public static final String PRESERVE_COMMANDFILE =
+      "mapreduce.pipes.commandfile.preserve";
   public static final String EXECUTABLE = "mapreduce.pipes.executable";
-  public static final String INTERPRETOR = 
-    "mapreduce.pipes.executable.interpretor";
+  public static final String INTERPRETOR =
+      "mapreduce.pipes.executable.interpretor";
   public static final String IS_JAVA_MAP = "mapreduce.pipes.isjavamapper";
   public static final String IS_JAVA_RR = "mapreduce.pipes.isjavarecordreader";
   public static final String IS_JAVA_RW = "mapreduce.pipes.isjavarecordwriter";
@@ -83,15 +68,15 @@ public class Submitter extends Configured implements Tool {
   public static final String PARTITIONER = "mapreduce.pipes.partitioner";
   public static final String INPUT_FORMAT = "mapreduce.pipes.inputformat";
   public static final String PORT = "mapreduce.pipes.command.port";
-  
+
   public Submitter() {
     this(new Configuration());
   }
-  
+
   public Submitter(Configuration conf) {
     setConf(conf);
   }
-  
+
   /**
    * Get the URI of the application's executable.
    * @param conf
@@ -204,16 +189,16 @@ public class Submitter extends Configured implements Tool {
   static void setJavaPartitioner(JobConf conf, Class cls) {
     conf.set(Submitter.PARTITIONER, cls.getName());
   }
-  
+
   /**
    * Get the user's original partitioner.
    * @param conf the configuration to look in
    * @return the class that the user submitted
    */
   static Class<? extends Partitioner> getJavaPartitioner(JobConf conf) {
-    return conf.getClass(Submitter.PARTITIONER, 
-                         HashPartitioner.class,
-                         Partitioner.class);
+    return conf.getClass(Submitter.PARTITIONER,
+        HashPartitioner.class,
+        Partitioner.class);
   }
 
   /**
@@ -268,7 +253,7 @@ public class Submitter extends Configured implements Tool {
    * Submit a job to the Map-Reduce framework.
    * This returns a handle to the {@link RunningJob} which can be used to track
    * the running-job.
-   * 
+   *
    * @param conf the job configuration.
    * @return a handle to the {@link RunningJob} which can be used to track the
    *         running-job.
@@ -278,7 +263,7 @@ public class Submitter extends Configured implements Tool {
     setupPipesJob(conf);
     return new JobClient(conf).submitJob(conf);
   }
-  
+
   private static void setupPipesJob(JobConf conf) throws IOException {
     // default map output types to Text
     if (!getIsJavaMapper(conf)) {
@@ -298,15 +283,15 @@ public class Submitter extends Configured implements Tool {
     setIfUnset(conf, MRJobConfig.MAP_OUTPUT_VALUE_CLASS, textClassname);
     setIfUnset(conf, MRJobConfig.OUTPUT_KEY_CLASS, textClassname);
     setIfUnset(conf, MRJobConfig.OUTPUT_VALUE_CLASS, textClassname);
-    
+
     // Use PipesNonJavaInputFormat if necessary to handle progress reporting
     // from C++ RecordReaders ...
     if (!getIsJavaRecordReader(conf) && !getIsJavaMapper(conf)) {
-      conf.setClass(Submitter.INPUT_FORMAT, 
-                    conf.getInputFormat().getClass(), InputFormat.class);
+      conf.setClass(Submitter.INPUT_FORMAT,
+          conf.getInputFormat().getClass(), InputFormat.class);
       conf.setInputFormat(PipesNonJavaInputFormat.class);
     }
-    
+
     String exec = getExecutable(conf);
     if (exec == null) {
       throw new IllegalArgumentException("No application program defined.");
@@ -316,14 +301,14 @@ public class Submitter extends Configured implements Tool {
     if (exec.contains("#")) {
       // set default gdb commands for map and reduce task 
       String defScript = "$HADOOP_PREFIX/src/c++/pipes/debug/pipes-default-script";
-      setIfUnset(conf, MRJobConfig.MAP_DEBUG_SCRIPT,defScript);
-      setIfUnset(conf, MRJobConfig.REDUCE_DEBUG_SCRIPT,defScript);
+      setIfUnset(conf, MRJobConfig.MAP_DEBUG_SCRIPT, defScript);
+      setIfUnset(conf, MRJobConfig.REDUCE_DEBUG_SCRIPT, defScript);
     }
     URI[] fileCache = DistributedCache.getCacheFiles(conf);
     if (fileCache == null) {
       fileCache = new URI[1];
     } else {
-      URI[] tmp = new URI[fileCache.length+1];
+      URI[] tmp = new URI[fileCache.length + 1];
       System.arraycopy(fileCache, 0, tmp, 1, fileCache.length);
       fileCache = tmp;
     }
@@ -342,13 +327,13 @@ public class Submitter extends Configured implements Tool {
    */
   static class CommandLineParser {
     private Options options = new Options();
-    
-    void addOption(String longName, boolean required, String description, 
+
+    void addOption(String longName, boolean required, String description,
                    String paramName) {
       Option option = OptionBuilder.withArgName(paramName).hasArgs(1).withDescription(description).isRequired(required).create(longName);
       options.addOption(option);
     }
-    
+
     void addArgument(String name, boolean required, String description) {
       Option option = OptionBuilder.withArgName(name).hasArgs(1).withDescription(description).isRequired(required).create();
       options.addOption(option);
@@ -359,7 +344,7 @@ public class Submitter extends Configured implements Tool {
       Parser result = new BasicParser();
       return result;
     }
-    
+
     void printUsage() {
       // The CLI package should do this for us, but I can't figure out how
       // to make it print something reasonable.
@@ -379,12 +364,12 @@ public class Submitter extends Configured implements Tool {
       GenericOptionsParser.printGenericCommandUsage(System.out);
     }
   }
-  
-  private static <InterfaceType> 
-  Class<? extends InterfaceType> getClass(CommandLine cl, String key, 
-                                          JobConf conf, 
+
+  private static <InterfaceType>
+  Class<? extends InterfaceType> getClass(CommandLine cl, String key,
+                                          JobConf conf,
                                           Class<InterfaceType> cls
-                                         ) throws ClassNotFoundException {
+  ) throws ClassNotFoundException {
     return conf.getClassByName(cl.getOptionValue(key)).asSubclass(cls);
   }
 
@@ -397,37 +382,37 @@ public class Submitter extends Configured implements Tool {
     }
     cli.addOption("input", false, "input path to the maps", "path");
     cli.addOption("output", false, "output path from the reduces", "path");
-    
+
     cli.addOption("jar", false, "job jar file", "path");
-    cli.addOption("inputformat", false, "java classname of InputFormat", 
-                  "class");
+    cli.addOption("inputformat", false, "java classname of InputFormat",
+        "class");
     //cli.addArgument("javareader", false, "is the RecordReader in Java");
     cli.addOption("map", false, "java classname of Mapper", "class");
-    cli.addOption("partitioner", false, "java classname of Partitioner", 
-                  "class");
+    cli.addOption("partitioner", false, "java classname of Partitioner",
+        "class");
     cli.addOption("reduce", false, "java classname of Reducer", "class");
     cli.addOption("writer", false, "java classname of OutputFormat", "class");
     cli.addOption("program", false, "URI to application executable", "class");
     cli.addOption("reduces", false, "number of reduces", "num");
-    cli.addOption("jobconf", false, 
+    cli.addOption("jobconf", false,
         "\"n1=v1,n2=v2,..\" (Deprecated) Optional. Add or override a JobConf property.",
         "key=val");
     cli.addOption("lazyOutput", false, "Optional. Create output lazily",
-                  "boolean");
+        "boolean");
     Parser parser = cli.createParser();
     try {
-      
+
       GenericOptionsParser genericParser = new GenericOptionsParser(getConf(), args);
       CommandLine results = parser.parse(cli.options, genericParser.getRemainingArgs());
-      
+
       JobConf job = new JobConf(getConf());
-      
+
       if (results.hasOption("input")) {
         FileInputFormat.setInputPaths(job, results.getOptionValue("input"));
       }
       if (results.hasOption("output")) {
-        FileOutputFormat.setOutputPath(job, 
-          new Path(results.getOptionValue("output")));
+        FileOutputFormat.setOutputPath(job,
+            new Path(results.getOptionValue("output")));
       }
       if (results.hasOption("jar")) {
         job.setJar(results.getOptionValue("jar"));
@@ -435,7 +420,7 @@ public class Submitter extends Configured implements Tool {
       if (results.hasOption("inputformat")) {
         setIsJavaRecordReader(job, true);
         job.setInputFormat(getClass(results, "inputformat", job,
-                                     InputFormat.class));
+            InputFormat.class));
       }
       if (results.hasOption("javareader")) {
         setIsJavaRecordReader(job, true);
@@ -446,29 +431,29 @@ public class Submitter extends Configured implements Tool {
       }
       if (results.hasOption("partitioner")) {
         job.setPartitionerClass(getClass(results, "partitioner", job,
-                                          Partitioner.class));
+            Partitioner.class));
       }
       if (results.hasOption("reduce")) {
         setIsJavaReducer(job, true);
         job.setReducerClass(getClass(results, "reduce", job, Reducer.class));
       }
       if (results.hasOption("reduces")) {
-        job.setNumReduceTasks(Integer.parseInt( 
-                                           results.getOptionValue("reduces")));
+        job.setNumReduceTasks(Integer.parseInt(
+            results.getOptionValue("reduces")));
       }
       if (results.hasOption("writer")) {
         setIsJavaRecordWriter(job, true);
-        job.setOutputFormat(getClass(results, "writer", job, 
-                                      OutputFormat.class));
+        job.setOutputFormat(getClass(results, "writer", job,
+            OutputFormat.class));
       }
-      
+
       if (results.hasOption("lazyOutput")) {
         if (Boolean.parseBoolean(results.getOptionValue("lazyOutput"))) {
           LazyOutputFormat.setOutputFormatClass(job,
               job.getOutputFormat().getClass());
         }
       }
-      
+
       if (results.hasOption("program")) {
         setExecutable(job, results.getOptionValue("program"));
       }
@@ -485,21 +470,21 @@ public class Submitter extends Configured implements Tool {
       // if they gave us a jar file, include it into the class path
       String jarFile = job.getJar();
       if (jarFile != null) {
-        final URL[] urls = new URL[]{ FileSystem.getLocal(job).
+        final URL[] urls = new URL[]{FileSystem.getLocal(job).
             pathToFile(new Path(jarFile)).toURL()};
         //FindBugs complains that creating a URLClassLoader should be
         //in a doPrivileged() block. 
         ClassLoader loader =
-          AccessController.doPrivileged(
-              new PrivilegedAction<ClassLoader>() {
-                public ClassLoader run() {
-                  return new URLClassLoader(urls);
+            AccessController.doPrivileged(
+                new PrivilegedAction<ClassLoader>() {
+                  public ClassLoader run() {
+                    return new URLClassLoader(urls);
+                  }
                 }
-              }
             );
         job.setClassLoader(loader);
       }
-      
+
       runJob(job);
       return 0;
     } catch (ParseException pe) {
@@ -507,15 +492,15 @@ public class Submitter extends Configured implements Tool {
       cli.printUsage();
       return 1;
     }
-    
+
   }
-  
+
   /**
    * Submit a pipes job based on the command line arguments.
    * @param args
    */
   public static void main(String[] args) throws Exception {
-    int exitCode =  new Submitter().run(args);
+    int exitCode = new Submitter().run(args);
     ExitUtil.terminate(exitCode);
   }
 

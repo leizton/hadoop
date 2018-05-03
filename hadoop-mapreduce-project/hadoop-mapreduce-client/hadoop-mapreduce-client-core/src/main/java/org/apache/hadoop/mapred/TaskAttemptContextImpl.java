@@ -25,37 +25,37 @@ import org.apache.hadoop.util.Progressable;
 @InterfaceAudience.Private
 @InterfaceStability.Unstable
 public class TaskAttemptContextImpl
-       extends org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl 
-       implements TaskAttemptContext {
+    extends org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl
+    implements TaskAttemptContext {
   private Reporter reporter;
 
   public TaskAttemptContextImpl(JobConf conf, TaskAttemptID taskid) {
     this(conf, taskid, Reporter.NULL);
   }
-  
+
   TaskAttemptContextImpl(JobConf conf, TaskAttemptID taskid,
                          Reporter reporter) {
     super(conf, taskid);
     this.reporter = reporter;
   }
-  
+
   /**
    * Get the taskAttemptID.
-   *  
+   *
    * @return TaskAttemptID
    */
   public TaskAttemptID getTaskAttemptID() {
     return (TaskAttemptID) super.getTaskAttemptID();
   }
-  
+
   public Progressable getProgressible() {
     return reporter;
   }
-  
+
   public JobConf getJobConf() {
     return (JobConf) getConfiguration();
   }
-  
+
   @Override
   public float getProgress() {
     return reporter.getProgress();

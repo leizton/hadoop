@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,7 +29,6 @@ import org.apache.hadoop.mapreduce.v2.jobhistory.JHAdminConfig;
 import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
-import org.apache.hadoop.yarn.ipc.RPCUtil;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -49,16 +48,16 @@ public class MRWebAppUtil {
 
   public static void initialize(Configuration conf) {
     setHttpPolicyInYARN(conf.get(
-            YarnConfiguration.YARN_HTTP_POLICY_KEY,
-            YarnConfiguration.YARN_HTTP_POLICY_DEFAULT));
+        YarnConfiguration.YARN_HTTP_POLICY_KEY,
+        YarnConfiguration.YARN_HTTP_POLICY_DEFAULT));
     setHttpPolicyInJHS(conf.get(JHAdminConfig.MR_HS_HTTP_POLICY,
-            JHAdminConfig.DEFAULT_MR_HS_HTTP_POLICY));
+        JHAdminConfig.DEFAULT_MR_HS_HTTP_POLICY));
   }
-  
+
   private static void setHttpPolicyInJHS(String policy) {
     MRWebAppUtil.httpPolicyInJHS = Policy.fromString(policy);
   }
-  
+
   private static void setHttpPolicyInYARN(String policy) {
     MRWebAppUtil.httpPolicyInYarn = Policy.fromString(policy);
   }
@@ -80,16 +79,16 @@ public class MRWebAppUtil {
     return httpPolicyInJHS == HttpConfig.Policy.HTTPS_ONLY ? "https://"
         : "http://";
   }
-  
+
   public static void setJHSWebappURLWithoutScheme(Configuration conf,
-      String hostAddress) {
+                                                  String hostAddress) {
     if (httpPolicyInJHS == Policy.HTTPS_ONLY) {
       conf.set(JHAdminConfig.MR_HISTORY_WEBAPP_HTTPS_ADDRESS, hostAddress);
     } else {
       conf.set(JHAdminConfig.MR_HISTORY_WEBAPP_ADDRESS, hostAddress);
     }
   }
-  
+
   public static String getJHSWebappURLWithoutScheme(Configuration conf) {
     if (httpPolicyInJHS == Policy.HTTPS_ONLY) {
       return conf.get(JHAdminConfig.MR_HISTORY_WEBAPP_HTTPS_ADDRESS,
@@ -99,11 +98,11 @@ public class MRWebAppUtil {
           JHAdminConfig.DEFAULT_MR_HISTORY_WEBAPP_ADDRESS);
     }
   }
-  
+
   public static String getJHSWebappURLWithScheme(Configuration conf) {
     return getJHSWebappScheme() + getJHSWebappURLWithoutScheme(conf);
   }
-  
+
   public static InetSocketAddress getJHSWebBindAddress(Configuration conf) {
     if (httpPolicyInJHS == Policy.HTTPS_ONLY) {
       return conf.getSocketAddr(
@@ -119,9 +118,9 @@ public class MRWebAppUtil {
           JHAdminConfig.DEFAULT_MR_HISTORY_WEBAPP_PORT);
     }
   }
-  
+
   public static String getApplicationWebURLOnJHSWithoutScheme(Configuration conf,
-      ApplicationId appId)
+                                                              ApplicationId appId)
       throws UnknownHostException {
     //construct the history url for job
     String addr = getJHSWebappURLWithoutScheme(conf);
@@ -134,10 +133,10 @@ public class MRWebAppUtil {
     String host = ADDR_SPLITTER.split(addr).iterator().next();
     String hsAddress = JOINER.join(host, ":", port);
     InetSocketAddress address = NetUtils.createSocketAddr(
-      hsAddress, getDefaultJHSWebappPort(),
-      getDefaultJHSWebappURLWithoutScheme());
+        hsAddress, getDefaultJHSWebappPort(),
+        getDefaultJHSWebappURLWithoutScheme());
     StringBuffer sb = new StringBuffer();
-    if (address.getAddress().isAnyLocalAddress() || 
+    if (address.getAddress().isAnyLocalAddress() ||
         address.getAddress().isLoopbackAddress()) {
       sb.append(InetAddress.getLocalHost().getCanonicalHostName());
     } else {
@@ -149,23 +148,23 @@ public class MRWebAppUtil {
     sb.append(jobId.toString());
     return sb.toString();
   }
-  
+
   public static String getApplicationWebURLOnJHSWithScheme(Configuration conf,
-      ApplicationId appId) throws UnknownHostException {
+                                                           ApplicationId appId) throws UnknownHostException {
     return getJHSWebappScheme()
         + getApplicationWebURLOnJHSWithoutScheme(conf, appId);
   }
 
   private static int getDefaultJHSWebappPort() {
     return httpPolicyInJHS == Policy.HTTPS_ONLY ?
-      JHAdminConfig.DEFAULT_MR_HISTORY_WEBAPP_HTTPS_PORT:
-      JHAdminConfig.DEFAULT_MR_HISTORY_WEBAPP_PORT;
+        JHAdminConfig.DEFAULT_MR_HISTORY_WEBAPP_HTTPS_PORT :
+        JHAdminConfig.DEFAULT_MR_HISTORY_WEBAPP_PORT;
   }
-  
+
   private static String getDefaultJHSWebappURLWithoutScheme() {
     return httpPolicyInJHS == Policy.HTTPS_ONLY ?
-      JHAdminConfig.DEFAULT_MR_HISTORY_WEBAPP_HTTPS_ADDRESS :
-      JHAdminConfig.DEFAULT_MR_HISTORY_WEBAPP_ADDRESS;
+        JHAdminConfig.DEFAULT_MR_HISTORY_WEBAPP_HTTPS_ADDRESS :
+        JHAdminConfig.DEFAULT_MR_HISTORY_WEBAPP_ADDRESS;
   }
 
   public static String getAMWebappScheme(Configuration conf) {

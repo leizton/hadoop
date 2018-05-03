@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,7 +22,7 @@ import org.apache.hadoop.classification.InterfaceStability.Unstable;
 
 /*******************************
  * Some handy constants
- * 
+ *
  *******************************/
 @Private
 @Unstable
@@ -37,7 +37,7 @@ public interface MRConstants {
   //
   public static int SUCCESS = 0;
   public static int FILE_NOT_FOUND = -1;
-  
+
   /**
    * The custom http header used for the map output length.
    */
@@ -52,12 +52,12 @@ public interface MRConstants {
    * The map task from which the map output data is being transferred
    */
   public static final String FROM_MAP_TASK = "from-map-task";
-  
+
   /**
    * The reduce task number for which this map output is being transferred
    */
   public static final String FOR_REDUCE_TASK = "for-reduce-task";
-  
+
   /** Used in MRv1, mostly in TaskTracker code **/
   public static final String WORKDIR = "work";
 

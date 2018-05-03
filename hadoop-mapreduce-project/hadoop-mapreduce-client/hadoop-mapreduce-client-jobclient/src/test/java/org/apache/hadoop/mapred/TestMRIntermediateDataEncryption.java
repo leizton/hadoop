@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -33,9 +33,9 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
-@SuppressWarnings(value={"unchecked", "deprecation"})
+@SuppressWarnings(value = {"unchecked", "deprecation"})
 /**
  * This test tests the support for a merge operation in Hadoop.  The input files
  * are already sorted on the key.  This test implements an external
@@ -81,7 +81,7 @@ public class TestMRIntermediateDataEncryption {
           .numDataNodes(numNodes).build();
       fileSystem = dfsCluster.getFileSystem();
       mrCluster = MiniMRClientClusterFactory.create(this.getClass(),
-                                                 numNodes, conf);
+          numNodes, conf);
       // Generate input.
       createInput(fileSystem, numMappers, numLines);
       // Run the test.
@@ -112,7 +112,7 @@ public class TestMRIntermediateDataEncryption {
   }
 
   private void runMergeTest(JobConf job, FileSystem fileSystem, int numMappers, int numReducers, int numLines)
-    throws Exception {
+      throws Exception {
     fileSystem.delete(OUTPUT, true);
     job.setJobName("Test");
     JobClient client = new JobClient(job);
@@ -137,13 +137,13 @@ public class TestMRIntermediateDataEncryption {
     try {
       submittedJob = client.submitJob(job);
       try {
-        if (! client.monitorAndPrintJob(job, submittedJob)) {
+        if (!client.monitorAndPrintJob(job, submittedJob)) {
           throw new IOException("Job failed!");
         }
-      } catch(InterruptedException ie) {
+      } catch (InterruptedException ie) {
         Thread.currentThread().interrupt();
       }
-    } catch(IOException ioe) {
+    } catch (IOException ioe) {
       System.err.println("Job failed with: " + ioe);
     } finally {
       verifyOutput(submittedJob, fileSystem, numMappers, numLines);
@@ -151,23 +151,23 @@ public class TestMRIntermediateDataEncryption {
   }
 
   private void verifyOutput(RunningJob submittedJob, FileSystem fileSystem, int numMappers, int numLines)
-    throws Exception {
+      throws Exception {
     FSDataInputStream dis = null;
     long numValidRecords = 0;
     long numInvalidRecords = 0;
     String prevKeyValue = "000000000";
     Path[] fileList =
-      FileUtil.stat2Paths(fileSystem.listStatus(OUTPUT,
-          new Utils.OutputFileUtils.OutputFilesFilter()));
+        FileUtil.stat2Paths(fileSystem.listStatus(OUTPUT,
+            new Utils.OutputFileUtils.OutputFilesFilter()));
     for (Path outFile : fileList) {
       try {
         dis = fileSystem.open(outFile);
         String record;
-        while((record = dis.readLine()) != null) {
+        while ((record = dis.readLine()) != null) {
           // Split the line into key and value.
           int blankPos = record.indexOf(" ");
           String keyString = record.substring(0, blankPos);
-          String valueString = record.substring(blankPos+1);
+          String valueString = record.substring(blankPos + 1);
           // Check for sorted output and correctness of record.
           if (keyString.compareTo(prevKeyValue) >= 0
               && keyString.equals(valueString)) {
@@ -185,7 +185,7 @@ public class TestMRIntermediateDataEncryption {
       }
     }
     // Make sure we got all input records in the output in sorted order.
-    assertEquals((long)(numMappers * numLines), numValidRecords);
+    assertEquals((long) (numMappers * numLines), numValidRecords);
     // Make sure there is no extraneous invalid record.
     assertEquals(0, numInvalidRecords);
   }
@@ -195,29 +195,29 @@ public class TestMRIntermediateDataEncryption {
    * in displayable form.
    */
   public static class MyMapper extends MapReduceBase
-    implements Mapper<LongWritable, Text, Text, Text> {
-      private Text keyText;
-      private Text valueText;
+      implements Mapper<LongWritable, Text, Text, Text> {
+    private Text keyText;
+    private Text valueText;
 
-      public MyMapper() {
-        keyText = new Text();
-        valueText = new Text();
-      }
-
-      @Override
-      public void map(LongWritable key, Text value,
-                      OutputCollector<Text, Text> output,
-                      Reporter reporter) throws IOException {
-        String record = value.toString();
-        int blankPos = record.indexOf(" ");
-        keyText.set(record.substring(0, blankPos));
-        valueText.set(record.substring(blankPos+1));
-        output.collect(keyText, valueText);
-      }
-
-      public void close() throws IOException {
-      }
+    public MyMapper() {
+      keyText = new Text();
+      valueText = new Text();
     }
+
+    @Override
+    public void map(LongWritable key, Text value,
+                    OutputCollector<Text, Text> output,
+                    Reporter reporter) throws IOException {
+      String record = value.toString();
+      int blankPos = record.indexOf(" ");
+      keyText.set(record.substring(0, blankPos));
+      valueText.set(record.substring(blankPos + 1));
+      output.collect(keyText, valueText);
+    }
+
+    public void close() throws IOException {
+    }
+  }
 
   /**
    * Partitioner implementation to make sure that output is in total sorted
@@ -243,10 +243,10 @@ public class TestMRIntermediateDataEncryption {
       int keyValue = 0;
       try {
         keyValue = Integer.parseInt(key.toString());
-      } catch(NumberFormatException nfe) {
+      } catch (NumberFormatException nfe) {
         keyValue = 0;
       }
-      int partitionNumber = (numPartitions*(Math.max(0, keyValue-1)))/job.getInt("mapred.test.num_lines", 10000);
+      int partitionNumber = (numPartitions * (Math.max(0, keyValue - 1))) / job.getInt("mapred.test.num_lines", 10000);
       return partitionNumber;
     }
   }

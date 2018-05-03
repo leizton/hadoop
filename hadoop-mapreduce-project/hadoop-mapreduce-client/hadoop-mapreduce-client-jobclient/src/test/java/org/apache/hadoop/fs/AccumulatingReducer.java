@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,13 +17,16 @@
  */
 package org.apache.hadoop.fs;
 
-import java.io.IOException;
-import java.util.Iterator;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.*;
+import org.apache.hadoop.mapred.MapReduceBase;
+import org.apache.hadoop.mapred.OutputCollector;
+import org.apache.hadoop.mapred.Reducer;
+import org.apache.hadoop.mapred.Reporter;
+
+import java.io.IOException;
+import java.util.Iterator;
 
 /**
  * Reducer that accumulates values based on their type.
@@ -39,7 +42,7 @@ import org.apache.hadoop.mapred.*;
  * <li><tt>f:</tt> - float, summ</li>
  * <li><tt>l:</tt> - long, summ</li>
  * </ul>
- * 
+ *
  */
 @SuppressWarnings("deprecation")
 public class AccumulatingReducer extends MapReduceBase
@@ -48,23 +51,23 @@ public class AccumulatingReducer extends MapReduceBase
   static final String VALUE_TYPE_FLOAT = "f:";
   static final String VALUE_TYPE_STRING = "s:";
   private static final Log LOG = LogFactory.getLog(AccumulatingReducer.class);
-  
+
   protected String hostName;
-  
-  public AccumulatingReducer () {
+
+  public AccumulatingReducer() {
     try {
       hostName = java.net.InetAddress.getLocalHost().getHostName();
-    } catch(Exception e) {
+    } catch (Exception e) {
       hostName = "localhost";
     }
     LOG.info("Starting AccumulatingReducer on " + hostName);
   }
-  
-  public void reduce(Text key, 
+
+  public void reduce(Text key,
                      Iterator<Text> values,
-                     OutputCollector<Text, Text> output, 
+                     OutputCollector<Text, Text> output,
                      Reporter reporter
-                     ) throws IOException {
+  ) throws IOException {
     String field = key.toString();
 
     reporter.setStatus("starting " + field + " ::host = " + hostName);

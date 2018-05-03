@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,48 +18,48 @@
 
 package org.apache.hadoop.mapred.lib;
 
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.TreeMap;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.FileOutputFormat;
+import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.MRJobConfig;
 import org.apache.hadoop.util.Progressable;
 
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.TreeMap;
+
 /**
  * This abstract class extends the FileOutputFormat, allowing to write the
  * output data to different output files. There are three basic use cases for
  * this class.
- * 
+ *
  * Case one: This class is used for a map reduce job with at least one reducer.
  * The reducer wants to write data to different files depending on the actual
  * keys. It is assumed that a key (or value) encodes the actual key (value)
  * and the desired location for the actual key (value).
- * 
+ *
  * Case two: This class is used for a map only job. The job wants to use an
  * output file name that is either a part of the input file name of the input
  * data, or some derivation of it.
- * 
+ *
  * Case three: This class is used for a map only job. The job wants to use an
  * output file name that depends on both the keys and the input file name,
  */
 @InterfaceAudience.Public
 @InterfaceStability.Stable
 public abstract class MultipleOutputFormat<K, V>
-extends FileOutputFormat<K, V> {
+    extends FileOutputFormat<K, V> {
 
   /**
    * Create a composite record writer that can write key/value data to different
    * output files
-   * 
+   *
    * @param fs
    *          the file system to use
    * @param job
@@ -72,7 +72,7 @@ extends FileOutputFormat<K, V> {
    * @throws IOException
    */
   public RecordWriter<K, V> getRecordWriter(FileSystem fs, JobConf job,
-      String name, Progressable arg3) throws IOException {
+                                            String name, Progressable arg3) throws IOException {
 
     final FileSystem myFS = fs;
     final String myName = generateLeafFileName(name);
@@ -105,7 +105,9 @@ extends FileOutputFormat<K, V> {
           this.recordWriters.put(finalPath, rw);
         }
         rw.write(actualKey, actualValue);
-      };
+      }
+
+      ;
 
       public void close(Reporter reporter) throws IOException {
         Iterator<String> keys = this.recordWriters.keySet().iterator();
@@ -114,14 +116,16 @@ extends FileOutputFormat<K, V> {
           rw.close(reporter);
         }
         this.recordWriters.clear();
-      };
+      }
+
+      ;
     };
   }
 
   /**
    * Generate the leaf name for the output file name. The default behavior does
    * not change the leaf file name (such as part-00000)
-   * 
+   *
    * @param name
    *          the leaf file name for the output file
    * @return the given leaf file name
@@ -134,7 +138,7 @@ extends FileOutputFormat<K, V> {
    * Generate the file output file name based on the given key and the leaf file
    * name. The default behavior is that the file name does not depend on the
    * key.
-   * 
+   *
    * @param key
    *          the key of the output data
    * @param name
@@ -148,7 +152,7 @@ extends FileOutputFormat<K, V> {
   /**
    * Generate the actual key from the given key/value. The default behavior is that
    * the actual key is equal to the given key
-   * 
+   *
    * @param key
    *          the key of the output data
    * @param value
@@ -158,11 +162,11 @@ extends FileOutputFormat<K, V> {
   protected K generateActualKey(K key, V value) {
     return key;
   }
-  
+
   /**
    * Generate the actual value from the given key and value. The default behavior is that
    * the actual value is equal to the given value
-   * 
+   *
    * @param key
    *          the key of the output data
    * @param value
@@ -172,7 +176,7 @@ extends FileOutputFormat<K, V> {
   protected V generateActualValue(K key, V value) {
     return value;
   }
-  
+
 
   /**
    * Generate the outfile name based on a given anme and the input file name. If
@@ -182,7 +186,7 @@ extends FileOutputFormat<K, V> {
    * name is returned unchanged. Otherwise, return a file name consisting of the
    * N trailing legs of the input file name where N is the config value for
    * "num.of.trailing.legs.to.use".
-   * 
+   *
    * @param job
    *          the job config
    * @param name
@@ -215,7 +219,7 @@ extends FileOutputFormat<K, V> {
   }
 
   /**
-   * 
+   *
    * @param fs
    *          the file system to use
    * @param job
@@ -229,5 +233,5 @@ extends FileOutputFormat<K, V> {
    * @throws IOException
    */
   abstract protected RecordWriter<K, V> getBaseRecordWriter(FileSystem fs,
-      JobConf job, String name, Progressable arg3) throws IOException;
+                                                            JobConf job, String name, Progressable arg3) throws IOException;
 }

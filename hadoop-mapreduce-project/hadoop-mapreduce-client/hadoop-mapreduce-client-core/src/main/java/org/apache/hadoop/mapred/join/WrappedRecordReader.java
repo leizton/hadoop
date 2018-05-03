@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,8 +17,6 @@
  */
 
 package org.apache.hadoop.mapred.join;
-
-import java.io.IOException;
 
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
@@ -30,6 +28,8 @@ import org.apache.hadoop.io.WritableComparator;
 import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.mapred.RecordReader;
 
+import java.io.IOException;
+
 /**
  * Proxy class for a RecordReader participating in the join framework.
  * This class keeps track of the &quot;head&quot; key-value pair for the
@@ -39,11 +39,11 @@ import org.apache.hadoop.mapred.RecordReader;
 @InterfaceAudience.Public
 @InterfaceStability.Stable
 public class WrappedRecordReader<K extends WritableComparable,
-                          U extends Writable>
-    implements ComposableRecordReader<K,U>, Configurable {
+    U extends Writable>
+    implements ComposableRecordReader<K, U>, Configurable {
 
   private boolean empty = false;
-  private RecordReader<K,U> rr;
+  private RecordReader<K, U> rr;
   private int id;  // index at which values will be inserted in collector
 
   private K khead; // key at the top of this RR
@@ -56,12 +56,12 @@ public class WrappedRecordReader<K extends WritableComparable,
   /**
    * For a given RecordReader rr, occupy position id in collector.
    */
-  WrappedRecordReader(int id, RecordReader<K,U> rr,
-      Class<? extends WritableComparator> cmpcl) throws IOException {
+  WrappedRecordReader(int id, RecordReader<K, U> rr,
+                      Class<? extends WritableComparator> cmpcl) throws IOException {
     this(id, rr, cmpcl, null);
   }
 
-  WrappedRecordReader(int id, RecordReader<K,U> rr,
+  WrappedRecordReader(int id, RecordReader<K, U> rr,
                       Class<? extends WritableComparator> cmpcl,
                       Configuration conf) throws IOException {
     this.id = id;
@@ -71,12 +71,12 @@ public class WrappedRecordReader<K extends WritableComparable,
     vhead = rr.createValue();
     try {
       cmp = (null == cmpcl)
-        ? WritableComparator.get(khead.getClass(), this.conf)
-        : cmpcl.newInstance();
+          ? WritableComparator.get(khead.getClass(), this.conf)
+          : cmpcl.newInstance();
     } catch (InstantiationException e) {
-      throw (IOException)new IOException().initCause(e);
+      throw (IOException) new IOException().initCause(e);
     } catch (IllegalAccessException e) {
-      throw (IOException)new IOException().initCause(e);
+      throw (IOException) new IOException().initCause(e);
     }
     vjoin = new StreamBackedIterator<U>();
     next();
@@ -114,7 +114,7 @@ public class WrappedRecordReader<K extends WritableComparable,
    */
   public void skip(K key) throws IOException {
     if (hasNext()) {
-      while (cmp.compare(khead, key) <= 0 && next());
+      while (cmp.compare(khead, key) <= 0 && next()) ;
     }
   }
 
@@ -133,7 +133,7 @@ public class WrappedRecordReader<K extends WritableComparable,
    * provided (ie register a stream of values from this source matching K
    * with a collector).
    */
-                                 // JoinCollector comes from parent, which has
+  // JoinCollector comes from parent, which has
   @SuppressWarnings("unchecked") // no static type for the slot this sits in
   public void accept(CompositeRecordReader.JoinCollector i, K key)
       throws IOException {
@@ -199,7 +199,7 @@ public class WrappedRecordReader<K extends WritableComparable,
    * Implement Comparable contract (compare key at head of proxied RR
    * with that of another).
    */
-  public int compareTo(ComposableRecordReader<K,?> other) {
+  public int compareTo(ComposableRecordReader<K, ?> other) {
     return cmp.compare(key(), other.key());
   }
 
@@ -209,7 +209,7 @@ public class WrappedRecordReader<K extends WritableComparable,
   @SuppressWarnings("unchecked") // Explicit type check prior to cast
   public boolean equals(Object other) {
     return other instanceof ComposableRecordReader
-        && 0 == compareTo((ComposableRecordReader)other);
+        && 0 == compareTo((ComposableRecordReader) other);
   }
 
   public int hashCode() {

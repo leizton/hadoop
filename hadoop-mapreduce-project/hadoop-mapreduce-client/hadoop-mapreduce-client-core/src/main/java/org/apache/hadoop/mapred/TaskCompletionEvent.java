@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,14 +28,19 @@ import org.apache.hadoop.classification.InterfaceStability;
  */
 @InterfaceAudience.Public
 @InterfaceStability.Stable
-public class TaskCompletionEvent 
+public class TaskCompletionEvent
     extends org.apache.hadoop.mapreduce.TaskCompletionEvent {
   @InterfaceAudience.Public
   @InterfaceStability.Stable
-  static public enum Status {FAILED, KILLED, SUCCEEDED, OBSOLETE, TIPFAILED};
-  
-  public static final TaskCompletionEvent[] EMPTY_ARRAY = 
-	    new TaskCompletionEvent[0];
+  static public enum Status {
+    FAILED, KILLED, SUCCEEDED, OBSOLETE, TIPFAILED
+  }
+
+  ;
+
+  public static final TaskCompletionEvent[] EMPTY_ARRAY =
+      new TaskCompletionEvent[0];
+
   /**
    * Default constructor for Writable.
    *
@@ -53,24 +58,25 @@ public class TaskCompletionEvent
    * @param status task's status 
    * @param taskTrackerHttp task tracker's host:port for http. 
    */
-  public TaskCompletionEvent(int eventId, 
+  public TaskCompletionEvent(int eventId,
                              TaskAttemptID taskId,
                              int idWithinJob,
                              boolean isMap,
-                             Status status, 
-                             String taskTrackerHttp){
+                             Status status,
+                             String taskTrackerHttp) {
     super(eventId, taskId, idWithinJob, isMap, org.apache.hadoop.mapreduce.
-          TaskCompletionEvent.Status.valueOf(status.name()), taskTrackerHttp);
+        TaskCompletionEvent.Status.valueOf(status.name()), taskTrackerHttp);
   }
 
   @Private
   public static TaskCompletionEvent downgrade(
-    org.apache.hadoop.mapreduce.TaskCompletionEvent event) {
+      org.apache.hadoop.mapreduce.TaskCompletionEvent event) {
     return new TaskCompletionEvent(event.getEventId(),
-      TaskAttemptID.downgrade(event.getTaskAttemptId()),event.idWithinJob(),
-      event.isMapTask(), Status.valueOf(event.getStatus().name()),
-      event.getTaskTrackerHttp());
+        TaskAttemptID.downgrade(event.getTaskAttemptId()), event.idWithinJob(),
+        event.isMapTask(), Status.valueOf(event.getStatus().name()),
+        event.getTaskTrackerHttp());
   }
+
   /**
    * Returns task id. 
    * @return task id
@@ -80,7 +86,7 @@ public class TaskCompletionEvent
   public String getTaskId() {
     return getTaskAttemptId().toString();
   }
-  
+
   /**
    * Returns task id. 
    * @return task id
@@ -88,7 +94,7 @@ public class TaskCompletionEvent
   public TaskAttemptID getTaskAttemptId() {
     return TaskAttemptID.downgrade(super.getTaskAttemptId());
   }
-  
+
   /**
    * Returns {@link Status}
    * @return task completion status
@@ -96,7 +102,7 @@ public class TaskCompletionEvent
   public Status getTaskStatus() {
     return Status.valueOf(super.getStatus().name());
   }
-  
+
   /**
    * Sets task id. 
    * @param taskId
@@ -124,7 +130,7 @@ public class TaskCompletionEvent
   protected void setTaskAttemptId(TaskAttemptID taskId) {
     super.setTaskAttemptId(taskId);
   }
-  
+
   /**
    * Set task status. 
    * @param status
@@ -132,9 +138,9 @@ public class TaskCompletionEvent
   @Private
   public void setTaskStatus(Status status) {
     super.setTaskStatus(org.apache.hadoop.mapreduce.
-      TaskCompletionEvent.Status.valueOf(status.name()));
+        TaskCompletionEvent.Status.valueOf(status.name()));
   }
-  
+
   /**
    * Set the task completion time
    * @param taskCompletionTime time (in millisec) the task took to complete

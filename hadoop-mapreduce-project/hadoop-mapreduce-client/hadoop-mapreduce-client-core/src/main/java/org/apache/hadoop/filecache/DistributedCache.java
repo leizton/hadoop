@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,10 +18,6 @@
 
 package org.apache.hadoop.filecache;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
@@ -30,19 +26,23 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.MRJobConfig;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+
 /**
  * Distribute application-specific large, read-only files efficiently.
- * 
+ *
  * <p><code>DistributedCache</code> is a facility provided by the Map-Reduce
  * framework to cache files (text, archives, jars etc.) needed by applications.
  * </p>
- * 
+ *
  * <p>Applications specify the files, via urls (hdfs:// or http://) to be cached 
  * via the {@link org.apache.hadoop.mapred.JobConf}. The
  * <code>DistributedCache</code> assumes that the files specified via urls are
  * already present on the {@link FileSystem} at the path specified by the url
  * and are accessible by every machine in the cluster.</p>
- * 
+ *
  * <p>The framework will copy the necessary files on to the slave node before 
  * any tasks for the job are executed on that node. Its efficiency stems from 
  * the fact that the files are only copied once per job and the ability to 
@@ -59,27 +59,27 @@ import org.apache.hadoop.mapreduce.MRJobConfig;
  * the name of the file or directory will be used. If multiple files or 
  * directories map to the same link name, the last one added, will be used.  All
  * others will not even be downloaded.</p>
- * 
+ *
  * <p><code>DistributedCache</code> tracks modification timestamps of the cache 
  * files. Clearly the cache files should not be modified by the application 
  * or externally while the job is executing.</p>
- * 
+ *
  * <p>Here is an illustrative example on how to use the 
  * <code>DistributedCache</code>:</p>
  * <p><blockquote><pre>
  *     // Setting up the cache for the application
- *     
+ *
  *     1. Copy the requisite files to the <code>FileSystem</code>:
- *     
+ *
  *     $ bin/hadoop fs -copyFromLocal lookup.dat /myapp/lookup.dat  
  *     $ bin/hadoop fs -copyFromLocal map.zip /myapp/map.zip  
  *     $ bin/hadoop fs -copyFromLocal mylib.jar /myapp/mylib.jar
  *     $ bin/hadoop fs -copyFromLocal mytar.tar /myapp/mytar.tar
  *     $ bin/hadoop fs -copyFromLocal mytgz.tgz /myapp/mytgz.tgz
  *     $ bin/hadoop fs -copyFromLocal mytargz.tar.gz /myapp/mytargz.tar.gz
- *     
+ *
  *     2. Setup the application's <code>JobConf</code>:
- *     
+ *
  *     JobConf job = new JobConf();
  *     DistributedCache.addCacheFile(new URI("/myapp/lookup.dat#lookup.dat"), 
  *                                   job);
@@ -88,21 +88,21 @@ import org.apache.hadoop.mapreduce.MRJobConfig;
  *     DistributedCache.addCacheArchive(new URI("/myapp/mytar.tar", job);
  *     DistributedCache.addCacheArchive(new URI("/myapp/mytgz.tgz", job);
  *     DistributedCache.addCacheArchive(new URI("/myapp/mytargz.tar.gz", job);
- *     
+ *
  *     3. Use the cached files in the {@link org.apache.hadoop.mapred.Mapper}
  *     or {@link org.apache.hadoop.mapred.Reducer}:
- *     
+ *
  *     public static class MapClass extends MapReduceBase  
  *     implements Mapper&lt;K, V, K, V&gt; {
- *     
+ *
  *       private Path[] localArchives;
  *       private Path[] localFiles;
- *       
+ *
  *       public void configure(JobConf job) {
  *         // Get the cached archives/files
  *         File f = new File("./map.zip/some/file/in/zip.txt");
  *       }
- *       
+ *
  *       public void map(K key, V value, 
  *                       OutputCollector&lt;K, V&gt; output, Reporter reporter) 
  *       throws IOException {
@@ -112,7 +112,7 @@ import org.apache.hadoop.mapreduce.MRJobConfig;
  *         output.collect(k, v);
  *       }
  *     }
- *     
+ *
  * </pre></blockquote></p>
  *
  * It is also very common to use the DistributedCache by using
@@ -150,7 +150,7 @@ public class DistributedCache extends
    */
   @Deprecated
   public static final String CACHE_ARCHIVES_SIZES =
-    "mapred.cache.archives.filesizes";
+      "mapred.cache.archives.filesizes";
 
   /**
    * Warning: {@link #CACHE_ARCHIVES_TIMESTAMPS} is not a *public* constant.
@@ -251,7 +251,7 @@ public class DistributedCache extends
   @Deprecated
   public static void createAllSymlink(
       Configuration conf, File jobCacheDir, File workDir)
-    throws IOException{
+      throws IOException {
     // Do nothing
   }
 
@@ -265,7 +265,7 @@ public class DistributedCache extends
    */
   @Deprecated
   public static FileStatus getFileStatus(Configuration conf, URI cache)
-    throws IOException {
+      throws IOException {
     FileSystem fileSystem = FileSystem.get(cache, conf);
     return fileSystem.getFileStatus(new Path(cache.getPath()));
   }
@@ -279,7 +279,7 @@ public class DistributedCache extends
    */
   @Deprecated
   public static long getTimestamp(Configuration conf, URI cache)
-    throws IOException {
+      throws IOException {
     return getFileStatus(conf, cache).getModificationTime();
   }
 

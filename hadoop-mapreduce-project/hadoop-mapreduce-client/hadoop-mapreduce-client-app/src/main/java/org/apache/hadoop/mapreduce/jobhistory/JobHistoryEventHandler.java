@@ -1,54 +1,32 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.jobhistory;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileAlreadyExistsException;
-import org.apache.hadoop.fs.FileContext;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.FileUtil;
-import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.TaskStatus;
-import org.apache.hadoop.mapreduce.Counter;
-import org.apache.hadoop.mapreduce.CounterGroup;
-import org.apache.hadoop.mapreduce.Counters;
-import org.apache.hadoop.mapreduce.JobCounter;
-import org.apache.hadoop.mapreduce.MRJobConfig;
-import org.apache.hadoop.mapreduce.TaskType;
-import org.apache.hadoop.mapreduce.TypeConverter;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.v2.api.records.JobId;
 import org.apache.hadoop.mapreduce.v2.api.records.JobState;
 import org.apache.hadoop.mapreduce.v2.app.AppContext;
@@ -69,6 +47,11 @@ import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * The job history events get routed to this class. This class writes the Job
@@ -104,7 +87,7 @@ public class JobHistoryEventHandler extends AbstractService
 
 
   protected BlockingQueue<JobHistoryEvent> eventQueue =
-    new LinkedBlockingQueue<JobHistoryEvent>();
+      new LinkedBlockingQueue<JobHistoryEvent>();
   protected Thread eventHandlingThread;
   private volatile boolean stopped;
   private final Object lock = new Object();
@@ -113,7 +96,7 @@ public class JobHistoryEventHandler extends AbstractService
       JobHistoryEventHandler.class);
 
   protected static final Map<JobId, MetaInfo> fileMap =
-    Collections.<JobId,MetaInfo>synchronizedMap(new HashMap<JobId,MetaInfo>());
+      Collections.<JobId, MetaInfo>synchronizedMap(new HashMap<JobId, MetaInfo>());
 
   // should job completion be force when the AM shuts down?
   protected volatile boolean forceJobCompletion = false;
@@ -138,8 +121,8 @@ public class JobHistoryEventHandler extends AbstractService
   @Override
   protected void serviceInit(Configuration conf) throws Exception {
     String jobId =
-      TypeConverter.fromYarn(context.getApplicationID()).toString();
-    
+        TypeConverter.fromYarn(context.getApplicationID()).toString();
+
     String stagingDirStr = null;
     String doneDirStr = null;
     String userDoneDirStr = null;
@@ -177,34 +160,34 @@ public class JobHistoryEventHandler extends AbstractService
       // meant for a single user. Creating based on the conf. Should ideally be
       // created by the JobHistoryServer or as part of deployment.
       if (!doneDirFS.exists(doneDirPath)) {
-      if (JobHistoryUtils.shouldCreateNonUserDirectory(conf)) {
-        LOG.info("Creating intermediate history logDir: ["
-            + doneDirPath
-            + "] + based on conf. Should ideally be created by the JobHistoryServer: "
-            + MRJobConfig.MR_AM_CREATE_JH_INTERMEDIATE_BASE_DIR);
+        if (JobHistoryUtils.shouldCreateNonUserDirectory(conf)) {
+          LOG.info("Creating intermediate history logDir: ["
+              + doneDirPath
+              + "] + based on conf. Should ideally be created by the JobHistoryServer: "
+              + MRJobConfig.MR_AM_CREATE_JH_INTERMEDIATE_BASE_DIR);
           mkdir(
               doneDirFS,
               doneDirPath,
               new FsPermission(
-            JobHistoryUtils.HISTORY_INTERMEDIATE_DONE_DIR_PERMISSIONS
-                .toShort()));
+                  JobHistoryUtils.HISTORY_INTERMEDIATE_DONE_DIR_PERMISSIONS
+                      .toShort()));
           // TODO Temporary toShort till new FsPermission(FsPermissions)
           // respects
-        // sticky
-      } else {
+          // sticky
+        } else {
           String message = "Not creating intermediate history logDir: ["
-                + doneDirPath
-                + "] based on conf: "
-                + MRJobConfig.MR_AM_CREATE_JH_INTERMEDIATE_BASE_DIR
-                + ". Either set to true or pre-create this directory with" +
-                " appropriate permissions";
-        LOG.error(message);
-        throw new YarnRuntimeException(message);
-      }
+              + doneDirPath
+              + "] based on conf: "
+              + MRJobConfig.MR_AM_CREATE_JH_INTERMEDIATE_BASE_DIR
+              + ". Either set to true or pre-create this directory with" +
+              " appropriate permissions";
+          LOG.error(message);
+          throw new YarnRuntimeException(message);
+        }
       }
     } catch (IOException e) {
       LOG.error("Failed checking for the existance of history intermediate " +
-      		"done directory: [" + doneDirPath + "]");
+          "done directory: [" + doneDirPath + "]");
       throw new YarnRuntimeException(e);
     }
 
@@ -308,12 +291,12 @@ public class JobHistoryEventHandler extends AbstractService
             boolean isInterrupted = Thread.interrupted();
             handleEvent(event);
             if (isInterrupted) {
-                LOG.debug("Event handling interrupted");
-                Thread.currentThread().interrupt();
-              }
+              LOG.debug("Event handling interrupted");
+              Thread.currentThread().interrupt();
             }
           }
         }
+      }
     }, "eventHandlingThread");
     eventHandlingThread.start();
     super.serviceStart();
@@ -325,7 +308,7 @@ public class JobHistoryEventHandler extends AbstractService
         + "Size of the outstanding queue size is " + eventQueue.size());
     stopped = true;
     //do not interrupt while event handling is in progress
-    synchronized(lock) {
+    synchronized (lock) {
       if (eventHandlingThread != null) {
         LOG.debug("Interrupting Event Handling thread");
         eventHandlingThread.interrupt();
@@ -359,7 +342,7 @@ public class JobHistoryEventHandler extends AbstractService
 
     //write all the events remaining in queue
     Iterator<JobHistoryEvent> it = eventQueue.iterator();
-    while(it.hasNext()) {
+    while (it.hasNext()) {
       JobHistoryEvent ev = it.next();
       LOG.info("In stop, writing event " + ev.getType());
       handleEvent(ev);
@@ -368,22 +351,22 @@ public class JobHistoryEventHandler extends AbstractService
     // Process JobUnsuccessfulCompletionEvent for jobIds which still haven't
     // closed their event writers
     Iterator<JobId> jobIt = fileMap.keySet().iterator();
-    if(forceJobCompletion) {
+    if (forceJobCompletion) {
       while (jobIt.hasNext()) {
         JobId toClose = jobIt.next();
         MetaInfo mi = fileMap.get(toClose);
-        if(mi != null && mi.isWriterActive()) {
+        if (mi != null && mi.isWriterActive()) {
           LOG.warn("Found jobId " + toClose
-            + " to have not been closed. Will close");
+              + " to have not been closed. Will close");
           //Create a JobFinishEvent so that it is written to the job history
           final Job job = context.getJob(toClose);
           JobUnsuccessfulCompletionEvent jucEvent =
-            new JobUnsuccessfulCompletionEvent(TypeConverter.fromYarn(toClose),
-                System.currentTimeMillis(), job.getCompletedMaps(),
-                job.getCompletedReduces(),
-                createJobStateForJobUnsuccessfulCompletionEvent(
-                    mi.getForcedJobStateOnShutDown()),
-                job.getDiagnostics());
+              new JobUnsuccessfulCompletionEvent(TypeConverter.fromYarn(toClose),
+                  System.currentTimeMillis(), job.getCompletedMaps(),
+                  job.getCompletedReduces(),
+                  createJobStateForJobUnsuccessfulCompletionEvent(
+                      mi.getForcedJobStateOnShutDown()),
+                  job.getDiagnostics());
           JobHistoryEvent jfEvent = new JobHistoryEvent(toClose, jucEvent);
           //Bypass the queue mechanism which might wait. Call the method directly
           handleEvent(jfEvent);
@@ -411,12 +394,12 @@ public class JobHistoryEventHandler extends AbstractService
     FSDataOutputStream out = stagingDirFS.create(historyFilePath, true);
     return new EventWriter(out);
   }
-  
+
   /**
    * Create an event writer for the Job represented by the jobID.
    * Writes out the job configuration to the log directory.
    * This should be the first call to history for a job
-   * 
+   *
    * @param jobId the jobId.
    * @param forcedJobStateOnShutDown
    * @throws IOException
@@ -443,7 +426,7 @@ public class JobHistoryEventHandler extends AbstractService
 
     String jobName = context.getJob(jobId).getName();
     EventWriter writer = (oldFi == null) ? null : oldFi.writer;
- 
+
     Path logDirConfPath =
         JobHistoryUtils.getStagingConfFile(stagingDirPath, jobId, startCount);
     if (writer == null) {
@@ -456,7 +439,7 @@ public class JobHistoryEventHandler extends AbstractService
             + "[" + jobName + "]");
         throw ioe;
       }
-      
+
       //Write out conf only if the writer isn't already setup.
       if (conf != null) {
         // TODO Ideally this should be written out to the job dir
@@ -494,7 +477,7 @@ public class JobHistoryEventHandler extends AbstractService
       if (mi != null) {
         mi.closeWriter();
       }
-      
+
     } catch (IOException e) {
       LOG.error("Error closing writer for JobID: " + id);
       throw e;
@@ -549,7 +532,7 @@ public class JobHistoryEventHandler extends AbstractService
       MetaInfo mi = fileMap.get(event.getJobID());
       try {
         HistoryEvent historyEvent = event.getHistoryEvent();
-        if (! (historyEvent instanceof NormalizedResourceEvent)) {
+        if (!(historyEvent instanceof NormalizedResourceEvent)) {
           mi.writeEvent(historyEvent);
         }
         processEventForJobSummary(event.getHistoryEvent(), mi.getJobSummary(),
@@ -575,11 +558,11 @@ public class JobHistoryEventHandler extends AbstractService
         mi.getJobIndexInfo().setQueueName(jobSubmittedEvent.getJobQueueName());
       }
       //initialize the launchTime in the JobIndexInfo of MetaInfo
-      if(event.getHistoryEvent().getEventType() == EventType.JOB_INITED ){
+      if (event.getHistoryEvent().getEventType() == EventType.JOB_INITED) {
         JobInitedEvent jie = (JobInitedEvent) event.getHistoryEvent();
         mi.getJobIndexInfo().setJobStartTime(jie.getLaunchTime());
       }
-      
+
       if (event.getHistoryEvent().getEventType() == EventType.JOB_QUEUE_CHANGED) {
         JobQueueChangeEvent jQueueEvent =
             (JobQueueChangeEvent) event.getHistoryEvent();
@@ -613,7 +596,7 @@ public class JobHistoryEventHandler extends AbstractService
           mi.getJobIndexInfo().setNumReduces(jucEvent.getFinishedReduces());
           mi.getJobIndexInfo().setJobStatus(jucEvent.getStatus());
           closeEventWriter(event.getJobID());
-          if(context.isLastAMRetry())
+          if (context.isLastAMRetry())
             processDoneFiles(event.getJobID());
         } catch (IOException e) {
           throw new YarnRuntimeException(e);
@@ -623,9 +606,9 @@ public class JobHistoryEventHandler extends AbstractService
       if (event.getHistoryEvent().getEventType() == EventType.JOB_FAILED
           || event.getHistoryEvent().getEventType() == EventType.JOB_KILLED) {
         try {
-          JobUnsuccessfulCompletionEvent jucEvent = 
+          JobUnsuccessfulCompletionEvent jucEvent =
               (JobUnsuccessfulCompletionEvent) event
-              .getHistoryEvent();
+                  .getHistoryEvent();
           mi.getJobIndexInfo().setFinishTime(jucEvent.getFinishTime());
           mi.getJobIndexInfo().setNumMaps(jucEvent.getFinishedMaps());
           mi.getJobIndexInfo().setNumReduces(jucEvent.getFinishedReduces());
@@ -639,71 +622,71 @@ public class JobHistoryEventHandler extends AbstractService
     }
   }
 
-  public void processEventForJobSummary(HistoryEvent event, JobSummary summary, 
-      JobId jobId) {
+  public void processEventForJobSummary(HistoryEvent event, JobSummary summary,
+                                        JobId jobId) {
     // context.getJob could be used for some of this info as well.
     switch (event.getEventType()) {
-    case JOB_SUBMITTED:
-      JobSubmittedEvent jse = (JobSubmittedEvent) event;
-      summary.setUser(jse.getUserName());
-      summary.setQueue(jse.getJobQueueName());
-      summary.setJobSubmitTime(jse.getSubmitTime());
-      summary.setJobName(jse.getJobName());
-      break;
-    case NORMALIZED_RESOURCE:
-      NormalizedResourceEvent normalizedResourceEvent = 
+      case JOB_SUBMITTED:
+        JobSubmittedEvent jse = (JobSubmittedEvent) event;
+        summary.setUser(jse.getUserName());
+        summary.setQueue(jse.getJobQueueName());
+        summary.setJobSubmitTime(jse.getSubmitTime());
+        summary.setJobName(jse.getJobName());
+        break;
+      case NORMALIZED_RESOURCE:
+        NormalizedResourceEvent normalizedResourceEvent =
             (NormalizedResourceEvent) event;
-      if (normalizedResourceEvent.getTaskType() == TaskType.MAP) {
-        summary.setResourcesPerMap(normalizedResourceEvent.getMemory());
-      } else if (normalizedResourceEvent.getTaskType() == TaskType.REDUCE) {
-        summary.setResourcesPerReduce(normalizedResourceEvent.getMemory());
-      }
-      break;  
-    case JOB_INITED:
-      JobInitedEvent jie = (JobInitedEvent) event;
-      summary.setJobLaunchTime(jie.getLaunchTime());
-      break;
-    case MAP_ATTEMPT_STARTED:
-      TaskAttemptStartedEvent mtase = (TaskAttemptStartedEvent) event;
-      if (summary.getFirstMapTaskLaunchTime() == 0)
-        summary.setFirstMapTaskLaunchTime(mtase.getStartTime());
-      break;
-    case REDUCE_ATTEMPT_STARTED:
-      TaskAttemptStartedEvent rtase = (TaskAttemptStartedEvent) event;
-      if (summary.getFirstReduceTaskLaunchTime() == 0)
-        summary.setFirstReduceTaskLaunchTime(rtase.getStartTime());
-      break;
-    case JOB_FINISHED:
-      JobFinishedEvent jfe = (JobFinishedEvent) event;
-      summary.setJobFinishTime(jfe.getFinishTime());
-      summary.setNumFinishedMaps(jfe.getFinishedMaps());
-      summary.setNumFailedMaps(jfe.getFailedMaps());
-      summary.setNumFinishedReduces(jfe.getFinishedReduces());
-      summary.setNumFailedReduces(jfe.getFailedReduces());
-      if (summary.getJobStatus() == null)
-        summary
-            .setJobStatus(org.apache.hadoop.mapreduce.JobStatus.State.SUCCEEDED
-                .toString());
-      // TODO JOB_FINISHED does not have state. Effectively job history does not
-      // have state about the finished job.
-      setSummarySlotSeconds(summary, jfe.getTotalCounters());
-      break;
-    case JOB_FAILED:
-    case JOB_KILLED:
-      JobUnsuccessfulCompletionEvent juce = (JobUnsuccessfulCompletionEvent) event;
-      summary.setJobStatus(juce.getStatus());
-      summary.setNumFinishedMaps(context.getJob(jobId).getTotalMaps());
-      summary.setNumFinishedReduces(context.getJob(jobId).getTotalReduces());
-      summary.setJobFinishTime(juce.getFinishTime());
-      setSummarySlotSeconds(summary, context.getJob(jobId).getAllCounters());
-      break;
-    default:
-      break;
+        if (normalizedResourceEvent.getTaskType() == TaskType.MAP) {
+          summary.setResourcesPerMap(normalizedResourceEvent.getMemory());
+        } else if (normalizedResourceEvent.getTaskType() == TaskType.REDUCE) {
+          summary.setResourcesPerReduce(normalizedResourceEvent.getMemory());
+        }
+        break;
+      case JOB_INITED:
+        JobInitedEvent jie = (JobInitedEvent) event;
+        summary.setJobLaunchTime(jie.getLaunchTime());
+        break;
+      case MAP_ATTEMPT_STARTED:
+        TaskAttemptStartedEvent mtase = (TaskAttemptStartedEvent) event;
+        if (summary.getFirstMapTaskLaunchTime() == 0)
+          summary.setFirstMapTaskLaunchTime(mtase.getStartTime());
+        break;
+      case REDUCE_ATTEMPT_STARTED:
+        TaskAttemptStartedEvent rtase = (TaskAttemptStartedEvent) event;
+        if (summary.getFirstReduceTaskLaunchTime() == 0)
+          summary.setFirstReduceTaskLaunchTime(rtase.getStartTime());
+        break;
+      case JOB_FINISHED:
+        JobFinishedEvent jfe = (JobFinishedEvent) event;
+        summary.setJobFinishTime(jfe.getFinishTime());
+        summary.setNumFinishedMaps(jfe.getFinishedMaps());
+        summary.setNumFailedMaps(jfe.getFailedMaps());
+        summary.setNumFinishedReduces(jfe.getFinishedReduces());
+        summary.setNumFailedReduces(jfe.getFailedReduces());
+        if (summary.getJobStatus() == null)
+          summary
+              .setJobStatus(org.apache.hadoop.mapreduce.JobStatus.State.SUCCEEDED
+                  .toString());
+        // TODO JOB_FINISHED does not have state. Effectively job history does not
+        // have state about the finished job.
+        setSummarySlotSeconds(summary, jfe.getTotalCounters());
+        break;
+      case JOB_FAILED:
+      case JOB_KILLED:
+        JobUnsuccessfulCompletionEvent juce = (JobUnsuccessfulCompletionEvent) event;
+        summary.setJobStatus(juce.getStatus());
+        summary.setNumFinishedMaps(context.getJob(jobId).getTotalMaps());
+        summary.setNumFinishedReduces(context.getJob(jobId).getTotalReduces());
+        summary.setJobFinishTime(juce.getFinishTime());
+        setSummarySlotSeconds(summary, context.getJob(jobId).getAllCounters());
+        break;
+      default:
+        break;
     }
   }
 
   private void processEventForTimelineServer(HistoryEvent event, JobId jobId,
-          long timestamp) {
+                                             long timestamp) {
     TimelineEvent tEvent = new TimelineEvent();
     tEvent.setEventType(event.getEventType().name().toUpperCase());
     tEvent.setTimestamp(timestamp);
@@ -724,7 +707,7 @@ public class JobHistoryEventHandler extends AbstractService
         tEvent.addEventInfo("WORKFLOW_NAME", jse.getWorkflowName());
         tEvent.addEventInfo("WORKFLOW_NAME_NAME", jse.getWorkflowNodeName());
         tEvent.addEventInfo("WORKFLOW_ADJACENCIES",
-                jse.getWorkflowAdjacencies());
+            jse.getWorkflowAdjacencies());
         tEvent.addEventInfo("WORKFLOW_TAGS", jse.getWorkflowTags());
         tEntity.addEvent(tEvent);
         tEntity.setEntityId(jobId.toString());
@@ -775,7 +758,7 @@ public class JobHistoryEventHandler extends AbstractService
       case JOB_KILLED:
       case JOB_ERROR:
         JobUnsuccessfulCompletionEvent juce =
-              (JobUnsuccessfulCompletionEvent) event;
+            (JobUnsuccessfulCompletionEvent) event;
         tEvent.addEventInfo("FINISH_TIME", juce.getFinishTime());
         tEvent.addEventInfo("NUM_MAPS", juce.getFinishedMaps());
         tEvent.addEventInfo("NUM_REDUCES", juce.getFinishedReduces());
@@ -797,11 +780,11 @@ public class JobHistoryEventHandler extends AbstractService
         tEvent.addEventInfo("FINISHED_MAPS", jfe.getFinishedMaps());
         tEvent.addEventInfo("FINISHED_REDUCES", jfe.getFinishedReduces());
         tEvent.addEventInfo("MAP_COUNTERS_GROUPS",
-                countersToJSON(jfe.getTotalCounters()));
+            countersToJSON(jfe.getTotalCounters()));
         tEvent.addEventInfo("REDUCE_COUNTERS_GROUPS",
-                countersToJSON(jfe.getReduceCounters()));
+            countersToJSON(jfe.getReduceCounters()));
         tEvent.addEventInfo("TOTAL_COUNTERS_GROUPS",
-                countersToJSON(jfe.getTotalCounters()));
+            countersToJSON(jfe.getTotalCounters()));
         tEvent.addEventInfo("JOB_STATUS", JobState.SUCCEEDED.toString());
         tEntity.addEvent(tEvent);
         tEntity.setEntityId(jobId.toString());
@@ -824,10 +807,10 @@ public class JobHistoryEventHandler extends AbstractService
         tEvent.addEventInfo("FINISH_TIME", tfe.getFinishTime());
         tEvent.addEventInfo("ERROR", tfe.getError());
         tEvent.addEventInfo("FAILED_ATTEMPT_ID",
-                tfe.getFailedAttemptID() == null ?
+            tfe.getFailedAttemptID() == null ?
                 "" : tfe.getFailedAttemptID().toString());
         tEvent.addEventInfo("COUNTERS_GROUPS",
-                countersToJSON(tfe.getCounters()));
+            countersToJSON(tfe.getCounters()));
         tEntity.addEvent(tEvent);
         tEntity.setEntityId(tfe.getTaskId().toString());
         tEntity.setEntityType(MAPREDUCE_TASK_ENTITY_TYPE);
@@ -845,12 +828,12 @@ public class JobHistoryEventHandler extends AbstractService
         TaskFinishedEvent tfe2 = (TaskFinishedEvent) event;
         tEvent.addEventInfo("TASK_TYPE", tfe2.getTaskType().toString());
         tEvent.addEventInfo("COUNTERS_GROUPS",
-                countersToJSON(tfe2.getCounters()));
+            countersToJSON(tfe2.getCounters()));
         tEvent.addEventInfo("FINISH_TIME", tfe2.getFinishTime());
         tEvent.addEventInfo("STATUS", TaskStatus.State.SUCCEEDED.toString());
         tEvent.addEventInfo("SUCCESSFUL_TASK_ATTEMPT_ID",
             tfe2.getSuccessfulTaskAttemptId() == null ?
-            "" : tfe2.getSuccessfulTaskAttemptId().toString());
+                "" : tfe2.getSuccessfulTaskAttemptId().toString());
         tEntity.addEvent(tEvent);
         tEntity.setEntityId(tfe2.getTaskId().toString());
         tEntity.setEntityType(MAPREDUCE_TASK_ENTITY_TYPE);
@@ -864,7 +847,7 @@ public class JobHistoryEventHandler extends AbstractService
         tEvent.addEventInfo("TASK_TYPE", tase.getTaskType().toString());
         tEvent.addEventInfo("TASK_ATTEMPT_ID",
             tase.getTaskAttemptId().toString() == null ?
-            "" : tase.getTaskAttemptId().toString());
+                "" : tase.getTaskAttemptId().toString());
         tEvent.addEventInfo("START_TIME", tase.getStartTime());
         tEvent.addEventInfo("HTTP_PORT", tase.getHttpPort());
         tEvent.addEventInfo("TRACKER_NAME", tase.getTrackerName());
@@ -886,11 +869,11 @@ public class JobHistoryEventHandler extends AbstractService
       case REDUCE_ATTEMPT_KILLED:
       case SETUP_ATTEMPT_KILLED:
         TaskAttemptUnsuccessfulCompletionEvent tauce =
-                (TaskAttemptUnsuccessfulCompletionEvent) event;
+            (TaskAttemptUnsuccessfulCompletionEvent) event;
         tEvent.addEventInfo("TASK_TYPE", tauce.getTaskType().toString());
         tEvent.addEventInfo("TASK_ATTEMPT_ID",
             tauce.getTaskAttemptId() == null ?
-            "" : tauce.getTaskAttemptId().toString());
+                "" : tauce.getTaskAttemptId().toString());
         tEvent.addEventInfo("FINISH_TIME", tauce.getFinishTime());
         tEvent.addEventInfo("ERROR", tauce.getError());
         tEvent.addEventInfo("STATUS", tauce.getTaskStatus());
@@ -901,7 +884,7 @@ public class JobHistoryEventHandler extends AbstractService
         tEvent.addEventInfo("SORT_FINISH_TIME", tauce.getFinishTime());
         tEvent.addEventInfo("MAP_FINISH_TIME", tauce.getFinishTime());
         tEvent.addEventInfo("COUNTERS_GROUPS",
-                countersToJSON(tauce.getCounters()));
+            countersToJSON(tauce.getCounters()));
         tEntity.addEvent(tEvent);
         tEntity.setEntityId(tauce.getTaskId().toString());
         tEntity.setEntityType(MAPREDUCE_TASK_ENTITY_TYPE);
@@ -915,7 +898,7 @@ public class JobHistoryEventHandler extends AbstractService
         tEvent.addEventInfo("STATE", mafe.getState());
         tEvent.addEventInfo("MAP_FINISH_TIME", mafe.getMapFinishTime());
         tEvent.addEventInfo("COUNTERS_GROUPS",
-                countersToJSON(mafe.getCounters()));
+            countersToJSON(mafe.getCounters()));
         tEvent.addEventInfo("HOSTNAME", mafe.getHostname());
         tEvent.addEventInfo("PORT", mafe.getPort());
         tEvent.addEventInfo("RACK_NAME", mafe.getRackName());
@@ -937,7 +920,7 @@ public class JobHistoryEventHandler extends AbstractService
         tEvent.addEventInfo("SHUFFLE_FINISH_TIME", rafe.getShuffleFinishTime());
         tEvent.addEventInfo("SORT_FINISH_TIME", rafe.getSortFinishTime());
         tEvent.addEventInfo("COUNTERS_GROUPS",
-                countersToJSON(rafe.getCounters()));
+            countersToJSON(rafe.getCounters()));
         tEvent.addEventInfo("HOSTNAME", rafe.getHostname());
         tEvent.addEventInfo("PORT", rafe.getPort());
         tEvent.addEventInfo("RACK_NAME", rafe.getRackName());
@@ -956,7 +939,7 @@ public class JobHistoryEventHandler extends AbstractService
         tEvent.addEventInfo("STATUS", tafe.getTaskStatus());
         tEvent.addEventInfo("STATE", tafe.getState());
         tEvent.addEventInfo("COUNTERS_GROUPS",
-                countersToJSON(tafe.getCounters()));
+            countersToJSON(tafe.getCounters()));
         tEvent.addEventInfo("HOSTNAME", tafe.getHostname());
         tEntity.addEvent(tEvent);
         tEntity.setEntityId(tafe.getTaskId().toString());
@@ -966,14 +949,14 @@ public class JobHistoryEventHandler extends AbstractService
       case AM_STARTED:
         AMStartedEvent ase = (AMStartedEvent) event;
         tEvent.addEventInfo("APPLICATION_ATTEMPT_ID",
-                ase.getAppAttemptId() == null ?
+            ase.getAppAttemptId() == null ?
                 "" : ase.getAppAttemptId().toString());
         tEvent.addEventInfo("CONTAINER_ID", ase.getContainerId() == null ?
-                "" : ase.getContainerId().toString());
+            "" : ase.getContainerId().toString());
         tEvent.addEventInfo("NODE_MANAGER_HOST", ase.getNodeManagerHost());
         tEvent.addEventInfo("NODE_MANAGER_PORT", ase.getNodeManagerPort());
         tEvent.addEventInfo("NODE_MANAGER_HTTP_PORT",
-                ase.getNodeManagerHttpPort());
+            ase.getNodeManagerHttpPort());
         tEvent.addEventInfo("START_TIME", ase.getStartTime());
         tEntity.addEvent(tEvent);
         tEntity.setEntityId(jobId.toString());
@@ -987,10 +970,10 @@ public class JobHistoryEventHandler extends AbstractService
       timelineClient.putEntities(tEntity);
     } catch (IOException ex) {
       LOG.error("Error putting entity " + tEntity.getEntityId() + " to Timeline"
-      + "Server", ex);
+          + "Server", ex);
     } catch (YarnException ex) {
       LOG.error("Error putting entity " + tEntity.getEntityId() + " to Timeline"
-      + "Server", ex);
+          + "Server", ex);
     }
   }
 
@@ -1018,13 +1001,13 @@ public class JobHistoryEventHandler extends AbstractService
   private void setSummarySlotSeconds(JobSummary summary, Counters allCounters) {
 
     Counter slotMillisMapCounter = allCounters
-      .findCounter(JobCounter.SLOTS_MILLIS_MAPS);
+        .findCounter(JobCounter.SLOTS_MILLIS_MAPS);
     if (slotMillisMapCounter != null) {
       summary.setMapSlotSeconds(slotMillisMapCounter.getValue() / 1000);
     }
 
     Counter slotMillisReduceCounter = allCounters
-      .findCounter(JobCounter.SLOTS_MILLIS_REDUCES);
+        .findCounter(JobCounter.SLOTS_MILLIS_REDUCES);
     if (slotMillisReduceCounter != null) {
       summary.setReduceSlotSeconds(slotMillisReduceCounter.getValue() / 1000);
     }
@@ -1039,7 +1022,7 @@ public class JobHistoryEventHandler extends AbstractService
     if (!mi.isWriterActive()) {
       throw new IOException(
           "Inactive Writer: Likely received multiple JobFinished / " +
-          "JobUnsuccessful events for JobId: ["
+              "JobUnsuccessful events for JobId: ["
               + jobId + "]");
     }
 
@@ -1065,7 +1048,7 @@ public class JobHistoryEventHandler extends AbstractService
     if (mi.getConfFile() == null) {
       LOG.warn("No file for jobconf with " + jobId + " found in cache!");
     }
-      
+
     // Writing out the summary file.
     // TODO JH enhancement - reuse this file to store additional indexing info
     // like ACLs, etc. JHServer can use HDFS append to build an index file
@@ -1117,7 +1100,7 @@ public class JobHistoryEventHandler extends AbstractService
                 doneConfFileName));
         moveToDoneNow(qualifiedConfFile, qualifiedConfDoneFile);
       }
-      
+
       moveTmpToDone(qualifiedSummaryDoneFile);
       moveTmpToDone(qualifiedConfDoneFile);
       moveTmpToDone(qualifiedDoneFile);
@@ -1166,20 +1149,20 @@ public class JobHistoryEventHandler extends AbstractService
     private EventWriter writer;
     JobIndexInfo jobIndexInfo;
     JobSummary jobSummary;
-    Timer flushTimer; 
+    Timer flushTimer;
     FlushTimerTask flushTimerTask;
     private boolean isTimerShutDown = false;
     private String forcedJobStateOnShutDown;
 
     MetaInfo(Path historyFile, Path conf, EventWriter writer, String user,
-        String jobName, JobId jobId, String forcedJobStateOnShutDown,
-        String queueName) {
+             String jobName, JobId jobId, String forcedJobStateOnShutDown,
+             String queueName) {
       this.historyFile = historyFile;
       this.confFile = conf;
       this.writer = writer;
       this.jobIndexInfo =
           new JobIndexInfo(-1, -1, user, jobName, jobId, -1, -1, null,
-                           queueName);
+              queueName);
       this.jobSummary = new JobSummary();
       this.flushTimer = new Timer("FlushTimer", true);
       this.forcedJobStateOnShutDown = forcedJobStateOnShutDown;
@@ -1204,7 +1187,7 @@ public class JobHistoryEventHandler extends AbstractService
     boolean isWriterActive() {
       return writer != null;
     }
-    
+
     boolean isTimerShutDown() {
       return isTimerShutDown;
     }
@@ -1215,8 +1198,8 @@ public class JobHistoryEventHandler extends AbstractService
 
     @Override
     public String toString() {
-      return "Job MetaInfo for "+ jobSummary.getJobId()
-             + " history file " + historyFile;
+      return "Job MetaInfo for " + jobSummary.getJobId()
+          + " history file " + historyFile;
     }
 
     void closeWriter() throws IOException {
@@ -1271,9 +1254,9 @@ public class JobHistoryEventHandler extends AbstractService
     }
 
     void maybeFlush(HistoryEvent historyEvent) throws IOException {
-      if ((eventQueue.size() < minQueueSizeForBatchingFlushes 
+      if ((eventQueue.size() < minQueueSizeForBatchingFlushes
           && numUnflushedCompletionEvents > 0)
-          || numUnflushedCompletionEvents >= maxUnflushedCompletionEvents 
+          || numUnflushedCompletionEvents >= maxUnflushedCompletionEvents
           || isJobCompletionEvent(historyEvent)) {
         this.flush();
       }
@@ -1294,7 +1277,7 @@ public class JobHistoryEventHandler extends AbstractService
 
     void shutDownTimer() throws IOException {
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Shutting down timer "+ toString());
+        LOG.debug("Shutting down timer " + toString());
       }
       synchronized (lock) {
         isTimerShutDown = true;
@@ -1315,7 +1298,7 @@ public class JobHistoryEventHandler extends AbstractService
       LOG.info("Moved tmp to done: " + tmpPath + " to " + path);
     }
   }
-  
+
   // TODO If the FS objects are the same, this should be a rename instead of a
   // copy.
   private void moveToDoneNow(Path fromPath, Path toPath) throws IOException {
@@ -1331,7 +1314,7 @@ public class JobHistoryEventHandler extends AbstractService
 
       if (copied)
         LOG.info("Copied to done location: " + toPath);
-      else 
+      else
         LOG.info("copy failed");
       doneDirFS.setPermission(toPath, new FsPermission(
           JobHistoryUtils.HISTORY_INTERMEDIATE_FILE_PERMISSIONS));
@@ -1345,16 +1328,16 @@ public class JobHistoryEventHandler extends AbstractService
   private String getTempFileName(String srcFile) {
     return srcFile + "_tmp";
   }
-  
+
   private String getFileNameFromTmpFN(String tmpFileName) {
     //TODO. Some error checking here.
-    return tmpFileName.substring(0, tmpFileName.length()-4);
+    return tmpFileName.substring(0, tmpFileName.length() - 4);
   }
 
   public void setForcejobCompletion(boolean forceJobCompletion) {
     this.forceJobCompletion = forceJobCompletion;
     LOG.info("JobHistoryEventHandler notified that forceJobCompletion is "
-      + forceJobCompletion);
+        + forceJobCompletion);
   }
 
   private String createJobStateForJobUnsuccessfulCompletionEvent(

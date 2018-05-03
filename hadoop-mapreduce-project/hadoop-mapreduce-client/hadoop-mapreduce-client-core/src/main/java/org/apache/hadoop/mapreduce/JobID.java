@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,14 +18,14 @@
 
 package org.apache.hadoop.mapreduce;
 
+import org.apache.hadoop.classification.InterfaceAudience;
+import org.apache.hadoop.classification.InterfaceStability;
+import org.apache.hadoop.io.Text;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.text.NumberFormat;
-
-import org.apache.hadoop.classification.InterfaceAudience;
-import org.apache.hadoop.classification.InterfaceStability;
-import org.apache.hadoop.io.Text;
 
 /**
  * JobID represents the immutable and unique identifier for 
@@ -40,28 +40,29 @@ import org.apache.hadoop.io.Text;
  * <p>
  * Applications should never construct or parse JobID strings, but rather 
  * use appropriate constructors or {@link #forName(String)} method. 
- * 
+ *
  * @see TaskID
  * @see TaskAttemptID
  */
 @InterfaceAudience.Public
 @InterfaceStability.Stable
-public class JobID extends org.apache.hadoop.mapred.ID 
-                   implements Comparable<ID> {
+public class JobID extends org.apache.hadoop.mapred.ID
+    implements Comparable<ID> {
   public static final String JOB = "job";
-  
+
   // Jobid regex for various tools and framework components
-  public static final String JOBID_REGEX = 
-    JOB + SEPARATOR + "[0-9]+" + SEPARATOR + "[0-9]+";
-  
+  public static final String JOBID_REGEX =
+      JOB + SEPARATOR + "[0-9]+" + SEPARATOR + "[0-9]+";
+
   private final Text jtIdentifier;
-  
+
   protected static final NumberFormat idFormat = NumberFormat.getInstance();
+
   static {
     idFormat.setGroupingUsed(false);
     idFormat.setMinimumIntegerDigits(4);
   }
-  
+
   /**
    * Constructs a JobID object 
    * @param jtIdentifier jobTracker identifier
@@ -71,35 +72,34 @@ public class JobID extends org.apache.hadoop.mapred.ID
     super(id);
     this.jtIdentifier = new Text(jtIdentifier);
   }
-  
-  public JobID() { 
+
+  public JobID() {
     jtIdentifier = new Text();
   }
-  
+
   public String getJtIdentifier() {
     return jtIdentifier.toString();
   }
-  
+
   @Override
   public boolean equals(Object o) {
     if (!super.equals(o))
       return false;
 
-    JobID that = (JobID)o;
+    JobID that = (JobID) o;
     return this.jtIdentifier.equals(that.jtIdentifier);
   }
-  
+
   /**Compare JobIds by first jtIdentifiers, then by job numbers*/
   @Override
   public int compareTo(ID o) {
-    JobID that = (JobID)o;
+    JobID that = (JobID) o;
     int jtComp = this.jtIdentifier.compareTo(that.jtIdentifier);
-    if(jtComp == 0) {
+    if (jtComp == 0) {
       return this.id - that.id;
-    }
-    else return jtComp;
+    } else return jtComp;
   }
-  
+
   /**
    * Add the stuff after the "job" prefix to the given builder. This is useful,
    * because the sub-ids use this substring at the start of their string.
@@ -135,26 +135,26 @@ public class JobID extends org.apache.hadoop.mapred.ID
     super.write(out);
     jtIdentifier.write(out);
   }
-  
+
   /** Construct a JobId object from given string 
    * @return constructed JobId object or null if the given String is null
    * @throws IllegalArgumentException if the given string is malformed
    */
   public static JobID forName(String str) throws IllegalArgumentException {
-    if(str == null)
+    if (str == null)
       return null;
     try {
       String[] parts = str.split("_");
-      if(parts.length == 3) {
-        if(parts[0].equals(JOB)) {
-          return new org.apache.hadoop.mapred.JobID(parts[1], 
-                                                    Integer.parseInt(parts[2]));
+      if (parts.length == 3) {
+        if (parts[0].equals(JOB)) {
+          return new org.apache.hadoop.mapred.JobID(parts[1],
+              Integer.parseInt(parts[2]));
         }
       }
-    }catch (Exception ex) {//fall below
+    } catch (Exception ex) {//fall below
     }
-    throw new IllegalArgumentException("JobId string : " + str 
+    throw new IllegalArgumentException("JobId string : " + str
         + " is not properly formed");
   }
-  
+
 }

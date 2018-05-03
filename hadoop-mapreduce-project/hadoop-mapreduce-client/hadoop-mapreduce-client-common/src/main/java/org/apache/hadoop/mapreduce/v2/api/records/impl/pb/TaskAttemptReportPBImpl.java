@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,17 +19,8 @@
 package org.apache.hadoop.mapreduce.v2.api.records.impl.pb;
 
 
-import org.apache.hadoop.mapreduce.v2.api.records.Counters;
-import org.apache.hadoop.mapreduce.v2.api.records.Phase;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptReport;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptState;
-import org.apache.hadoop.mapreduce.v2.proto.MRProtos.CountersProto;
-import org.apache.hadoop.mapreduce.v2.proto.MRProtos.PhaseProto;
-import org.apache.hadoop.mapreduce.v2.proto.MRProtos.TaskAttemptIdProto;
-import org.apache.hadoop.mapreduce.v2.proto.MRProtos.TaskAttemptReportProto;
-import org.apache.hadoop.mapreduce.v2.proto.MRProtos.TaskAttemptReportProtoOrBuilder;
-import org.apache.hadoop.mapreduce.v2.proto.MRProtos.TaskAttemptStateProto;
+import org.apache.hadoop.mapreduce.v2.api.records.*;
+import org.apache.hadoop.mapreduce.v2.proto.MRProtos.*;
 import org.apache.hadoop.mapreduce.v2.util.MRProtoUtils;
 import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.api.records.impl.pb.ContainerIdPBImpl;
@@ -37,17 +28,16 @@ import org.apache.hadoop.yarn.api.records.impl.pb.ProtoBase;
 import org.apache.hadoop.yarn.proto.YarnProtos.ContainerIdProto;
 
 
-    
 public class TaskAttemptReportPBImpl extends ProtoBase<TaskAttemptReportProto> implements TaskAttemptReport {
   TaskAttemptReportProto proto = TaskAttemptReportProto.getDefaultInstance();
   TaskAttemptReportProto.Builder builder = null;
   boolean viaProto = false;
-  
+
   private TaskAttemptId taskAttemptId = null;
   private Counters counters = null;
   private ContainerId containerId = null;
-  
-  
+
+
   public TaskAttemptReportPBImpl() {
     builder = TaskAttemptReportProto.newBuilder();
   }
@@ -56,9 +46,9 @@ public class TaskAttemptReportPBImpl extends ProtoBase<TaskAttemptReportProto> i
     this.proto = proto;
     viaProto = true;
   }
-  
+
   public TaskAttemptReportProto getProto() {
-      mergeLocalToProto();
+    mergeLocalToProto();
     proto = viaProto ? proto : builder.build();
     viaProto = true;
     return proto;
@@ -77,7 +67,7 @@ public class TaskAttemptReportPBImpl extends ProtoBase<TaskAttemptReportProto> i
   }
 
   private void mergeLocalToProto() {
-    if (viaProto) 
+    if (viaProto)
       maybeInitBuilder();
     mergeLocalToBuilder();
     proto = builder.build();
@@ -90,8 +80,8 @@ public class TaskAttemptReportPBImpl extends ProtoBase<TaskAttemptReportProto> i
     }
     viaProto = false;
   }
-    
-  
+
+
   @Override
   public Counters getCounters() {
     TaskAttemptReportProtoOrBuilder p = viaProto ? proto : builder;
@@ -108,10 +98,11 @@ public class TaskAttemptReportPBImpl extends ProtoBase<TaskAttemptReportProto> i
   @Override
   public void setCounters(Counters counters) {
     maybeInitBuilder();
-    if (counters == null) 
+    if (counters == null)
       builder.clearCounters();
     this.counters = counters;
   }
+
   @Override
   public long getStartTime() {
     TaskAttemptReportProtoOrBuilder p = viaProto ? proto : builder;
@@ -123,6 +114,7 @@ public class TaskAttemptReportPBImpl extends ProtoBase<TaskAttemptReportProto> i
     maybeInitBuilder();
     builder.setStartTime((startTime));
   }
+
   @Override
   public long getFinishTime() {
     TaskAttemptReportProtoOrBuilder p = viaProto ? proto : builder;
@@ -134,7 +126,7 @@ public class TaskAttemptReportPBImpl extends ProtoBase<TaskAttemptReportProto> i
     maybeInitBuilder();
     builder.setFinishTime((finishTime));
   }
-  
+
   @Override
   public long getShuffleFinishTime() {
     TaskAttemptReportProtoOrBuilder p = viaProto ? proto : builder;
@@ -175,10 +167,11 @@ public class TaskAttemptReportPBImpl extends ProtoBase<TaskAttemptReportProto> i
   @Override
   public void setTaskAttemptId(TaskAttemptId taskAttemptId) {
     maybeInitBuilder();
-    if (taskAttemptId == null) 
+    if (taskAttemptId == null)
       builder.clearTaskAttemptId();
     this.taskAttemptId = taskAttemptId;
   }
+
   @Override
   public TaskAttemptState getTaskAttemptState() {
     TaskAttemptReportProtoOrBuilder p = viaProto ? proto : builder;
@@ -197,6 +190,7 @@ public class TaskAttemptReportPBImpl extends ProtoBase<TaskAttemptReportProto> i
     }
     builder.setTaskAttemptState(convertToProtoFormat(taskAttemptState));
   }
+
   @Override
   public float getProgress() {
     TaskAttemptReportProtoOrBuilder p = viaProto ? proto : builder;
@@ -208,6 +202,7 @@ public class TaskAttemptReportPBImpl extends ProtoBase<TaskAttemptReportProto> i
     maybeInitBuilder();
     builder.setProgress((progress));
   }
+
   @Override
   public String getDiagnosticInfo() {
     TaskAttemptReportProtoOrBuilder p = viaProto ? proto : builder;
@@ -226,6 +221,7 @@ public class TaskAttemptReportPBImpl extends ProtoBase<TaskAttemptReportProto> i
     }
     builder.setDiagnosticInfo((diagnosticInfo));
   }
+
   @Override
   public String getStateString() {
     TaskAttemptReportProtoOrBuilder p = viaProto ? proto : builder;
@@ -244,6 +240,7 @@ public class TaskAttemptReportPBImpl extends ProtoBase<TaskAttemptReportProto> i
     }
     builder.setStateString((stateString));
   }
+
   @Override
   public Phase getPhase() {
     TaskAttemptReportProtoOrBuilder p = viaProto ? proto : builder;
@@ -262,7 +259,7 @@ public class TaskAttemptReportPBImpl extends ProtoBase<TaskAttemptReportProto> i
     }
     builder.setPhase(convertToProtoFormat(phase));
   }
-  
+
   @Override
   public String getNodeManagerHost() {
     TaskAttemptReportProtoOrBuilder p = viaProto ? proto : builder;
@@ -271,7 +268,7 @@ public class TaskAttemptReportPBImpl extends ProtoBase<TaskAttemptReportProto> i
     }
     return p.getNodeManagerHost();
   }
-  
+
   @Override
   public void setNodeManagerHost(String nmHost) {
     maybeInitBuilder();
@@ -281,31 +278,31 @@ public class TaskAttemptReportPBImpl extends ProtoBase<TaskAttemptReportProto> i
     }
     builder.setNodeManagerHost(nmHost);
   }
-  
+
   @Override
   public int getNodeManagerPort() {
     TaskAttemptReportProtoOrBuilder p = viaProto ? proto : builder;
     return (p.getNodeManagerPort());
   }
-  
+
   @Override
   public void setNodeManagerPort(int nmPort) {
     maybeInitBuilder();
     builder.setNodeManagerPort(nmPort);
   }
-  
+
   @Override
   public int getNodeManagerHttpPort() {
     TaskAttemptReportProtoOrBuilder p = viaProto ? proto : builder;
     return (p.getNodeManagerHttpPort());
   }
-  
+
   @Override
   public void setNodeManagerHttpPort(int nmHttpPort) {
     maybeInitBuilder();
     builder.setNodeManagerHttpPort(nmHttpPort);
   }
-  
+
   @Override
   public ContainerId getContainerId() {
     TaskAttemptReportProtoOrBuilder p = viaProto ? proto : builder;
@@ -329,19 +326,19 @@ public class TaskAttemptReportPBImpl extends ProtoBase<TaskAttemptReportProto> i
   }
 
   private ContainerIdProto convertToProtoFormat(ContainerId t) {
-    return ((ContainerIdPBImpl)t).getProto();
+    return ((ContainerIdPBImpl) t).getProto();
   }
-  
+
   private ContainerIdPBImpl convertFromProtoFormat(ContainerIdProto p) {
     return new ContainerIdPBImpl(p);
   }
-  
+
   private CountersPBImpl convertFromProtoFormat(CountersProto p) {
     return new CountersPBImpl(p);
   }
 
   private CountersProto convertToProtoFormat(Counters t) {
-    return ((CountersPBImpl)t).getProto();
+    return ((CountersPBImpl) t).getProto();
   }
 
   private TaskAttemptIdPBImpl convertFromProtoFormat(TaskAttemptIdProto p) {
@@ -349,7 +346,7 @@ public class TaskAttemptReportPBImpl extends ProtoBase<TaskAttemptReportProto> i
   }
 
   private TaskAttemptIdProto convertToProtoFormat(TaskAttemptId t) {
-    return ((TaskAttemptIdPBImpl)t).getProto();
+    return ((TaskAttemptIdPBImpl) t).getProto();
   }
 
   private TaskAttemptStateProto convertToProtoFormat(TaskAttemptState e) {

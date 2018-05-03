@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,18 +18,18 @@
 
 package org.apache.hadoop.mapred;
 
-import java.io.DataInput;
-import java.io.IOException;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.mapreduce.TaskType;
+
+import java.io.DataInput;
+import java.io.IOException;
 
 /**
  * TaskAttemptID represents the immutable and unique identifier for 
  * a task attempt. Each task attempt is one particular instance of a Map or
  * Reduce Task identified by its TaskID. 
- * 
+ *
  * TaskAttemptID consists of 2 parts. First part is the 
  * {@link TaskID}, that this TaskAttemptID belongs to.
  * Second part is the task attempt number. <br> 
@@ -39,16 +39,16 @@ import org.apache.hadoop.mapreduce.TaskType;
  * running at the jobtracker started at <code>200707121733</code>.
  * <p>
  * Applications should never construct or parse TaskAttemptID strings
- * , but rather use appropriate constructors or {@link #forName(String)} 
+ * , but rather use appropriate constructors or {@link #forName(String)}
  * method. 
- * 
+ *
  * @see JobID
  * @see TaskID
  */
 @InterfaceAudience.Public
 @InterfaceStability.Stable
 public class TaskAttemptID extends org.apache.hadoop.mapreduce.TaskAttemptID {
-  
+
   /**
    * Constructs a TaskAttemptID object from given {@link TaskID}.  
    * @param taskId TaskID that this task belongs to  
@@ -57,7 +57,7 @@ public class TaskAttemptID extends org.apache.hadoop.mapreduce.TaskAttemptID {
   public TaskAttemptID(TaskID taskId, int id) {
     super(taskId, id);
   }
-  
+
   /**
    * Constructs a TaskId object from given parts.
    * @param jtIdentifier jobTracker identifier
@@ -68,12 +68,12 @@ public class TaskAttemptID extends org.apache.hadoop.mapreduce.TaskAttemptID {
    * @deprecated Use {@link #TaskAttemptID(String, int, TaskType, int, int)}.
    */
   @Deprecated
-  public TaskAttemptID(String jtIdentifier, int jobId, boolean isMap, 
-      int taskId, int id) {
+  public TaskAttemptID(String jtIdentifier, int jobId, boolean isMap,
+                       int taskId, int id) {
     this(jtIdentifier, jobId, isMap ? TaskType.MAP : TaskType.REDUCE, taskId,
-	id);
+        id);
   }
-  
+
   /**
    * Constructs a TaskId object from given parts.
    * @param jtIdentifier jobTracker identifier
@@ -82,12 +82,12 @@ public class TaskAttemptID extends org.apache.hadoop.mapreduce.TaskAttemptID {
    * @param taskId taskId number
    * @param id the task attempt number
    */
-  public TaskAttemptID(String jtIdentifier, int jobId, TaskType type, 
+  public TaskAttemptID(String jtIdentifier, int jobId, TaskType type,
                        int taskId, int id) {
     this(new TaskID(jtIdentifier, jobId, type, taskId), id);
   }
-  
-  public TaskAttemptID() { 
+
+  public TaskAttemptID() {
     super(new TaskID(), 0);
   }
 
@@ -96,8 +96,7 @@ public class TaskAttemptID extends org.apache.hadoop.mapreduce.TaskAttemptID {
    * @param old the new id
    * @return either old or a new TaskAttemptID constructed to match old
    */
-  public static 
-  TaskAttemptID downgrade(org.apache.hadoop.mapreduce.TaskAttemptID old) {
+  public static TaskAttemptID downgrade(org.apache.hadoop.mapreduce.TaskAttemptID old) {
     if (old instanceof TaskAttemptID) {
       return (TaskAttemptID) old;
     } else {
@@ -119,18 +118,18 @@ public class TaskAttemptID extends org.apache.hadoop.mapreduce.TaskAttemptID {
     taskId.readFields(in);
     return taskId;
   }
-  
+
   /** Construct a TaskAttemptID object from given string 
    * @return constructed TaskAttemptID object or null if the given String is null
    * @throws IllegalArgumentException if the given string is malformed
    */
   public static TaskAttemptID forName(String str
-                                      ) throws IllegalArgumentException {
-    return (TaskAttemptID) 
-             org.apache.hadoop.mapreduce.TaskAttemptID.forName(str);
+  ) throws IllegalArgumentException {
+    return (TaskAttemptID)
+        org.apache.hadoop.mapreduce.TaskAttemptID.forName(str);
   }
-  
-  /** 
+
+  /**
    * Returns a regex pattern which matches task attempt IDs. Arguments can 
    * be given null, in which case that part of the regex will be generic.  
    * For example to obtain a regex matching <i>all task attempt IDs</i> 
@@ -150,12 +149,12 @@ public class TaskAttemptID extends org.apache.hadoop.mapreduce.TaskAttemptID {
    */
   @Deprecated
   public static String getTaskAttemptIDsPattern(String jtIdentifier,
-      Integer jobId, Boolean isMap, Integer taskId, Integer attemptId) {
+                                                Integer jobId, Boolean isMap, Integer taskId, Integer attemptId) {
     return getTaskAttemptIDsPattern(jtIdentifier, jobId,
-	isMap ? TaskType.MAP : TaskType.REDUCE, taskId, attemptId);
+        isMap ? TaskType.MAP : TaskType.REDUCE, taskId, attemptId);
   }
-  
-  /** 
+
+  /**
    * Returns a regex pattern which matches task attempt IDs. Arguments can 
    * be given null, in which case that part of the regex will be generic.  
    * For example to obtain a regex matching <i>all task attempt IDs</i> 
@@ -175,13 +174,13 @@ public class TaskAttemptID extends org.apache.hadoop.mapreduce.TaskAttemptID {
    */
   @Deprecated
   public static String getTaskAttemptIDsPattern(String jtIdentifier,
-      Integer jobId, TaskType type, Integer taskId, Integer attemptId) {
+                                                Integer jobId, TaskType type, Integer taskId, Integer attemptId) {
     StringBuilder builder = new StringBuilder(ATTEMPT).append(SEPARATOR);
     builder.append(getTaskAttemptIDsPatternWOPrefix(jtIdentifier, jobId,
         type, taskId, attemptId));
     return builder.toString();
   }
-  
+
   @Deprecated
   static StringBuilder getTaskAttemptIDsPatternWOPrefix(String jtIdentifier
       , Integer jobId, TaskType type, Integer taskId, Integer attemptId) {

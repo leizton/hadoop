@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,19 +18,13 @@
 
 package org.apache.hadoop.mapreduce.v2.util;
 
-import java.util.List;
-
-import org.apache.hadoop.mapreduce.v2.api.records.AMInfo;
-import org.apache.hadoop.mapreduce.v2.api.records.JobId;
-import org.apache.hadoop.mapreduce.v2.api.records.JobReport;
-import org.apache.hadoop.mapreduce.v2.api.records.JobState;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskType;
+import org.apache.hadoop.mapreduce.v2.api.records.*;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.util.Records;
+
+import java.util.List;
 
 public class MRBuilderUtils {
 
@@ -63,10 +57,10 @@ public class MRBuilderUtils {
   }
 
   public static JobReport newJobReport(JobId jobId, String jobName,
-      String userName, JobState state, long submitTime, long startTime, long finishTime,
-      float setupProgress, float mapProgress, float reduceProgress,
-      float cleanupProgress, String jobFile, List<AMInfo> amInfos,
-      boolean isUber, String diagnostics) {
+                                       String userName, JobState state, long submitTime, long startTime, long finishTime,
+                                       float setupProgress, float mapProgress, float reduceProgress,
+                                       float cleanupProgress, String jobFile, List<AMInfo> amInfos,
+                                       boolean isUber, String diagnostics) {
     JobReport report = Records.newRecord(JobReport.class);
     report.setJobId(jobId);
     report.setJobName(jobName);
@@ -87,8 +81,8 @@ public class MRBuilderUtils {
   }
 
   public static AMInfo newAMInfo(ApplicationAttemptId appAttemptId,
-      long startTime, ContainerId containerId, String nmHost, int nmPort,
-      int nmHttpPort) {
+                                 long startTime, ContainerId containerId, String nmHost, int nmPort,
+                                 int nmHttpPort) {
     AMInfo amInfo = Records.newRecord(AMInfo.class);
     amInfo.setAppAttemptId(appAttemptId);
     amInfo.setStartTime(startTime);

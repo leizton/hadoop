@@ -1,31 +1,25 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2.app.webapp;
 
-import static org.apache.hadoop.yarn.util.StringHelper.join;
-
-import java.io.IOException;
-import java.net.URLDecoder;
-import java.util.Locale;
-
-import javax.servlet.http.HttpServletResponse;
-
+import com.google.common.base.Joiner;
+import com.google.inject.Inject;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -44,8 +38,12 @@ import org.apache.hadoop.yarn.webapp.Controller;
 import org.apache.hadoop.yarn.webapp.View;
 import org.apache.hadoop.yarn.webapp.util.WebAppUtils;
 
-import com.google.common.base.Joiner;
-import com.google.inject.Inject;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.net.URLDecoder;
+import java.util.Locale;
+
+import static org.apache.hadoop.yarn.util.StringHelper.join;
 
 /**
  * This class renders the various pages that the web app supports.
@@ -53,11 +51,11 @@ import com.google.inject.Inject;
 public class AppController extends Controller implements AMParams {
   private static final Log LOG = LogFactory.getLog(AppController.class);
   private static final Joiner JOINER = Joiner.on("");
-  
+
   protected final App app;
-  
+
   protected AppController(App app, Configuration conf, RequestContext ctx,
-      String title) {
+                          String title) {
     super(ctx);
     this.app = app;
     set(APP_ID, app.context.getApplicationID().toString());
@@ -75,7 +73,8 @@ public class AppController extends Controller implements AMParams {
   /**
    * Render the default(index.html) page for the Application Controller
    */
-  @Override public void index() {
+  @Override
+  public void index() {
     setTitle(join("MapReduce Application ", $(APP_ID)));
   }
 
@@ -85,12 +84,12 @@ public class AppController extends Controller implements AMParams {
   public void info() {
     AppInfo info = new AppInfo(app, app.context);
     info("Application Master Overview").
-      _("Application ID:", info.getId()).
-      _("Application Name:", info.getName()).
-      _("User:", info.getUser()).
-      _("Started on:", Times.format(info.getStartTime())).
-      _("Elasped: ", org.apache.hadoop.util.StringUtils.formatTime(
-          info.getElapsedTime() ));
+        _("Application ID:", info.getId()).
+        _("Application Name:", info.getName()).
+        _("User:", info.getUser()).
+        _("Started on:", Times.format(info.getStartTime())).
+        _("Elasped: ", org.apache.hadoop.util.StringUtils.formatTime(
+            info.getElapsedTime()));
     render(InfoPage.class);
   }
 
@@ -100,15 +99,14 @@ public class AppController extends Controller implements AMParams {
   protected Class<? extends View> jobPage() {
     return JobPage.class;
   }
-  
+
   /**
    * Render the /job page
    */
   public void job() {
     try {
       requireJob();
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       renderText(e.getMessage());
       return;
     }
@@ -121,15 +119,14 @@ public class AppController extends Controller implements AMParams {
   protected Class<? extends View> countersPage() {
     return CountersPage.class;
   }
-  
+
   /**
    * Render the /jobcounters page
    */
   public void jobCounters() {
     try {
       requireJob();
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       renderText(e.getMessage());
       return;
     }
@@ -138,15 +135,14 @@ public class AppController extends Controller implements AMParams {
     }
     render(countersPage());
   }
-  
+
   /**
    * Display a page showing a task's counters
    */
   public void taskCounters() {
     try {
       requireTask();
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       renderText(e.getMessage());
       return;
     }
@@ -155,51 +151,49 @@ public class AppController extends Controller implements AMParams {
     }
     render(countersPage());
   }
-  
+
   /**
    * @return the class that will render the /singlejobcounter page
    */
   protected Class<? extends View> singleCounterPage() {
     return SingleCounterPage.class;
   }
-  
+
   /**
    * Render the /singlejobcounter page
    * @throws IOException on any error.
    */
-  public void singleJobCounter() throws IOException{
+  public void singleJobCounter() throws IOException {
     try {
       requireJob();
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       renderText(e.getMessage());
       return;
     }
     set(COUNTER_GROUP, URLDecoder.decode($(COUNTER_GROUP), "UTF-8"));
     set(COUNTER_NAME, URLDecoder.decode($(COUNTER_NAME), "UTF-8"));
     if (app.getJob() != null) {
-      setTitle(StringHelper.join($(COUNTER_GROUP)," ",$(COUNTER_NAME),
+      setTitle(StringHelper.join($(COUNTER_GROUP), " ", $(COUNTER_NAME),
           " for ", $(JOB_ID)));
     }
     render(singleCounterPage());
   }
-  
+
   /**
    * Render the /singletaskcounter page
    * @throws IOException on any error.
    */
-  public void singleTaskCounter() throws IOException{
+  public void singleTaskCounter() throws IOException {
     try {
       requireTask();
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       renderText(e.getMessage());
       return;
     }
     set(COUNTER_GROUP, URLDecoder.decode($(COUNTER_GROUP), "UTF-8"));
     set(COUNTER_NAME, URLDecoder.decode($(COUNTER_NAME), "UTF-8"));
     if (app.getTask() != null) {
-      setTitle(StringHelper.join($(COUNTER_GROUP)," ",$(COUNTER_NAME),
+      setTitle(StringHelper.join($(COUNTER_GROUP), " ", $(COUNTER_NAME),
           " for ", $(TASK_ID)));
     }
     render(singleCounterPage());
@@ -211,15 +205,14 @@ public class AppController extends Controller implements AMParams {
   protected Class<? extends View> tasksPage() {
     return TasksPage.class;
   }
-  
+
   /**
    * Render the /tasks page
    */
   public void tasks() {
     try {
       requireJob();
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       renderText(e.getMessage());
       return;
     }
@@ -237,22 +230,21 @@ public class AppController extends Controller implements AMParams {
     }
     render(tasksPage());
   }
-  
+
   /**
    * @return the class that will render the /task page
    */
   protected Class<? extends View> taskPage() {
     return TaskPage.class;
   }
-  
+
   /**
    * Render the /task page
    */
   public void task() {
     try {
       requireTask();
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       renderText(e.getMessage());
       return;
     }
@@ -268,15 +260,14 @@ public class AppController extends Controller implements AMParams {
   protected Class<? extends View> attemptsPage() {
     return AttemptsPage.class;
   }
-  
+
   /**
    * Render the attempts page
    */
   public void attempts() {
     try {
       requireJob();
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       renderText(e.getMessage());
       return;
     }
@@ -316,8 +307,7 @@ public class AppController extends Controller implements AMParams {
     requireJob();
     try {
       requireJob();
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       renderText(e.getMessage());
       return;
     }
@@ -342,7 +332,7 @@ public class AppController extends Controller implements AMParams {
     setStatus(HttpServletResponse.SC_NOT_FOUND);
     setTitle(join("Not found: ", s));
   }
-  
+
   /**
    * Render a ACCESS_DENIED error.
    * @param s the error message to include.

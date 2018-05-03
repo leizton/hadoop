@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,30 +18,24 @@
 
 package org.apache.hadoop.mapreduce;
 
-import junit.framework.TestCase;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configurable;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.*;
+import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
+import org.apache.hadoop.util.ReflectionUtils;
+import org.junit.Test;
 
-import java.io.IOException;
 import java.io.DataInput;
 import java.io.DataOutput;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
 import static org.junit.Assert.*;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import org.apache.hadoop.conf.Configurable;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.*;
-import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
-import org.apache.hadoop.mapreduce.MRConfig;
-import org.apache.hadoop.util.ReflectionUtils;
 
 public class TestMapCollection {
 
@@ -54,6 +48,7 @@ public class TestMapCollection {
     private byte[] b;
     private final Random r;
     protected final byte fillChar;
+
     public FillWritable(byte fillChar) {
       this.fillChar = fillChar;
       r = new Random();
@@ -61,26 +56,32 @@ public class TestMapCollection {
       LOG.info("seed: " + seed);
       r.setSeed(seed);
     }
+
     @Override
     public Configuration getConf() {
       return null;
     }
+
     public void setLength(int len) {
       this.len = len;
     }
+
     public int compareTo(FillWritable o) {
       if (o == this) return 0;
       return len - o.len;
     }
+
     @Override
     public int hashCode() {
       return 37 * len;
     }
+
     @Override
     public boolean equals(Object o) {
       if (!(o instanceof FillWritable)) return false;
-      return 0 == compareTo((FillWritable)o);
+      return 0 == compareTo((FillWritable) o);
     }
+
     @Override
     public void readFields(DataInput in) throws IOException {
       if (disableRead) {
@@ -91,6 +92,7 @@ public class TestMapCollection {
         assertEquals("Invalid byte at " + i, fillChar, in.readByte());
       }
     }
+
     @Override
     public void write(DataOutput out) throws IOException {
       if (0 == len) {
@@ -121,12 +123,14 @@ public class TestMapCollection {
   }
 
   public static class KeyWritable
-    extends FillWritable implements WritableComparable<FillWritable> {
+      extends FillWritable implements WritableComparable<FillWritable> {
 
-    static final byte keyFill = (byte)('K' & 0xFF);
+    static final byte keyFill = (byte) ('K' & 0xFF);
+
     public KeyWritable() {
       super(keyFill);
     }
+
     @Override
     public void setConf(Configuration conf) {
       disableRead = conf.getBoolean("test.disable.key.read", false);
@@ -135,8 +139,9 @@ public class TestMapCollection {
 
   public static class ValWritable extends FillWritable {
     public ValWritable() {
-      super((byte)('V' & 0xFF));
+      super((byte) ('V' & 0xFF));
     }
+
     @Override
     public void setConf(Configuration conf) {
       disableRead = conf.getBoolean("test.disable.val.read", false);
@@ -146,16 +151,24 @@ public class TestMapCollection {
   public static class VariableComparator
       implements RawComparator<KeyWritable>, Configurable {
     private boolean readLen;
-    public VariableComparator() { }
+
+    public VariableComparator() {
+    }
+
     @Override
     public void setConf(Configuration conf) {
       readLen = !conf.getBoolean("test.disable.key.read", false);
     }
+
     @Override
-    public Configuration getConf() { return null; }
+    public Configuration getConf() {
+      return null;
+    }
+
     public int compare(KeyWritable k1, KeyWritable k2) {
       return k1.compareTo(k2);
     }
+
     @Override
     public int compare(byte[] b1, int s1, int l1,
                        byte[] b2, int s2, int l2) {
@@ -169,17 +182,17 @@ public class TestMapCollection {
         n2 = 0;
       }
       for (int i = s1 + n1; i < l1 - n1; ++i) {
-        assertEquals("Invalid key at " + s1, (int)KeyWritable.keyFill, b1[i]);
+        assertEquals("Invalid key at " + s1, (int) KeyWritable.keyFill, b1[i]);
       }
       for (int i = s2 + n2; i < l2 - n2; ++i) {
-        assertEquals("Invalid key at " + s2, (int)KeyWritable.keyFill, b2[i]);
+        assertEquals("Invalid key at " + s2, (int) KeyWritable.keyFill, b2[i]);
       }
       return l1 - l2;
     }
   }
 
   public static class SpillReducer
-      extends Reducer<KeyWritable,ValWritable,NullWritable,NullWritable> {
+      extends Reducer<KeyWritable, ValWritable, NullWritable, NullWritable> {
 
     private int numrecs;
     private int expected;
@@ -192,11 +205,12 @@ public class TestMapCollection {
 
     @Override
     protected void reduce(KeyWritable k, Iterable<ValWritable> values,
-        Context context) throws IOException, InterruptedException {
+                          Context context) throws IOException, InterruptedException {
       for (ValWritable val : values) {
         ++numrecs;
       }
     }
+
     @Override
     protected void cleanup(Context context)
         throws IOException, InterruptedException {
@@ -206,31 +220,54 @@ public class TestMapCollection {
 
   public static class FakeSplit extends InputSplit implements Writable {
     @Override
-    public void write(DataOutput out) throws IOException { }
+    public void write(DataOutput out) throws IOException {
+    }
+
     @Override
-    public void readFields(DataInput in) throws IOException { }
+    public void readFields(DataInput in) throws IOException {
+    }
+
     @Override
-    public long getLength() { return 0L; }
+    public long getLength() {
+      return 0L;
+    }
+
     @Override
-    public String[] getLocations() { return new String[0]; }
+    public String[] getLocations() {
+      return new String[0];
+    }
   }
 
   public abstract static class RecordFactory implements Configurable {
-    public Configuration getConf() { return null; }
+    public Configuration getConf() {
+      return null;
+    }
+
     public abstract int keyLen(int i);
+
     public abstract int valLen(int i);
   }
 
   public static class FixedRecordFactory extends RecordFactory {
     private int keylen;
     private int vallen;
-    public FixedRecordFactory() { }
+
+    public FixedRecordFactory() {
+    }
+
     public void setConf(Configuration conf) {
       keylen = conf.getInt("test.fixedrecord.keylen", 0);
       vallen = conf.getInt("test.fixedrecord.vallen", 0);
     }
-    public int keyLen(int i) { return keylen; }
-    public int valLen(int i) { return vallen; }
+
+    public int keyLen(int i) {
+      return keylen;
+    }
+
+    public int valLen(int i) {
+      return vallen;
+    }
+
     public static void setLengths(Configuration conf, int keylen, int vallen) {
       conf.setInt("test.fixedrecord.keylen", keylen);
       conf.setInt("test.fixedrecord.vallen", vallen);
@@ -239,9 +276,10 @@ public class TestMapCollection {
     }
   }
 
-  public static class FakeIF extends InputFormat<KeyWritable,ValWritable> {
+  public static class FakeIF extends InputFormat<KeyWritable, ValWritable> {
 
-    public FakeIF() { }
+    public FakeIF() {
+    }
 
     @Override
     public List<InputSplit> getSplits(JobContext ctxt) throws IOException {
@@ -254,14 +292,15 @@ public class TestMapCollection {
       return splits;
     }
 
-    public RecordReader<KeyWritable,ValWritable> createRecordReader(
+    public RecordReader<KeyWritable, ValWritable> createRecordReader(
         InputSplit ignored, final TaskAttemptContext taskContext) {
-      return new RecordReader<KeyWritable,ValWritable>() {
+      return new RecordReader<KeyWritable, ValWritable>() {
         private RecordFactory factory;
         private final KeyWritable key = new KeyWritable();
         private final ValWritable val = new ValWritable();
         private int current;
         private int records;
+
         @Override
         public void initialize(InputSplit split, TaskAttemptContext context) {
           final Configuration conf = context.getConfiguration();
@@ -269,23 +308,34 @@ public class TestMapCollection {
           val.setConf(conf);
           factory = ReflectionUtils.newInstance(
               conf.getClass("test.mapcollection.class",
-                FixedRecordFactory.class, RecordFactory.class), conf);
+                  FixedRecordFactory.class, RecordFactory.class), conf);
           assertNotNull(factory);
           current = 0;
           records = conf.getInt("test.spillmap.records", 100);
         }
+
         @Override
         public boolean nextKeyValue() {
           key.setLength(factory.keyLen(current));
           val.setLength(factory.valLen(current));
           return current++ < records;
         }
+
         @Override
-        public KeyWritable getCurrentKey() { return key; }
+        public KeyWritable getCurrentKey() {
+          return key;
+        }
+
         @Override
-        public ValWritable getCurrentValue() { return val; }
+        public ValWritable getCurrentValue() {
+          return val;
+        }
+
         @Override
-        public float getProgress() { return (float) current / records; }
+        public float getProgress() {
+          return (float) current / records;
+        }
+
         @Override
         public void close() {
           assertEquals("Unexpected count", records, current - 1);
@@ -295,7 +345,7 @@ public class TestMapCollection {
   }
 
   private static void runTest(String name, int keylen, int vallen,
-      int records, int ioSortMB, float spillPer)
+                              int records, int ioSortMB, float spillPer)
       throws Exception {
     Configuration conf = new Configuration();
     conf.setInt(Job.COMPLETION_POLL_INTERVAL_KEY, 100);
@@ -338,8 +388,8 @@ public class TestMapCollection {
   @Test
   public void testLargeRecords() throws Exception {
     // maps emitting records larger than mapreduce.task.io.sort.mb
-    runTest("largerec", 100, 1024*1024, 5, 1, .8f);
-    runTest("largekeyzeroval", 1024*1024, 0, 5, 1, .8f);
+    runTest("largerec", 100, 1024 * 1024, 5, 1, .8f);
+    runTest("largekeyzeroval", 1024 * 1024, 0, 5, 1, .8f);
   }
 
   @Test
@@ -382,6 +432,7 @@ public class TestMapCollection {
     public int preval;
     public int postval;
     public int steprec;
+
     public void setConf(Configuration conf) {
       prekey = conf.getInt("test.stepfactory.prekey", 0);
       postkey = conf.getInt("test.stepfactory.postkey", 0);
@@ -389,17 +440,20 @@ public class TestMapCollection {
       postval = conf.getInt("test.stepfactory.postval", 0);
       steprec = conf.getInt("test.stepfactory.steprec", 0);
     }
+
     public static void setLengths(Configuration conf, int prekey, int postkey,
-        int preval, int postval, int steprec) {
+                                  int preval, int postval, int steprec) {
       conf.setInt("test.stepfactory.prekey", prekey);
       conf.setInt("test.stepfactory.postkey", postkey);
       conf.setInt("test.stepfactory.preval", preval);
       conf.setInt("test.stepfactory.postval", postval);
       conf.setInt("test.stepfactory.steprec", steprec);
     }
+
     public int keyLen(int i) {
       return i > steprec ? postkey : prekey;
     }
+
     public int valLen(int i) {
       return i > steprec ? postval : preval;
     }
@@ -448,9 +502,11 @@ public class TestMapCollection {
     public int minval;
     public int maxval;
     private final Random r = new Random();
+
     private static int nextRand(Random r, int max) {
-      return (int)Math.exp(r.nextDouble() * Math.log(max));
+      return (int) Math.exp(r.nextDouble() * Math.log(max));
     }
+
     public void setConf(Configuration conf) {
       r.setSeed(conf.getLong("test.randomfactory.seed", 0L));
       minkey = conf.getInt("test.randomfactory.minkey", 0);
@@ -458,6 +514,7 @@ public class TestMapCollection {
       minval = conf.getInt("test.randomfactory.minval", 0);
       maxval = conf.getInt("test.randomfactory.maxval", 0) - minval;
     }
+
     public static void setLengths(Configuration conf, Random r, int max) {
       int k1 = nextRand(r, max);
       int k2 = nextRand(r, max);
@@ -475,8 +532,9 @@ public class TestMapCollection {
       }
       setLengths(conf, k1, ++k2, v1, ++v2);
     }
+
     public static void setLengths(Configuration conf, int minkey, int maxkey,
-        int minval, int maxval) {
+                                  int minval, int maxval) {
       assert minkey < maxkey;
       assert minval < maxval;
       conf.setInt("test.randomfactory.minkey", minkey);
@@ -486,9 +544,11 @@ public class TestMapCollection {
       conf.setBoolean("test.disable.key.read", minkey == 0);
       conf.setBoolean("test.disable.val.read", minval == 0);
     }
+
     public int keyLen(int i) {
       return minkey + nextRand(r, maxkey - minkey);
     }
+
     public int valLen(int i) {
       return minval + nextRand(r, maxval - minval);
     }

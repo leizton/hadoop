@@ -18,18 +18,17 @@
 
 package org.apache.hadoop.mapreduce.counters;
 
-import java.util.List;
-import java.util.Map;
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.mapreduce.Counter;
 import org.apache.hadoop.mapreduce.FileSystemCounter;
 import org.apache.hadoop.mapreduce.JobCounter;
 import org.apache.hadoop.mapreduce.TaskCounter;
 import org.apache.hadoop.mapreduce.util.ResourceBundles;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * An abstract class to provide common implementation of the
@@ -40,7 +39,7 @@ import org.apache.hadoop.mapreduce.util.ResourceBundles;
  */
 @InterfaceAudience.Private
 public abstract class CounterGroupFactory<C extends Counter,
-                                          G extends CounterGroupBase<C>> {
+    G extends CounterGroupBase<C>> {
 
   public interface FrameworkGroupFactory<F> {
     F newGroup(String name);
@@ -53,6 +52,7 @@ public abstract class CounterGroupFactory<C extends Counter,
   private static final String FS_GROUP_NAME = FileSystemCounter.class.getName();
 
   private final Map<String, FrameworkGroupFactory<G>> fmap = Maps.newHashMap();
+
   {
     // Add builtin counter class here and the version when changed.
     addFrameworkGroup(TaskCounter.class);
@@ -77,6 +77,7 @@ public abstract class CounterGroupFactory<C extends Counter,
 
   /**
    * Required override to return a new framework group factory
+   *
    * @param <T> type of the counter enum class
    * @param cls the counter enum class
    * @return a new framework group factory
@@ -86,20 +87,22 @@ public abstract class CounterGroupFactory<C extends Counter,
 
   /**
    * Create a new counter group
-   * @param name of the group
+   *
+   * @param name   of the group
    * @param limits the counters limits policy object
    * @return a new counter group
    */
   public G newGroup(String name, Limits limits) {
     return newGroup(name, ResourceBundles.getCounterGroupName(name, name),
-                    limits);
+        limits);
   }
 
   /**
    * Create a new counter group
-   * @param name of the group
+   *
+   * @param name        of the group
    * @param displayName of the group
-   * @param limits the counters limits policy object
+   * @param limits      the counters limits policy object
    * @return a new counter group
    */
   public G newGroup(String name, String displayName, Limits limits) {
@@ -115,12 +118,13 @@ public abstract class CounterGroupFactory<C extends Counter,
 
   /**
    * Create a new framework group
+   *
    * @param id of the group
    * @return a new framework group
    */
   public G newFrameworkGroup(int id) {
     String name;
-    synchronized(CounterGroupFactory.class) {
+    synchronized (CounterGroupFactory.class) {
       if (id < 0 || id >= i2s.size()) throwBadFrameGroupIdException(id);
       name = i2s.get(id); // should not throw here.
     }
@@ -131,6 +135,7 @@ public abstract class CounterGroupFactory<C extends Counter,
 
   /**
    * Get the id of a framework group
+   *
    * @param name of the group
    * @return the framework group id
    */
@@ -151,7 +156,7 @@ public abstract class CounterGroupFactory<C extends Counter,
    * Check whether a group name is a name of a framework group (including
    * the filesystem group).
    *
-   * @param name  to check
+   * @param name to check
    * @return true for framework group names
    */
   public static synchronized boolean isFrameworkGroup(String name) {
@@ -159,18 +164,19 @@ public abstract class CounterGroupFactory<C extends Counter,
   }
 
   private static void throwBadFrameGroupIdException(int id) {
-    throw new IllegalArgumentException("bad framework group id: "+ id);
+    throw new IllegalArgumentException("bad framework group id: " + id);
   }
 
   private static void throwBadFrameworkGroupNameException(String name) {
-    throw new IllegalArgumentException("bad framework group name: "+ name);
+    throw new IllegalArgumentException("bad framework group name: " + name);
   }
 
   /**
    * Abstract factory method to create a generic (vs framework) counter group
-   * @param name  of the group
+   *
+   * @param name        of the group
    * @param displayName of the group
-   * @param limits limits of the counters
+   * @param limits      limits of the counters
    * @return a new generic counter group
    */
   protected abstract G newGenericGroup(String name, String displayName,
@@ -178,6 +184,7 @@ public abstract class CounterGroupFactory<C extends Counter,
 
   /**
    * Abstract factory method to create a file system counter group
+   *
    * @return a new file system counter group
    */
   protected abstract G newFileSystemGroup();

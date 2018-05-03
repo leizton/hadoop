@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,12 +19,10 @@
 package org.apache.hadoop.mapred;
 
 import junit.framework.TestCase;
-import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.apache.hadoop.mapreduce.MRConfig;
 
-import java.io.File;
 import java.io.IOException;
 
 /**
@@ -69,22 +67,22 @@ public abstract class HadoopTestCase extends TestCase {
    * @throws IOException thrown if the base directory cannot be set.
    */
   public HadoopTestCase(int mrMode, int fsMode, int taskTrackers, int dataNodes)
-    throws IOException {
+      throws IOException {
     if (mrMode != LOCAL_MR && mrMode != CLUSTER_MR) {
       throw new IllegalArgumentException(
-                                         "Invalid MapRed mode, must be LOCAL_MR or CLUSTER_MR");
+          "Invalid MapRed mode, must be LOCAL_MR or CLUSTER_MR");
     }
     if (fsMode != LOCAL_FS && fsMode != DFS_FS) {
       throw new IllegalArgumentException(
-                                         "Invalid FileSystem mode, must be LOCAL_FS or DFS_FS");
+          "Invalid FileSystem mode, must be LOCAL_FS or DFS_FS");
     }
     if (taskTrackers < 1) {
       throw new IllegalArgumentException(
-                                         "Invalid taskTrackers value, must be greater than 0");
+          "Invalid taskTrackers value, must be greater than 0");
     }
     if (dataNodes < 1) {
       throw new IllegalArgumentException(
-                                         "Invalid dataNodes value, must be greater than 0");
+          "Invalid dataNodes value, must be greater than 0");
     }
     localMR = (mrMode == LOCAL_MR);
     localFS = (fsMode == LOCAL_FS);
@@ -144,15 +142,13 @@ public abstract class HadoopTestCase extends TestCase {
     super.setUp();
     if (localFS) {
       fileSystem = FileSystem.getLocal(new JobConf());
-    }
-    else {
+    } else {
       dfsCluster = new MiniDFSCluster.Builder(new JobConf())
           .numDataNodes(dataNodes).build();
       fileSystem = dfsCluster.getFileSystem();
     }
     if (localMR) {
-    }
-    else {
+    } else {
       //noinspection deprecation
       mrCluster = new MiniMRCluster(taskTrackers, fileSystem.getUri().toString(), 1);
     }
@@ -169,16 +165,14 @@ public abstract class HadoopTestCase extends TestCase {
       if (mrCluster != null) {
         mrCluster.shutdown();
       }
-    }
-    catch (Exception ex) {
+    } catch (Exception ex) {
       System.out.println(ex);
     }
     try {
       if (dfsCluster != null) {
         dfsCluster.shutdown();
       }
-    }
-    catch (Exception ex) {
+    } catch (Exception ex) {
       System.out.println(ex);
     }
     super.tearDown();
@@ -206,8 +200,7 @@ public abstract class HadoopTestCase extends TestCase {
       JobConf conf = new JobConf();
       conf.set(MRConfig.FRAMEWORK_NAME, MRConfig.LOCAL_FRAMEWORK_NAME);
       return conf;
-    } 
-    else {
+    } else {
       return mrCluster.createJobConf();
     }
   }

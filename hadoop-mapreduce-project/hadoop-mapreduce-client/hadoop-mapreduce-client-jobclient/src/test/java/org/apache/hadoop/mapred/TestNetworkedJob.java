@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,25 +18,10 @@
 
 package org.apache.hadoop.mapred;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutput;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapreduce.security.token.delegation.DelegationTokenIdentifier;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.ClusterStatus.BlackListInfo;
 import org.apache.hadoop.mapred.JobClient.NetworkedJob;
@@ -45,12 +30,18 @@ import org.apache.hadoop.mapred.lib.IdentityMapper;
 import org.apache.hadoop.mapred.lib.IdentityReducer;
 import org.apache.hadoop.mapreduce.Cluster.JobTrackerStatus;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.security.token.delegation.DelegationTokenIdentifier;
+import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler;
 import org.junit.Test;
-import org.apache.hadoop.security.UserGroupInformation;
-import org.apache.hadoop.security.token.Token;
+
+import java.io.*;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 public class TestNetworkedJob {
   private static String TEST_ROOT_DIR = new File(System.getProperty(
@@ -59,19 +50,19 @@ public class TestNetworkedJob {
   private static Path inFile = new Path(testDir, "in");
   private static Path outDir = new Path(testDir, "out");
 
-  @Test (timeout=5000)
+  @Test(timeout = 5000)
   public void testGetNullCounters() throws Exception {
     //mock creation
     Job mockJob = mock(Job.class);
-    RunningJob underTest = new JobClient.NetworkedJob(mockJob); 
+    RunningJob underTest = new JobClient.NetworkedJob(mockJob);
 
     when(mockJob.getCounters()).thenReturn(null);
     assertNull(underTest.getCounters());
     //verification
     verify(mockJob).getCounters();
   }
-  
-  @Test (timeout=500000)
+
+  @Test(timeout = 500000)
   public void testGetJobStatus() throws IOException, InterruptedException,
       ClassNotFoundException {
     MiniMRClientCluster mr = null;
@@ -118,12 +109,13 @@ public class TestNetworkedJob {
       }
     }
   }
-/**
- * test JobConf 
- * @throws Exception
- */
-  @SuppressWarnings( "deprecation" )
-  @Test (timeout=500000)
+
+  /**
+   * test JobConf
+   * @throws Exception
+   */
+  @SuppressWarnings("deprecation")
+  @Test(timeout = 500000)
   public void testNetworkedJob() throws Exception {
     // mock creation
     MiniMRClientCluster mr = null;
@@ -173,12 +165,12 @@ public class TestNetworkedJob {
       TaskCompletionEvent[] tce = runningJob.getTaskCompletionEvents(0);
       assertEquals(tce.length, 0);
 
-      assertEquals(runningJob.getHistoryUrl(),"");
+      assertEquals(runningJob.getHistoryUrl(), "");
       assertFalse(runningJob.isRetired());
-      assertEquals( runningJob.getFailureInfo(),"");
+      assertEquals(runningJob.getFailureInfo(), "");
       assertEquals(runningJob.getJobStatus().getJobName(), "N/A");
       assertEquals(client.getMapTaskReports(jobId).length, 0);
-      
+
       try {
         client.getSetupTaskReports(jobId);
       } catch (YarnRuntimeException e) {
@@ -261,10 +253,10 @@ public class TestNetworkedJob {
           .getDelegationToken(new Text(UserGroupInformation.getCurrentUser()
               .getShortUserName()));
       assertEquals(token.getKind().toString(), "RM_DELEGATION_TOKEN");
-      
+
       // test JobClient
-      
-   
+
+
       // The following asserts read JobStatus twice and ensure the returned
       // JobStatus objects correspond to the same Job.
       assertEquals("Expected matching JobIDs", jobId, client.getJob(jobId)
@@ -283,10 +275,10 @@ public class TestNetworkedJob {
 
   /**
    * test BlackListInfo class
-   * 
+   *
    * @throws IOException
    */
-  @Test (timeout=5000)
+  @Test(timeout = 5000)
   public void testBlackListInfo() throws IOException {
     BlackListInfo info = new BlackListInfo();
     info.setBlackListReport("blackListInfo");
@@ -305,13 +297,14 @@ public class TestNetworkedJob {
     assertEquals(info.getBlackListReport(), "blackListInfo");
 
   }
-/**
- *  test run from command line JobQueueClient
- * @throws Exception
- */
-  @Test (timeout=500000)
+
+  /**
+   *  test run from command line JobQueueClient
+   * @throws Exception
+   */
+  @Test(timeout = 500000)
   public void testJobQueueClient() throws Exception {
-        MiniMRClientCluster mr = null;
+    MiniMRClientCluster mr = null;
     FileSystem fileSys = null;
     PrintStream oldOut = System.out;
     try {
@@ -343,13 +336,13 @@ public class TestNetworkedJob {
 
       ByteArrayOutputStream bytes = new ByteArrayOutputStream();
       System.setOut(new PrintStream(bytes));
-      String[] arg = { "-list" };
+      String[] arg = {"-list"};
       jobClient.run(arg);
       assertTrue(bytes.toString().contains("Queue Name : default"));
       assertTrue(bytes.toString().contains("Queue State : running"));
       bytes = new ByteArrayOutputStream();
       System.setOut(new PrintStream(bytes));
-      String[] arg1 = { "-showacls" };
+      String[] arg1 = {"-showacls"};
       jobClient.run(arg1);
       assertTrue(bytes.toString().contains("Queue acls for user :"));
       assertTrue(bytes.toString().contains(
@@ -361,7 +354,7 @@ public class TestNetworkedJob {
 
       bytes = new ByteArrayOutputStream();
       System.setOut(new PrintStream(bytes));
-      String[] arg2 = { "-info", "default" };
+      String[] arg2 = {"-info", "default"};
       jobClient.run(arg2);
       assertTrue(bytes.toString().contains("Queue Name : default"));
       assertTrue(bytes.toString().contains("Queue State : running"));
@@ -370,7 +363,7 @@ public class TestNetworkedJob {
       // test for info , default queue and jobs
       bytes = new ByteArrayOutputStream();
       System.setOut(new PrintStream(bytes));
-      String[] arg3 = { "-info", "default", "-showJobs" };
+      String[] arg3 = {"-info", "default", "-showJobs"};
       jobClient.run(arg3);
       assertTrue(bytes.toString().contains("Queue Name : default"));
       assertTrue(bytes.toString().contains("Queue State : running"));
@@ -380,7 +373,7 @@ public class TestNetworkedJob {
       String[] arg4 = {};
       jobClient.run(arg4);
 
-      
+
     } finally {
       System.setOut(oldOut);
       if (fileSys != null) {
@@ -391,7 +384,7 @@ public class TestNetworkedJob {
       }
     }
   }
-  
+
   private MiniMRClientCluster createMiniClusterWithCapacityScheduler()
       throws IOException {
     Configuration conf = new Configuration();

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,14 +17,7 @@
  */
 package org.apache.hadoop.mapred;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-
+import junit.framework.TestCase;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
@@ -32,10 +25,15 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.Writable;
-import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.mapred.lib.LazyOutputFormat;
-import junit.framework.TestCase;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * A JUnit test to test the Map-Reduce framework's feature to create part
@@ -47,12 +45,12 @@ public class TestLazyOutput extends TestCase {
   private static final int NUM_MAPS_PER_NODE = 2;
   private static final Path INPUT = new Path("/testlazy/input");
 
-  private static final List<String> input = 
-    Arrays.asList("All","Roads","Lead","To","Hadoop");
+  private static final List<String> input =
+      Arrays.asList("All", "Roads", "Lead", "To", "Hadoop");
 
 
   static class TestMapper extends MapReduceBase
-  implements Mapper<LongWritable, Text, LongWritable, Text> {
+      implements Mapper<LongWritable, Text, LongWritable, Text> {
     private String id;
 
     public void configure(JobConf job) {
@@ -60,8 +58,8 @@ public class TestLazyOutput extends TestCase {
     }
 
     public void map(LongWritable key, Text val,
-        OutputCollector<LongWritable, Text> output, Reporter reporter)
-    throws IOException {
+                    OutputCollector<LongWritable, Text> output, Reporter reporter)
+        throws IOException {
       // Everybody other than id 0 outputs
       if (!id.endsWith("0_0")) {
         output.collect(key, val);
@@ -69,8 +67,8 @@ public class TestLazyOutput extends TestCase {
     }
   }
 
-  static class TestReducer  extends MapReduceBase 
-  implements Reducer<LongWritable, Text, LongWritable, Text> {
+  static class TestReducer extends MapReduceBase
+      implements Reducer<LongWritable, Text, LongWritable, Text> {
     private String id;
 
     public void configure(JobConf job) {
@@ -79,8 +77,8 @@ public class TestLazyOutput extends TestCase {
 
     /** Writes all keys and values directly to output. */
     public void reduce(LongWritable key, Iterator<Text> values,
-        OutputCollector<LongWritable, Text> output, Reporter reporter)
-    throws IOException {
+                       OutputCollector<LongWritable, Text> output, Reporter reporter)
+        throws IOException {
       while (values.hasNext()) {
         Text v = values.next();
         //Reducer 0 skips collect
@@ -92,8 +90,8 @@ public class TestLazyOutput extends TestCase {
   }
 
   private static void runTestLazyOutput(JobConf job, Path output,
-      int numReducers, boolean createLazily) 
-  throws Exception {
+                                        int numReducers, boolean createLazily)
+      throws Exception {
 
     job.setJobName("test-lazy-output");
 
@@ -105,14 +103,14 @@ public class TestLazyOutput extends TestCase {
     job.setOutputKeyClass(LongWritable.class);
     job.setOutputValueClass(Text.class);
 
-    job.setMapperClass(TestMapper.class);        
+    job.setMapperClass(TestMapper.class);
     job.setReducerClass(TestReducer.class);
 
     JobClient client = new JobClient(job);
     job.setNumReduceTasks(numReducers);
     if (createLazily) {
       LazyOutputFormat.setOutputFormatClass
-        (job, TextOutputFormat.class);
+          (job, TextOutputFormat.class);
     } else {
       job.setOutputFormat(TextOutputFormat.class);
     }
@@ -121,12 +119,12 @@ public class TestLazyOutput extends TestCase {
   }
 
   public void createInput(FileSystem fs, int numMappers) throws Exception {
-    for (int i =0; i < numMappers; i++) {
-      OutputStream os = fs.create(new Path(INPUT, 
-        "text" + i + ".txt"));
+    for (int i = 0; i < numMappers; i++) {
+      OutputStream os = fs.create(new Path(INPUT,
+          "text" + i + ".txt"));
       Writer wr = new OutputStreamWriter(os);
-      for(String inp : input) {
-        wr.write(inp+"\n");
+      for (String inp : input) {
+        wr.write(inp + "\n");
       }
       wr.close();
     }
@@ -153,14 +151,14 @@ public class TestLazyOutput extends TestCase {
       Path output1 = new Path("/testlazy/output1");
 
       // Test 1. 
-      runTestLazyOutput(mr.createJobConf(), output1, 
+      runTestLazyOutput(mr.createJobConf(), output1,
           numReducers, true);
 
-      Path[] fileList = 
-        FileUtil.stat2Paths(fileSys.listStatus(output1,
-            new Utils.OutputFileUtils.OutputFilesFilter()));
-      for(int i=0; i < fileList.length; ++i) {
-        System.out.println("Test1 File list[" + i + "]" + ": "+ fileList[i]);
+      Path[] fileList =
+          FileUtil.stat2Paths(fileSys.listStatus(output1,
+              new Utils.OutputFileUtils.OutputFilesFilter()));
+      for (int i = 0; i < fileList.length; ++i) {
+        System.out.println("Test1 File list[" + i + "]" + ": " + fileList[i]);
       }
       assertTrue(fileList.length == (numReducers - 1));
 
@@ -169,10 +167,10 @@ public class TestLazyOutput extends TestCase {
       runTestLazyOutput(mr.createJobConf(), output2, 0, true);
 
       fileList =
-        FileUtil.stat2Paths(fileSys.listStatus(output2,
-            new Utils.OutputFileUtils.OutputFilesFilter()));
-      for(int i=0; i < fileList.length; ++i) {
-        System.out.println("Test2 File list[" + i + "]" + ": "+ fileList[i]);
+          FileUtil.stat2Paths(fileSys.listStatus(output2,
+              new Utils.OutputFileUtils.OutputFilesFilter()));
+      for (int i = 0; i < fileList.length; ++i) {
+        System.out.println("Test2 File list[" + i + "]" + ": " + fileList[i]);
       }
 
       assertTrue(fileList.length == numMappers - 1);
@@ -182,17 +180,20 @@ public class TestLazyOutput extends TestCase {
       runTestLazyOutput(mr.createJobConf(), output3, 0, false);
 
       fileList =
-        FileUtil.stat2Paths(fileSys.listStatus(output3,
-            new Utils.OutputFileUtils.OutputFilesFilter()));
-      for(int i=0; i < fileList.length; ++i) {
-        System.out.println("Test3 File list[" + i + "]" + ": "+ fileList[i]);
+          FileUtil.stat2Paths(fileSys.listStatus(output3,
+              new Utils.OutputFileUtils.OutputFilesFilter()));
+      for (int i = 0; i < fileList.length; ++i) {
+        System.out.println("Test3 File list[" + i + "]" + ": " + fileList[i]);
       }
 
       assertTrue(fileList.length == numMappers);
 
     } finally {
-      if (dfs != null) { dfs.shutdown(); }
-      if (mr != null) { mr.shutdown();
+      if (dfs != null) {
+        dfs.shutdown();
+      }
+      if (mr != null) {
+        mr.shutdown();
       }
     }
   }

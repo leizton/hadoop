@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,17 +18,14 @@
 package org.apache.hadoop.mapred;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.LocalFileSystem;
-import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.compress.DefaultCodec;
 import org.apache.hadoop.io.compress.GzipCodec;
-
 import org.junit.Test;
-import static org.junit.Assert.*;
+
+import static org.junit.Assert.assertEquals;
+
 public class TestIFile {
 
   @Test
@@ -39,13 +36,13 @@ public class TestIFile {
   public void testIFileWriterWithCodec() throws Exception {
     Configuration conf = new Configuration();
     FileSystem localFs = FileSystem.getLocal(conf);
-    FileSystem rfs = ((LocalFileSystem)localFs).getRaw();
+    FileSystem rfs = ((LocalFileSystem) localFs).getRaw();
     Path path = new Path(new Path("build/test.ifile"), "data");
     DefaultCodec codec = new GzipCodec();
     codec.setConf(conf);
     IFile.Writer<Text, Text> writer =
-      new IFile.Writer<Text, Text>(conf, rfs.create(path), Text.class, Text.class,
-                                   codec, null);
+        new IFile.Writer<Text, Text>(conf, rfs.create(path), Text.class, Text.class,
+            codec, null);
     writer.close();
   }
 
@@ -54,25 +51,25 @@ public class TestIFile {
   public void testIFileReaderWithCodec() throws Exception {
     Configuration conf = new Configuration();
     FileSystem localFs = FileSystem.getLocal(conf);
-    FileSystem rfs = ((LocalFileSystem)localFs).getRaw();
+    FileSystem rfs = ((LocalFileSystem) localFs).getRaw();
     Path path = new Path(new Path("build/test.ifile"), "data");
     DefaultCodec codec = new GzipCodec();
     codec.setConf(conf);
     FSDataOutputStream out = rfs.create(path);
     IFile.Writer<Text, Text> writer =
         new IFile.Writer<Text, Text>(conf, out, Text.class, Text.class,
-                                     codec, null);
+            codec, null);
     writer.close();
     FSDataInputStream in = rfs.open(path);
     IFile.Reader<Text, Text> reader =
-      new IFile.Reader<Text, Text>(conf, in, rfs.getFileStatus(path).getLen(),
-          codec, null);
+        new IFile.Reader<Text, Text>(conf, in, rfs.getFileStatus(path).getLen(),
+            codec, null);
     reader.close();
-    
+
     // test check sum 
-    byte[] ab= new byte[100];
-    int readed= reader.checksumIn.readWithChecksum(ab, 0, ab.length);
-    assertEquals( readed,reader.checksumIn.getChecksum().length);
-    
+    byte[] ab = new byte[100];
+    int readed = reader.checksumIn.readWithChecksum(ab, 0, ab.length);
+    assertEquals(readed, reader.checksumIn.getChecksum().length);
+
   }
 }

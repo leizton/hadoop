@@ -1,44 +1,28 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2.app.speculate;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.MRJobConfig;
-import org.apache.hadoop.mapreduce.v2.api.records.JobId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptState;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskType;
+import org.apache.hadoop.mapreduce.v2.api.records.*;
 import org.apache.hadoop.mapreduce.v2.app.AppContext;
 import org.apache.hadoop.mapreduce.v2.app.job.Job;
 import org.apache.hadoop.mapreduce.v2.app.job.Task;
@@ -50,6 +34,14 @@ import org.apache.hadoop.service.AbstractService;
 import org.apache.hadoop.yarn.event.EventHandler;
 import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
 import org.apache.hadoop.yarn.util.Clock;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class DefaultSpeculator extends AbstractService implements
@@ -67,7 +59,7 @@ public class DefaultSpeculator extends AbstractService implements
 
   private static final double PROPORTION_RUNNING_TASKS_SPECULATABLE = 0.1;
   private static final double PROPORTION_TOTAL_TASKS_SPECULATABLE = 0.01;
-  private static final int  MINIMUM_ALLOWED_SPECULATIVE_TASKS = 10;
+  private static final int MINIMUM_ALLOWED_SPECULATIVE_TASKS = 10;
 
   private static final Log LOG = LogFactory.getLog(DefaultSpeculator.class);
 
@@ -78,7 +70,7 @@ public class DefaultSpeculator extends AbstractService implements
   // that we can aggressively speculate instead of waiting for task-timeout.
   private final ConcurrentMap<TaskAttemptId, TaskAttemptHistoryStatistics>
       runningTaskAttemptStatistics = new ConcurrentHashMap<TaskAttemptId,
-          TaskAttemptHistoryStatistics>();
+      TaskAttemptHistoryStatistics>();
   // Regular heartbeat from tasks is every 3 secs. So if we don't get a
   // heartbeat in 9 secs (3 heartbeats), we simulate a heartbeat with no change
   // in progress.
@@ -115,17 +107,17 @@ public class DefaultSpeculator extends AbstractService implements
   public DefaultSpeculator(Configuration conf, AppContext context, Clock clock) {
     this(conf, context, getEstimator(conf, context), clock);
   }
-  
+
   static private TaskRuntimeEstimator getEstimator
       (Configuration conf, AppContext context) {
     TaskRuntimeEstimator estimator;
-    
+
     try {
       // "yarn.mapreduce.job.task.runtime.estimator.class"
       Class<? extends TaskRuntimeEstimator> estimatorClass
           = conf.getClass(MRJobConfig.MR_AM_TASK_ESTIMATOR,
-                          LegacyTaskRuntimeEstimator.class,
-                          TaskRuntimeEstimator.class);
+          LegacyTaskRuntimeEstimator.class,
+          TaskRuntimeEstimator.class);
 
       Constructor<? extends TaskRuntimeEstimator> estimatorConstructor
           = estimatorClass.getConstructor();
@@ -146,16 +138,16 @@ public class DefaultSpeculator extends AbstractService implements
       LOG.error("Can't make a speculation runtime estimator", ex);
       throw new YarnRuntimeException(ex);
     }
-    
-  return estimator;
+
+    return estimator;
   }
 
   // This constructor is designed to be called by other constructors.
   //  However, it's public because we do use it in the test cases.
   // Normally we figure out our own estimator.
   public DefaultSpeculator
-      (Configuration conf, AppContext context,
-       TaskRuntimeEstimator estimator, Clock clock) {
+  (Configuration conf, AppContext context,
+   TaskRuntimeEstimator estimator, Clock clock) {
     super(DefaultSpeculator.class.getName());
 
     this.conf = conf;
@@ -165,7 +157,7 @@ public class DefaultSpeculator extends AbstractService implements
     this.eventHandler = context.getEventHandler();
   }
 
-/*   *************************************************************    */
+  /*   *************************************************************    */
 
   // This is the task-mongering that creates the two new threads -- one for
   //  processing events from the event queue and one for periodically
@@ -175,35 +167,35 @@ public class DefaultSpeculator extends AbstractService implements
   protected void serviceStart() throws Exception {
     Runnable speculationBackgroundCore
         = new Runnable() {
-            @Override
-            public void run() {
-              while (!stopped && !Thread.currentThread().isInterrupted()) {
-                long backgroundRunStartTime = clock.getTime();
-                try {
-                  int speculations = computeSpeculations();
-                  long mininumRecomp
-                      = speculations > 0 ? SOONEST_RETRY_AFTER_SPECULATE
-                                         : SOONEST_RETRY_AFTER_NO_SPECULATE;
+      @Override
+      public void run() {
+        while (!stopped && !Thread.currentThread().isInterrupted()) {
+          long backgroundRunStartTime = clock.getTime();
+          try {
+            int speculations = computeSpeculations();
+            long mininumRecomp
+                = speculations > 0 ? SOONEST_RETRY_AFTER_SPECULATE
+                : SOONEST_RETRY_AFTER_NO_SPECULATE;
 
-                  long wait = Math.max(mininumRecomp,
-                        clock.getTime() - backgroundRunStartTime);
+            long wait = Math.max(mininumRecomp,
+                clock.getTime() - backgroundRunStartTime);
 
-                  if (speculations > 0) {
-                    LOG.info("We launched " + speculations
-                        + " speculations.  Sleeping " + wait + " milliseconds.");
-                  }
-
-                  Object pollResult
-                      = scanControl.poll(wait, TimeUnit.MILLISECONDS);
-                } catch (InterruptedException e) {
-                  if (!stopped) {
-                    LOG.error("Background thread returning, interrupted", e);
-                  }
-                  return;
-                }
-              }
+            if (speculations > 0) {
+              LOG.info("We launched " + speculations
+                  + " speculations.  Sleeping " + wait + " milliseconds.");
             }
-          };
+
+            Object pollResult
+                = scanControl.poll(wait, TimeUnit.MILLISECONDS);
+          } catch (InterruptedException e) {
+            if (!stopped) {
+              LOG.error("Background thread returning, interrupted", e);
+            }
+            return;
+          }
+        }
+      }
+    };
     speculationBackgroundThread = new Thread
         (speculationBackgroundCore, "DefaultSpeculator background processing");
     speculationBackgroundThread.start();
@@ -212,8 +204,8 @@ public class DefaultSpeculator extends AbstractService implements
   }
 
   @Override
-  protected void serviceStop()throws Exception {
-      stopped = true;
+  protected void serviceStop() throws Exception {
+    stopped = true;
     // this could be called before background thread is established
     if (speculationBackgroundThread != null) {
       speculationBackgroundThread.interrupt();
@@ -245,7 +237,7 @@ public class DefaultSpeculator extends AbstractService implements
   }
 
 
-/*   *************************************************************    */
+  /*   *************************************************************    */
 
   // This section contains the code that gets run for a SpeculatorEvent
 
@@ -272,23 +264,20 @@ public class DefaultSpeculator extends AbstractService implements
         statusUpdate(event.getReportedStatus(), event.getTimestamp());
         break;
 
-      case TASK_CONTAINER_NEED_UPDATE:
-      {
+      case TASK_CONTAINER_NEED_UPDATE: {
         AtomicInteger need = containerNeed(event.getTaskID());
         need.addAndGet(event.containersNeededChange());
         break;
       }
 
-      case ATTEMPT_START:
-      {
+      case ATTEMPT_START: {
         LOG.info("ATTEMPT_START " + event.getTaskID());
         estimator.enrollAttempt
             (event.getReportedStatus(), event.getTimestamp());
         break;
       }
-      
-      case JOB_CREATE:
-      {
+
+      case JOB_CREATE: {
         LOG.info("JOB_CREATE " + event.getJobID());
         estimator.contextualize(getConfig(), context);
         break;
@@ -334,7 +323,7 @@ public class DefaultSpeculator extends AbstractService implements
     }
   }
 
-/*   *************************************************************    */
+  /*   *************************************************************    */
 
 // This is the code section that runs periodically and adds speculations for
 //  those jobs that need them.
@@ -396,7 +385,7 @@ public class DefaultSpeculator extends AbstractService implements
             runningTaskAttemptStatistics.get(runningTaskAttemptID);
         if (data == null) {
           runningTaskAttemptStatistics.put(runningTaskAttemptID,
-            new TaskAttemptHistoryStatistics(estimatedRunTime, progress, now));
+              new TaskAttemptHistoryStatistics(estimatedRunTime, progress, now));
         } else {
           if (estimatedRunTime == data.getEstimatedRunTime()
               && progress == data.getProgress()) {
@@ -434,7 +423,6 @@ public class DefaultSpeculator extends AbstractService implements
     if (numberRunningAttempts == 0) {
       return NOT_RUNNING;
     }
-
 
 
     if (acceptableRuntime == Long.MIN_VALUE) {
@@ -498,7 +486,7 @@ public class DefaultSpeculator extends AbstractService implements
 
       int numberAllowedSpeculativeTasks
           = (int) Math.max(MINIMUM_ALLOWED_SPECULATIVE_TASKS,
-                           PROPORTION_TOTAL_TASKS_SPECULATABLE * tasks.size());
+          PROPORTION_TOTAL_TASKS_SPECULATABLE * tasks.size());
 
       TaskId bestTaskID = null;
       long bestSpeculationValue = -1L;
@@ -523,7 +511,7 @@ public class DefaultSpeculator extends AbstractService implements
       }
       numberAllowedSpeculativeTasks
           = (int) Math.max(numberAllowedSpeculativeTasks,
-                           PROPORTION_RUNNING_TASKS_SPECULATABLE * numberRunningTasks);
+          PROPORTION_RUNNING_TASKS_SPECULATABLE * numberRunningTasks);
 
       // If we found a speculation target, fire it off
       if (bestTaskID != null
@@ -548,7 +536,7 @@ public class DefaultSpeculator extends AbstractService implements
     private long lastHeartBeatTime;
 
     public TaskAttemptHistoryStatistics(long estimatedRunTime, float progress,
-        long nonProgressStartTime) {
+                                        long nonProgressStartTime) {
       this.estimatedRunTime = estimatedRunTime;
       this.progress = progress;
       resetHeartBeatTime(nonProgressStartTime);

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,18 +18,16 @@
 
 package org.apache.hadoop.mapreduce.v2.hs.webapp;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Map;
-
-import javax.ws.rs.core.MediaType;
-
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.servlet.GuiceServletContextListener;
+import com.google.inject.servlet.ServletModule;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.ClientResponse.Status;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
+import com.sun.jersey.test.framework.JerseyTest;
+import com.sun.jersey.test.framework.WebAppDescriptor;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.v2.api.records.JobId;
 import org.apache.hadoop.mapreduce.v2.api.records.JobState;
@@ -47,16 +45,16 @@ import org.codehaus.jettison.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.servlet.GuiceServletContextListener;
-import com.google.inject.servlet.ServletModule;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.ClientResponse.Status;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
-import com.sun.jersey.test.framework.JerseyTest;
-import com.sun.jersey.test.framework.WebAppDescriptor;
+import javax.ws.rs.core.MediaType;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Test the history server Rest API for getting jobs with various query
@@ -117,14 +115,14 @@ public class TestHsWebServicesJobsQuery extends JerseyTest {
   public void testJobsQueryStateNone() throws JSONException, Exception {
     WebResource r = resource();
 
-     ArrayList<JobState> JOB_STATES = 
-         new ArrayList<JobState>(Arrays.asList(JobState.values()));
+    ArrayList<JobState> JOB_STATES =
+        new ArrayList<JobState>(Arrays.asList(JobState.values()));
 
-      // find a state that isn't in use
-      Map<JobId, Job> jobsMap = appContext.getAllJobs();
-      for (Map.Entry<JobId, Job> entry : jobsMap.entrySet()) {
-        JOB_STATES.remove(entry.getValue().getState());
-      }
+    // find a state that isn't in use
+    Map<JobId, Job> jobsMap = appContext.getAllJobs();
+    for (Map.Entry<JobId, Job> entry : jobsMap.entrySet()) {
+      JOB_STATES.remove(entry.getValue().getState());
+    }
 
     assertTrue("No unused job states", JOB_STATES.size() > 0);
     JobState notInUse = JOB_STATES.get(0);

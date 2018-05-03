@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,9 +17,6 @@
  */
 
 package org.apache.hadoop.mapred.lib;
-
-import java.io.IOException;
-import java.util.List;
 
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
@@ -30,14 +27,13 @@ import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.io.compress.CompressionCodecFactory;
 import org.apache.hadoop.io.compress.SplittableCompressionCodec;
-import org.apache.hadoop.mapred.InputFormat;
-import org.apache.hadoop.mapred.InputSplit;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.RecordReader;
-import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapred.*;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
+
+import java.io.IOException;
+import java.util.List;
 
 /**
  * An abstract {@link org.apache.hadoop.mapred.InputFormat} that returns {@link CombineFileSplit}'s
@@ -61,8 +57,8 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 @InterfaceAudience.Public
 @InterfaceStability.Stable
 public abstract class CombineFileInputFormat<K, V>
-  extends org.apache.hadoop.mapreduce.lib.input.CombineFileInputFormat<K, V> 
-  implements InputFormat<K, V>{
+    extends org.apache.hadoop.mapreduce.lib.input.CombineFileInputFormat<K, V>
+    implements InputFormat<K, V> {
 
   /**
    * default constructor
@@ -70,21 +66,21 @@ public abstract class CombineFileInputFormat<K, V>
   public CombineFileInputFormat() {
   }
 
-  public InputSplit[] getSplits(JobConf job, int numSplits) 
-    throws IOException {
+  public InputSplit[] getSplits(JobConf job, int numSplits)
+      throws IOException {
     List<org.apache.hadoop.mapreduce.InputSplit> newStyleSplits =
-      super.getSplits(new Job(job));
+        super.getSplits(new Job(job));
     InputSplit[] ret = new InputSplit[newStyleSplits.size()];
-    for(int pos = 0; pos < newStyleSplits.size(); ++pos) {
-      org.apache.hadoop.mapreduce.lib.input.CombineFileSplit newStyleSplit = 
-        (org.apache.hadoop.mapreduce.lib.input.CombineFileSplit) newStyleSplits.get(pos);
+    for (int pos = 0; pos < newStyleSplits.size(); ++pos) {
+      org.apache.hadoop.mapreduce.lib.input.CombineFileSplit newStyleSplit =
+          (org.apache.hadoop.mapreduce.lib.input.CombineFileSplit) newStyleSplits.get(pos);
       ret[pos] = new CombineFileSplit(job, newStyleSplit.getPaths(),
-        newStyleSplit.getStartOffsets(), newStyleSplit.getLengths(),
-        newStyleSplit.getLocations());
+          newStyleSplit.getStartOffsets(), newStyleSplit.getLengths(),
+          newStyleSplit.getLocations());
     }
     return ret;
   }
-  
+
   /**
    * Create a new pool and add the filters to it.
    * A split cannot have files from different pools.
@@ -110,8 +106,8 @@ public abstract class CombineFileInputFormat<K, V>
    * This is not implemented yet. 
    */
   public abstract RecordReader<K, V> getRecordReader(InputSplit split,
-                                      JobConf job, Reporter reporter)
-    throws IOException;
+                                                     JobConf job, Reporter reporter)
+      throws IOException;
 
   // abstract method from super class implemented to return null
   public org.apache.hadoop.mapreduce.RecordReader<K, V> createRecordReader(
@@ -119,11 +115,11 @@ public abstract class CombineFileInputFormat<K, V>
       TaskAttemptContext context) throws IOException {
     return null;
   }
-  
+
   /** List input directories.
    * Subclasses may override to, e.g., select only files matching a regular
    * expression. 
-   * 
+   *
    * @param job the job to list input paths for
    * @return array of FileStatus objects
    * @throws IOException if zero items.
@@ -149,15 +145,14 @@ public abstract class CombineFileInputFormat<K, V>
   protected boolean isSplitable(JobContext context, Path file) {
     try {
       return isSplitable(FileSystem.get(context.getConfiguration()), file);
-    }
-    catch (IOException ioe) {
+    } catch (IOException ioe) {
       throw new RuntimeException(ioe);
     }
   }
 
   protected boolean isSplitable(FileSystem fs, Path file) {
     final CompressionCodec codec =
-      new CompressionCodecFactory(fs.getConf()).getCodec(file);
+        new CompressionCodecFactory(fs.getConf()).getCodec(file);
     if (null == codec) {
       return true;
     }

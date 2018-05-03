@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,14 +17,14 @@
  */
 package org.apache.hadoop.mapred;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.mapreduce.QueueInfo;
 import org.apache.hadoop.mapreduce.QueueState;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * Class that contains the information regarding the Job Queues which are 
@@ -36,16 +36,16 @@ public class JobQueueInfo extends QueueInfo {
 
   /**
    * Default constructor for Job Queue Info.
-   * 
+   *
    */
   public JobQueueInfo() {
-    super();  
+    super();
   }
 
   /**
    * Construct a new JobQueueInfo object using the queue name and the
    * scheduling information passed.
-   * 
+   *
    * @param queueName Name of the job queue
    * @param schedulingInfo Scheduling Information associated with the job
    * queue
@@ -53,7 +53,7 @@ public class JobQueueInfo extends QueueInfo {
   public JobQueueInfo(String queueName, String schedulingInfo) {
     super(queueName, schedulingInfo);
   }
-  
+
   JobQueueInfo(QueueInfo queue) {
     this(queue.getQueueName(), queue.getSchedulingInfo());
     setQueueState(queue.getState().getStateName());
@@ -61,10 +61,10 @@ public class JobQueueInfo extends QueueInfo {
     setProperties(queue.getProperties());
     setJobStatuses(queue.getJobStatuses());
   }
-  
+
   /**
    * Set the queue name of the JobQueueInfo
-   * 
+   *
    * @param queueName Name of the job queue.
    */
   @InterfaceAudience.Private
@@ -74,7 +74,7 @@ public class JobQueueInfo extends QueueInfo {
 
   /**
    * Set the scheduling information associated to particular job queue
-   * 
+   *
    * @param schedulingInfo
    */
   @InterfaceAudience.Private
@@ -90,7 +90,7 @@ public class JobQueueInfo extends QueueInfo {
   public void setQueueState(String state) {
     super.setState(QueueState.getState(state));
   }
-  
+
   /**
    * Use getState() instead
    */
@@ -98,7 +98,7 @@ public class JobQueueInfo extends QueueInfo {
   public String getQueueState() {
     return super.getState().toString();
   }
-  
+
   @InterfaceAudience.Private
   public void setChildren(List<JobQueueInfo> children) {
     List<QueueInfo> list = new ArrayList<QueueInfo>();
@@ -111,7 +111,7 @@ public class JobQueueInfo extends QueueInfo {
   public List<JobQueueInfo> getChildren() {
     List<JobQueueInfo> list = new ArrayList<JobQueueInfo>();
     for (QueueInfo q : super.getQueueChildren()) {
-      list.add((JobQueueInfo)q);
+      list.add((JobQueueInfo) q);
     }
     return list;
   }
@@ -125,9 +125,9 @@ public class JobQueueInfo extends QueueInfo {
    * Add a child {@link JobQueueInfo} to this {@link JobQueueInfo}. Modify the
    * fully-qualified name of the child {@link JobQueueInfo} to reflect the
    * hierarchy.
-   * 
+   *
    * Only for testing.
-   * 
+   *
    * @param child
    */
   void addChild(JobQueueInfo child) {
@@ -139,9 +139,9 @@ public class JobQueueInfo extends QueueInfo {
   /**
    * Remove the child from this {@link JobQueueInfo}. This also resets the
    * queue-name of the child from a fully-qualified name to a simple queue name.
-   * 
+   *
    * Only for testing.
-   * 
+   *
    * @param child
    */
   void removeChild(JobQueueInfo child) {

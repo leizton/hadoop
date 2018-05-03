@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,18 +18,17 @@
 
 package org.apache.hadoop.mapreduce.lib.input;
 
-import java.io.IOException;
-
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.*;
+import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
+
+import java.io.IOException;
 
 /** An {@link RecordReader} for {@link SequenceFile}s. */
 @InterfaceAudience.Public
@@ -44,11 +43,11 @@ public class SequenceFileRecordReader<K, V> extends RecordReader<K, V> {
   protected Configuration conf;
 
   @Override
-  public void initialize(InputSplit split, 
+  public void initialize(InputSplit split,
                          TaskAttemptContext context
-                         ) throws IOException, InterruptedException {
+  ) throws IOException, InterruptedException {
     FileSplit fileSplit = (FileSplit) split;
-    conf = context.getConfiguration();    
+    conf = context.getConfiguration();
     Path path = fileSplit.getPath();
     FileSystem fs = path.getFileSystem(conf);
     this.in = new SequenceFile.Reader(fs, path, conf);
@@ -84,12 +83,12 @@ public class SequenceFileRecordReader<K, V> extends RecordReader<K, V> {
   public K getCurrentKey() {
     return key;
   }
-  
+
   @Override
   public V getCurrentValue() {
     return value;
   }
-  
+
   /**
    * Return the progress within the input split
    * @return 0.0 to 1.0 of the input byte range
@@ -98,11 +97,13 @@ public class SequenceFileRecordReader<K, V> extends RecordReader<K, V> {
     if (end == start) {
       return 0.0f;
     } else {
-      return Math.min(1.0f, (in.getPosition() - start) / (float)(end - start));
+      return Math.min(1.0f, (in.getPosition() - start) / (float) (end - start));
     }
   }
-  
-  public synchronized void close() throws IOException { in.close(); }
-  
+
+  public synchronized void close() throws IOException {
+    in.close();
+  }
+
 }
 

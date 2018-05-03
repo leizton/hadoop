@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,53 +18,50 @@
 
 package org.apache.hadoop.mapreduce.lib.db;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.classification.InterfaceAudience;
+import org.apache.hadoop.classification.InterfaceStability;
+import org.apache.hadoop.mapreduce.*;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.util.StringUtils;
+
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.classification.InterfaceAudience;
-import org.apache.hadoop.classification.InterfaceStability;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.JobContext;
-import org.apache.hadoop.mapreduce.OutputCommitter;
-import org.apache.hadoop.mapreduce.OutputFormat;
-import org.apache.hadoop.mapreduce.RecordWriter;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.util.StringUtils;
-
 /**
  * A OutputFormat that sends the reduce output to a SQL table.
  * <p> 
  * {@link DBOutputFormat} accepts &lt;key,value&gt; pairs, where 
- * key has a type extending DBWritable. Returned {@link RecordWriter} 
+ * key has a type extending DBWritable. Returned {@link RecordWriter}
  * writes <b>only the key</b> to the database with a batch SQL query.  
- * 
+ *
  */
 @InterfaceAudience.Public
 @InterfaceStability.Stable
-public class DBOutputFormat<K  extends DBWritable, V> 
-extends OutputFormat<K,V> {
+public class DBOutputFormat<K extends DBWritable, V>
+    extends OutputFormat<K, V> {
 
   private static final Log LOG = LogFactory.getLog(DBOutputFormat.class);
-  public void checkOutputSpecs(JobContext context) 
-      throws IOException, InterruptedException {}
 
-  public OutputCommitter getOutputCommitter(TaskAttemptContext context) 
+  public void checkOutputSpecs(JobContext context)
+      throws IOException, InterruptedException {
+  }
+
+  public OutputCommitter getOutputCommitter(TaskAttemptContext context)
       throws IOException, InterruptedException {
     return new FileOutputCommitter(FileOutputFormat.getOutputPath(context),
-                                   context);
+        context);
   }
 
   /**
    * A RecordWriter that writes the reduce output to a SQL table
    */
   @InterfaceStability.Evolving
-  public class DBRecordWriter 
+  public class DBRecordWriter
       extends RecordWriter<K, V> {
 
     private Connection connection;
@@ -83,11 +80,11 @@ extends OutputFormat<K,V> {
     public Connection getConnection() {
       return connection;
     }
-    
+
     public PreparedStatement getStatement() {
       return statement;
     }
-    
+
     /** {@inheritDoc} */
     public void close(TaskAttemptContext context) throws IOException {
       try {
@@ -96,8 +93,7 @@ extends OutputFormat<K,V> {
       } catch (SQLException e) {
         try {
           connection.rollback();
-        }
-        catch (SQLException ex) {
+        } catch (SQLException ex) {
           LOG.warn(StringUtils.stringifyException(ex));
         }
         throw new IOException(e.getMessage());
@@ -105,8 +101,7 @@ extends OutputFormat<K,V> {
         try {
           statement.close();
           connection.close();
-        }
-        catch (SQLException ex) {
+        } catch (SQLException ex) {
           throw new IOException(ex.getMessage());
         }
       }
@@ -125,7 +120,7 @@ extends OutputFormat<K,V> {
 
   /**
    * Constructs the query used as the prepared statement to insert data.
-   * 
+   *
    * @param table
    *          the table to insert into
    * @param fieldNames
@@ -133,7 +128,7 @@ extends OutputFormat<K,V> {
    *          array of nulls.
    */
   public String constructQuery(String table, String[] fieldNames) {
-    if(fieldNames == null) {
+    if (fieldNames == null) {
       throw new IllegalArgumentException("Field names may not be null");
     }
 
@@ -154,7 +149,7 @@ extends OutputFormat<K,V> {
 
     for (int i = 0; i < fieldNames.length; i++) {
       query.append("?");
-      if(i != fieldNames.length - 1) {
+      if (i != fieldNames.length - 1) {
         query.append(",");
       }
     }
@@ -164,22 +159,22 @@ extends OutputFormat<K,V> {
   }
 
   /** {@inheritDoc} */
-  public RecordWriter<K, V> getRecordWriter(TaskAttemptContext context) 
+  public RecordWriter<K, V> getRecordWriter(TaskAttemptContext context)
       throws IOException {
     DBConfiguration dbConf = new DBConfiguration(context.getConfiguration());
     String tableName = dbConf.getOutputTableName();
     String[] fieldNames = dbConf.getOutputFieldNames();
-    
-    if(fieldNames == null) {
+
+    if (fieldNames == null) {
       fieldNames = new String[dbConf.getOutputFieldCount()];
     }
-    
+
     try {
       Connection connection = dbConf.getConnection();
       PreparedStatement statement = null;
-  
+
       statement = connection.prepareStatement(
-                    constructQuery(tableName, fieldNames));
+          constructQuery(tableName, fieldNames));
       return new DBRecordWriter(connection, statement);
     } catch (Exception ex) {
       throw new IOException(ex.getMessage());
@@ -189,48 +184,47 @@ extends OutputFormat<K,V> {
   /**
    * Initializes the reduce-part of the job with 
    * the appropriate output settings
-   * 
+   *
    * @param job The job
    * @param tableName The table to insert data into
    * @param fieldNames The field names in the table.
    */
-  public static void setOutput(Job job, String tableName, 
-      String... fieldNames) throws IOException {
-    if(fieldNames.length > 0 && fieldNames[0] != null) {
+  public static void setOutput(Job job, String tableName,
+                               String... fieldNames) throws IOException {
+    if (fieldNames.length > 0 && fieldNames[0] != null) {
       DBConfiguration dbConf = setOutput(job, tableName);
       dbConf.setOutputFieldNames(fieldNames);
     } else {
       if (fieldNames.length > 0) {
         setOutput(job, tableName, fieldNames.length);
-      }
-      else { 
+      } else {
         throw new IllegalArgumentException(
-          "Field names must be greater than 0");
+            "Field names must be greater than 0");
       }
     }
   }
-  
+
   /**
    * Initializes the reduce-part of the job 
    * with the appropriate output settings
-   * 
+   *
    * @param job The job
    * @param tableName The table to insert data into
    * @param fieldCount the number of fields in the table.
    */
-  public static void setOutput(Job job, String tableName, 
-      int fieldCount) throws IOException {
+  public static void setOutput(Job job, String tableName,
+                               int fieldCount) throws IOException {
     DBConfiguration dbConf = setOutput(job, tableName);
     dbConf.setOutputFieldCount(fieldCount);
   }
-  
+
   private static DBConfiguration setOutput(Job job,
-      String tableName) throws IOException {
+                                           String tableName) throws IOException {
     job.setOutputFormatClass(DBOutputFormat.class);
     job.setReduceSpeculativeExecution(false);
 
     DBConfiguration dbConf = new DBConfiguration(job.getConfiguration());
-    
+
     dbConf.setOutputTableName(tableName);
     return dbConf;
   }

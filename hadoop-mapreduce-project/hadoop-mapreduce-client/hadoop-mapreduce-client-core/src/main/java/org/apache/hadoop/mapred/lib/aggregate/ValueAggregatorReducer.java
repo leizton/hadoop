@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,9 +18,6 @@
 
 package org.apache.hadoop.mapred.lib.aggregate;
 
-import java.io.IOException;
-import java.util.Iterator;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.io.Text;
@@ -29,14 +26,17 @@ import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reporter;
 
+import java.io.IOException;
+import java.util.Iterator;
+
 /**
  * This class implements the generic reducer of Aggregate.
  */
 @InterfaceAudience.Public
 @InterfaceStability.Stable
 public class ValueAggregatorReducer<K1 extends WritableComparable,
-                                    V1 extends Writable>
-  extends ValueAggregatorJobBase<K1, V1> {
+    V1 extends Writable>
+    extends ValueAggregatorJobBase<K1, V1> {
 
   /**
    * @param key
@@ -53,10 +53,10 @@ public class ValueAggregatorReducer<K1 extends WritableComparable,
     int pos = keyStr.indexOf(ValueAggregatorDescriptor.TYPE_SEPARATOR);
     String type = keyStr.substring(0, pos);
     keyStr = keyStr.substring(pos
-                              + ValueAggregatorDescriptor.TYPE_SEPARATOR.length());
+        + ValueAggregatorDescriptor.TYPE_SEPARATOR.length());
 
     ValueAggregator aggregator = ValueAggregatorBaseDescriptor
-      .generateValueAggregator(type);
+        .generateValueAggregator(type);
     while (values.hasNext()) {
       aggregator.addNextValue(values.next());
     }
@@ -71,6 +71,6 @@ public class ValueAggregatorReducer<K1 extends WritableComparable,
    */
   public void map(K1 arg0, V1 arg1, OutputCollector<Text, Text> arg2,
                   Reporter arg3) throws IOException {
-    throw new IOException ("should not be called\n");
+    throw new IOException("should not be called\n");
   }
 }

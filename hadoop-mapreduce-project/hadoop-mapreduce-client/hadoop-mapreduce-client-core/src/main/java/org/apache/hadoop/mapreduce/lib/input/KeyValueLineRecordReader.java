@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,8 +18,6 @@
 
 package org.apache.hadoop.mapreduce.lib.input;
 
-import java.io.IOException;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
@@ -27,6 +25,8 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
+
+import java.io.IOException;
 
 /**
  * This class treats a line in the input as a key/value pair separated by a 
@@ -37,9 +37,9 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 @InterfaceAudience.Public
 @InterfaceStability.Stable
 public class KeyValueLineRecordReader extends RecordReader<Text, Text> {
-  public static final String KEY_VALUE_SEPERATOR = 
-    "mapreduce.input.keyvaluelinerecordreader.key.value.separator";
-  
+  public static final String KEY_VALUE_SEPERATOR =
+      "mapreduce.input.keyvaluelinerecordreader.key.value.separator";
+
   private final LineRecordReader lineRecordReader;
 
   private byte separator = (byte) '\t';
@@ -47,26 +47,28 @@ public class KeyValueLineRecordReader extends RecordReader<Text, Text> {
   private Text innerValue;
 
   private Text key;
-  
+
   private Text value;
-  
-  public Class getKeyClass() { return Text.class; }
-  
+
+  public Class getKeyClass() {
+    return Text.class;
+  }
+
   public KeyValueLineRecordReader(Configuration conf)
-    throws IOException {
-    
+      throws IOException {
+
     lineRecordReader = new LineRecordReader();
     String sepStr = conf.get(KEY_VALUE_SEPERATOR, "\t");
     this.separator = (byte) sepStr.charAt(0);
   }
 
   public void initialize(InputSplit genericSplit,
-      TaskAttemptContext context) throws IOException {
+                         TaskAttemptContext context) throws IOException {
     lineRecordReader.initialize(genericSplit, context);
   }
-  
-  public static int findSeparator(byte[] utf, int start, int length, 
-      byte sep) {
+
+  public static int findSeparator(byte[] utf, int start, int length,
+                                  byte sep) {
     for (int i = start; i < (start + length); i++) {
       if (utf[i] == sep) {
         return i;
@@ -76,7 +78,7 @@ public class KeyValueLineRecordReader extends RecordReader<Text, Text> {
   }
 
   public static void setKeyValue(Text key, Text value, byte[] line,
-      int lineLen, int pos) {
+                                 int lineLen, int pos) {
     if (pos == -1) {
       key.set(line, 0, lineLen);
       value.set("");
@@ -85,9 +87,10 @@ public class KeyValueLineRecordReader extends RecordReader<Text, Text> {
       value.set(line, pos + 1, lineLen - pos - 1);
     }
   }
+
   /** Read key/value pair in a line. */
   public synchronized boolean nextKeyValue()
-    throws IOException {
+      throws IOException {
     byte[] line = null;
     int lineLen = -1;
     if (lineRecordReader.nextKeyValue()) {
@@ -109,7 +112,7 @@ public class KeyValueLineRecordReader extends RecordReader<Text, Text> {
     setKeyValue(key, value, line, lineLen, pos);
     return true;
   }
-  
+
   public Text getCurrentKey() {
     return key;
   }
@@ -121,8 +124,8 @@ public class KeyValueLineRecordReader extends RecordReader<Text, Text> {
   public float getProgress() throws IOException {
     return lineRecordReader.getProgress();
   }
-  
-  public synchronized void close() throws IOException { 
+
+  public synchronized void close() throws IOException {
     lineRecordReader.close();
   }
 }

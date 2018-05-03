@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,7 +18,10 @@
 
 package org.apache.hadoop.examples.dancing;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.StringTokenizer;
 
 public class Pentomino {
   public static final String DEPTH = "mapreduce.pentomino.depth";
@@ -39,11 +42,11 @@ public class Pentomino {
    */
   protected static class Piece implements ColumnName {
     private String name;
-    private boolean [][] shape;
+    private boolean[][] shape;
     private int[] rotations;
     private boolean flippable;
-    
-    public Piece(String name, String shape, 
+
+    public Piece(String name, String shape,
                  boolean flippable, int[] rotations) {
       this.name = name;
       this.rotations = rotations;
@@ -53,29 +56,29 @@ public class Pentomino {
       while (parser.hasMoreTokens()) {
         String token = parser.nextToken();
         boolean[] line = new boolean[token.length()];
-        for(int i=0; i < line.length; ++i) {
+        for (int i = 0; i < line.length; ++i) {
           line[i] = token.charAt(i) == 'x';
         }
         lines.add(line);
       }
       this.shape = new boolean[lines.size()][];
-      for(int i=0 ; i < lines.size(); i++) {
+      for (int i = 0; i < lines.size(); i++) {
         this.shape[i] = lines.get(i);
       }
     }
-    
+
     public String getName() {
       return name;
     }
-    
+
     public int[] getRotations() {
       return rotations.clone();
     }
-    
+
     public boolean getFlippable() {
       return flippable;
     }
-    
+
     private int doFlip(boolean flip, int x, int max) {
       if (flip) {
         return max - x - 1;
@@ -83,9 +86,9 @@ public class Pentomino {
         return x;
       }
     }
-    
+
     public boolean[][] getShape(boolean flip, int rotate) {
-      boolean [][] result;
+      boolean[][] result;
       if (rotate % 2 == 0) {
         int height = shape.length;
         int width = shape[0].length;
@@ -94,9 +97,9 @@ public class Pentomino {
         boolean flipY = flip ^ (rotate == 2);
         for (int y = 0; y < height; ++y) {
           result[y] = new boolean[width];
-          for (int x=0; x < width; ++x) {
+          for (int x = 0; x < width; ++x) {
             result[y][x] = shape[doFlip(flipY, y, height)]
-                                 [doFlip(flipX, x, width)];
+                [doFlip(flipX, x, width)];
           }
         }
       } else {
@@ -107,11 +110,11 @@ public class Pentomino {
         boolean flipY = flip ^ (rotate == 1);
         for (int y = 0; y < height; ++y) {
           result[y] = new boolean[width];
-          for (int x=0; x < width; ++x) {
+          for (int x = 0; x < width; ++x) {
             result[y][x] = shape[doFlip(flipX, x, width)]
-                                 [doFlip(flipY, y, height)];
+                [doFlip(flipY, y, height)];
           }
-        }        
+        }
       }
       return result;
     }
@@ -124,12 +127,13 @@ public class Pentomino {
   static class Point implements ColumnName {
     int x;
     int y;
+
     Point(int x, int y) {
       this.x = x;
       this.y = y;
     }
   }
-  
+
 
   /**
    * Convert a solution to the puzzle returned by the model into a string
@@ -139,22 +143,22 @@ public class Pentomino {
    * @param solution the list of column names that were selected in the model
    * @return a string representation of completed puzzle board
    */
-  public static String stringifySolution(int width, int height, 
+  public static String stringifySolution(int width, int height,
                                          List<List<ColumnName>> solution) {
     String[][] picture = new String[height][width];
     StringBuffer result = new StringBuffer();
     // for each piece placement...
-    for(List<ColumnName> row: solution) {
+    for (List<ColumnName> row : solution) {
       // go through to find which piece was placed
       Piece piece = null;
-      for(ColumnName item: row) {
+      for (ColumnName item : row) {
         if (item instanceof Piece) {
           piece = (Piece) item;
           break;
         }
       }
       // for each point where the piece was placed, mark it with the piece name
-      for(ColumnName item: row) {
+      for (ColumnName item : row) {
         if (item instanceof Point) {
           Point p = (Point) item;
           picture[p.y][p.x] = piece.getName();
@@ -162,17 +166,17 @@ public class Pentomino {
       }
     }
     // put the string together
-    for(int y=0; y < picture.length; ++y) {
-      for (int x=0; x < picture[y].length; ++x) {
+    for (int y = 0; y < picture.length; ++y) {
+      for (int x = 0; x < picture[y].length; ++x) {
         result.append(picture[y][x]);
       }
       result.append("\n");
     }
     return result.toString();
   }
-  
+
   public enum SolutionCategory {UPPER_LEFT, MID_X, MID_Y, CENTER}
-  
+
   /**
    * Find whether the solution has the x in the upper left quadrant, the
    * x-midline, the y-midline or in the center.
@@ -182,21 +186,21 @@ public class Pentomino {
   public SolutionCategory getCategory(List<List<ColumnName>> names) {
     Piece xPiece = null;
     // find the "x" piece
-    for(Piece p: pieces) {
+    for (Piece p : pieces) {
       if ("x".equals(p.name)) {
         xPiece = p;
         break;
       }
     }
     // find the row containing the "x"
-    for(List<ColumnName> row: names) {
+    for (List<ColumnName> row : names) {
       if (row.contains(xPiece)) {
         // figure out where the "x" is located
         int low_x = width;
         int high_x = 0;
         int low_y = height;
         int high_y = 0;
-        for(ColumnName col: row) {
+        for (ColumnName col : row) {
           if (col instanceof Point) {
             int x = ((Point) col).x;
             int y = ((Point) col).y;
@@ -228,45 +232,45 @@ public class Pentomino {
     }
     return SolutionCategory.UPPER_LEFT;
   }
-  
+
   /**
    * A solution printer that just writes the solution to stdout.
    */
-  private static class SolutionPrinter 
-                       implements DancingLinks.SolutionAcceptor<ColumnName> {
+  private static class SolutionPrinter
+      implements DancingLinks.SolutionAcceptor<ColumnName> {
     int width;
     int height;
-    
+
     public SolutionPrinter(int width, int height) {
       this.width = width;
       this.height = height;
     }
-    
+
     public void solution(List<List<ColumnName>> names) {
       System.out.println(stringifySolution(width, height, names));
     }
   }
-  
+
   protected int width;
   protected int height;
 
   protected List<Piece> pieces = new ArrayList<Piece>();
-  
+
   /**
    * Is the piece fixed under rotation?
    */
-  protected static final int [] oneRotation = new int[]{0};
-  
+  protected static final int[] oneRotation = new int[]{0};
+
   /**
    * Is the piece identical if rotated 180 degrees?
    */
-  protected static final int [] twoRotations = new int[]{0,1};
-  
+  protected static final int[] twoRotations = new int[]{0, 1};
+
   /**
    * Are all 4 rotations unique?
    */
-  protected static final int [] fourRotations = new int[]{0,1,2,3};
-  
+  protected static final int[] fourRotations = new int[]{0, 1, 2, 3};
+
   /**
    * Fill in the pieces list.
    */
@@ -284,7 +288,7 @@ public class Pentomino {
     pieces.add(new Piece("y", "  x /xxxx", true, fourRotations));
     pieces.add(new Piece("l", "   x/xxxx", true, fourRotations));
   }
-  
+
   /**
    * Is the middle of piece on the upper/left side of the board with 
    * a given offset and size of the piece? This only checks in one
@@ -295,9 +299,9 @@ public class Pentomino {
    * @return is it in the upper/left?
    */
   private static boolean isSide(int offset, int shapeSize, int board) {
-    return 2*offset + shapeSize <= board;
+    return 2 * offset + shapeSize <= board;
   }
-  
+
   /**
    * For a given piece, generate all of the potential placements and add them 
    * as rows to the model.
@@ -320,36 +324,36 @@ public class Pentomino {
                                    boolean upperLeft) {
     // for each rotation
     int[] rotations = piece.getRotations();
-    for(int rotIndex = 0; rotIndex < rotations.length; ++rotIndex) {
+    for (int rotIndex = 0; rotIndex < rotations.length; ++rotIndex) {
       // get the shape
       boolean[][] shape = piece.getShape(flip, rotations[rotIndex]);
       // find all of the valid offsets
-      for(int x=0; x < width; ++x) {
-        for(int y=0; y < height; ++y) {
+      for (int x = 0; x < width; ++x) {
+        for (int y = 0; y < height; ++y) {
           if (y + shape.length <= height && x + shape[0].length <= width &&
-              (!upperLeft || 
-                  (isSide(x, shape[0].length, width) && 
-                   isSide(y, shape.length, height)))) {
+              (!upperLeft ||
+                  (isSide(x, shape[0].length, width) &&
+                      isSide(y, shape.length, height)))) {
             // clear the columns related to the points on the board
-            for(int idx=0; idx < width * height; ++idx) {
+            for (int idx = 0; idx < width * height; ++idx) {
               row[idx] = false;
             }
             // mark the shape
-            for(int subY=0; subY < shape.length; ++subY) {
-              for(int subX=0; subX < shape[0].length; ++subX) {
+            for (int subY = 0; subY < shape.length; ++subY) {
+              for (int subX = 0; subX < shape[0].length; ++subX) {
                 row[(y + subY) * width + x + subX] = shape[subY][subX];
               }
             }
             dancer.addRow(row);
-          }         
+          }
         }
       }
     }
   }
-  
+
   private DancingLinks<ColumnName> dancer = new DancingLinks<ColumnName>();
   private DancingLinks.SolutionAcceptor<ColumnName> printer;
-  
+
   {
     initializePieces();
   }
@@ -372,17 +376,17 @@ public class Pentomino {
   void initialize(int width, int height) {
     this.width = width;
     this.height = height;
-    for(int y=0; y < height; ++y) {
-      for(int x=0; x < width; ++x) {
-        dancer.addColumn(new Point(x,y));
+    for (int y = 0; y < height; ++y) {
+      for (int x = 0; x < width; ++x) {
+        dancer.addColumn(new Point(x, y));
       }
     }
     int pieceBase = dancer.getNumberColumns();
-    for(Piece p: pieces) {
+    for (Piece p : pieces) {
       dancer.addColumn(p);
     }
     boolean[] row = new boolean[dancer.getNumberColumns()];
-    for(int idx = 0; idx < pieces.size(); ++idx) {
+    for (int idx = 0; idx < pieces.size(); ++idx) {
       Piece piece = pieces.get(idx);
       row[idx + pieceBase] = true;
       generateRows(dancer, piece, width, height, false, row, idx == 0);
@@ -393,7 +397,7 @@ public class Pentomino {
     }
     printer = new SolutionPrinter(width, height);
   }
-  
+
   /**
    * Generate a list of prefixes to a given depth
    * @param depth the length of each prefix
@@ -402,7 +406,7 @@ public class Pentomino {
   public List<int[]> getSplits(int depth) {
     return dancer.split(depth);
   }
-  
+
   /**
    * Find all of the solutions that start with the given prefix. The printer
    * is given each solution as it is found.
@@ -413,7 +417,7 @@ public class Pentomino {
   public int solve(int[] split) {
     return dancer.solve(split, printer);
   }
-  
+
   /**
    * Find all of the solutions to the puzzle.
    * @return the number of solutions found
@@ -421,7 +425,7 @@ public class Pentomino {
   public int solve() {
     return dancer.solve(printer);
   }
-  
+
   /**
    * Set the printer for the puzzle.
    * @param printer A call-back object that is given each solution as it is 
@@ -430,7 +434,7 @@ public class Pentomino {
   public void setPrinter(DancingLinks.SolutionAcceptor<ColumnName> printer) {
     this.printer = printer;
   }
-  
+
   /**
    * Solve the 6x10 pentomino puzzle.
    */
@@ -439,14 +443,14 @@ public class Pentomino {
     int height = 10;
     Pentomino model = new Pentomino(width, height);
     List splits = model.getSplits(2);
-    for(Iterator splitItr=splits.iterator(); splitItr.hasNext(); ) {
+    for (Iterator splitItr = splits.iterator(); splitItr.hasNext(); ) {
       int[] choices = (int[]) splitItr.next();
       System.out.print("split:");
-      for(int i=0; i < choices.length; ++i) {
+      for (int i = 0; i < choices.length; ++i) {
         System.out.print(" " + choices[i]);
       }
       System.out.println();
-      
+
       System.out.println(model.solve(choices) + " solutions found.");
     }
   }

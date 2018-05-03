@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,35 +17,32 @@
  */
 package org.apache.hadoop.mapreduce;
 
-import java.io.File;
-import java.io.IOException;
-
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.PathFilter;
-import org.apache.hadoop.fs.FileAlreadyExistsException;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.mapred.HadoopTestCase;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
 import org.junit.Ignore;
+
+import java.io.File;
+import java.io.IOException;
+
 @Ignore
 public class TestNoJobSetupCleanup extends HadoopTestCase {
   private static String TEST_ROOT_DIR =
-    new File(System.getProperty("test.build.data","/tmp"))
-    .toURI().toString().replace(' ', '+');
+      new File(System.getProperty("test.build.data", "/tmp"))
+          .toURI().toString().replace(' ', '+');
   private final Path inDir = new Path(TEST_ROOT_DIR, "./wc/input");
   private final Path outDir = new Path(TEST_ROOT_DIR, "./wc/output");
 
   public TestNoJobSetupCleanup() throws IOException {
-    super(HadoopTestCase.CLUSTER_MR , HadoopTestCase.LOCAL_FS, 2, 2);
+    super(HadoopTestCase.CLUSTER_MR, HadoopTestCase.LOCAL_FS, 2, 2);
   }
 
-  private Job submitAndValidateJob(Configuration conf, int numMaps, int numReds) 
+  private Job submitAndValidateJob(Configuration conf, int numMaps, int numReds)
       throws IOException, InterruptedException, ClassNotFoundException {
-    Job job = MapReduceTestUtil.createJob(conf, inDir, outDir, 
-                numMaps, numReds);
+    Job job = MapReduceTestUtil.createJob(conf, inDir, outDir,
+        numMaps, numReds);
     job.setJobSetupCleanupNeeded(false);
     job.setOutputFormatClass(MyOutputFormat.class);
     job.waitForCompletion(true);
@@ -68,11 +65,11 @@ public class TestNoJobSetupCleanup extends HadoopTestCase {
         + numPartFiles, list.length == numPartFiles);
     return job;
   }
-  
+
   public void testNoJobSetupCleanup() throws Exception {
     try {
       Configuration conf = createJobConf();
- 
+
       // run a job without job-setup and cleanup
       submitAndValidateJob(conf, 1, 1);
 
@@ -88,15 +85,15 @@ public class TestNoJobSetupCleanup extends HadoopTestCase {
       tearDown();
     }
   }
-  
+
   public static class MyOutputFormat extends TextOutputFormat {
-    public void checkOutputSpecs(JobContext job) 
-        throws FileAlreadyExistsException, IOException{
+    public void checkOutputSpecs(JobContext job)
+        throws FileAlreadyExistsException, IOException {
       super.checkOutputSpecs(job);
       // creating dummy TaskAttemptID
       TaskAttemptID tid = new TaskAttemptID("jt", 1, TaskType.JOB_SETUP, 0, 0);
       getOutputCommitter(new TaskAttemptContextImpl(job.getConfiguration(), tid)).
-        setupJob(job);
+          setupJob(job);
     }
   }
 

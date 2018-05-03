@@ -1,31 +1,24 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2.hs;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.security.AccessControlException;
-import java.security.PrivilegedExceptionAction;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.EnumSet;
-
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
@@ -38,34 +31,7 @@ import org.apache.hadoop.mapreduce.TypeConverter;
 import org.apache.hadoop.mapreduce.v2.api.HSClientProtocol;
 import org.apache.hadoop.mapreduce.v2.api.MRClientProtocol;
 import org.apache.hadoop.mapreduce.v2.api.MRDelegationTokenIdentifier;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.CancelDelegationTokenRequest;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.CancelDelegationTokenResponse;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.FailTaskAttemptRequest;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.FailTaskAttemptResponse;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetCountersRequest;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetCountersResponse;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetDelegationTokenRequest;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetDelegationTokenResponse;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetDiagnosticsRequest;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetDiagnosticsResponse;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetJobReportRequest;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetJobReportResponse;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetTaskAttemptCompletionEventsRequest;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetTaskAttemptCompletionEventsResponse;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetTaskAttemptReportRequest;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetTaskAttemptReportResponse;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetTaskReportRequest;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetTaskReportResponse;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetTaskReportsRequest;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetTaskReportsResponse;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.KillJobRequest;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.KillJobResponse;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.KillTaskAttemptRequest;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.KillTaskAttemptResponse;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.KillTaskRequest;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.KillTaskResponse;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.RenewDelegationTokenRequest;
-import org.apache.hadoop.mapreduce.v2.api.protocolrecords.RenewDelegationTokenResponse;
+import org.apache.hadoop.mapreduce.v2.api.protocolrecords.*;
 import org.apache.hadoop.mapreduce.v2.api.records.JobId;
 import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId;
 import org.apache.hadoop.mapreduce.v2.api.records.TaskId;
@@ -83,13 +49,18 @@ import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.service.AbstractService;
 import org.apache.hadoop.yarn.factories.RecordFactory;
 import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
-import org.apache.hadoop.yarn.ipc.RPCUtil;
 import org.apache.hadoop.yarn.ipc.YarnRPC;
 import org.apache.hadoop.yarn.util.Records;
 import org.apache.hadoop.yarn.webapp.WebApp;
 import org.apache.hadoop.yarn.webapp.WebApps;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.security.AccessControlException;
+import java.security.PrivilegedExceptionAction;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.EnumSet;
 
 /**
  * This module is responsible for talking to the
@@ -106,9 +77,9 @@ public class HistoryClientService extends AbstractService {
   private InetSocketAddress bindAddress;
   private HistoryContext history;
   private JHSDelegationTokenSecretManager jhsDTSecretManager;
-  
+
   public HistoryClientService(HistoryContext history,
-      JHSDelegationTokenSecretManager jhsDTSecretManager) {
+                              JHSDelegationTokenSecretManager jhsDTSecretManager) {
     super("HistoryClientService");
     this.history = history;
     this.protocolHandler = new HSClientProtocolHandler();
@@ -137,12 +108,12 @@ public class HistoryClientService extends AbstractService {
         false)) {
       server.refreshServiceAcl(conf, new ClientHSPolicyProvider());
     }
-    
+
     server.start();
     this.bindAddress = conf.updateConnectAddr(JHAdminConfig.MR_HISTORY_BIND_HOST,
-                                              JHAdminConfig.MR_HISTORY_ADDRESS,
-                                              JHAdminConfig.DEFAULT_MR_HISTORY_ADDRESS,
-                                              server.getListenerAddress());
+        JHAdminConfig.MR_HISTORY_ADDRESS,
+        JHAdminConfig.DEFAULT_MR_HISTORY_ADDRESS,
+        server.getListenerAddress());
     LOG.info("Instantiated HistoryClientService at " + this.bindAddress);
 
     super.serviceStart();
@@ -161,7 +132,7 @@ public class HistoryClientService extends AbstractService {
         .withHttpSpnegoPrincipalKey(
             JHAdminConfig.MR_WEBAPP_SPNEGO_USER_NAME_KEY)
         .at(NetUtils.getHostPortString(bindAddress)).start(webApp);
-    
+
     String connectHost = MRWebAppUtil.getJHSWebappURLWithoutScheme(conf).split(":")[0];
     MRWebAppUtil.setJHSWebappURLWithoutScheme(conf,
         connectHost + ":" + webApp.getListenerAddress().getPort());
@@ -195,7 +166,7 @@ public class HistoryClientService extends AbstractService {
     public InetSocketAddress getConnectAddress() {
       return getBindAddress();
     }
-    
+
     private Job verifyAndGetJob(final JobId jobID) throws IOException {
       UserGroupInformation loginUgi = null;
       Job job = null;
@@ -237,8 +208,7 @@ public class HistoryClientService extends AbstractService {
       GetJobReportResponse response = recordFactory.newRecordInstance(GetJobReportResponse.class);
       if (job != null) {
         response.setJobReport(job.getReport());
-      }
-      else {
+      } else {
         response.setJobReport(null);
       }
       return response;
@@ -266,8 +236,8 @@ public class HistoryClientService extends AbstractService {
 
     @Override
     public GetTaskAttemptCompletionEventsResponse
-        getTaskAttemptCompletionEvents(
-            GetTaskAttemptCompletionEventsRequest request) throws IOException {
+    getTaskAttemptCompletionEvents(
+        GetTaskAttemptCompletionEventsRequest request) throws IOException {
       JobId jobId = request.getJobId();
       int fromEventId = request.getFromEventId();
       int maxEvents = request.getMaxEvents();
@@ -327,7 +297,7 @@ public class HistoryClientService extends AbstractService {
       }
       return response;
     }
-    
+
     @Override
     public GetDelegationTokenResponse getDelegationToken(
         GetDelegationTokenRequest request) throws IOException {
@@ -335,10 +305,10 @@ public class HistoryClientService extends AbstractService {
       UserGroupInformation ugi = UserGroupInformation.getCurrentUser();
 
       // Verify that the connection is kerberos authenticated
-        if (!isAllowedDelegationTokenOp()) {
-          throw new IOException(
-              "Delegation Token can be issued only with kerberos authentication");
-        }
+      if (!isAllowedDelegationTokenOp()) {
+        throw new IOException(
+            "Delegation Token can be issued only with kerberos authentication");
+      }
 
       GetDelegationTokenResponse response = recordFactory.newRecordInstance(
           GetDelegationTokenResponse.class);
@@ -351,14 +321,14 @@ public class HistoryClientService extends AbstractService {
       }
       MRDelegationTokenIdentifier tokenIdentifier =
           new MRDelegationTokenIdentifier(owner, new Text(
-            request.getRenewer()), realUser);
+              request.getRenewer()), realUser);
       Token<MRDelegationTokenIdentifier> realJHSToken =
           new Token<MRDelegationTokenIdentifier>(tokenIdentifier,
               jhsDTSecretManager);
       org.apache.hadoop.yarn.api.records.Token mrDToken =
           org.apache.hadoop.yarn.api.records.Token.newInstance(
-            realJHSToken.getIdentifier(), realJHSToken.getKind().toString(),
-            realJHSToken.getPassword(), realJHSToken.getService().toString());
+              realJHSToken.getIdentifier(), realJHSToken.getKind().toString(),
+              realJHSToken.getPassword(), realJHSToken.getService().toString());
       response.setDelegationToken(mrDToken);
       return response;
     }
@@ -366,44 +336,44 @@ public class HistoryClientService extends AbstractService {
     @Override
     public RenewDelegationTokenResponse renewDelegationToken(
         RenewDelegationTokenRequest request) throws IOException {
-        if (!isAllowedDelegationTokenOp()) {
-          throw new IOException(
-              "Delegation Token can be renewed only with kerberos authentication");
-        }
+      if (!isAllowedDelegationTokenOp()) {
+        throw new IOException(
+            "Delegation Token can be renewed only with kerberos authentication");
+      }
 
-        org.apache.hadoop.yarn.api.records.Token protoToken = request.getDelegationToken();
-        Token<MRDelegationTokenIdentifier> token =
-            new Token<MRDelegationTokenIdentifier>(
-                protoToken.getIdentifier().array(), protoToken.getPassword()
-                    .array(), new Text(protoToken.getKind()), new Text(
-                    protoToken.getService()));
+      org.apache.hadoop.yarn.api.records.Token protoToken = request.getDelegationToken();
+      Token<MRDelegationTokenIdentifier> token =
+          new Token<MRDelegationTokenIdentifier>(
+              protoToken.getIdentifier().array(), protoToken.getPassword()
+              .array(), new Text(protoToken.getKind()), new Text(
+              protoToken.getService()));
 
-        String user = UserGroupInformation.getCurrentUser().getShortUserName();
-        long nextExpTime = jhsDTSecretManager.renewToken(token, user);
-        RenewDelegationTokenResponse renewResponse = Records
-            .newRecord(RenewDelegationTokenResponse.class);
-        renewResponse.setNextExpirationTime(nextExpTime);
-        return renewResponse;
+      String user = UserGroupInformation.getCurrentUser().getShortUserName();
+      long nextExpTime = jhsDTSecretManager.renewToken(token, user);
+      RenewDelegationTokenResponse renewResponse = Records
+          .newRecord(RenewDelegationTokenResponse.class);
+      renewResponse.setNextExpirationTime(nextExpTime);
+      return renewResponse;
     }
 
     @Override
     public CancelDelegationTokenResponse cancelDelegationToken(
         CancelDelegationTokenRequest request) throws IOException {
-        if (!isAllowedDelegationTokenOp()) {
-          throw new IOException(
-              "Delegation Token can be cancelled only with kerberos authentication");
-        }
+      if (!isAllowedDelegationTokenOp()) {
+        throw new IOException(
+            "Delegation Token can be cancelled only with kerberos authentication");
+      }
 
-        org.apache.hadoop.yarn.api.records.Token protoToken = request.getDelegationToken();
-        Token<MRDelegationTokenIdentifier> token =
-            new Token<MRDelegationTokenIdentifier>(
-                protoToken.getIdentifier().array(), protoToken.getPassword()
-                    .array(), new Text(protoToken.getKind()), new Text(
-                    protoToken.getService()));
+      org.apache.hadoop.yarn.api.records.Token protoToken = request.getDelegationToken();
+      Token<MRDelegationTokenIdentifier> token =
+          new Token<MRDelegationTokenIdentifier>(
+              protoToken.getIdentifier().array(), protoToken.getPassword()
+              .array(), new Text(protoToken.getKind()), new Text(
+              protoToken.getService()));
 
-        String user = UserGroupInformation.getCurrentUser().getUserName();
-        jhsDTSecretManager.cancelToken(token, user);
-        return Records.newRecord(CancelDelegationTokenResponse.class);
+      String user = UserGroupInformation.getCurrentUser().getUserName();
+      jhsDTSecretManager.cancelToken(token, user);
+      return Records.newRecord(CancelDelegationTokenResponse.class);
     }
 
     private void checkAccess(Job job, JobACL jobOperation)
@@ -422,10 +392,10 @@ public class HistoryClientService extends AbstractService {
     private boolean isAllowedDelegationTokenOp() throws IOException {
       if (UserGroupInformation.isSecurityEnabled()) {
         return EnumSet.of(AuthenticationMethod.KERBEROS,
-                          AuthenticationMethod.KERBEROS_SSL,
-                          AuthenticationMethod.CERTIFICATE)
+            AuthenticationMethod.KERBEROS_SSL,
+            AuthenticationMethod.CERTIFICATE)
             .contains(UserGroupInformation.getCurrentUser()
-                    .getRealAuthenticationMethod());
+                .getRealAuthenticationMethod());
       } else {
         return true;
       }

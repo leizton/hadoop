@@ -1,33 +1,24 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapred;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
-
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
@@ -40,20 +31,16 @@ import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.ipc.ProtocolSignature;
 import org.apache.hadoop.mapreduce.Cluster.JobTrackerStatus;
-import org.apache.hadoop.mapreduce.ClusterMetrics;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.Counters;
 import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.JobID;
 import org.apache.hadoop.mapreduce.JobStatus;
-import org.apache.hadoop.mapreduce.MRJobConfig;
 import org.apache.hadoop.mapreduce.QueueAclsInfo;
 import org.apache.hadoop.mapreduce.QueueInfo;
 import org.apache.hadoop.mapreduce.TaskAttemptID;
 import org.apache.hadoop.mapreduce.TaskCompletionEvent;
 import org.apache.hadoop.mapreduce.TaskReport;
-import org.apache.hadoop.mapreduce.TaskTrackerInfo;
-import org.apache.hadoop.mapreduce.TaskType;
-import org.apache.hadoop.mapreduce.TypeConverter;
 import org.apache.hadoop.mapreduce.protocol.ClientProtocol;
 import org.apache.hadoop.mapreduce.security.token.delegation.DelegationTokenIdentifier;
 import org.apache.hadoop.mapreduce.v2.LogParams;
@@ -68,18 +55,7 @@ import org.apache.hadoop.security.authorize.AccessControlList;
 import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.ApplicationConstants.Environment;
-import org.apache.hadoop.yarn.api.records.ApplicationAccessType;
-import org.apache.hadoop.yarn.api.records.ApplicationId;
-import org.apache.hadoop.yarn.api.records.ApplicationReport;
-import org.apache.hadoop.yarn.api.records.ApplicationSubmissionContext;
-import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
-import org.apache.hadoop.yarn.api.records.LocalResource;
-import org.apache.hadoop.yarn.api.records.LocalResourceType;
-import org.apache.hadoop.yarn.api.records.LocalResourceVisibility;
-import org.apache.hadoop.yarn.api.records.ReservationId;
-import org.apache.hadoop.yarn.api.records.Resource;
-import org.apache.hadoop.yarn.api.records.URL;
-import org.apache.hadoop.yarn.api.records.YarnApplicationState;
+import org.apache.hadoop.yarn.api.records.*;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.factories.RecordFactory;
@@ -87,7 +63,9 @@ import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
 import org.apache.hadoop.yarn.security.client.RMDelegationTokenSelector;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.*;
 
 /**
  * This class enables the current JobClient (0.22 hadoop) to run on YARN.
@@ -102,14 +80,14 @@ public class YARNRunner implements ClientProtocol {
   private ClientCache clientCache;
   private Configuration conf;
   private final FileContext defaultFileContext;
-  
+
   /**
    * Yarn runner incapsulates the client interface of
    * yarn
    * @param conf the configuration object for the client
    */
   public YARNRunner(Configuration conf) {
-   this(conf, new ResourceMgrDelegate(new YarnConfiguration(conf)));
+    this(conf, new ResourceMgrDelegate(new YarnConfiguration(conf)));
   }
 
   /**
@@ -119,7 +97,7 @@ public class YARNRunner implements ClientProtocol {
    * @param resMgrDelegate the resourcemanager client handle.
    */
   public YARNRunner(Configuration conf, ResourceMgrDelegate resMgrDelegate) {
-   this(conf, resMgrDelegate, new ClientCache(conf, resMgrDelegate));
+    this(conf, resMgrDelegate, new ClientCache(conf, resMgrDelegate));
   }
 
   /**
@@ -130,7 +108,7 @@ public class YARNRunner implements ClientProtocol {
    * @param clientCache the client cache object.
    */
   public YARNRunner(Configuration conf, ResourceMgrDelegate resMgrDelegate,
-      ClientCache clientCache) {
+                    ClientCache clientCache) {
     this.conf = conf;
     try {
       this.resMgrDelegate = resMgrDelegate;
@@ -140,7 +118,7 @@ public class YARNRunner implements ClientProtocol {
       throw new RuntimeException("Error in instantiating YarnClient", ufe);
     }
   }
-  
+
   @Private
   /**
    * Used for testing mostly.
@@ -149,7 +127,7 @@ public class YARNRunner implements ClientProtocol {
   public void setResourceMgrDelegate(ResourceMgrDelegate resMgrDelegate) {
     this.resMgrDelegate = resMgrDelegate;
   }
-  
+
   @Override
   public void cancelDelegationToken(Token<DelegationTokenIdentifier> arg0)
       throws IOException, InterruptedException {
@@ -199,12 +177,12 @@ public class YARNRunner implements ClientProtocol {
       }
     }
   }
-  
+
   @VisibleForTesting
   Token<?> getDelegationTokenFromHS(MRClientProtocol hsProxy)
       throws IOException, InterruptedException {
     GetDelegationTokenRequest request = recordFactory
-      .newRecordInstance(GetDelegationTokenRequest.class);
+        .newRecordInstance(GetDelegationTokenRequest.class);
     request.setRenewer(Master.getMasterPrincipal(conf));
     org.apache.hadoop.yarn.api.records.Token mrDelegationToken;
     mrDelegationToken = hsProxy.getDelegationToken(request)
@@ -277,13 +255,13 @@ public class YARNRunner implements ClientProtocol {
 
   @Override
   public JobStatus submitJob(JobID jobId, String jobSubmitDir, Credentials ts)
-  throws IOException, InterruptedException {
-    
+      throws IOException, InterruptedException {
+
     addHistoryToken(ts);
-    
+
     // Construct necessary information to start the MR AM
     ApplicationSubmissionContext appContext =
-      createApplicationSubmissionContext(conf, jobSubmitDir, ts);
+        createApplicationSubmissionContext(conf, jobSubmitDir, ts);
 
     // Submit to ResourceManager
     try {
@@ -330,13 +308,13 @@ public class YARNRunner implements ClientProtocol {
     capability.setMemory(
         conf.getInt(
             MRJobConfig.MR_AM_VMEM_MB, MRJobConfig.DEFAULT_MR_AM_VMEM_MB
-            )
-        );
+        )
+    );
     capability.setVirtualCores(
         conf.getInt(
             MRJobConfig.MR_AM_CPU_VCORES, MRJobConfig.DEFAULT_MR_AM_CPU_VCORES
-            )
-        );
+        )
+    );
     LOG.debug("AppMaster capability = " + capability);
 
     // Setup LocalResources
@@ -361,7 +339,7 @@ public class YARNRunner implements ClientProtocol {
           FileContext.getFileContext(jobJarPath.toUri(), jobConf),
           jobJarPath,
           LocalResourceType.PATTERN);
-      String pattern = conf.getPattern(JobContext.JAR_UNPACK_PATTERN, 
+      String pattern = conf.getPattern(JobContext.JAR_UNPACK_PATTERN,
           JobConf.UNPACK_JAR_PATTERN_DEFAULT).pattern();
       rc.setPattern(pattern);
       localResources.put(MRJobConfig.JOB_JAR, rc);
@@ -373,9 +351,9 @@ public class YARNRunner implements ClientProtocol {
     }
 
     // TODO gross hack
-    for (String s : new String[] {
+    for (String s : new String[]{
         MRJobConfig.JOB_SPLIT,
-        MRJobConfig.JOB_SPLIT_METAINFO }) {
+        MRJobConfig.JOB_SPLIT_METAINFO}) {
       localResources.put(
           MRJobConfig.JOB_SUBMIT_DIR + "/" + s,
           createApplicationResource(defaultFileContext,
@@ -385,7 +363,7 @@ public class YARNRunner implements ClientProtocol {
     // Setup security tokens
     DataOutputBuffer dob = new DataOutputBuffer();
     ts.writeTokenStorageToStream(dob);
-    ByteBuffer securityTokens  = ByteBuffer.wrap(dob.getData(), 0, dob.getLength());
+    ByteBuffer securityTokens = ByteBuffer.wrap(dob.getData(), 0, dob.getLength());
 
     // Setup the command to run the AM
     List<String> vargs = new ArrayList<String>(8);
@@ -402,27 +380,27 @@ public class YARNRunner implements ClientProtocol {
     MRApps.addLog4jSystemProperties(logLevel, logSize, numBackups, vargs, conf);
 
     // Check for Java Lib Path usage in MAP and REDUCE configs
-    warnForJavaLibPath(conf.get(MRJobConfig.MAP_JAVA_OPTS,""), "map", 
+    warnForJavaLibPath(conf.get(MRJobConfig.MAP_JAVA_OPTS, ""), "map",
         MRJobConfig.MAP_JAVA_OPTS, MRJobConfig.MAP_ENV);
-    warnForJavaLibPath(conf.get(MRJobConfig.MAPRED_MAP_ADMIN_JAVA_OPTS,""), "map", 
+    warnForJavaLibPath(conf.get(MRJobConfig.MAPRED_MAP_ADMIN_JAVA_OPTS, ""), "map",
         MRJobConfig.MAPRED_MAP_ADMIN_JAVA_OPTS, MRJobConfig.MAPRED_ADMIN_USER_ENV);
-    warnForJavaLibPath(conf.get(MRJobConfig.REDUCE_JAVA_OPTS,""), "reduce", 
+    warnForJavaLibPath(conf.get(MRJobConfig.REDUCE_JAVA_OPTS, ""), "reduce",
         MRJobConfig.REDUCE_JAVA_OPTS, MRJobConfig.REDUCE_ENV);
-    warnForJavaLibPath(conf.get(MRJobConfig.MAPRED_REDUCE_ADMIN_JAVA_OPTS,""), "reduce", 
+    warnForJavaLibPath(conf.get(MRJobConfig.MAPRED_REDUCE_ADMIN_JAVA_OPTS, ""), "reduce",
         MRJobConfig.MAPRED_REDUCE_ADMIN_JAVA_OPTS, MRJobConfig.MAPRED_ADMIN_USER_ENV);
 
     // Add AM admin command opts before user command opts
     // so that it can be overridden by user
     String mrAppMasterAdminOptions = conf.get(MRJobConfig.MR_AM_ADMIN_COMMAND_OPTS,
         MRJobConfig.DEFAULT_MR_AM_ADMIN_COMMAND_OPTS);
-    warnForJavaLibPath(mrAppMasterAdminOptions, "app master", 
+    warnForJavaLibPath(mrAppMasterAdminOptions, "app master",
         MRJobConfig.MR_AM_ADMIN_COMMAND_OPTS, MRJobConfig.MR_AM_ADMIN_USER_ENV);
     vargs.add(mrAppMasterAdminOptions);
-    
+
     // Add AM user command opts
     String mrAppMasterUserOptions = conf.get(MRJobConfig.MR_AM_COMMAND_OPTS,
         MRJobConfig.DEFAULT_MR_AM_COMMAND_OPTS);
-    warnForJavaLibPath(mrAppMasterUserOptions, "app master", 
+    warnForJavaLibPath(mrAppMasterUserOptions, "app master",
         MRJobConfig.MR_AM_COMMAND_OPTS, MRJobConfig.MR_AM_ENV);
     vargs.add(mrAppMasterUserOptions);
 
@@ -470,10 +448,10 @@ public class YARNRunner implements ClientProtocol {
         MRApps.crossPlatformifyMREnv(conf, Environment.PWD), conf);
 
     // Setup the environment variables for Admin first
-    MRApps.setEnvFromInputString(environment, 
+    MRApps.setEnvFromInputString(environment,
         conf.get(MRJobConfig.MR_AM_ADMIN_USER_ENV), conf);
     // Setup the environment variables (LD_LIBRARY_PATH, etc)
-    MRApps.setEnvFromInputString(environment, 
+    MRApps.setEnvFromInputString(environment,
         conf.get(MRJobConfig.MR_AM_ENV), conf);
 
     // Parse distributed cache
@@ -490,7 +468,7 @@ public class YARNRunner implements ClientProtocol {
     // Setup ContainerLaunchContext for AM container
     ContainerLaunchContext amContainer =
         ContainerLaunchContext.newInstance(localResources, environment,
-          vargsFinal, null, securityTokens, acls);
+            vargsFinal, null, securityTokens, acls);
 
     Collection<String> tagsFromConf =
         jobConf.getTrimmedStringCollection(MRJobConfig.JOB_TAGS);
@@ -501,7 +479,7 @@ public class YARNRunner implements ClientProtocol {
     appContext.setApplicationId(applicationId);                // ApplicationId
     appContext.setQueue(                                       // Queue name
         jobConf.get(JobContext.QUEUE_NAME,
-        YarnConfiguration.DEFAULT_QUEUE_NAME));
+            YarnConfiguration.DEFAULT_QUEUE_NAME));
     // add reservationID if present
     ReservationId reservationID = null;
     try {
@@ -524,7 +502,7 @@ public class YARNRunner implements ClientProtocol {
     }
     appContext.setApplicationName(                             // Job name
         jobConf.get(JobContext.JOB_NAME,
-        YarnConfiguration.DEFAULT_APPLICATION_NAME));
+            YarnConfiguration.DEFAULT_APPLICATION_NAME));
     appContext.setCancelTokensWhenComplete(
         conf.getBoolean(MRJobConfig.JOB_CANCEL_DELEGATION_TOKEN, true));
     appContext.setAMContainerSpec(amContainer);         // AM Container
@@ -578,7 +556,7 @@ public class YARNRunner implements ClientProtocol {
 
   @Override
   public TaskCompletionEvent[] getTaskCompletionEvents(JobID arg0, int arg1,
-      int arg2) throws IOException, InterruptedException {
+                                                       int arg2) throws IOException, InterruptedException {
     return clientCache.getClient(arg0).getTaskCompletionEvents(arg0, arg1, arg2);
   }
 
@@ -590,7 +568,7 @@ public class YARNRunner implements ClientProtocol {
 
   @Override
   public TaskReport[] getTaskReports(JobID jobID, TaskType taskType)
-  throws IOException, InterruptedException {
+      throws IOException, InterruptedException {
     return clientCache.getClient(jobID)
         .getTaskReports(jobID, taskType);
   }
@@ -662,7 +640,7 @@ public class YARNRunner implements ClientProtocol {
           return;
         }
       }
-    } catch(IOException io) {
+    } catch (IOException io) {
       LOG.debug("Error when checking for application status", io);
     }
     if (status != null && !isJobInTerminalState(status)) {
@@ -689,7 +667,7 @@ public class YARNRunner implements ClientProtocol {
 
   @Override
   public ProtocolSignature getProtocolSignature(String protocol,
-      long clientVersion, int clientMethodsHash) throws IOException {
+                                                long clientVersion, int clientMethodsHash) throws IOException {
     return ProtocolSignature.getProtocolSignature(this, protocol, clientVersion,
         clientMethodsHash);
   }
@@ -700,14 +678,14 @@ public class YARNRunner implements ClientProtocol {
     return clientCache.getClient(jobID).getLogFilePath(jobID, taskAttemptID);
   }
 
-  private static void warnForJavaLibPath(String opts, String component, 
-      String javaConf, String envConf) {
+  private static void warnForJavaLibPath(String opts, String component,
+                                         String javaConf, String envConf) {
     if (opts != null && opts.contains("-Djava.library.path")) {
       LOG.warn("Usage of -Djava.library.path in " + javaConf + " can cause " +
-               "programs to no longer function if hadoop native libraries " +
-               "are used. These values should be set as part of the " +
-               "LD_LIBRARY_PATH in the " + component + " JVM env using " +
-               envConf + " config settings.");
+          "programs to no longer function if hadoop native libraries " +
+          "are used. These values should be set as part of the " +
+          "LD_LIBRARY_PATH in the " + component + " JVM env using " +
+          envConf + " config settings.");
     }
   }
 }

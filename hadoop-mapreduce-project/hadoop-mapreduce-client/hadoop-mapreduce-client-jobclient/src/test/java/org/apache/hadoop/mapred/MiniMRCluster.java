@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,9 +17,6 @@
  */
 package org.apache.hadoop.mapred;
 
-import java.io.IOException;
-import java.util.Random;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
@@ -27,6 +24,9 @@ import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.security.AccessControlException;
 import org.apache.hadoop.security.UserGroupInformation;
+
+import java.io.IOException;
+import java.util.Random;
 
 /**
  * This class is an MR2 replacement for older MR1 MiniMRCluster, that was used
@@ -114,17 +114,17 @@ public class MiniMRCluster {
   }
 
   static JobConf configureJobConf(JobConf conf, String namenode,
-      int jobTrackerPort, int jobTrackerInfoPort, UserGroupInformation ugi) {
+                                  int jobTrackerPort, int jobTrackerInfoPort, UserGroupInformation ugi) {
     throw new UnsupportedOperationException();
   }
 
   public MiniMRCluster(int numTaskTrackers, String namenode, int numDir,
-      String[] racks, String[] hosts) throws IOException {
+                       String[] racks, String[] hosts) throws IOException {
     this(0, 0, numTaskTrackers, namenode, numDir, racks, hosts);
   }
 
   public MiniMRCluster(int numTaskTrackers, String namenode, int numDir,
-      String[] racks, String[] hosts, JobConf conf) throws IOException {
+                       String[] racks, String[] hosts, JobConf conf) throws IOException {
     this(0, 0, numTaskTrackers, namenode, numDir, racks, hosts, null, conf);
   }
 
@@ -134,52 +134,52 @@ public class MiniMRCluster {
   }
 
   public MiniMRCluster(int jobTrackerPort, int taskTrackerPort,
-      int numTaskTrackers, String namenode, int numDir) throws IOException {
+                       int numTaskTrackers, String namenode, int numDir) throws IOException {
     this(jobTrackerPort, taskTrackerPort, numTaskTrackers, namenode, numDir,
         null);
   }
 
   public MiniMRCluster(int jobTrackerPort, int taskTrackerPort,
-      int numTaskTrackers, String namenode, int numDir, String[] racks)
+                       int numTaskTrackers, String namenode, int numDir, String[] racks)
       throws IOException {
     this(jobTrackerPort, taskTrackerPort, numTaskTrackers, namenode, numDir,
         racks, null);
   }
 
   public MiniMRCluster(int jobTrackerPort, int taskTrackerPort,
-      int numTaskTrackers, String namenode, int numDir, String[] racks,
-      String[] hosts) throws IOException {
+                       int numTaskTrackers, String namenode, int numDir, String[] racks,
+                       String[] hosts) throws IOException {
     this(jobTrackerPort, taskTrackerPort, numTaskTrackers, namenode, numDir,
         racks, hosts, null);
   }
 
   public MiniMRCluster(int jobTrackerPort, int taskTrackerPort,
-      int numTaskTrackers, String namenode, int numDir, String[] racks,
-      String[] hosts, UserGroupInformation ugi) throws IOException {
+                       int numTaskTrackers, String namenode, int numDir, String[] racks,
+                       String[] hosts, UserGroupInformation ugi) throws IOException {
     this(jobTrackerPort, taskTrackerPort, numTaskTrackers, namenode, numDir,
         racks, hosts, ugi, null);
   }
 
   public MiniMRCluster(int jobTrackerPort, int taskTrackerPort,
-      int numTaskTrackers, String namenode, int numDir, String[] racks,
-      String[] hosts, UserGroupInformation ugi, JobConf conf)
+                       int numTaskTrackers, String namenode, int numDir, String[] racks,
+                       String[] hosts, UserGroupInformation ugi, JobConf conf)
       throws IOException {
     this(jobTrackerPort, taskTrackerPort, numTaskTrackers, namenode, numDir,
         racks, hosts, ugi, conf, 0);
   }
 
   public MiniMRCluster(int jobTrackerPort, int taskTrackerPort,
-      int numTaskTrackers, String namenode, int numDir, String[] racks,
-      String[] hosts, UserGroupInformation ugi, JobConf conf,
-      int numTrackerToExclude) throws IOException {
+                       int numTaskTrackers, String namenode, int numDir, String[] racks,
+                       String[] hosts, UserGroupInformation ugi, JobConf conf,
+                       int numTrackerToExclude) throws IOException {
     this(jobTrackerPort, taskTrackerPort, numTaskTrackers, namenode, numDir,
         racks, hosts, ugi, conf, numTrackerToExclude, new Clock());
   }
 
   public MiniMRCluster(int jobTrackerPort, int taskTrackerPort,
-      int numTaskTrackers, String namenode, int numDir, String[] racks,
-      String[] hosts, UserGroupInformation ugi, JobConf conf,
-      int numTrackerToExclude, Clock clock) throws IOException {
+                       int numTaskTrackers, String namenode, int numDir, String[] racks,
+                       String[] hosts, UserGroupInformation ugi, JobConf conf,
+                       int numTrackerToExclude, Clock clock) throws IOException {
     if (conf == null) conf = new JobConf();
     FileSystem.setDefaultUri(conf, namenode);
     String identifier = this.getClass().getSimpleName() + "_"
@@ -193,7 +193,7 @@ public class MiniMRCluster {
   }
 
   public TaskCompletionEvent[] getTaskCompletionEvents(JobID id, int from,
-      int max) throws IOException {
+                                                       int max) throws IOException {
     throw new UnsupportedOperationException();
   }
 

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,14 +18,14 @@
 
 package org.apache.hadoop.fs.slive;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.io.PrintWriter;
 import java.text.NumberFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * Class which provides a report for the given operation output
@@ -62,7 +62,7 @@ class ReportWriter {
   /**
    * Writes a message the the logging library and the given print writer (if it
    * is not null)
-   * 
+   *
    * @param msg
    *          the message to write
    * @param os
@@ -78,7 +78,7 @@ class ReportWriter {
   /**
    * Provides a simple report showing only the input size, and for each
    * operation the operation type, measurement type and its values.
-   * 
+   *
    * @param input
    *          the list of operations to report on
    * @param os
@@ -103,7 +103,7 @@ class ReportWriter {
    * written, success count, files created, directory entries, op count and
    * bytes read if the variable for time taken is available for each measurement
    * type.
-   * 
+   *
    * @param operation
    *          the operation that is being reported on.
    * @param input
@@ -113,7 +113,7 @@ class ReportWriter {
    *          the logging library)
    */
   void opReport(String operation, List<OperationOutput> input,
-      PrintWriter os) {
+                PrintWriter os) {
     writeMessage("Basic report for operation type " + operation, os);
     writeMessage(getSectionDelimiter(), os);
     for (OperationOutput data : input) {

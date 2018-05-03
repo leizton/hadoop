@@ -18,22 +18,10 @@
 
 package org.apache.hadoop.mapreduce.counters;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.Iterator;
-import java.util.Locale;
-import java.util.Map;
-
 import com.google.common.base.Joiner;
-import static com.google.common.base.Preconditions.*;
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
@@ -42,6 +30,18 @@ import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.mapreduce.Counter;
 import org.apache.hadoop.mapreduce.FileSystemCounter;
 import org.apache.hadoop.mapreduce.util.ResourceBundles;
+
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentSkipListMap;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * An abstract class to provide common implementation of the filesystem
@@ -55,13 +55,13 @@ public abstract class FileSystemCounterGroup<C extends Counter>
 
   static final int MAX_NUM_SCHEMES = 100; // intern/sanity check
   static final ConcurrentMap<String, String> schemes = Maps.newConcurrentMap();
-  
+
   private static final Log LOG = LogFactory.getLog(FileSystemCounterGroup.class);
 
   // C[] would need Array.newInstance which requires a Class<C> reference.
   // Just a few local casts probably worth not having to carry it around.
   private final Map<String, Object[]> map =
-    new ConcurrentSkipListMap<String, Object[]>();
+      new ConcurrentSkipListMap<String, Object[]>();
   private String displayName;
 
   private static final Joiner NAME_JOINER = Joiner.on('_');
@@ -77,12 +77,12 @@ public abstract class FileSystemCounterGroup<C extends Counter>
       this.scheme = scheme;
       key = ref;
     }
-    
+
     @Private
     public String getScheme() {
       return scheme;
     }
-    
+
     @Private
     public FileSystemCounter getFileSystemCounter() {
       return key;
@@ -100,7 +100,7 @@ public abstract class FileSystemCounterGroup<C extends Counter>
 
     protected String localizeCounterName(String counterName) {
       return ResourceBundles.getCounterName(FileSystemCounter.class.getName(),
-                                            counterName, counterName);
+          counterName, counterName);
     }
 
     @Override
@@ -159,8 +159,7 @@ public abstract class FileSystemCounterGroup<C extends Counter>
     if (counter instanceof FileSystemCounterGroup.FSCounter) {
       FSCounter c = (FSCounter) counter;
       ours = findCounter(c.scheme, c.key);
-    }
-    else {
+    } else {
       ours = findCounter(counter.getName());
     }
     if (ours != null) {
@@ -184,7 +183,7 @@ public abstract class FileSystemCounterGroup<C extends Counter>
       throw new IllegalArgumentException("bad fs counter name");
     }
     return new String[]{counterName.substring(0, schemeEnd),
-                        counterName.substring(schemeEnd + 1)};
+        counterName.substring(schemeEnd + 1)};
   }
 
   @Override
@@ -197,8 +196,7 @@ public abstract class FileSystemCounterGroup<C extends Counter>
     try {
       String[] pair = parseCounterName(counterName);
       return findCounter(pair[0], FileSystemCounter.valueOf(pair[1]));
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       if (create) throw new IllegalArgumentException(e);
       LOG.warn(counterName + " is not a recognized counter.");
       return null;
@@ -219,8 +217,7 @@ public abstract class FileSystemCounterGroup<C extends Counter>
       counters = new Object[FileSystemCounter.values().length];
       map.put(canonicalScheme, counters);
       counters[ord] = newCounter(canonicalScheme, key);
-    }
-    else if (counters[ord] == null) {
+    } else if (counters[ord] == null) {
       counters[ord] = newCounter(canonicalScheme, key);
     }
     return (C) counters[ord];
@@ -231,16 +228,17 @@ public abstract class FileSystemCounterGroup<C extends Counter>
     String interned = schemes.putIfAbsent(fixed, fixed);
     if (schemes.size() > MAX_NUM_SCHEMES) {
       // mistakes or abuses
-      throw new IllegalArgumentException("too many schemes? "+ schemes.size() +
-                                         " when process scheme: "+ scheme);
+      throw new IllegalArgumentException("too many schemes? " + schemes.size() +
+          " when process scheme: " + scheme);
     }
     return interned == null ? fixed : interned;
   }
 
   /**
    * Abstract factory method to create a file system counter
+   *
    * @param scheme of the file system
-   * @param key the enum of the file system counter
+   * @param key    the enum of the file system counter
    * @return a new file system counter
    */
   protected abstract C newCounter(String scheme, FileSystemCounter key);
@@ -260,8 +258,8 @@ public abstract class FileSystemCounterGroup<C extends Counter>
     if (checkNotNull(other.getUnderlyingGroup(), "other group")
         instanceof FileSystemCounterGroup<?>) {
       for (Counter counter : other) {
-        FSCounter c = (FSCounter) ((Counter)counter).getUnderlyingCounter();
-        findCounter(c.scheme, c.key) .increment(counter.getValue());
+        FSCounter c = (FSCounter) ((Counter) counter).getUnderlyingCounter();
+        findCounter(c.scheme, c.key).increment(counter.getValue());
       }
     }
   }
@@ -279,7 +277,7 @@ public abstract class FileSystemCounterGroup<C extends Counter>
       for (Object counter : entry.getValue()) {
         if (counter == null) continue;
         @SuppressWarnings("unchecked")
-        FSCounter c = (FSCounter) ((Counter)counter).getUnderlyingCounter();
+        FSCounter c = (FSCounter) ((Counter) counter).getUnderlyingCounter();
         WritableUtils.writeVInt(out, c.key.ordinal());  // key
         WritableUtils.writeVLong(out, c.getValue());    // value
       }
@@ -312,6 +310,7 @@ public abstract class FileSystemCounterGroup<C extends Counter>
       Iterator<Object[]> it = map.values().iterator();
       Object[] counters = it.hasNext() ? it.next() : null;
       int i = 0;
+
       @Override
       protected C computeNext() {
         while (counters != null) {

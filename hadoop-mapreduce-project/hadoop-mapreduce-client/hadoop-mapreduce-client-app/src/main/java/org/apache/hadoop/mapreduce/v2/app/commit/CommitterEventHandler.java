@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,14 +18,7 @@
 
 package org.apache.hadoop.mapreduce.v2.app.commit;
 
-import java.io.IOException;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -37,13 +30,7 @@ import org.apache.hadoop.mapreduce.OutputCommitter;
 import org.apache.hadoop.mapreduce.TypeConverter;
 import org.apache.hadoop.mapreduce.v2.api.records.JobId;
 import org.apache.hadoop.mapreduce.v2.app.AppContext;
-import org.apache.hadoop.mapreduce.v2.app.job.event.JobAbortCompletedEvent;
-import org.apache.hadoop.mapreduce.v2.app.job.event.JobCommitCompletedEvent;
-import org.apache.hadoop.mapreduce.v2.app.job.event.JobCommitFailedEvent;
-import org.apache.hadoop.mapreduce.v2.app.job.event.JobSetupCompletedEvent;
-import org.apache.hadoop.mapreduce.v2.app.job.event.JobSetupFailedEvent;
-import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptEvent;
-import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptEventType;
+import org.apache.hadoop.mapreduce.v2.app.job.event.*;
 import org.apache.hadoop.mapreduce.v2.app.rm.RMHeartbeatHandler;
 import org.apache.hadoop.mapreduce.v2.util.MRApps;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -52,7 +39,9 @@ import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.yarn.event.EventHandler;
 import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import java.io.IOException;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CommitterEventHandler extends AbstractService
     implements EventHandler<CommitterEvent> {
@@ -76,15 +65,15 @@ public class CommitterEventHandler extends AbstractService
   private Path startCommitFile;
   private Path endCommitSuccessFile;
   private Path endCommitFailureFile;
-  
+
 
   public CommitterEventHandler(AppContext context, OutputCommitter committer,
-      RMHeartbeatHandler rmHeartbeatHandler) {
+                               RMHeartbeatHandler rmHeartbeatHandler) {
     this(context, committer, rmHeartbeatHandler, null);
   }
-  
+
   public CommitterEventHandler(AppContext context, OutputCommitter committer,
-      RMHeartbeatHandler rmHeartbeatHandler, ClassLoader jobClassLoader) {
+                               RMHeartbeatHandler rmHeartbeatHandler, ClassLoader jobClassLoader) {
     super("CommitterEventHandler");
     this.context = context;
     this.committer = committer;
@@ -150,7 +139,8 @@ public class CommitterEventHandler extends AbstractService
           }
           // the events from the queue are handled in parallel
           // using a thread pool
-          launcherPool.execute(new EventProcessor(event));        }
+          launcherPool.execute(new EventProcessor(event));
+        }
       }
     });
     eventHandlingThread.setName("CommitterEvent Handler");
@@ -230,24 +220,24 @@ public class CommitterEventHandler extends AbstractService
     public void run() {
       LOG.info("Processing the event " + event.toString());
       switch (event.getType()) {
-      case JOB_SETUP:
-        handleJobSetup((CommitterJobSetupEvent) event);
-        break;
-      case JOB_COMMIT:
-        handleJobCommit((CommitterJobCommitEvent) event);
-        break;
-      case JOB_ABORT:
-        handleJobAbort((CommitterJobAbortEvent) event);
-        break;
-      case TASK_ABORT:
-        handleTaskAbort((CommitterTaskAbortEvent) event);
-        break;
-      default:
-        throw new YarnRuntimeException("Unexpected committer event "
-            + event.toString());
+        case JOB_SETUP:
+          handleJobSetup((CommitterJobSetupEvent) event);
+          break;
+        case JOB_COMMIT:
+          handleJobCommit((CommitterJobCommitEvent) event);
+          break;
+        case JOB_ABORT:
+          handleJobAbort((CommitterJobAbortEvent) event);
+          break;
+        case TASK_ABORT:
+          handleTaskAbort((CommitterTaskAbortEvent) event);
+          break;
+        default:
+          throw new YarnRuntimeException("Unexpected committer event "
+              + event.toString());
       }
     }
-    
+
     @SuppressWarnings("unchecked")
     protected void handleJobSetup(CommitterJobSetupEvent event) {
       try {
@@ -264,7 +254,7 @@ public class CommitterEventHandler extends AbstractService
     private void touchz(Path p) throws IOException {
       fs.create(p, false).close();
     }
-    
+
     @SuppressWarnings("unchecked")
     protected void handleJobCommit(CommitterJobCommitEvent event) {
       try {

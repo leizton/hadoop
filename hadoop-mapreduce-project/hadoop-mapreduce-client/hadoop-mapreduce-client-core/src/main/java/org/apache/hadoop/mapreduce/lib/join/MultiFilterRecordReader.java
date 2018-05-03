@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,9 +17,6 @@
  */
 
 package org.apache.hadoop.mapreduce.lib.join;
-
-import java.io.IOException;
-import java.util.PriorityQueue;
 
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
@@ -31,6 +28,9 @@ import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.util.ReflectionUtils;
 
+import java.io.IOException;
+import java.util.PriorityQueue;
+
 /**
  * Base class for Composite join returning values derived from multiple
  * sources, but generally not tuples.
@@ -38,13 +38,13 @@ import org.apache.hadoop.util.ReflectionUtils;
 @InterfaceAudience.Public
 @InterfaceStability.Stable
 public abstract class MultiFilterRecordReader<K extends WritableComparable<?>,
-                                              V extends Writable>
-    extends CompositeRecordReader<K,V,V> {
+    V extends Writable>
+    extends CompositeRecordReader<K, V, V> {
 
   private TupleWritable ivalue = null;
 
   public MultiFilterRecordReader(int id, Configuration conf, int capacity,
-      Class<? extends WritableComparator> cmpcl) throws IOException {
+                                 Class<? extends WritableComparator> cmpcl) throws IOException {
     super(id, capacity, cmpcl);
     setConf(conf);
   }
@@ -83,8 +83,8 @@ public abstract class MultiFilterRecordReader<K extends WritableComparable<?>,
       ivalue = createTupleWritable();
     }
     jc.clear();
-    final PriorityQueue<ComposableRecordReader<K,?>> q = 
-            getRecordReaderQueue();
+    final PriorityQueue<ComposableRecordReader<K, ?>> q =
+        getRecordReaderQueue();
     K iterkey = createKey();
     while (q != null && !q.isEmpty()) {
       fillJoinCollector(iterkey);
@@ -100,7 +100,7 @@ public abstract class MultiFilterRecordReader<K extends WritableComparable<?>,
   }
 
   @SuppressWarnings("unchecked")
-  public void initialize(InputSplit split, TaskAttemptContext context) 
+  public void initialize(InputSplit split, TaskAttemptContext context)
       throws IOException, InterruptedException {
     super.initialize(split, context);
   }

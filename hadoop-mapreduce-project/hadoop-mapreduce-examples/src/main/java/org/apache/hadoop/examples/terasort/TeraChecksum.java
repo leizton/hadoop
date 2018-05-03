@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,15 +17,11 @@
  */
 package org.apache.hadoop.examples.terasort;
 
-import java.io.IOException;
-import java.util.zip.Checksum;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Cluster;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -34,14 +30,17 @@ import org.apache.hadoop.util.PureJavaCrc32;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
+import java.io.IOException;
+import java.util.zip.Checksum;
+
 public class TeraChecksum extends Configured implements Tool {
-  static class ChecksumMapper 
+  static class ChecksumMapper
       extends Mapper<Text, Text, NullWritable, Unsigned16> {
     private Unsigned16 checksum = new Unsigned16();
     private Unsigned16 sum = new Unsigned16();
     private Checksum crc32 = new PureJavaCrc32();
 
-    public void map(Text key, Text value, 
+    public void map(Text key, Text value,
                     Context context) throws IOException {
       crc32.reset();
       crc32.update(key.getBytes(), 0, key.getLength());
@@ -50,17 +49,17 @@ public class TeraChecksum extends Configured implements Tool {
       sum.add(checksum);
     }
 
-    public void cleanup(Context context) 
+    public void cleanup(Context context)
         throws IOException, InterruptedException {
       context.write(NullWritable.get(), sum);
     }
   }
 
-  static class ChecksumReducer 
+  static class ChecksumReducer
       extends Reducer<NullWritable, Unsigned16, NullWritable, Unsigned16> {
 
     public void reduce(NullWritable key, Iterable<Unsigned16> values,
-        Context context) throws IOException, InterruptedException  {
+                       Context context) throws IOException, InterruptedException {
       Unsigned16 sum = new Unsigned16();
       for (Unsigned16 val : values) {
         sum.add(val);

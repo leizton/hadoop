@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,11 +17,6 @@
  */
 
 package org.apache.hadoop.mapred.join;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.PriorityQueue;
 
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
@@ -33,6 +28,11 @@ import org.apache.hadoop.io.WritableComparator;
 import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.mapred.RecordReader;
 import org.apache.hadoop.util.ReflectionUtils;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.PriorityQueue;
 
 /**
  * A RecordReader that can effect joins of RecordReaders sharing a common key
@@ -53,10 +53,10 @@ public abstract class CompositeRecordReader<
 
   private WritableComparator cmp;
   private Class<? extends WritableComparable> keyclass;
-  private PriorityQueue<ComposableRecordReader<K,?>> q;
+  private PriorityQueue<ComposableRecordReader<K, ?>> q;
 
   protected final JoinCollector jc;
-  protected final ComposableRecordReader<K,? extends V>[] kids;
+  protected final ComposableRecordReader<K, ? extends V>[] kids;
 
   protected abstract boolean combine(Object[] srcs, TupleWritable value);
 
@@ -68,16 +68,16 @@ public abstract class CompositeRecordReader<
    */
   @SuppressWarnings("unchecked") // Generic array assignment
   public CompositeRecordReader(int id, int capacity,
-      Class<? extends WritableComparator> cmpcl)
+                               Class<? extends WritableComparator> cmpcl)
       throws IOException {
     assert capacity > 0 : "Invalid capacity";
     this.id = id;
     if (null != cmpcl) {
       cmp = ReflectionUtils.newInstance(cmpcl, null);
-      q = new PriorityQueue<ComposableRecordReader<K,?>>(3,
-          new Comparator<ComposableRecordReader<K,?>>() {
-            public int compare(ComposableRecordReader<K,?> o1,
-                               ComposableRecordReader<K,?> o2) {
+      q = new PriorityQueue<ComposableRecordReader<K, ?>>(3,
+          new Comparator<ComposableRecordReader<K, ?>>() {
+            public int compare(ComposableRecordReader<K, ?> o1,
+                               ComposableRecordReader<K, ?> o2) {
               return cmp.compare(o1.key(), o2.key());
             }
           });
@@ -110,7 +110,7 @@ public abstract class CompositeRecordReader<
   /**
    * Return sorted list of RecordReaders for this composite.
    */
-  protected PriorityQueue<ComposableRecordReader<K,?>> getRecordReaderQueue() {
+  protected PriorityQueue<ComposableRecordReader<K, ?>> getRecordReaderQueue() {
     return q;
   }
 
@@ -128,14 +128,14 @@ public abstract class CompositeRecordReader<
    * entry will appear. Adding RecordReaders with the same id has
    * undefined behavior.
    */
-  public void add(ComposableRecordReader<K,? extends V> rr) throws IOException {
+  public void add(ComposableRecordReader<K, ? extends V> rr) throws IOException {
     kids[rr.id()] = rr;
     if (null == q) {
       cmp = WritableComparator.get(rr.createKey().getClass(), conf);
-      q = new PriorityQueue<ComposableRecordReader<K,?>>(3,
-          new Comparator<ComposableRecordReader<K,?>>() {
-            public int compare(ComposableRecordReader<K,?> o1,
-                               ComposableRecordReader<K,?> o2) {
+      q = new PriorityQueue<ComposableRecordReader<K, ?>>(3,
+          new Comparator<ComposableRecordReader<K, ?>>() {
+            public int compare(ComposableRecordReader<K, ?> o1,
+                               ComposableRecordReader<K, ?> o2) {
               return cmp.compare(o1.key(), o2.key());
             }
           });
@@ -228,7 +228,7 @@ public abstract class CompositeRecordReader<
       if (first) {
         int i = -1;
         for (pos = 0; pos < iters.length; ++pos) {
-          if (iters[pos].hasNext() && iters[pos].next((X)val.get(pos))) {
+          if (iters[pos].hasNext() && iters[pos].next((X) val.get(pos))) {
             i = pos;
             val.setWritten(i);
           }
@@ -242,7 +242,7 @@ public abstract class CompositeRecordReader<
         return true;
       }
       while (0 <= pos && !(iters[pos].hasNext() &&
-                           iters[pos].next((X)val.get(pos)))) {
+          iters[pos].next((X) val.get(pos)))) {
         --pos;
       }
       if (pos < 0) {
@@ -251,14 +251,14 @@ public abstract class CompositeRecordReader<
       }
       val.setWritten(pos);
       for (int i = 0; i < pos; ++i) {
-        if (iters[i].replay((X)val.get(i))) {
+        if (iters[i].replay((X) val.get(i))) {
           val.setWritten(i);
         }
       }
       while (pos + 1 < iters.length) {
         ++pos;
         iters[pos].reset();
-        if (iters[pos].hasNext() && iters[pos].next((X)val.get(pos))) {
+        if (iters[pos].hasNext() && iters[pos].next((X) val.get(pos))) {
           val.setWritten(pos);
         }
       }
@@ -276,7 +276,7 @@ public abstract class CompositeRecordReader<
       assert !first;
       boolean ret = false;
       for (int i = 0; i < iters.length; ++i) {
-        if (iters[i].replay((X)val.get(i))) {
+        if (iters[i].replay((X) val.get(i))) {
           val.setWritten(i);
           ret = true;
         }
@@ -340,12 +340,12 @@ public abstract class CompositeRecordReader<
    * Pass skip key to child RRs.
    */
   public void skip(K key) throws IOException {
-    ArrayList<ComposableRecordReader<K,?>> tmp =
-      new ArrayList<ComposableRecordReader<K,?>>();
+    ArrayList<ComposableRecordReader<K, ?>> tmp =
+        new ArrayList<ComposableRecordReader<K, ?>>();
     while (!q.isEmpty() && cmp.compare(q.peek().key(), key) <= 0) {
       tmp.add(q.poll());
     }
-    for (ComposableRecordReader<K,?> rr : tmp) {
+    for (ComposableRecordReader<K, ?> rr : tmp) {
       rr.skip(key);
       if (rr.hasNext()) {
         q.add(rr);
@@ -382,7 +382,7 @@ public abstract class CompositeRecordReader<
     if (!q.isEmpty()) {
       q.peek().key(iterkey);
       while (0 == cmp.compare(q.peek().key(), iterkey)) {
-        ComposableRecordReader<K,?> t = q.poll();
+        ComposableRecordReader<K, ?> t = q.poll();
         t.accept(jc, iterkey);
         if (t.hasNext()) {
           q.add(t);
@@ -397,7 +397,7 @@ public abstract class CompositeRecordReader<
    * Implement Comparable contract (compare key of join or head of heap
    * with that of another).
    */
-  public int compareTo(ComposableRecordReader<K,?> other) {
+  public int compareTo(ComposableRecordReader<K, ?> other) {
     return cmp.compare(key(), other.key());
   }
 
@@ -409,7 +409,7 @@ public abstract class CompositeRecordReader<
   public K createKey() {
     if (null == keyclass) {
       final Class<?> cls = kids[0].createKey().getClass();
-      for (RecordReader<K,? extends Writable> rr : kids) {
+      for (RecordReader<K, ? extends Writable> rr : kids) {
         if (!cls.equals(rr.createKey().getClass())) {
           throw new ClassCastException("Child key classes fail to agree");
         }
@@ -442,7 +442,7 @@ public abstract class CompositeRecordReader<
    */
   public void close() throws IOException {
     if (kids != null) {
-      for (RecordReader<K,? extends Writable> rr : kids) {
+      for (RecordReader<K, ? extends Writable> rr : kids) {
         rr.close();
       }
     }
@@ -456,7 +456,7 @@ public abstract class CompositeRecordReader<
    */
   public float getProgress() throws IOException {
     float ret = 1.0f;
-    for (RecordReader<K,? extends Writable> rr : kids) {
+    for (RecordReader<K, ? extends Writable> rr : kids) {
       ret = Math.min(ret, rr.getProgress());
     }
     return ret;

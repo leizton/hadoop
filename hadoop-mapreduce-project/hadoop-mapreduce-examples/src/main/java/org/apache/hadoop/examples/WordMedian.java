@@ -8,9 +8,9 @@ package org.apache.hadoop.examples;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,11 +18,7 @@ package org.apache.hadoop.examples;
  * limitations under the License.
  */
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.StringTokenizer;
-
+import com.google.common.base.Charsets;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
@@ -38,7 +34,10 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
-import com.google.common.base.Charsets;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.StringTokenizer;
 
 public class WordMedian extends Configured implements Tool {
 
@@ -57,7 +56,7 @@ public class WordMedian extends Configured implements Tool {
     /**
      * Emits a key-value pair for counting the word. Outputs are (IntWritable,
      * IntWritable).
-     * 
+     *
      * @param value
      *          This will be a line of text coming in from our input file.
      */
@@ -83,7 +82,7 @@ public class WordMedian extends Configured implements Tool {
     /**
      * Sums all the individual values within the iterator and writes them to the
      * same key.
-     * 
+     *
      * @param key
      *          This will be a length of a word that was read.
      * @param values
@@ -91,7 +90,7 @@ public class WordMedian extends Configured implements Tool {
      *          key.
      */
     public void reduce(IntWritable key, Iterable<IntWritable> values,
-        Context context) throws IOException, InterruptedException {
+                       Context context) throws IOException, InterruptedException {
 
       int sum = 0;
       for (IntWritable value : values) {
@@ -107,7 +106,7 @@ public class WordMedian extends Configured implements Tool {
    * of word counts such as: 1 456, 2 132, 3 56... Where the first values are
    * the word lengths and the following values are the number of times that
    * words of that length appear.
-   * 
+   *
    * @param path
    *          The path to read the HDFS file from (part-r-00000...00001...etc).
    * @param medianIndex1
@@ -119,7 +118,7 @@ public class WordMedian extends Configured implements Tool {
    *           If file cannot be found, we throw an exception.
    * */
   private double readAndFindMedian(String path, int medianIndex1,
-      int medianIndex2, Configuration conf) throws IOException {
+                                   int medianIndex2, Configuration conf) throws IOException {
     FileSystem fs = FileSystem.get(conf);
     Path file = new Path(path, "part-r-00000");
 

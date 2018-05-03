@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,9 +26,9 @@ public class JobSummary {
   private long jobSubmitTime;
   private long jobLaunchTime;
   private long firstMapTaskLaunchTime; // MapAttempteStarted |
-                                       // TaskAttemptStartEvent
+  // TaskAttemptStartEvent
   private long firstReduceTaskLaunchTime; // ReduceAttemptStarted |
-                                          // TaskAttemptStartEvent
+  // TaskAttemptStartEvent
   private long jobFinishTime;
   private int numFinishedMaps;
   private int numFailedMaps;
@@ -117,11 +117,11 @@ public class JobSummary {
   public int getResourcesPerMap() {
     return resourcesPerMap;
   }
-  
+
   public void setResourcesPerMap(int resourcesPerMap) {
     this.resourcesPerMap = resourcesPerMap;
   }
-  
+
   public int getNumFinishedReduces() {
     return numFinishedReduces;
   }
@@ -141,11 +141,11 @@ public class JobSummary {
   public int getResourcesPerReduce() {
     return this.resourcesPerReduce;
   }
-  
+
   public void setResourcesPerReduce(int resourcesPerReduce) {
     this.resourcesPerReduce = resourcesPerReduce;
   }
-  
+
   public String getUser() {
     return user;
   }
@@ -196,29 +196,29 @@ public class JobSummary {
 
   public String getJobSummaryString() {
     SummaryBuilder summary = new SummaryBuilder()
-      .add("jobId", jobId)
-      .add("submitTime", jobSubmitTime)
-      .add("launchTime", jobLaunchTime)
-      .add("firstMapTaskLaunchTime", firstMapTaskLaunchTime)
-      .add("firstReduceTaskLaunchTime", firstReduceTaskLaunchTime)
-      .add("finishTime", jobFinishTime)
-      .add("resourcesPerMap", resourcesPerMap)
-      .add("resourcesPerReduce", resourcesPerReduce)
-      .add("numMaps", numFinishedMaps + numFailedMaps)
-      .add("numReduces", numFinishedReduces + numFailedReduces)
-      .add("user", user)
-      .add("queue", queue)
-      .add("status", jobStatus)
-      .add("mapSlotSeconds", mapSlotSeconds)
-      .add("reduceSlotSeconds", reduceSlotSeconds)
-      .add("jobName", jobName);
+        .add("jobId", jobId)
+        .add("submitTime", jobSubmitTime)
+        .add("launchTime", jobLaunchTime)
+        .add("firstMapTaskLaunchTime", firstMapTaskLaunchTime)
+        .add("firstReduceTaskLaunchTime", firstReduceTaskLaunchTime)
+        .add("finishTime", jobFinishTime)
+        .add("resourcesPerMap", resourcesPerMap)
+        .add("resourcesPerReduce", resourcesPerReduce)
+        .add("numMaps", numFinishedMaps + numFailedMaps)
+        .add("numReduces", numFinishedReduces + numFailedReduces)
+        .add("user", user)
+        .add("queue", queue)
+        .add("status", jobStatus)
+        .add("mapSlotSeconds", mapSlotSeconds)
+        .add("reduceSlotSeconds", reduceSlotSeconds)
+        .add("jobName", jobName);
     return summary.toString();
   }
 
   static final char EQUALS = '=';
-  static final char[] charsToEscape = { StringUtils.COMMA, EQUALS,
-      StringUtils.ESCAPE_CHAR };
-  
+  static final char[] charsToEscape = {StringUtils.COMMA, EQUALS,
+      StringUtils.ESCAPE_CHAR};
+
   static class SummaryBuilder {
     final StringBuilder buffer = new StringBuilder();
 
@@ -228,9 +228,9 @@ public class JobSummary {
     }
 
     <T> SummaryBuilder add(String key, T value) {
-      String escapedString = StringUtils.escapeString(String.valueOf(value), 
+      String escapedString = StringUtils.escapeString(String.valueOf(value),
           StringUtils.ESCAPE_CHAR, charsToEscape).replaceAll("\n", "\\\\n")
-                                                 .replaceAll("\r", "\\\\r");
+          .replaceAll("\r", "\\\\r");
       return _add(key, escapedString);
     }
 

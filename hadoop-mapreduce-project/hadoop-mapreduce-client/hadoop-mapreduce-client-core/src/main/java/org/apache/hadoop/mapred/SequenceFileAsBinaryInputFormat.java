@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,8 +16,6 @@
  * limitations under the License.
  */
 package org.apache.hadoop.mapred;
-
-import java.io.IOException;
 
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
@@ -28,6 +26,8 @@ import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.SequenceFile;
 
+import java.io.IOException;
+
 /**
  * InputFormat reading keys, values from SequenceFiles in binary (raw)
  * format.
@@ -35,23 +35,23 @@ import org.apache.hadoop.io.SequenceFile;
 @InterfaceAudience.Public
 @InterfaceStability.Stable
 public class SequenceFileAsBinaryInputFormat
-    extends SequenceFileInputFormat<BytesWritable,BytesWritable> {
+    extends SequenceFileInputFormat<BytesWritable, BytesWritable> {
 
   public SequenceFileAsBinaryInputFormat() {
     super();
   }
 
-  public RecordReader<BytesWritable,BytesWritable> getRecordReader(
+  public RecordReader<BytesWritable, BytesWritable> getRecordReader(
       InputSplit split, JobConf job, Reporter reporter)
       throws IOException {
-    return new SequenceFileAsBinaryRecordReader(job, (FileSplit)split);
+    return new SequenceFileAsBinaryRecordReader(job, (FileSplit) split);
   }
 
   /**
    * Read records from a SequenceFile as binary (raw) bytes.
    */
   public static class SequenceFileAsBinaryRecordReader
-      implements RecordReader<BytesWritable,BytesWritable> {
+      implements RecordReader<BytesWritable, BytesWritable> {
     private SequenceFile.Reader in;
     private long start;
     private long end;
@@ -131,8 +131,8 @@ public class SequenceFileAsBinaryInputFormat
       if (end == start) {
         return 0.0f;
       } else {
-        return Math.min(1.0f, (float)((in.getPosition() - start) /
-                                      (double)(end - start)));
+        return Math.min(1.0f, (float) ((in.getPosition() - start) /
+            (double) (end - start)));
       }
     }
   }

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,18 +17,7 @@
  */
 package org.apache.hadoop.examples;
 
-import java.io.BufferedOutputStream;
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
+import com.google.common.base.Charsets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -39,20 +28,15 @@ import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Writable;
-import org.apache.hadoop.mapreduce.InputFormat;
-import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.JobContext;
-import org.apache.hadoop.mapreduce.MRJobConfig;
-import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.RecordReader;
-import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
-import com.google.common.base.Charsets;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * A map/reduce program that uses Bailey-Borwein-Plouffe to compute exact 
@@ -62,7 +46,7 @@ import com.google.common.base.Charsets;
  * If the limit is exceeded,
  * the corresponding results may be incorrect due to overflow errors.
  * For computing higher bits of Pi, consider using distbbp. 
- * 
+ *
  * Reference:
  *
  * [1] David H. Bailey, Peter B. Borwein and Simon Plouffe.  On the Rapid
@@ -73,8 +57,8 @@ public class BaileyBorweinPlouffe extends Configured implements Tool {
   public static final String DESCRIPTION
       = "A map/reduce program that uses Bailey-Borwein-Plouffe to compute exact digits of Pi.";
 
-  private static final String NAME = "mapreduce." + 
-    BaileyBorweinPlouffe.class.getSimpleName();
+  private static final String NAME = "mapreduce." +
+      BaileyBorweinPlouffe.class.getSimpleName();
 
   //custom job properties
   private static final String WORKING_DIR_PROPERTY = NAME + ".dir";
@@ -91,7 +75,7 @@ public class BaileyBorweinPlouffe extends Configured implements Tool {
 
     /** Compute the (offset+1)th to (offset+length)th digits. */
     protected void map(LongWritable offset, IntWritable length,
-        final Context context) throws IOException, InterruptedException {
+                       final Context context) throws IOException, InterruptedException {
       LOG.info("offset=" + offset + ", length=" + length);
 
       // compute digits
@@ -118,7 +102,7 @@ public class BaileyBorweinPlouffe extends Configured implements Tool {
     /** Concatenate map outputs. */
     @Override
     protected void reduce(LongWritable offset, Iterable<BytesWritable> values,
-        Context context) throws IOException, InterruptedException {
+                          Context context) throws IOException, InterruptedException {
       // read map outputs
       for (BytesWritable bytes : values) {
         for (int i = 0; i < bytes.getLength(); i++)
@@ -131,7 +115,7 @@ public class BaileyBorweinPlouffe extends Configured implements Tool {
     /** Write output to files. */
     @Override
     protected void cleanup(Context context
-        ) throws IOException, InterruptedException {
+    ) throws IOException, InterruptedException {
       final Configuration conf = context.getConfiguration();
       final Path dir = new Path(conf.get(WORKING_DIR_PROPERTY));
       final FileSystem fs = dir.getFileSystem(conf);
@@ -190,7 +174,7 @@ public class BaileyBorweinPlouffe extends Configured implements Tool {
 
   /** Print out elements in a nice format. */
   private static <T> void print(PrintWriter out, Iterator<T> iterator,
-      String prefix, String format, int elementsPerGroup, int groupsPerLine) {
+                                String prefix, String format, int elementsPerGroup, int groupsPerLine) {
     final StringBuilder sb = new StringBuilder("\n");
     for (int i = 0; i < prefix.length(); i++)
       sb.append(" ");
@@ -271,7 +255,7 @@ public class BaileyBorweinPlouffe extends Configured implements Tool {
       final List<InputSplit> splits = new ArrayList<InputSplit>(nMaps);
       final int[] parts = partition(startDigit - 1, nDigits, nMaps);
       for (int i = 0; i < parts.length; ++i) {
-        final int k = i < parts.length - 1 ? parts[i+1]: nDigits+startDigit-1;
+        final int k = i < parts.length - 1 ? parts[i + 1] : nDigits + startDigit - 1;
         splits.add(new BbpSplit(i, parts[i], k - parts[i]));
       }
       return splits;
@@ -280,7 +264,7 @@ public class BaileyBorweinPlouffe extends Configured implements Tool {
     /** {@inheritDoc} */
     public RecordReader<LongWritable, IntWritable> createRecordReader(
         InputSplit generic, TaskAttemptContext context) {
-      final BbpSplit split = (BbpSplit)generic;
+      final BbpSplit split = (BbpSplit) generic;
 
       //return a record reader
       return new RecordReader<LongWritable, IntWritable>() {
@@ -299,11 +283,11 @@ public class BaileyBorweinPlouffe extends Configured implements Tool {
         }
 
         public IntWritable getCurrentValue() {
-          return new IntWritable((int)split.getLength());
+          return new IntWritable((int) split.getLength());
         }
 
         public float getProgress() {
-          return done? 1f: 0f;
+          return done ? 1f : 0f;
         }
 
         public void close() {
@@ -314,7 +298,7 @@ public class BaileyBorweinPlouffe extends Configured implements Tool {
 
   /** Create and setup a job */
   private static Job createJob(String name, Configuration conf
-      ) throws IOException {
+  ) throws IOException {
     final Job job = new Job(conf, NAME + "_" + name);
     final Configuration jobconf = job.getConfiguration();
     job.setJarByClass(BaileyBorweinPlouffe.class);
@@ -344,8 +328,8 @@ public class BaileyBorweinPlouffe extends Configured implements Tool {
 
   /** Run a map/reduce job to compute Pi. */
   private static void compute(int startDigit, int nDigits, int nMaps,
-      String workingDir, Configuration conf, PrintStream out
-      ) throws IOException {
+                              String workingDir, Configuration conf, PrintStream out
+  ) throws IOException {
     final String name = startDigit + "_" + nDigits;
 
     //setup wroking directory
@@ -388,7 +372,7 @@ public class BaileyBorweinPlouffe extends Configured implements Tool {
     } catch (Exception e) {
       throw new RuntimeException(e);
     } finally {
-      final double duration = (System.currentTimeMillis() - startTime)/1000.0;
+      final double duration = (System.currentTimeMillis() - startTime) / 1000.0;
       out.println("Duration is " + duration + " seconds.");
     }
     out.println("Output file: " + hexfile);
@@ -412,7 +396,7 @@ public class BaileyBorweinPlouffe extends Configured implements Tool {
     final String workingDir = args[3];
 
     if (startDigit <= 0) {
-      throw new IllegalArgumentException("startDigit = " + startDigit+" <= 0");
+      throw new IllegalArgumentException("startDigit = " + startDigit + " <= 0");
     } else if (nDigits <= 0) {
       throw new IllegalArgumentException("nDigits = " + nDigits + " <= 0");
     } else if (nDigits % BBP_HEX_DIGITS != 0) {
@@ -437,8 +421,8 @@ public class BaileyBorweinPlouffe extends Configured implements Tool {
     System.exit(ToolRunner.run(null, new BaileyBorweinPlouffe(), argv));
   }
 
-    /////////////////////////////////////////////////////////////////////
-   // static fields and methods for Bailey-Borwein-Plouffe algorithm. //
+  /////////////////////////////////////////////////////////////////////
+  // static fields and methods for Bailey-Borwein-Plouffe algorithm. //
   /////////////////////////////////////////////////////////////////////
 
   /** Limitation of the program.
@@ -514,7 +498,7 @@ public class BaileyBorweinPlouffe extends Configured implements Tool {
     if (k >= 1L << (ACCURACY_BIT - 7))
       return s;
 
-    for (;; k++) {
+    for (; ; k++) {
       final long n = (k << 3) | j;
       final long shift = (k - d) << 2;
       if (ACCURACY_BIT <= shift || 1L << (ACCURACY_BIT - shift) < n) {
@@ -590,7 +574,7 @@ public class BaileyBorweinPlouffe extends Configured implements Tool {
     }
 
     private void skipZeros() {
-      for(; first < integers.length && integers[first] == 0; first++)
+      for (; first < integers.length && integers[first] == 0; first++)
         ;
     }
   }
@@ -606,12 +590,12 @@ public class BaileyBorweinPlouffe extends Configured implements Tool {
 
     parts[0] = offset;
     for (int i = 1; i < nParts; i++) {
-      final long target = offset + i*(total/nParts) + i*(total%nParts)/nParts;
+      final long target = offset + i * (total / nParts) + i * (total % nParts) / nParts;
 
       //search the closest value
       int low = parts[i - 1];
       int high = offset + size;
-      for (; high > low + 4;) {
+      for (; high > low + 4; ) {
         final int mid = (high + low - 2 * remainder) / 8 * 4 + remainder;
         final long midvalue = workload(mid);
         if (midvalue == target)
@@ -621,9 +605,9 @@ public class BaileyBorweinPlouffe extends Configured implements Tool {
         else
           low = mid;
       }
-      parts[i] = high == low? high:
-          workload(high)-target > target-workload(low)?
-              low: high;
+      parts[i] = high == low ? high :
+          workload(high) - target > target - workload(low) ?
+              low : high;
     }
     return parts;
   }

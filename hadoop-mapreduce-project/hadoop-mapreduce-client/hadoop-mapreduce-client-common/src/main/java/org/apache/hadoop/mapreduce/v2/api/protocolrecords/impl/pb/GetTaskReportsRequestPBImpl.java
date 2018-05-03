@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,15 +31,14 @@ import org.apache.hadoop.mapreduce.v2.util.MRProtoUtils;
 import org.apache.hadoop.yarn.api.records.impl.pb.ProtoBase;
 
 
-    
 public class GetTaskReportsRequestPBImpl extends ProtoBase<GetTaskReportsRequestProto> implements GetTaskReportsRequest {
   GetTaskReportsRequestProto proto = GetTaskReportsRequestProto.getDefaultInstance();
   GetTaskReportsRequestProto.Builder builder = null;
   boolean viaProto = false;
-  
+
   private JobId jobId = null;
-  
-  
+
+
   public GetTaskReportsRequestPBImpl() {
     builder = GetTaskReportsRequestProto.newBuilder();
   }
@@ -48,9 +47,9 @@ public class GetTaskReportsRequestPBImpl extends ProtoBase<GetTaskReportsRequest
     this.proto = proto;
     viaProto = true;
   }
-  
+
   public GetTaskReportsRequestProto getProto() {
-      mergeLocalToProto();
+    mergeLocalToProto();
     proto = viaProto ? proto : builder.build();
     viaProto = true;
     return proto;
@@ -63,7 +62,7 @@ public class GetTaskReportsRequestPBImpl extends ProtoBase<GetTaskReportsRequest
   }
 
   private void mergeLocalToProto() {
-    if (viaProto) 
+    if (viaProto)
       maybeInitBuilder();
     mergeLocalToBuilder();
     proto = builder.build();
@@ -76,8 +75,8 @@ public class GetTaskReportsRequestPBImpl extends ProtoBase<GetTaskReportsRequest
     }
     viaProto = false;
   }
-    
-  
+
+
   @Override
   public JobId getJobId() {
     GetTaskReportsRequestProtoOrBuilder p = viaProto ? proto : builder;
@@ -94,10 +93,11 @@ public class GetTaskReportsRequestPBImpl extends ProtoBase<GetTaskReportsRequest
   @Override
   public void setJobId(JobId jobId) {
     maybeInitBuilder();
-    if (jobId == null) 
+    if (jobId == null)
       builder.clearJobId();
     this.jobId = jobId;
   }
+
   @Override
   public TaskType getTaskType() {
     GetTaskReportsRequestProtoOrBuilder p = viaProto ? proto : builder;
@@ -122,7 +122,7 @@ public class GetTaskReportsRequestPBImpl extends ProtoBase<GetTaskReportsRequest
   }
 
   private JobIdProto convertToProtoFormat(JobId t) {
-    return ((JobIdPBImpl)t).getProto();
+    return ((JobIdPBImpl) t).getProto();
   }
 
   private TaskTypeProto convertToProtoFormat(TaskType e) {
@@ -134,5 +134,4 @@ public class GetTaskReportsRequestPBImpl extends ProtoBase<GetTaskReportsRequest
   }
 
 
-
-}  
+}

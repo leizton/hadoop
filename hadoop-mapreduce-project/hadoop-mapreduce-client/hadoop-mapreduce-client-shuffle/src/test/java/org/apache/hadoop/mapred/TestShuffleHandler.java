@@ -17,42 +17,11 @@
  */
 package org.apache.hadoop.mapred;
 
-import static org.apache.hadoop.test.MetricsAsserts.assertCounter;
-import static org.apache.hadoop.test.MetricsAsserts.assertGauge;
-import static org.apache.hadoop.test.MetricsAsserts.getMetrics;
-import static org.apache.hadoop.test.MockitoMaker.make;
-import static org.apache.hadoop.test.MockitoMaker.stub;
-import static org.jboss.netty.buffer.ChannelBuffers.wrappedBuffer;
-import static org.jboss.netty.handler.codec.http.HttpResponseStatus.OK;
-import static org.jboss.netty.handler.codec.http.HttpVersion.HTTP_1_1;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assume.assumeTrue;
-
-import java.io.DataInputStream;
-import java.io.EOFException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.SocketException;
-import java.net.URL;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.zip.CheckedOutputStream;
-import java.util.zip.Checksum;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.CommonConfigurationKeysPublic;
-import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.FileUtil;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.nativeio.NativeIO;
@@ -87,8 +56,29 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mortbay.jetty.HttpHeaders;
 
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.SocketException;
+import java.net.URL;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.zip.CheckedOutputStream;
+import java.util.zip.Checksum;
+
+import static org.apache.hadoop.test.MetricsAsserts.*;
+import static org.apache.hadoop.test.MockitoMaker.make;
+import static org.apache.hadoop.test.MockitoMaker.stub;
+import static org.jboss.netty.buffer.ChannelBuffers.wrappedBuffer;
+import static org.jboss.netty.handler.codec.http.HttpResponseStatus.OK;
+import static org.jboss.netty.handler.codec.http.HttpVersion.HTTP_1_1;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assume.assumeTrue;
+
 public class TestShuffleHandler {
-  static final long MiB = 1024 * 1024; 
+  static final long MiB = 1024 * 1024;
   private static final Log LOG = LogFactory.getLog(TestShuffleHandler.class);
 
   /**
@@ -97,8 +87,8 @@ public class TestShuffleHandler {
    *
    * @throws Exception exception
    */
-  @Test (timeout = 10000)
-  public void testSerializeMeta()  throws Exception {
+  @Test(timeout = 10000)
+  public void testSerializeMeta() throws Exception {
     assertEquals(1, ShuffleHandler.deserializeMetaData(
         ShuffleHandler.serializeMetaData(1)));
     assertEquals(-1, ShuffleHandler.deserializeMetaData(
@@ -112,7 +102,7 @@ public class TestShuffleHandler {
    *
    * @throws Exception exception
    */
-  @Test (timeout = 10000)
+  @Test(timeout = 10000)
   public void testShuffleMetrics() throws Exception {
     MetricsSystem ms = new MetricsSystemImpl();
     ShuffleHandler sh = new ShuffleHandler(ms);
@@ -120,16 +110,16 @@ public class TestShuffleHandler {
         returning(true, false).from.isSuccess());
 
     sh.metrics.shuffleConnections.incr();
-    sh.metrics.shuffleOutputBytes.incr(1*MiB);
+    sh.metrics.shuffleOutputBytes.incr(1 * MiB);
     sh.metrics.shuffleConnections.incr();
-    sh.metrics.shuffleOutputBytes.incr(2*MiB);
+    sh.metrics.shuffleOutputBytes.incr(2 * MiB);
 
-    checkShuffleMetrics(ms, 3*MiB, 0 , 0, 2);
+    checkShuffleMetrics(ms, 3 * MiB, 0, 0, 2);
 
     sh.metrics.operationComplete(cf);
     sh.metrics.operationComplete(cf);
 
-    checkShuffleMetrics(ms, 3*MiB, 1, 1, 0);
+    checkShuffleMetrics(ms, 3 * MiB, 1, 1, 0);
   }
 
   static void checkShuffleMetrics(MetricsSystem ms, long bytes, int failed,
@@ -147,7 +137,7 @@ public class TestShuffleHandler {
    *
    * @throws Exception exception.
    */
-  @Test (timeout = 10000)
+  @Test(timeout = 10000)
   public void testClientClosesConnection() throws Exception {
     final ArrayList<Throwable> failures = new ArrayList<Throwable>(1);
     Configuration conf = new Configuration();
@@ -159,28 +149,31 @@ public class TestShuffleHandler {
         return new Shuffle(conf) {
           @Override
           protected MapOutputInfo getMapOutputInfo(String base, String mapId,
-              int reduce, String user) throws IOException {
+                                                   int reduce, String user) throws IOException {
             return null;
           }
+
           @Override
           protected void populateHeaders(List<String> mapIds, String jobId,
-              String user, int reduce, HttpRequest request,
-              HttpResponse response, boolean keepAliveParam,
-              Map<String, MapOutputInfo> infoMap) throws IOException {
+                                         String user, int reduce, HttpRequest request,
+                                         HttpResponse response, boolean keepAliveParam,
+                                         Map<String, MapOutputInfo> infoMap) throws IOException {
             // Only set response headers and skip everything else
             // send some dummy value for content-length
             super.setResponseHeaders(response, keepAliveParam, 100);
           }
+
           @Override
           protected void verifyRequest(String appid, ChannelHandlerContext ctx,
-              HttpRequest request, HttpResponse response, URL requestUri)
-                  throws IOException {
+                                       HttpRequest request, HttpResponse response, URL requestUri)
+              throws IOException {
           }
+
           @Override
           protected ChannelFuture sendMapOutput(ChannelHandlerContext ctx,
-              Channel ch, String user, String mapId, int reduce,
-              MapOutputInfo info)
-                  throws IOException {
+                                                Channel ch, String user, String mapId, int reduce,
+                                                MapOutputInfo info)
+              throws IOException {
             // send a shuffle header and a lot of data down the channel
             // to trigger a broken pipe
             ShuffleHeader header =
@@ -194,17 +187,19 @@ public class TestShuffleHandler {
             }
             return ch.write(wrappedBuffer(dob.getData(), 0, dob.getLength()));
           }
+
           @Override
           protected void sendError(ChannelHandlerContext ctx,
-              HttpResponseStatus status) {
+                                   HttpResponseStatus status) {
             if (failures.size() == 0) {
               failures.add(new Error());
               ctx.getChannel().close();
             }
           }
+
           @Override
           protected void sendError(ChannelHandlerContext ctx, String message,
-              HttpResponseStatus status) {
+                                   HttpResponseStatus status) {
             if (failures.size() == 0) {
               failures.add(new Error());
               ctx.getChannel().close();
@@ -219,9 +214,9 @@ public class TestShuffleHandler {
     // simulate a reducer that closes early by reading a single shuffle header
     // then closing the connection
     URL url = new URL("http://127.0.0.1:"
-      + shuffleHandler.getConfig().get(ShuffleHandler.SHUFFLE_PORT_CONFIG_KEY)
-      + "/mapOutput?job=job_12345_1&reduce=1&map=attempt_12345_1_m_1_0");
-    HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+        + shuffleHandler.getConfig().get(ShuffleHandler.SHUFFLE_PORT_CONFIG_KEY)
+        + "/mapOutput?job=job_12345_1&reduce=1&map=attempt_12345_1_m_1_0");
+    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
     conn.setRequestProperty(ShuffleHeader.HTTP_HEADER_NAME,
         ShuffleHeader.DEFAULT_HTTP_HEADER_NAME);
     conn.setRequestProperty(ShuffleHeader.HTTP_HEADER_VERSION,
@@ -254,20 +249,21 @@ public class TestShuffleHandler {
         return new Shuffle(conf) {
           @Override
           protected MapOutputInfo getMapOutputInfo(String base, String mapId,
-              int reduce, String user) throws IOException {
+                                                   int reduce, String user) throws IOException {
             return null;
           }
+
           @Override
           protected void verifyRequest(String appid, ChannelHandlerContext ctx,
-              HttpRequest request, HttpResponse response, URL requestUri)
+                                       HttpRequest request, HttpResponse response, URL requestUri)
               throws IOException {
           }
 
           @Override
           protected void populateHeaders(List<String> mapIds, String jobId,
-              String user, int reduce, HttpRequest request,
-              HttpResponse response, boolean keepAliveParam,
-              Map<String, MapOutputInfo> infoMap) throws IOException {
+                                         String user, int reduce, HttpRequest request,
+                                         HttpResponse response, boolean keepAliveParam,
+                                         Map<String, MapOutputInfo> infoMap) throws IOException {
             // Send some dummy data (populate content length details)
             ShuffleHeader header =
                 new ShuffleHeader("attempt_12345_1_m_1_0", 5678, 5678, 1);
@@ -290,8 +286,8 @@ public class TestShuffleHandler {
 
           @Override
           protected ChannelFuture sendMapOutput(ChannelHandlerContext ctx,
-              Channel ch, String user, String mapId, int reduce,
-              MapOutputInfo info) throws IOException {
+                                                Channel ch, String user, String mapId, int reduce,
+                                                MapOutputInfo info) throws IOException {
             HttpResponse response = new DefaultHttpResponse(HTTP_1_1, OK);
 
             // send a shuffle header and a lot of data down the channel
@@ -310,7 +306,7 @@ public class TestShuffleHandler {
 
           @Override
           protected void sendError(ChannelHandlerContext ctx,
-              HttpResponseStatus status) {
+                                   HttpResponseStatus status) {
             if (failures.size() == 0) {
               failures.add(new Error());
               ctx.getChannel().close();
@@ -319,7 +315,7 @@ public class TestShuffleHandler {
 
           @Override
           protected void sendError(ChannelHandlerContext ctx, String message,
-              HttpResponseStatus status) {
+                                   HttpResponseStatus status) {
             if (failures.size() == 0) {
               failures.add(new Error());
               ctx.getChannel().close();
@@ -332,22 +328,22 @@ public class TestShuffleHandler {
     shuffleHandler.start();
 
     String shuffleBaseURL = "http://127.0.0.1:"
-            + shuffleHandler.getConfig().get(
-              ShuffleHandler.SHUFFLE_PORT_CONFIG_KEY);
+        + shuffleHandler.getConfig().get(
+        ShuffleHandler.SHUFFLE_PORT_CONFIG_KEY);
     URL url =
         new URL(shuffleBaseURL + "/mapOutput?job=job_12345_1&reduce=1&"
             + "map=attempt_12345_1_m_1_0");
     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
     conn.setRequestProperty(ShuffleHeader.HTTP_HEADER_NAME,
-      ShuffleHeader.DEFAULT_HTTP_HEADER_NAME);
+        ShuffleHeader.DEFAULT_HTTP_HEADER_NAME);
     conn.setRequestProperty(ShuffleHeader.HTTP_HEADER_VERSION,
-      ShuffleHeader.DEFAULT_HTTP_HEADER_VERSION);
+        ShuffleHeader.DEFAULT_HTTP_HEADER_VERSION);
     conn.connect();
     DataInputStream input = new DataInputStream(conn.getInputStream());
     Assert.assertEquals(HttpHeaders.KEEP_ALIVE,
-      conn.getHeaderField(HttpHeaders.CONNECTION));
+        conn.getHeaderField(HttpHeaders.CONNECTION));
     Assert.assertEquals("timeout=1",
-      conn.getHeaderField(HttpHeaders.KEEP_ALIVE));
+        conn.getHeaderField(HttpHeaders.KEEP_ALIVE));
     Assert.assertEquals(HttpURLConnection.HTTP_OK, conn.getResponseCode());
     ShuffleHeader header = new ShuffleHeader();
     header.readFields(input);
@@ -359,15 +355,15 @@ public class TestShuffleHandler {
             + "map=attempt_12345_1_m_1_0&keepAlive=true");
     conn = (HttpURLConnection) url.openConnection();
     conn.setRequestProperty(ShuffleHeader.HTTP_HEADER_NAME,
-      ShuffleHeader.DEFAULT_HTTP_HEADER_NAME);
+        ShuffleHeader.DEFAULT_HTTP_HEADER_NAME);
     conn.setRequestProperty(ShuffleHeader.HTTP_HEADER_VERSION,
-      ShuffleHeader.DEFAULT_HTTP_HEADER_VERSION);
+        ShuffleHeader.DEFAULT_HTTP_HEADER_VERSION);
     conn.connect();
     input = new DataInputStream(conn.getInputStream());
     Assert.assertEquals(HttpHeaders.KEEP_ALIVE,
-      conn.getHeaderField(HttpHeaders.CONNECTION));
+        conn.getHeaderField(HttpHeaders.CONNECTION));
     Assert.assertEquals("timeout=1",
-      conn.getHeaderField(HttpHeaders.KEEP_ALIVE));
+        conn.getHeaderField(HttpHeaders.KEEP_ALIVE));
     Assert.assertEquals(HttpURLConnection.HTTP_OK, conn.getResponseCode());
     header = new ShuffleHeader();
     header.readFields(input);
@@ -377,10 +373,10 @@ public class TestShuffleHandler {
   /**
    * simulate a reducer that sends an invalid shuffle-header - sometimes a wrong
    * header_name and sometimes a wrong version
-   * 
+   *
    * @throws Exception exception
    */
-  @Test (timeout = 10000)
+  @Test(timeout = 10000)
   public void testIncompatibleShuffleVersion() throws Exception {
     final int failureNum = 3;
     Configuration conf = new Configuration();
@@ -392,10 +388,10 @@ public class TestShuffleHandler {
     // simulate a reducer that closes early by reading a single shuffle header
     // then closing the connection
     URL url = new URL("http://127.0.0.1:"
-      + shuffleHandler.getConfig().get(ShuffleHandler.SHUFFLE_PORT_CONFIG_KEY)
-      + "/mapOutput?job=job_12345_1&reduce=1&map=attempt_12345_1_m_1_0");
+        + shuffleHandler.getConfig().get(ShuffleHandler.SHUFFLE_PORT_CONFIG_KEY)
+        + "/mapOutput?job=job_12345_1&reduce=1&map=attempt_12345_1_m_1_0");
     for (int i = 0; i < failureNum; ++i) {
-      HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+      HttpURLConnection conn = (HttpURLConnection) url.openConnection();
       conn.setRequestProperty(ShuffleHeader.HTTP_HEADER_NAME,
           i == 0 ? "mapreduce" : "other");
       conn.setRequestProperty(ShuffleHeader.HTTP_HEADER_VERSION,
@@ -411,12 +407,12 @@ public class TestShuffleHandler {
 
   /**
    * Validate the limit on number of shuffle connections.
-   * 
+   *
    * @throws Exception exception
    */
-  @Test (timeout = 10000)
+  @Test(timeout = 10000)
   public void testMaxConnections() throws Exception {
-    
+
     Configuration conf = new Configuration();
     conf.setInt(ShuffleHandler.SHUFFLE_PORT_CONFIG_KEY, 0);
     conf.setInt(ShuffleHandler.MAX_SHUFFLE_CONNECTIONS, 3);
@@ -427,28 +423,31 @@ public class TestShuffleHandler {
         return new Shuffle(conf) {
           @Override
           protected MapOutputInfo getMapOutputInfo(String base, String mapId,
-              int reduce, String user) throws IOException {
+                                                   int reduce, String user) throws IOException {
             // Do nothing.
             return null;
           }
+
           @Override
           protected void populateHeaders(List<String> mapIds, String jobId,
-              String user, int reduce, HttpRequest request,
-              HttpResponse response, boolean keepAliveParam,
-              Map<String, MapOutputInfo> infoMap) throws IOException {
+                                         String user, int reduce, HttpRequest request,
+                                         HttpResponse response, boolean keepAliveParam,
+                                         Map<String, MapOutputInfo> infoMap) throws IOException {
             // Do nothing.
           }
+
           @Override
           protected void verifyRequest(String appid, ChannelHandlerContext ctx,
-              HttpRequest request, HttpResponse response, URL requestUri)
-                  throws IOException {
+                                       HttpRequest request, HttpResponse response, URL requestUri)
+              throws IOException {
             // Do nothing.
           }
+
           @Override
           protected ChannelFuture sendMapOutput(ChannelHandlerContext ctx,
-              Channel ch, String user, String mapId, int reduce,
-              MapOutputInfo info)
-                  throws IOException {
+                                                Channel ch, String user, String mapId, int reduce,
+                                                MapOutputInfo info)
+              throws IOException {
             // send a shuffle header and a lot of data down the channel
             // to trigger a broken pipe
             ShuffleHeader header =
@@ -457,7 +456,7 @@ public class TestShuffleHandler {
             header.write(dob);
             ch.write(wrappedBuffer(dob.getData(), 0, dob.getLength()));
             dob = new DataOutputBuffer();
-            for (int i=0; i<100000; ++i) {
+            for (int i = 0; i < 100000; ++i) {
               header.write(dob);
             }
             return ch.write(wrappedBuffer(dob.getData(), 0, dob.getLength()));
@@ -473,12 +472,12 @@ public class TestShuffleHandler {
     HttpURLConnection conns[] = new HttpURLConnection[connAttempts];
 
     for (int i = 0; i < connAttempts; i++) {
-      String URLstring = "http://127.0.0.1:" 
-           + shuffleHandler.getConfig().get(ShuffleHandler.SHUFFLE_PORT_CONFIG_KEY)
-           + "/mapOutput?job=job_12345_1&reduce=1&map=attempt_12345_1_m_"
-           + i + "_0";
+      String URLstring = "http://127.0.0.1:"
+          + shuffleHandler.getConfig().get(ShuffleHandler.SHUFFLE_PORT_CONFIG_KEY)
+          + "/mapOutput?job=job_12345_1&reduce=1&map=attempt_12345_1_m_"
+          + i + "_0";
       URL url = new URL(URLstring);
-      conns[i] = (HttpURLConnection)url.openConnection();
+      conns[i] = (HttpURLConnection) url.openConnection();
       conns[i].setRequestProperty(ShuffleHeader.HTTP_HEADER_NAME,
           ShuffleHeader.DEFAULT_HTTP_HEADER_NAME);
       conns[i].setRequestProperty(ShuffleHeader.HTTP_HEADER_VERSION,
@@ -494,7 +493,7 @@ public class TestShuffleHandler {
     conns[0].getInputStream();
     int rc = conns[0].getResponseCode();
     Assert.assertEquals(HttpURLConnection.HTTP_OK, rc);
-    
+
     conns[1].getInputStream();
     rc = conns[1].getResponseCode();
     Assert.assertEquals(HttpURLConnection.HTTP_OK, rc);
@@ -509,8 +508,8 @@ public class TestShuffleHandler {
     } catch (Exception e) {
       Assert.fail("Expected a SocketException");
     }
-    
-    shuffleHandler.stop(); 
+
+    shuffleHandler.stop();
   }
 
   /**
@@ -549,7 +548,7 @@ public class TestShuffleHandler {
 
           @Override
           protected void verifyRequest(String appid, ChannelHandlerContext ctx,
-              HttpRequest request, HttpResponse response, URL requestUri)
+                                       HttpRequest request, HttpResponse response, URL requestUri)
               throws IOException {
             // Do nothing.
           }
@@ -567,14 +566,14 @@ public class TestShuffleHandler {
               "password".getBytes(), new Text(user), new Text("shuffleService"));
       jt.write(outputBuffer);
       shuffleHandler
-        .initializeApplication(new ApplicationInitializationContext(user,
-          appId, ByteBuffer.wrap(outputBuffer.getData(), 0,
-            outputBuffer.getLength())));
+          .initializeApplication(new ApplicationInitializationContext(user,
+              appId, ByteBuffer.wrap(outputBuffer.getData(), 0,
+              outputBuffer.getLength())));
       URL url =
           new URL(
               "http://127.0.0.1:"
                   + shuffleHandler.getConfig().get(
-                      ShuffleHandler.SHUFFLE_PORT_CONFIG_KEY)
+                  ShuffleHandler.SHUFFLE_PORT_CONFIG_KEY)
                   + "/mapOutput?job=job_12345_0001&reduce=" + reducerId
                   + "&map=attempt_12345_1_m_1_0");
       HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -605,13 +604,13 @@ public class TestShuffleHandler {
   }
 
   private static void createShuffleHandlerFiles(File logDir, String user,
-      String appId, String appAttemptId, Configuration conf,
-      List<File> fileMap) throws IOException {
+                                                String appId, String appAttemptId, Configuration conf,
+                                                List<File> fileMap) throws IOException {
     String attemptDir =
         StringUtils.join(Path.SEPARATOR,
-            Arrays.asList(new String[] { logDir.getAbsolutePath(),
+            Arrays.asList(new String[]{logDir.getAbsolutePath(),
                 ContainerLocalizer.USERCACHE, user,
-                ContainerLocalizer.APPCACHE, appId, "output", appAttemptId }));
+                ContainerLocalizer.APPCACHE, appId, "output", appAttemptId}));
     File appAttemptDir = new File(attemptDir);
     appAttemptDir.mkdirs();
     System.out.println(appAttemptDir.getAbsolutePath());
@@ -624,8 +623,8 @@ public class TestShuffleHandler {
   }
 
   private static void
-    createMapOutputFile(File mapOutputFile, Configuration conf)
-          throws IOException {
+  createMapOutputFile(File mapOutputFile, Configuration conf)
+      throws IOException {
     FileOutputStream out = new FileOutputStream(mapOutputFile);
     out.write("Creating new dummy map output file. Used only for testing"
         .getBytes());
@@ -681,7 +680,7 @@ public class TestShuffleHandler {
       jt.write(outputBuffer);
       shuffle.initializeApplication(new ApplicationInitializationContext(user,
           appId, ByteBuffer.wrap(outputBuffer.getData(), 0,
-            outputBuffer.getLength())));
+          outputBuffer.getLength())));
 
       // verify we are authorized to shuffle
       int rc = getShuffleResponseCode(shuffle, jt);
@@ -720,7 +719,7 @@ public class TestShuffleHandler {
       FileUtil.fullyDelete(tmpDir);
     }
   }
-  
+
   @Test
   public void testRecoveryFromOtherVersions() throws IOException {
     final String user = "someuser";
@@ -748,7 +747,7 @@ public class TestShuffleHandler {
       jt.write(outputBuffer);
       shuffle.initializeApplication(new ApplicationInitializationContext(user,
           appId, ByteBuffer.wrap(outputBuffer.getData(), 0,
-              outputBuffer.getLength())));
+          outputBuffer.getLength())));
 
       // verify we are authorized to shuffle
       int rc = getShuffleResponseCode(shuffle, jt);
@@ -766,7 +765,7 @@ public class TestShuffleHandler {
       Assert.assertEquals(HttpURLConnection.HTTP_OK, rc);
       Version version = Version.newInstance(1, 0);
       Assert.assertEquals(version, shuffle.getCurrentVersion());
-    
+
       // emulate shuffle handler restart with compatible version
       Version version11 = Version.newInstance(1, 1);
       // update version info before close shuffle
@@ -783,7 +782,7 @@ public class TestShuffleHandler {
       // verify we are still authorized to shuffle to the old application
       rc = getShuffleResponseCode(shuffle, jt);
       Assert.assertEquals(HttpURLConnection.HTTP_OK, rc);
-    
+
       // emulate shuffle handler restart with incompatible version
       Version version21 = Version.newInstance(2, 1);
       shuffle.storeVersion(version21);
@@ -792,15 +791,15 @@ public class TestShuffleHandler {
       shuffle = new ShuffleHandler();
       shuffle.setRecoveryPath(new Path(tmpDir.toString()));
       shuffle.init(conf);
-    
+
       try {
         shuffle.start();
         Assert.fail("Incompatible version, should expect fail here.");
       } catch (ServiceStateException e) {
-        Assert.assertTrue("Exception message mismatch", 
-        e.getMessage().contains("Incompatible version for state DB schema:"));
-      } 
-    
+        Assert.assertTrue("Exception message mismatch",
+            e.getMessage().contains("Incompatible version for state DB schema:"));
+      }
+
     } finally {
       if (shuffle != null) {
         shuffle.close();
@@ -810,7 +809,7 @@ public class TestShuffleHandler {
   }
 
   private static int getShuffleResponseCode(ShuffleHandler shuffle,
-      Token<JobTokenIdentifier> jt) throws IOException {
+                                            Token<JobTokenIdentifier> jt) throws IOException {
     URL url = new URL("http://127.0.0.1:"
         + shuffle.getConfig().get(ShuffleHandler.SHUFFLE_PORT_CONFIG_KEY)
         + "/mapOutput?job=job_12345_0001&reduce=0&map=attempt_12345_1_m_1_0");

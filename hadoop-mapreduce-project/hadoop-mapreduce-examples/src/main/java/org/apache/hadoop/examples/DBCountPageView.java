@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,18 +17,6 @@
  */
 
 package org.apache.hadoop.examples;
-
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Iterator;
-import java.util.Random;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -51,6 +39,12 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.hsqldb.server.Server;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+import java.sql.*;
+import java.util.Random;
+
 /**
  * This is a demonstrative program, which uses DBInputFormat for reading
  * the input data from a database, and DBOutputFormat for writing the data 
@@ -62,7 +56,7 @@ import org.hsqldb.server.Server;
  * The input data is a mini access log, with a <code>&lt;url,referrer,time&gt;
  * </code> schema.The output is the number of pageviews of each url in the log, 
  * having the schema <code>&lt;url,pageview&gt;</code>.  
- * 
+ *
  * When called with no arguments the program starts a local HSQLDB server, and 
  * uses this database for storing/retrieving the data. 
  * <br>
@@ -79,30 +73,30 @@ import org.hsqldb.server.Server;
 public class DBCountPageView extends Configured implements Tool {
 
   private static final Log LOG = LogFactory.getLog(DBCountPageView.class);
-  
+
   private Connection connection;
   private boolean initialized = false;
 
   private static final String[] AccessFieldNames = {"url", "referrer", "time"};
   private static final String[] PageviewFieldNames = {"url", "pageview"};
-  
-  private static final String DB_URL = 
-    "jdbc:hsqldb:hsql://localhost/URLAccess";
+
+  private static final String DB_URL =
+      "jdbc:hsqldb:hsql://localhost/URLAccess";
   private static final String DRIVER_CLASS = "org.hsqldb.jdbc.JDBCDriver";
-  
+
   private Server server;
-  
+
   private void startHsqldbServer() {
     server = new Server();
-    server.setDatabasePath(0, 
+    server.setDatabasePath(0,
         System.getProperty("test.build.data", "/tmp") + "/URLAccess");
     server.setDatabaseName(0, "URLAccess");
     server.start();
   }
-  
+
   private void createConnection(String driverClassName
       , String url) throws Exception {
-    
+
     Class.forName(driverClassName);
     connection = DriverManager.getConnection(url);
     connection.setAutoCommit(false);
@@ -112,35 +106,35 @@ public class DBCountPageView extends Configured implements Tool {
     try {
       connection.commit();
       connection.close();
-    }catch (Throwable ex) {
+    } catch (Throwable ex) {
       LOG.warn("Exception occurred while closing connection :"
           + StringUtils.stringifyException(ex));
     } finally {
       try {
-        if(server != null) {
+        if (server != null) {
           server.shutdown();
         }
-      }catch (Throwable ex) {
+      } catch (Throwable ex) {
         LOG.warn("Exception occurred while shutting down HSQLDB :"
             + StringUtils.stringifyException(ex));
       }
     }
   }
 
-  private void initialize(String driverClassName, String url) 
-    throws Exception {
-    if(!this.initialized) {
-      if(driverClassName.equals(DRIVER_CLASS)) {
+  private void initialize(String driverClassName, String url)
+      throws Exception {
+    if (!this.initialized) {
+      if (driverClassName.equals(DRIVER_CLASS)) {
         startHsqldbServer();
       }
       createConnection(driverClassName, url);
       dropTables();
       createTables();
       populateAccess();
-      this.initialized = true;  
+      this.initialized = true;
     }
   }
-  
+
   private void dropTables() {
     String dropAccess = "DROP TABLE Access";
     String dropPageview = "DROP TABLE Pageview";
@@ -151,26 +145,31 @@ public class DBCountPageView extends Configured implements Tool {
       st.executeUpdate(dropPageview);
       connection.commit();
       st.close();
-    }catch (SQLException ex) {
-      try { if (st != null) { st.close(); } } catch (Exception e) {}
+    } catch (SQLException ex) {
+      try {
+        if (st != null) {
+          st.close();
+        }
+      } catch (Exception e) {
+      }
     }
   }
-  
+
   private void createTables() throws SQLException {
 
-    String createAccess = 
-      "CREATE TABLE " +
-      "Access(url      VARCHAR(100) NOT NULL," +
+    String createAccess =
+        "CREATE TABLE " +
+            "Access(url      VARCHAR(100) NOT NULL," +
             " referrer VARCHAR(100)," +
             " time     BIGINT NOT NULL, " +
             " PRIMARY KEY (url, time))";
 
-    String createPageview = 
-      "CREATE TABLE " +
-      "Pageview(url      VARCHAR(100) NOT NULL," +
-              " pageview     BIGINT NOT NULL, " +
-               " PRIMARY KEY (url))";
-    
+    String createPageview =
+        "CREATE TABLE " +
+            "Pageview(url      VARCHAR(100) NOT NULL," +
+            " pageview     BIGINT NOT NULL, " +
+            " PRIMARY KEY (url))";
+
     Statement st = connection.createStatement();
     try {
       st.executeUpdate(createAccess);
@@ -186,32 +185,32 @@ public class DBCountPageView extends Configured implements Tool {
    */
   private void populateAccess() throws SQLException {
 
-    PreparedStatement statement = null ;
+    PreparedStatement statement = null;
     try {
       statement = connection.prepareStatement(
           "INSERT INTO Access(url, referrer, time)" +
-          " VALUES (?, ?, ?)");
+              " VALUES (?, ?, ?)");
 
       Random random = new Random();
 
       int time = random.nextInt(50) + 50;
 
       final int PROBABILITY_PRECISION = 100; //  1 / 100 
-      final int NEW_PAGE_PROBABILITY  = 15;  //  15 / 100
+      final int NEW_PAGE_PROBABILITY = 15;  //  15 / 100
 
 
       //Pages in the site :
-      String[] pages = {"/a", "/b", "/c", "/d", "/e", 
-                        "/f", "/g", "/h", "/i", "/j"};
+      String[] pages = {"/a", "/b", "/c", "/d", "/e",
+          "/f", "/g", "/h", "/i", "/j"};
       //linkMatrix[i] is the array of pages(indexes) that page_i links to.  
-      int[][] linkMatrix = {{1,5,7}, {0,7,4,6,}, {0,1,7,8}, 
-        {0,2,4,6,7,9}, {0,1}, {0,3,5,9}, {0}, {0,1,3}, {0,2,6}, {0,2,6}};
+      int[][] linkMatrix = {{1, 5, 7}, {0, 7, 4, 6,}, {0, 1, 7, 8},
+          {0, 2, 4, 6, 7, 9}, {0, 1}, {0, 3, 5, 9}, {0}, {0, 1, 3}, {0, 2, 6}, {0, 2, 6}};
 
       //a mini model of user browsing a la pagerank
-      int currentPage = random.nextInt(pages.length); 
+      int currentPage = random.nextInt(pages.length);
       String referrer = null;
 
-      for(int i=0; i<time; i++) {
+      for (int i = 0; i < time; i++) {
 
         statement.setString(1, pages[currentPage]);
         statement.setString(2, referrer);
@@ -222,29 +221,28 @@ public class DBCountPageView extends Configured implements Tool {
 
         // go to a new page with probability 
         // NEW_PAGE_PROBABILITY / PROBABILITY_PRECISION
-        if(action < NEW_PAGE_PROBABILITY) { 
+        if (action < NEW_PAGE_PROBABILITY) {
           currentPage = random.nextInt(pages.length); // a random page
           referrer = null;
-        }
-        else {
+        } else {
           referrer = pages[currentPage];
           action = random.nextInt(linkMatrix[currentPage].length);
           currentPage = linkMatrix[currentPage][action];
         }
       }
-      
+
       connection.commit();
-      
-    }catch (SQLException ex) {
+
+    } catch (SQLException ex) {
       connection.rollback();
       throw ex;
     } finally {
-      if(statement != null) {
+      if (statement != null) {
         statement.close();
       }
     }
   }
-  
+
   /**Verifies the results are correct */
   private boolean verify() throws SQLException {
     //check total num pageview
@@ -266,40 +264,41 @@ public class DBCountPageView extends Configured implements Tool {
       LOG.info("sumPageview=" + sumPageview);
 
       return totalPageview == sumPageview && totalPageview != 0;
-    }finally {
-      if(st != null)
+    } finally {
+      if (st != null)
         st.close();
-      if(rs != null)
+      if (rs != null)
         rs.close();
     }
   }
-  
+
   /** Holds a &lt;url, referrer, time &gt; tuple */
   static class AccessRecord implements Writable, DBWritable {
     String url;
     String referrer;
     long time;
-    
+
     @Override
     public void readFields(DataInput in) throws IOException {
       this.url = Text.readString(in);
       this.referrer = Text.readString(in);
       this.time = in.readLong();
     }
-    
+
     @Override
     public void write(DataOutput out) throws IOException {
       Text.writeString(out, url);
       Text.writeString(out, referrer);
       out.writeLong(time);
     }
-    
+
     @Override
     public void readFields(ResultSet resultSet) throws SQLException {
       this.url = resultSet.getString(1);
       this.referrer = resultSet.getString(2);
       this.time = resultSet.getLong(3);
     }
+
     @Override
     public void write(PreparedStatement statement) throws SQLException {
       statement.setString(1, url);
@@ -307,50 +306,56 @@ public class DBCountPageView extends Configured implements Tool {
       statement.setLong(3, time);
     }
   }
+
   /** Holds a &lt;url, pageview &gt; tuple */
   static class PageviewRecord implements Writable, DBWritable {
     String url;
     long pageview;
-   
+
     public PageviewRecord(String url, long pageview) {
       this.url = url;
       this.pageview = pageview;
     }
-    
+
     @Override
     public void readFields(DataInput in) throws IOException {
       this.url = Text.readString(in);
       this.pageview = in.readLong();
     }
+
     @Override
     public void write(DataOutput out) throws IOException {
       Text.writeString(out, url);
       out.writeLong(pageview);
     }
+
     @Override
     public void readFields(ResultSet resultSet) throws SQLException {
       this.url = resultSet.getString(1);
       this.pageview = resultSet.getLong(2);
     }
+
     @Override
     public void write(PreparedStatement statement) throws SQLException {
       statement.setString(1, url);
       statement.setLong(2, pageview);
     }
+
     @Override
     public String toString() {
       return url + " " + pageview;
     }
   }
-  
+
   /**
    * Mapper extracts URLs from the AccessRecord (tuples from db), 
    * and emits a &lt;url,1&gt; pair for each access record. 
    */
-  static class PageviewMapper extends 
+  static class PageviewMapper extends
       Mapper<LongWritable, AccessRecord, Text, LongWritable> {
-    
+
     LongWritable ONE = new LongWritable(1L);
+
     @Override
     public void map(LongWritable key, AccessRecord value, Context context)
         throws IOException, InterruptedException {
@@ -358,46 +363,47 @@ public class DBCountPageView extends Configured implements Tool {
       context.write(oKey, ONE);
     }
   }
-  
+
   /**
    * Reducer sums up the pageviews and emits a PageviewRecord, 
    * which will correspond to one tuple in the db.
    */
-  static class PageviewReducer extends 
+  static class PageviewReducer extends
       Reducer<Text, LongWritable, PageviewRecord, NullWritable> {
-    
+
     NullWritable n = NullWritable.get();
+
     @Override
-    public void reduce(Text key, Iterable<LongWritable> values, 
-        Context context) throws IOException, InterruptedException {
-      
+    public void reduce(Text key, Iterable<LongWritable> values,
+                       Context context) throws IOException, InterruptedException {
+
       long sum = 0L;
-      for(LongWritable value: values) {
+      for (LongWritable value : values) {
         sum += value.get();
       }
       context.write(new PageviewRecord(key.toString(), sum), n);
     }
   }
-  
+
   @Override
   //Usage DBCountPageView [driverClass dburl]
   public int run(String[] args) throws Exception {
-    
+
     String driverClassName = DRIVER_CLASS;
     String url = DB_URL;
-    
-    if(args.length > 1) {
+
+    if (args.length > 1) {
       driverClassName = args[0];
       url = args[1];
     }
-    
+
     initialize(driverClassName, url);
     Configuration conf = getConf();
 
     DBConfiguration.configureDB(conf, driverClassName, url);
 
     Job job = new Job(conf);
-        
+
     job.setJobName("Count Pageviews of URLs");
     job.setJarByClass(DBCountPageView.class);
     job.setMapperClass(PageviewMapper.class);
@@ -408,7 +414,7 @@ public class DBCountPageView extends Configured implements Tool {
         , null, "url", AccessFieldNames);
 
     DBOutputFormat.setOutput(job, "Pageview", PageviewFieldNames);
-    
+
     job.setMapOutputKeyClass(Text.class);
     job.setMapOutputValueClass(LongWritable.class);
 
@@ -418,11 +424,11 @@ public class DBCountPageView extends Configured implements Tool {
     try {
       ret = job.waitForCompletion(true) ? 0 : 1;
       boolean correct = verify();
-      if(!correct) {
+      if (!correct) {
         throw new RuntimeException("Evaluation was not correct!");
       }
     } finally {
-      shutdown();    
+      shutdown();
     }
     return ret;
   }

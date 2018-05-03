@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,26 +18,6 @@
 
 package org.apache.hadoop.mapreduce.v2.hs;
 
-import static org.apache.hadoop.fs.CommonConfigurationKeysPublic
-    .NET_TOPOLOGY_NODE_SWITCH_MAPPING_IMPL_KEY;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.StringTokenizer;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.junit.Assert;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -46,39 +26,25 @@ import org.apache.hadoop.fs.FileContext;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Counters;
-import org.apache.hadoop.mapreduce.JobID;
-import org.apache.hadoop.mapreduce.MRJobConfig;
-import org.apache.hadoop.mapreduce.TaskID;
-import org.apache.hadoop.mapreduce.TypeConverter;
-import org.apache.hadoop.mapreduce.jobhistory.EventReader;
-import org.apache.hadoop.mapreduce.jobhistory.HistoryEvent;
-import org.apache.hadoop.mapreduce.jobhistory.HistoryViewer;
-import org.apache.hadoop.mapreduce.jobhistory.JobHistoryParser;
+import org.apache.hadoop.mapreduce.*;
+import org.apache.hadoop.mapreduce.jobhistory.*;
 import org.apache.hadoop.mapreduce.jobhistory.JobHistoryParser.AMInfo;
 import org.apache.hadoop.mapreduce.jobhistory.JobHistoryParser.JobInfo;
 import org.apache.hadoop.mapreduce.jobhistory.JobHistoryParser.TaskAttemptInfo;
 import org.apache.hadoop.mapreduce.jobhistory.JobHistoryParser.TaskInfo;
-import org.apache.hadoop.mapreduce.jobhistory.JobUnsuccessfulCompletionEvent;
-import org.apache.hadoop.mapreduce.jobhistory.TaskFailedEvent;
-import org.apache.hadoop.mapreduce.jobhistory.TaskFinishedEvent;
-import org.apache.hadoop.mapreduce.jobhistory.TaskStartedEvent;
-import org.apache.hadoop.mapreduce.v2.api.records.JobId;
-import org.apache.hadoop.mapreduce.v2.api.records.JobState;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskState;
+import org.apache.hadoop.mapreduce.v2.api.records.*;
 import org.apache.hadoop.mapreduce.v2.api.records.TaskType;
 import org.apache.hadoop.mapreduce.v2.api.records.impl.pb.JobIdPBImpl;
 import org.apache.hadoop.mapreduce.v2.api.records.impl.pb.TaskIdPBImpl;
 import org.apache.hadoop.mapreduce.v2.app.MRApp;
 import org.apache.hadoop.mapreduce.v2.app.job.Job;
-import org.apache.hadoop.mapreduce.v2.app.job.impl.JobImpl;
 import org.apache.hadoop.mapreduce.v2.app.job.Task;
 import org.apache.hadoop.mapreduce.v2.app.job.TaskAttempt;
 import org.apache.hadoop.mapreduce.v2.app.job.event.JobEvent;
 import org.apache.hadoop.mapreduce.v2.app.job.event.JobEventType;
 import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptEvent;
 import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptEventType;
+import org.apache.hadoop.mapreduce.v2.app.job.impl.JobImpl;
 import org.apache.hadoop.mapreduce.v2.hs.HistoryFileManager.HistoryFileInfo;
 import org.apache.hadoop.mapreduce.v2.hs.TestJobHistoryEvents.MRAppWithHistory;
 import org.apache.hadoop.mapreduce.v2.hs.webapp.dao.JobsInfo;
@@ -89,10 +55,20 @@ import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.service.Service;
 import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.util.RackResolver;
+import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.NET_TOPOLOGY_NODE_SWITCH_MAPPING_IMPL_KEY;
+import static org.junit.Assert.*;
 
 public class TestJobHistoryParsing {
   private static final Log LOG = LogFactory.getLog(TestJobHistoryParsing.class);
@@ -104,7 +80,7 @@ public class TestJobHistoryParsing {
   public static class MyResolver implements DNSToSwitchMapping {
     @Override
     public List<String> resolve(List<String> names) {
-      return Arrays.asList(new String[] { RACK_NAME });
+      return Arrays.asList(new String[]{RACK_NAME});
     }
 
     @Override
@@ -112,7 +88,7 @@ public class TestJobHistoryParsing {
     }
 
     @Override
-    public void reloadCachedMappings(List<String> names) {	
+    public void reloadCachedMappings(List<String> names) {
     }
   }
 
@@ -153,7 +129,7 @@ public class TestJobHistoryParsing {
   }
 
   private void checkHistoryParsing(final int numMaps, final int numReduces,
-      final int numSuccessfulMaps) throws Exception {
+                                   final int numSuccessfulMaps) throws Exception {
     Configuration conf = new Configuration();
     conf.set(MRJobConfig.USER_NAME, System.getProperty("user.name"));
     long amStartTimeEst = System.currentTimeMillis();
@@ -377,7 +353,7 @@ public class TestJobHistoryParsing {
 
   // Computes finished maps similar to RecoveryService...
   private long computeFinishedMaps(JobInfo jobInfo, int numMaps,
-      int numSuccessfulMaps) {
+                                   int numSuccessfulMaps) {
     if (numMaps == numSuccessfulMaps) {
       return jobInfo.getFinishedMaps();
     }
@@ -415,7 +391,7 @@ public class TestJobHistoryParsing {
       JobHistory jobHistory = new JobHistory();
       jobHistory.init(conf);
       HistoryFileInfo fileInfo = jobHistory.getJobFileInfo(jobId);
-      
+
       JobHistoryParser parser;
       JobInfo jobInfo;
       synchronized (fileInfo) {
@@ -481,7 +457,7 @@ public class TestJobHistoryParsing {
       jobHistory.init(conf);
 
       HistoryFileInfo fileInfo = jobHistory.getJobFileInfo(jobId);
-      
+
       JobHistoryParser parser;
       JobInfo jobInfo;
       synchronized (fileInfo) {
@@ -574,7 +550,7 @@ public class TestJobHistoryParsing {
         assertTrue(historyError.contains(diagString));
       }
       assertTrue("No killed message in diagnostics",
-        historyError.contains(JobImpl.JOB_KILLED_DIAG));
+          historyError.contains(JobImpl.JOB_KILLED_DIAG));
     } finally {
       LOG.info("FINISHED testDiagnosticsForKilledJob");
     }
@@ -629,7 +605,7 @@ public class TestJobHistoryParsing {
   static class MRAppWithHistoryWithFailedAttempt extends MRAppWithHistory {
 
     public MRAppWithHistoryWithFailedAttempt(int maps, int reduces,
-        boolean autoComplete, String testName, boolean cleanOnStart) {
+                                             boolean autoComplete, String testName, boolean cleanOnStart) {
       super(maps, reduces, autoComplete, testName, cleanOnStart);
     }
 
@@ -649,7 +625,7 @@ public class TestJobHistoryParsing {
   static class MRAppWithHistoryWithFailedTask extends MRAppWithHistory {
 
     public MRAppWithHistoryWithFailedTask(int maps, int reduces,
-        boolean autoComplete, String testName, boolean cleanOnStart) {
+                                          boolean autoComplete, String testName, boolean cleanOnStart) {
       super(maps, reduces, autoComplete, testName, cleanOnStart);
     }
 
@@ -669,7 +645,7 @@ public class TestJobHistoryParsing {
   static class MRAppWithHistoryWithJobKilled extends MRAppWithHistory {
 
     public MRAppWithHistoryWithJobKilled(int maps, int reduces,
-        boolean autoComplete, String testName, boolean cleanOnStart) {
+                                         boolean autoComplete, String testName, boolean cleanOnStart) {
       super(maps, reduces, autoComplete, testName, cleanOnStart);
     }
 
@@ -858,7 +834,7 @@ public class TestJobHistoryParsing {
               JobUnsuccessfulCompletionEvent juce =
                   new JobUnsuccessfulCompletionEvent(jid, 100L, 2, 0,
                       "JOB_FAILED", Collections.singletonList(
-                          "Task failed: " + tids[0].toString()));
+                      "Task failed: " + tids[0].toString()));
               return juce;
             }
             return null;
@@ -880,64 +856,61 @@ public class TestJobHistoryParsing {
       JobHistoryParser parser = new JobHistoryParser(fsdis);
       JobInfo info = parser.parse();
       assertEquals("History parsed jobId incorrectly",
-          info.getJobId(), JobID.forName("job_1393307629410_0001") );
+          info.getJobId(), JobID.forName("job_1393307629410_0001"));
       assertEquals("Default diagnostics incorrect ", "", info.getErrorInfo());
     } finally {
       fsdis.close();
     }
   }
-  
+
   /**
    * Test compatibility of JobHistoryParser with 2.0.3-alpha history files
    * @throws IOException
    */
   @Test
-  public void testTaskAttemptUnsuccessfulCompletionWithoutCounters203() throws IOException 
-    { 
-      Path histPath = new Path(getClass().getClassLoader().getResource(
+  public void testTaskAttemptUnsuccessfulCompletionWithoutCounters203() throws IOException {
+    Path histPath = new Path(getClass().getClassLoader().getResource(
         "job_2.0.3-alpha-FAILED.jhist").getFile());
-      JobHistoryParser parser = new JobHistoryParser(FileSystem.getLocal
-          (new Configuration()), histPath);
-      JobInfo jobInfo = parser.parse(); 
-      LOG.info(" job info: " + jobInfo.getJobname() + " "
-        + jobInfo.getFinishedMaps() + " " 
-        + jobInfo.getTotalMaps() + " " 
-        + jobInfo.getJobId() ) ;
-    }
-  
+    JobHistoryParser parser = new JobHistoryParser(FileSystem.getLocal
+        (new Configuration()), histPath);
+    JobInfo jobInfo = parser.parse();
+    LOG.info(" job info: " + jobInfo.getJobname() + " "
+        + jobInfo.getFinishedMaps() + " "
+        + jobInfo.getTotalMaps() + " "
+        + jobInfo.getJobId());
+  }
+
   /**
    * Test compatibility of JobHistoryParser with 2.4.0 history files
    * @throws IOException
    */
   @Test
-  public void testTaskAttemptUnsuccessfulCompletionWithoutCounters240() throws IOException 
-    {
-      Path histPath = new Path(getClass().getClassLoader().getResource(
+  public void testTaskAttemptUnsuccessfulCompletionWithoutCounters240() throws IOException {
+    Path histPath = new Path(getClass().getClassLoader().getResource(
         "job_2.4.0-FAILED.jhist").getFile());
-      JobHistoryParser parser = new JobHistoryParser(FileSystem.getLocal
-          (new Configuration()), histPath);
-      JobInfo jobInfo = parser.parse(); 
-      LOG.info(" job info: " + jobInfo.getJobname() + " "
+    JobHistoryParser parser = new JobHistoryParser(FileSystem.getLocal
+        (new Configuration()), histPath);
+    JobInfo jobInfo = parser.parse();
+    LOG.info(" job info: " + jobInfo.getJobname() + " "
         + jobInfo.getFinishedMaps() + " "
         + jobInfo.getTotalMaps() + " "
-        + jobInfo.getJobId() );
-    }
+        + jobInfo.getJobId());
+  }
 
   /**
    * Test compatibility of JobHistoryParser with 0.23.9 history files
    * @throws IOException
    */
   @Test
-  public void testTaskAttemptUnsuccessfulCompletionWithoutCounters0239() throws IOException 
-    {
-      Path histPath = new Path(getClass().getClassLoader().getResource(
-          "job_0.23.9-FAILED.jhist").getFile());
-      JobHistoryParser parser = new JobHistoryParser(FileSystem.getLocal
-          (new Configuration()), histPath);
-      JobInfo jobInfo = parser.parse(); 
-      LOG.info(" job info: " + jobInfo.getJobname() + " "
-        + jobInfo.getFinishedMaps() + " " 
-        + jobInfo.getTotalMaps() + " " 
-        + jobInfo.getJobId() ) ;
-      }
+  public void testTaskAttemptUnsuccessfulCompletionWithoutCounters0239() throws IOException {
+    Path histPath = new Path(getClass().getClassLoader().getResource(
+        "job_0.23.9-FAILED.jhist").getFile());
+    JobHistoryParser parser = new JobHistoryParser(FileSystem.getLocal
+        (new Configuration()), histPath);
+    JobInfo jobInfo = parser.parse();
+    LOG.info(" job info: " + jobInfo.getJobname() + " "
+        + jobInfo.getFinishedMaps() + " "
+        + jobInfo.getTotalMaps() + " "
+        + jobInfo.getJobId());
+  }
 }

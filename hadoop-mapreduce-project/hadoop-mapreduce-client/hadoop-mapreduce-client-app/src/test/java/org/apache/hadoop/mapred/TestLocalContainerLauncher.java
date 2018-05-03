@@ -1,35 +1,22 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapred;
-
-import static org.apache.hadoop.fs.CreateFlag.CREATE;
-import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -61,6 +48,17 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+
+import static org.apache.hadoop.fs.CreateFlag.CREATE;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.*;
 
 public class TestLocalContainerLauncher {
   private static final Log LOG =
@@ -97,7 +95,7 @@ public class TestLocalContainerLauncher {
   }
 
   @SuppressWarnings("rawtypes")
-  @Test(timeout=10000)
+  @Test(timeout = 10000)
   public void testKillJob() throws Exception {
     JobConf conf = new JobConf();
     AppContext context = mock(AppContext.class);
@@ -132,7 +130,7 @@ public class TestLocalContainerLauncher {
     Job job = mock(Job.class);
     when(job.getTotalMaps()).thenReturn(1);
     when(job.getTotalReduces()).thenReturn(0);
-    Map<JobId,Job> jobs = new HashMap<JobId,Job>();
+    Map<JobId, Job> jobs = new HashMap<JobId, Job>();
     jobs.put(jobId, job);
     // app context returns the one and only job
     when(context.getAllJobs()).thenReturn(jobs);
@@ -154,7 +152,7 @@ public class TestLocalContainerLauncher {
       public Void answer(InvocationOnMock invocation) throws Throwable {
         // sleep for a long time
         LOG.info("sleeping for 5 minutes...");
-        Thread.sleep(5*60*1000);
+        Thread.sleep(5 * 60 * 1000);
         return null;
       }
     }).when(mapTask).run(isA(JobConf.class), isA(TaskUmbilicalProtocol.class));

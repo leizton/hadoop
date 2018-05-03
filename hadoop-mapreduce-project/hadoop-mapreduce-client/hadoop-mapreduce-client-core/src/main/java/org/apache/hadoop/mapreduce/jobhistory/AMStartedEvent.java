@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,17 +18,16 @@
 
 package org.apache.hadoop.mapreduce.jobhistory;
 
+import org.apache.avro.util.Utf8;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
 import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 
-import org.apache.avro.util.Utf8;
-
 /**
  * Event to record start of a task attempt
- * 
+ *
  */
 @InterfaceAudience.Private
 @InterfaceStability.Unstable
@@ -38,7 +37,7 @@ public class AMStartedEvent implements HistoryEvent {
 
   /**
    * Create an event to record the start of an MR AppMaster
-   * 
+   *
    * @param appAttemptId
    *          the application attempt id.
    * @param startTime
@@ -53,8 +52,8 @@ public class AMStartedEvent implements HistoryEvent {
    *          the httpPort for the node running the AM.
    */
   public AMStartedEvent(ApplicationAttemptId appAttemptId, long startTime,
-      ContainerId containerId, String nodeManagerHost, int nodeManagerPort,
-      int nodeManagerHttpPort) {
+                        ContainerId containerId, String nodeManagerHost, int nodeManagerPort,
+                        int nodeManagerHttpPort) {
     this(appAttemptId, startTime, containerId, nodeManagerHost,
         nodeManagerPort, nodeManagerHttpPort, null);
   }
@@ -78,8 +77,8 @@ public class AMStartedEvent implements HistoryEvent {
    *          the state to force the job into
    */
   public AMStartedEvent(ApplicationAttemptId appAttemptId, long startTime,
-      ContainerId containerId, String nodeManagerHost, int nodeManagerPort,
-      int nodeManagerHttpPort, String forcedJobStateOnShutDown) {
+                        ContainerId containerId, String nodeManagerHost, int nodeManagerPort,
+                        int nodeManagerHttpPort, String forcedJobStateOnShutDown) {
     datum.applicationAttemptId = new Utf8(appAttemptId.toString());
     datum.startTime = startTime;
     datum.containerId = new Utf8(containerId.toString());
@@ -135,7 +134,7 @@ public class AMStartedEvent implements HistoryEvent {
   public int getNodeManagerPort() {
     return datum.nodeManagerPort;
   }
-  
+
   /**
    * @return the http port for the tracker.
    */

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,13 +18,13 @@
 
 package org.apache.hadoop.mapred;
 
-import java.io.IOException;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+
+import java.io.IOException;
 
 /**
  * This class treats a line in the input as a key/value pair separated by a 
@@ -35,7 +35,7 @@ import org.apache.hadoop.io.Text;
 @InterfaceAudience.Public
 @InterfaceStability.Stable
 public class KeyValueLineRecordReader implements RecordReader<Text, Text> {
-  
+
   private final LineRecordReader lineRecordReader;
 
   private byte separator = (byte) '\t';
@@ -44,19 +44,21 @@ public class KeyValueLineRecordReader implements RecordReader<Text, Text> {
 
   private Text innerValue;
 
-  public Class getKeyClass() { return Text.class; }
-  
+  public Class getKeyClass() {
+    return Text.class;
+  }
+
   public Text createKey() {
     return new Text();
   }
-  
+
   public Text createValue() {
     return new Text();
   }
 
   public KeyValueLineRecordReader(Configuration job, FileSplit split)
-    throws IOException {
-    
+      throws IOException {
+
     lineRecordReader = new LineRecordReader(job, split);
     dummyKey = lineRecordReader.createKey();
     innerValue = lineRecordReader.createValue();
@@ -64,15 +66,15 @@ public class KeyValueLineRecordReader implements RecordReader<Text, Text> {
     this.separator = (byte) sepStr.charAt(0);
   }
 
-  public static int findSeparator(byte[] utf, int start, int length, 
-      byte sep) {
+  public static int findSeparator(byte[] utf, int start, int length,
+                                  byte sep) {
     return org.apache.hadoop.mapreduce.lib.input.
-      KeyValueLineRecordReader.findSeparator(utf, start, length, sep);
+        KeyValueLineRecordReader.findSeparator(utf, start, length, sep);
   }
 
   /** Read key/value pair in a line. */
   public synchronized boolean next(Text key, Text value)
-    throws IOException {
+      throws IOException {
     byte[] line = null;
     int lineLen = -1;
     if (lineRecordReader.next(dummyKey, innerValue)) {
@@ -85,19 +87,19 @@ public class KeyValueLineRecordReader implements RecordReader<Text, Text> {
       return false;
     int pos = findSeparator(line, 0, lineLen, this.separator);
     org.apache.hadoop.mapreduce.lib.input.KeyValueLineRecordReader.
-      setKeyValue(key, value, line, lineLen, pos);
+        setKeyValue(key, value, line, lineLen, pos);
     return true;
   }
-  
+
   public float getProgress() throws IOException {
     return lineRecordReader.getProgress();
   }
-  
+
   public synchronized long getPos() throws IOException {
     return lineRecordReader.getPos();
   }
 
-  public synchronized void close() throws IOException { 
+  public synchronized void close() throws IOException {
     lineRecordReader.close();
   }
 }

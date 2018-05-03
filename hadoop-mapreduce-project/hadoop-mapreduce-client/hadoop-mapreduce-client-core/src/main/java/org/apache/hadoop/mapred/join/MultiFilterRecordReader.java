@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,18 +18,18 @@
 
 package org.apache.hadoop.mapred.join;
 
-import java.io.IOException;
-import java.util.PriorityQueue;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.io.WritableComparator;
 import org.apache.hadoop.io.WritableUtils;
-import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordReader;
+import org.apache.hadoop.util.ReflectionUtils;
+
+import java.io.IOException;
+import java.util.PriorityQueue;
 
 /**
  * Base class for Composite join returning values derived from multiple
@@ -38,15 +38,15 @@ import org.apache.hadoop.mapred.RecordReader;
 @InterfaceAudience.Public
 @InterfaceStability.Stable
 public abstract class MultiFilterRecordReader<K extends WritableComparable,
-                                              V extends Writable>
-    extends CompositeRecordReader<K,V,V>
-    implements ComposableRecordReader<K,V> {
+    V extends Writable>
+    extends CompositeRecordReader<K, V, V>
+    implements ComposableRecordReader<K, V> {
 
   private Class<? extends Writable> valueclass;
   private TupleWritable ivalue;
 
   public MultiFilterRecordReader(int id, JobConf conf, int capacity,
-      Class<? extends WritableComparator> cmpcl) throws IOException {
+                                 Class<? extends WritableComparator> cmpcl) throws IOException {
     super(id, capacity, cmpcl);
     setConf(conf);
   }
@@ -77,7 +77,7 @@ public abstract class MultiFilterRecordReader<K extends WritableComparable,
     }
     jc.clear();
     K iterkey = createKey();
-    final PriorityQueue<ComposableRecordReader<K,?>> q = getRecordReaderQueue();
+    final PriorityQueue<ComposableRecordReader<K, ?>> q = getRecordReaderQueue();
     while (!q.isEmpty()) {
       fillJoinCollector(iterkey);
       jc.reset(iterkey);
@@ -96,7 +96,7 @@ public abstract class MultiFilterRecordReader<K extends WritableComparable,
   public V createValue() {
     if (null == valueclass) {
       final Class<?> cls = kids[0].createValue().getClass();
-      for (RecordReader<K,? extends V> rr : kids) {
+      for (RecordReader<K, ? extends V> rr : kids) {
         if (!cls.equals(rr.createValue().getClass())) {
           throw new ClassCastException("Child value classes fail to agree");
         }

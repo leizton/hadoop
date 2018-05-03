@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,10 +19,6 @@
 package org.apache.hadoop.mapreduce.v2.api.protocolrecords.impl.pb;
 
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetTaskReportsResponse;
 import org.apache.hadoop.mapreduce.v2.api.records.TaskReport;
 import org.apache.hadoop.mapreduce.v2.api.records.impl.pb.TaskReportPBImpl;
@@ -31,16 +27,19 @@ import org.apache.hadoop.mapreduce.v2.proto.MRServiceProtos.GetTaskReportsRespon
 import org.apache.hadoop.mapreduce.v2.proto.MRServiceProtos.GetTaskReportsResponseProtoOrBuilder;
 import org.apache.hadoop.yarn.api.records.impl.pb.ProtoBase;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
-    
+
 public class GetTaskReportsResponsePBImpl extends ProtoBase<GetTaskReportsResponseProto> implements GetTaskReportsResponse {
   GetTaskReportsResponseProto proto = GetTaskReportsResponseProto.getDefaultInstance();
   GetTaskReportsResponseProto.Builder builder = null;
   boolean viaProto = false;
-  
+
   private List<TaskReport> taskReports = null;
-  
-  
+
+
   public GetTaskReportsResponsePBImpl() {
     builder = GetTaskReportsResponseProto.newBuilder();
   }
@@ -49,9 +48,9 @@ public class GetTaskReportsResponsePBImpl extends ProtoBase<GetTaskReportsRespon
     this.proto = proto;
     viaProto = true;
   }
-  
+
   public GetTaskReportsResponseProto getProto() {
-      mergeLocalToProto();
+    mergeLocalToProto();
     proto = viaProto ? proto : builder.build();
     viaProto = true;
     return proto;
@@ -64,7 +63,7 @@ public class GetTaskReportsResponsePBImpl extends ProtoBase<GetTaskReportsRespon
   }
 
   private void mergeLocalToProto() {
-    if (viaProto) 
+    if (viaProto)
       maybeInitBuilder();
     mergeLocalToBuilder();
     proto = builder.build();
@@ -77,24 +76,26 @@ public class GetTaskReportsResponsePBImpl extends ProtoBase<GetTaskReportsRespon
     }
     viaProto = false;
   }
-    
-  
+
+
   @Override
   public List<TaskReport> getTaskReportList() {
     initTaskReports();
     return this.taskReports;
   }
+
   @Override
   public TaskReport getTaskReport(int index) {
     initTaskReports();
     return this.taskReports.get(index);
   }
+
   @Override
   public int getTaskReportCount() {
     initTaskReports();
     return this.taskReports.size();
   }
-  
+
   private void initTaskReports() {
     if (this.taskReports != null) {
       return;
@@ -107,7 +108,7 @@ public class GetTaskReportsResponsePBImpl extends ProtoBase<GetTaskReportsRespon
       this.taskReports.add(convertFromProtoFormat(c));
     }
   }
-  
+
   @Override
   public void addAllTaskReports(final List<TaskReport> taskReports) {
     if (taskReports == null)
@@ -115,7 +116,7 @@ public class GetTaskReportsResponsePBImpl extends ProtoBase<GetTaskReportsRespon
     initTaskReports();
     this.taskReports.addAll(taskReports);
   }
-  
+
   private void addTaskReportsToProto() {
     maybeInitBuilder();
     builder.clearTaskReports();
@@ -149,16 +150,19 @@ public class GetTaskReportsResponsePBImpl extends ProtoBase<GetTaskReportsRespon
     };
     builder.addAllTaskReports(iterable);
   }
+
   @Override
   public void addTaskReport(TaskReport taskReports) {
     initTaskReports();
     this.taskReports.add(taskReports);
   }
+
   @Override
   public void removeTaskReport(int index) {
     initTaskReports();
     this.taskReports.remove(index);
   }
+
   @Override
   public void clearTaskReports() {
     initTaskReports();
@@ -170,9 +174,8 @@ public class GetTaskReportsResponsePBImpl extends ProtoBase<GetTaskReportsRespon
   }
 
   private TaskReportProto convertToProtoFormat(TaskReport t) {
-    return ((TaskReportPBImpl)t).getProto();
+    return ((TaskReportPBImpl) t).getProto();
   }
 
 
-
-}  
+}

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -42,6 +42,7 @@ public class TestMultithreadedMapRunner extends HadoopTestCase {
   public void testIOExRun() throws Exception {
     run(true, false);
   }
+
   public void testRuntimeExRun() throws Exception {
     run(false, true);
   }
@@ -53,7 +54,7 @@ public class TestMultithreadedMapRunner extends HadoopTestCase {
     // Hack for local FS that does not have the concept of a 'mounting point'
     if (isLocalFS()) {
       String localPathRoot = System.getProperty("test.build.data", "/tmp")
-              .replace(' ', '+');
+          .replace(' ', '+');
       inDir = new Path(localPathRoot, inDir);
       outDir = new Path(localPathRoot, outDir);
     }
@@ -92,7 +93,7 @@ public class TestMultithreadedMapRunner extends HadoopTestCase {
     FileOutputFormat.setOutputPath(conf, outDir);
 
     conf.setMapRunnerClass(MultithreadedMapRunner.class);
-    
+
     conf.setInt(MultithreadedMapper.NUM_THREADS, 2);
 
     if (ioEx) {
@@ -102,22 +103,21 @@ public class TestMultithreadedMapRunner extends HadoopTestCase {
       conf.setBoolean("multithreaded.runtimeException", true);
     }
     JobClient jc = new JobClient(conf);
-    RunningJob job =jc.submitJob(conf);
+    RunningJob job = jc.submitJob(conf);
     while (!job.isComplete()) {
       Thread.sleep(100);
     }
 
     if (job.isSuccessful()) {
       assertFalse(ioEx || rtEx);
-    }
-    else {
+    } else {
       assertTrue(ioEx || rtEx);
     }
 
   }
 
   public static class IDMap implements Mapper<LongWritable, Text,
-                                              LongWritable, Text> {
+      LongWritable, Text> {
     private boolean ioEx = false;
     private boolean rtEx = false;
 
@@ -129,7 +129,7 @@ public class TestMultithreadedMapRunner extends HadoopTestCase {
     public void map(LongWritable key, Text value,
                     OutputCollector<LongWritable, Text> output,
                     Reporter reporter)
-            throws IOException {
+        throws IOException {
       if (ioEx) {
         throw new IOException();
       }
@@ -150,7 +150,7 @@ public class TestMultithreadedMapRunner extends HadoopTestCase {
   }
 
   public static class IDReduce implements Reducer<LongWritable, Text,
-                                                  LongWritable, Text> {
+      LongWritable, Text> {
 
     public void configure(JobConf job) {
     }
@@ -158,7 +158,7 @@ public class TestMultithreadedMapRunner extends HadoopTestCase {
     public void reduce(LongWritable key, Iterator<Text> values,
                        OutputCollector<LongWritable, Text> output,
                        Reporter reporter)
-            throws IOException {
+        throws IOException {
       while (values.hasNext()) {
         output.collect(key, values.next());
       }

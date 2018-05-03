@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,40 +17,36 @@
  */
 package org.apache.hadoop.mapreduce;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
-import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+
 /**
  * Dummy class for testing failed mappers and/or reducers.
- * 
+ *
  * Mappers emit a token amount of data.
  */
 public class FailJob extends Configured implements Tool {
   public static String FAIL_MAP = "mapreduce.failjob.map.fail";
   public static String FAIL_REDUCE = "mapreduce.failjob.reduce.fail";
-  public static class FailMapper 
+
+  public static class FailMapper
       extends Mapper<LongWritable, Text, LongWritable, NullWritable> {
     public void map(LongWritable key, Text value, Context context
-               ) throws IOException, InterruptedException {
+    ) throws IOException, InterruptedException {
       if (context.getConfiguration().getBoolean(FAIL_MAP, true)) {
         throw new RuntimeException("Intentional map failure");
       }
@@ -58,13 +54,13 @@ public class FailJob extends Configured implements Tool {
     }
   }
 
-  public static class FailReducer  
+  public static class FailReducer
       extends Reducer<LongWritable, NullWritable, NullWritable, NullWritable> {
 
     public void reduce(LongWritable key, Iterable<NullWritable> values,
                        Context context) throws IOException {
       if (context.getConfiguration().getBoolean(FAIL_REDUCE, false)) {
-      	throw new RuntimeException("Intentional reduce failure");
+        throw new RuntimeException("Intentional reduce failure");
       }
       context.setStatus("No worries");
     }
@@ -75,7 +71,7 @@ public class FailJob extends Configured implements Tool {
     System.exit(res);
   }
 
-  public Job createJob(boolean failMappers, boolean failReducers, Path inputFile) 
+  public Job createJob(boolean failMappers, boolean failReducers, Path inputFile)
       throws IOException {
     Configuration conf = getConf();
     conf.setBoolean(FAIL_MAP, failMappers);
@@ -95,7 +91,7 @@ public class FailJob extends Configured implements Tool {
   }
 
   public int run(String[] args) throws Exception {
-    if(args.length < 1) {
+    if (args.length < 1) {
       System.err.println("FailJob " +
           " (-failMappers|-failReducers)");
       ToolRunner.printGenericCommandUsage(System.err);
@@ -103,11 +99,10 @@ public class FailJob extends Configured implements Tool {
     }
     boolean failMappers = false, failReducers = false;
 
-    for (int i = 0; i < args.length; i++ ) {
+    for (int i = 0; i < args.length; i++) {
       if (args[i].equals("-failMappers")) {
         failMappers = true;
-      }
-      else if(args[i].equals("-failReducers")) {
+      } else if (args[i].equals("-failReducers")) {
         failReducers = true;
       }
     }

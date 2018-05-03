@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,11 +18,7 @@
 
 package org.apache.hadoop.fs.slive;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.PosixParser;
+import org.apache.commons.cli.*;
 import org.apache.hadoop.fs.slive.Constants.Distribution;
 import org.apache.hadoop.fs.slive.Constants.OperationType;
 import org.apache.hadoop.util.StringUtils;
@@ -45,7 +41,7 @@ class ArgumentParser {
     private boolean needHelp;
 
     ParsedOutput(CommandLine parsedData, ArgumentParser source,
-        boolean needHelp) {
+                 boolean needHelp) {
       this.parsedData = parsedData;
       this.source = source;
       this.needHelp = needHelp;
@@ -75,7 +71,7 @@ class ArgumentParser {
     /**
      * @param optName
      *          the option name to get the value for
-     * 
+     *
      * @return the option value or null if it does not exist
      */
     String getValue(String optName) {
@@ -101,7 +97,7 @@ class ArgumentParser {
   ArgumentParser(String[] args) {
     optList = getOptions();
     if (args == null) {
-      args = new String[] {};
+      args = new String[]{};
     }
     argumentList = args;
     parsed = null;
@@ -113,9 +109,9 @@ class ArgumentParser {
 
   /**
    * Parses the command line options
-   * 
+   *
    * @return false if need to print help output
-   * 
+   *
    * @throws Exception
    *           when parsing fails
    */

@@ -6,25 +6,25 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-package org.apache.hadoop.mapred;
 
-import java.io.IOException;
-import java.util.regex.PatternSyntaxException;
+package org.apache.hadoop.mapred;
 
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.util.ReflectionUtils;
+
+import java.io.IOException;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * A class that allows a map/red job to work on a sample of sequence files.
@@ -33,14 +33,14 @@ import org.apache.hadoop.util.ReflectionUtils;
 @InterfaceAudience.Public
 @InterfaceStability.Stable
 public class SequenceFileInputFilter<K, V>
-  extends SequenceFileInputFormat<K, V> {
-  
+    extends SequenceFileInputFormat<K, V> {
+
   final private static String FILTER_CLASS = org.apache.hadoop.mapreduce.lib.
       input.SequenceFileInputFilter.FILTER_CLASS;
 
   public SequenceFileInputFilter() {
   }
-    
+
   /** Create a record reader for the given split
    * @param split file split
    * @param job job configuration
@@ -48,17 +48,17 @@ public class SequenceFileInputFilter<K, V>
    * @return RecordReader
    */
   public RecordReader<K, V> getRecordReader(InputSplit split,
-                                      JobConf job, Reporter reporter)
-    throws IOException {
-        
+                                            JobConf job, Reporter reporter)
+      throws IOException {
+
     reporter.setStatus(split.toString());
-        
+
     return new FilterRecordReader<K, V>(job, (FileSplit) split);
   }
 
 
   /** set the filter class
-   * 
+   *
    * @param conf application configuration
    * @param filterClass filter class
    */
@@ -66,14 +66,14 @@ public class SequenceFileInputFilter<K, V>
     conf.set(FILTER_CLASS, filterClass.getName());
   }
 
-         
+
   /**
    * filter interface
    */
-  public interface Filter extends 
+  public interface Filter extends
       org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFilter.Filter {
   }
-    
+
   /**
    * base class for Filters
    */
@@ -81,23 +81,24 @@ public class SequenceFileInputFilter<K, V>
       lib.input.SequenceFileInputFilter.FilterBase
       implements Filter {
   }
-    
+
   /** Records filter by matching key to regex
    */
   public static class RegexFilter extends FilterBase {
     org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFilter.
-      RegexFilter rf;
+        RegexFilter rf;
+
     public static void setPattern(Configuration conf, String regex)
         throws PatternSyntaxException {
       org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFilter.
-        RegexFilter.setPattern(conf, regex);
+          RegexFilter.setPattern(conf, regex);
     }
-        
-    public RegexFilter() { 
+
+    public RegexFilter() {
       rf = new org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFilter.
-             RegexFilter();
+          RegexFilter();
     }
-        
+
     /** configure the Filter by checking the configuration
      */
     public void setConf(Configuration conf) {
@@ -121,23 +122,24 @@ public class SequenceFileInputFilter<K, V>
    */
   public static class PercentFilter extends FilterBase {
     org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFilter.
-	      PercentFilter pf;
+        PercentFilter pf;
+
     /** set the frequency and stores it in conf
      * @param conf configuration
      * @param frequency filtering frequencey
      */
     public static void setFrequency(Configuration conf, int frequency) {
-       org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFilter.
-	      PercentFilter.setFrequency(conf, frequency);
+      org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFilter.
+          PercentFilter.setFrequency(conf, frequency);
     }
-	        
-    public PercentFilter() { 
+
+    public PercentFilter() {
       pf = new org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFilter.
-        PercentFilter();
+          PercentFilter();
     }
-	        
+
     /** configure the filter by checking the configuration
-     * 
+     *
      * @param conf configuration
      */
     public void setConf(Configuration conf) {
@@ -159,25 +161,26 @@ public class SequenceFileInputFilter<K, V>
    */
   public static class MD5Filter extends FilterBase {
     public static final int MD5_LEN = org.apache.hadoop.mapreduce.lib.
-      input.SequenceFileInputFilter.MD5Filter.MD5_LEN;
+        input.SequenceFileInputFilter.MD5Filter.MD5_LEN;
     org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFilter.MD5Filter mf;
+
     /** set the filtering frequency in configuration
-     * 
+     *
      * @param conf configuration
      * @param frequency filtering frequency
      */
     public static void setFrequency(Configuration conf, int frequency) {
       org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFilter.MD5Filter.
-        setFrequency(conf, frequency);
+          setFrequency(conf, frequency);
     }
-        
-    public MD5Filter() { 
+
+    public MD5Filter() {
       mf = new org.apache.hadoop.mapreduce.lib.input.
-        SequenceFileInputFilter.MD5Filter();
+          SequenceFileInputFilter.MD5Filter();
     }
-        
+
     /** configure the filter according to configuration
-     * 
+     *
      * @param conf configuration
      */
     public void setConf(Configuration conf) {
@@ -192,21 +195,21 @@ public class SequenceFileInputFilter<K, V>
       return mf.accept(key);
     }
   }
-    
+
   private static class FilterRecordReader<K, V>
-    extends SequenceFileRecordReader<K, V> {
-    
+      extends SequenceFileRecordReader<K, V> {
+
     private Filter filter;
-        
+
     public FilterRecordReader(Configuration conf, FileSplit split)
-      throws IOException {
+        throws IOException {
       super(conf, split);
       // instantiate filter
-      filter = (Filter)ReflectionUtils.newInstance(
-                                                   conf.getClass(FILTER_CLASS, PercentFilter.class), 
-                                                   conf);
+      filter = (Filter) ReflectionUtils.newInstance(
+          conf.getClass(FILTER_CLASS, PercentFilter.class),
+          conf);
     }
-        
+
     public synchronized boolean next(K key, V value) throws IOException {
       while (next(key)) {
         if (filter.accept(key)) {
@@ -214,7 +217,7 @@ public class SequenceFileInputFilter<K, V>
           return true;
         }
       }
-            
+
       return false;
     }
   }

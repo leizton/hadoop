@@ -1,32 +1,32 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2.app.speculate;
-
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.MRJobConfig;
 import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId;
 import org.apache.hadoop.mapreduce.v2.app.AppContext;
 import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptStatusUpdateEvent.TaskAttemptStatus;
+
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * This estimator exponentially smooths the rate of progress versus wallclock
@@ -76,7 +76,7 @@ public class ExponentiallySmoothedTaskRuntimeEstimator extends StartEndTimesBase
 
       double oldWeighting
           = value < 0.0
-              ? 0.0 : Math.exp(((double) (newAtTime - atTime)) / lambda);
+          ? 0.0 : Math.exp(((double) (newAtTime - atTime)) / lambda);
 
       double newRead = (newProgress - basedOnProgress) / (newAtTime - atTime);
 
@@ -86,7 +86,7 @@ public class ExponentiallySmoothedTaskRuntimeEstimator extends StartEndTimesBase
 
       return new EstimateVector
           (value * oldWeighting + newRead * (1.0 - oldWeighting),
-           newProgress, newAtTime);
+              newProgress, newAtTime);
     }
   }
 
@@ -105,7 +105,7 @@ public class ExponentiallySmoothedTaskRuntimeEstimator extends StartEndTimesBase
 
     if (oldVector == null) {
       if (vectorRef.compareAndSet(null,
-             new EstimateVector(-1.0, 0.0F, Long.MIN_VALUE))) {
+          new EstimateVector(-1.0, 0.0F, Long.MIN_VALUE))) {
         return;
       }
 
@@ -114,7 +114,7 @@ public class ExponentiallySmoothedTaskRuntimeEstimator extends StartEndTimesBase
     }
 
     while (!vectorRef.compareAndSet
-            (oldVector, oldVector.incorporate(newProgress, newTime))) {
+        (oldVector, oldVector.incorporate(newProgress, newTime))) {
       oldVector = vectorRef.get();
     }
   }
@@ -135,10 +135,10 @@ public class ExponentiallySmoothedTaskRuntimeEstimator extends StartEndTimesBase
 
     lambda
         = conf.getLong(MRJobConfig.MR_AM_TASK_ESTIMATOR_SMOOTH_LAMBDA_MS,
-            MRJobConfig.DEFAULT_MR_AM_TASK_ESTIMATOR_SMOOTH_LAMBDA_MS);
+        MRJobConfig.DEFAULT_MR_AM_TASK_ESTIMATOR_SMOOTH_LAMBDA_MS);
     smoothedValue
         = conf.getBoolean(MRJobConfig.MR_AM_TASK_ESTIMATOR_EXPONENTIAL_RATE_ENABLE, true)
-            ? SmoothedValue.RATE : SmoothedValue.TIME_PER_UNIT_PROGRESS;
+        ? SmoothedValue.RATE : SmoothedValue.TIME_PER_UNIT_PROGRESS;
   }
 
   @Override
@@ -172,7 +172,7 @@ public class ExponentiallySmoothedTaskRuntimeEstimator extends StartEndTimesBase
 
     double remainingTime = (1.0 - progress) / rate;
 
-    return sunkTime + (long)remainingTime;
+    return sunkTime + (long) remainingTime;
   }
 
   @Override

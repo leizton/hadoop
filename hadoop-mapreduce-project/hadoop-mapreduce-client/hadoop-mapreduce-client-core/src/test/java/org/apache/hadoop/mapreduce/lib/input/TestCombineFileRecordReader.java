@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,24 +18,22 @@
 
 package org.apache.hadoop.mapreduce.lib.input;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.File;
-
-import org.junit.Assert;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
-import org.apache.hadoop.mapreduce.TaskAttemptID;
 import org.apache.hadoop.mapred.Task.TaskReporter;
-
+import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.hadoop.mapreduce.TaskAttemptID;
+import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
+import org.junit.Assert;
+import org.junit.Test;
 import org.mockito.Mockito;
 
-import org.junit.Test;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -43,12 +41,13 @@ import static org.mockito.Mockito.verify;
 public class TestCombineFileRecordReader {
 
   private static Path outDir = new Path(System.getProperty("test.build.data",
-            "/tmp"), TestCombineFileRecordReader.class.getName());
+      "/tmp"), TestCombineFileRecordReader.class.getName());
+
   private static class TextRecordReaderWrapper
-    extends CombineFileRecordReaderWrapper<LongWritable,Text> {
+      extends CombineFileRecordReaderWrapper<LongWritable, Text> {
     // this constructor signature is required by CombineFileRecordReader
     public TextRecordReaderWrapper(org.apache.hadoop.mapreduce.lib.input.CombineFileSplit split,
-      TaskAttemptContext context, Integer idx)
+                                   TaskAttemptContext context, Integer idx)
         throws IOException, InterruptedException {
       super(new TextInputFormat(), split, context, idx);
     }
@@ -63,27 +62,27 @@ public class TestCombineFileRecordReader {
     long[] fileLength = new long[3];
 
     try {
-      for(int i=0;i<3;i++){
+      for (int i = 0; i < 3; i++) {
         File dir = new File(outDir.toString());
         dir.mkdir();
-        files[i] = new File(dir,"testfile"+i);
+        files[i] = new File(dir, "testfile" + i);
         FileWriter fileWriter = new FileWriter(files[i]);
         fileWriter.flush();
         fileWriter.close();
         fileLength[i] = i;
-        paths[i] = new Path(outDir+"/testfile"+i);
+        paths[i] = new Path(outDir + "/testfile" + i);
       }
 
       CombineFileSplit combineFileSplit = new CombineFileSplit(paths, fileLength);
       TaskAttemptID taskAttemptID = Mockito.mock(TaskAttemptID.class);
       TaskReporter reporter = Mockito.mock(TaskReporter.class);
       TaskAttemptContextImpl taskAttemptContext =
-        new TaskAttemptContextImpl(conf, taskAttemptID,reporter);
+          new TaskAttemptContextImpl(conf, taskAttemptID, reporter);
 
       CombineFileRecordReader cfrr = new CombineFileRecordReader(combineFileSplit,
-        taskAttemptContext, TextRecordReaderWrapper.class);
+          taskAttemptContext, TextRecordReaderWrapper.class);
 
-      cfrr.initialize(combineFileSplit,taskAttemptContext);
+      cfrr.initialize(combineFileSplit, taskAttemptContext);
 
       verify(reporter).progress();
       Assert.assertFalse(cfrr.nextKeyValue());

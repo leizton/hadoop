@@ -18,13 +18,7 @@
 
 package org.apache.hadoop.mapreduce.counters;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ConcurrentSkipListMap;
-
+import com.google.common.collect.Iterators;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableUtils;
@@ -32,7 +26,12 @@ import org.apache.hadoop.mapreduce.Counter;
 import org.apache.hadoop.mapreduce.util.ResourceBundles;
 import org.apache.hadoop.util.StringInterner;
 
-import com.google.common.collect.Iterators;
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * An abstract class to provide common implementation of the
@@ -132,9 +131,10 @@ public abstract class AbstractCounterGroup<T extends Counter>
 
   /**
    * Abstract factory method to create a new counter of type T
+   *
    * @param counterName of the counter
    * @param displayName of the counter
-   * @param value of the counter
+   * @param value       of the counter
    * @return a new counter
    */
   protected abstract T newCounter(String counterName, String displayName,
@@ -142,6 +142,7 @@ public abstract class AbstractCounterGroup<T extends Counter>
 
   /**
    * Abstract factory method to create a new counter of type T
+   *
    * @return a new counter object
    */
   protected abstract T newCounter();
@@ -158,7 +159,7 @@ public abstract class AbstractCounterGroup<T extends Counter>
   public synchronized void write(DataOutput out) throws IOException {
     Text.writeString(out, displayName);
     WritableUtils.writeVInt(out, counters.size());
-    for(Counter counter: counters.values()) {
+    for (Counter counter : counters.values()) {
       counter.write(out);
     }
   }

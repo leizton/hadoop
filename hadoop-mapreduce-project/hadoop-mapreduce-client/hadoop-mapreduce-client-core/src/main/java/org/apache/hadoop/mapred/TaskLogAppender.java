@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,18 +18,18 @@
 
 package org.apache.hadoop.mapred;
 
-import java.io.Flushable;
-import java.util.LinkedList;
-import java.util.Queue;
-
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.log4j.FileAppender;
 import org.apache.log4j.spi.LoggingEvent;
 
+import java.io.Flushable;
+import java.util.LinkedList;
+import java.util.Queue;
+
 /**
  * A simple log4j-appender for the task child's 
  * map-reduce system logs.
- * 
+ *
  */
 @InterfaceStability.Unstable
 public class TaskLogAppender extends FileAppender implements Flushable {
@@ -78,7 +78,7 @@ public class TaskLogAppender extends FileAppender implements Flushable {
       setTotalLogFileSize(Long.valueOf(propValue));
     }
   }
-  
+
   @Override
   public void append(LoggingEvent event) {
     synchronized (this) {
@@ -92,7 +92,7 @@ public class TaskLogAppender extends FileAppender implements Flushable {
       }
     }
   }
-  
+
   @Override
   public void flush() {
     if (qw != null) {
@@ -103,7 +103,7 @@ public class TaskLogAppender extends FileAppender implements Flushable {
   @Override
   public synchronized void close() {
     if (tail != null) {
-      for(LoggingEvent event: tail) {
+      for (LoggingEvent event : tail) {
         super.append(event);
       }
     }
@@ -113,7 +113,7 @@ public class TaskLogAppender extends FileAppender implements Flushable {
   /**
    * Getter/Setter methods for log4j.
    */
-  
+
   public synchronized String getTaskId() {
     return taskId;
   }
@@ -123,7 +123,7 @@ public class TaskLogAppender extends FileAppender implements Flushable {
   }
 
   private static final int EVENT_SIZE = 100;
-  
+
   public synchronized long getTotalLogFileSize() {
     return maxEvents * EVENT_SIZE;
   }
@@ -134,7 +134,7 @@ public class TaskLogAppender extends FileAppender implements Flushable {
 
   /**
    * Set whether the task is a cleanup attempt or not.
-   * 
+   *
    * @param isCleanup
    *          true if the task is cleanup attempt, false otherwise.
    */
@@ -144,7 +144,7 @@ public class TaskLogAppender extends FileAppender implements Flushable {
 
   /**
    * Get whether task is cleanup attempt or not.
-   * 
+   *
    * @return true if the task is cleanup attempt, false otherwise.
    */
   public synchronized boolean getIsCleanup() {

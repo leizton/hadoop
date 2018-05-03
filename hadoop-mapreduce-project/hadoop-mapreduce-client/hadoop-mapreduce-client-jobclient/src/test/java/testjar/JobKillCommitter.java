@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,15 +18,15 @@
 
 package testjar;
 
-import java.io.IOException;
-import java.util.Iterator;
-
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.FileOutputCommitter;
 import org.apache.hadoop.mapred.JobContext;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
+
+import java.io.IOException;
+import java.util.Iterator;
 
 public class JobKillCommitter {
   /**
@@ -74,16 +74,17 @@ public class JobKillCommitter {
         throws IOException, InterruptedException {
     }
   }
+
   /**
-  * The class provides a sleep implementation for mapper method.
-  */
- public static class MapperPassSleep extends 
-     Mapper<LongWritable, Text, Text, Text> {
-   public void map(LongWritable key, Text value, Context context)
-       throws IOException, InterruptedException {
-     Thread.sleep(10000);
-   }
- }
+   * The class provides a sleep implementation for mapper method.
+   */
+  public static class MapperPassSleep extends
+      Mapper<LongWritable, Text, Text, Text> {
+    public void map(LongWritable key, Text value, Context context)
+        throws IOException, InterruptedException {
+      Thread.sleep(10000);
+    }
+  }
 
   /**
    * The class  provides a way for the mapper function to fail by

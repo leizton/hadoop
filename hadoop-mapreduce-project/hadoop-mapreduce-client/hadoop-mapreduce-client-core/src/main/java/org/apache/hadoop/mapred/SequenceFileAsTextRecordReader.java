@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,14 +18,14 @@
 
 package org.apache.hadoop.mapred;
 
-import java.io.IOException;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.WritableComparable;
+
+import java.io.IOException;
 
 /**
  * This class converts the input keys and values to their String forms by calling toString()
@@ -35,18 +35,18 @@ import org.apache.hadoop.io.WritableComparable;
 @InterfaceAudience.Public
 @InterfaceStability.Stable
 public class SequenceFileAsTextRecordReader
-  implements RecordReader<Text, Text> {
-  
+    implements RecordReader<Text, Text> {
+
   private final SequenceFileRecordReader<WritableComparable, Writable>
-  sequenceFileRecordReader;
+      sequenceFileRecordReader;
 
   private WritableComparable innerKey;
   private Writable innerValue;
 
   public SequenceFileAsTextRecordReader(Configuration conf, FileSplit split)
-    throws IOException {
+      throws IOException {
     sequenceFileRecordReader =
-      new SequenceFileRecordReader<WritableComparable, Writable>(conf, split);
+        new SequenceFileRecordReader<WritableComparable, Writable>(conf, split);
     innerKey = sequenceFileRecordReader.createKey();
     innerValue = sequenceFileRecordReader.createValue();
   }
@@ -54,7 +54,7 @@ public class SequenceFileAsTextRecordReader
   public Text createKey() {
     return new Text();
   }
-  
+
   public Text createValue() {
     return new Text();
   }
@@ -70,17 +70,17 @@ public class SequenceFileAsTextRecordReader
     tValue.set(innerValue.toString());
     return true;
   }
-  
+
   public float getProgress() throws IOException {
     return sequenceFileRecordReader.getProgress();
   }
-  
+
   public synchronized long getPos() throws IOException {
     return sequenceFileRecordReader.getPos();
   }
-  
+
   public synchronized void close() throws IOException {
     sequenceFileRecordReader.close();
   }
-  
+
 }

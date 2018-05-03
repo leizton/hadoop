@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,10 +18,6 @@
 
 package org.apache.hadoop.mapreduce.lib.jobcontrol;
 
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -35,7 +31,11 @@ import org.apache.hadoop.mapreduce.JobID;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.util.StringUtils;
 
-/** 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
  *  This class encapsulates a MapReduce job and its dependency. It monitors 
  *  the states of the depending jobs and updates the state of this job.
  *  A job starts in the WAITING state. If it does not have any depending jobs,
@@ -52,8 +52,12 @@ public class ControlledJob {
   private static final Log LOG = LogFactory.getLog(ControlledJob.class);
 
   // A job will be in one of the following states
-  public static enum State {SUCCESS, WAITING, RUNNING, READY, FAILED,
-                            DEPENDENT_FAILED}; 
+  public static enum State {
+    SUCCESS, WAITING, RUNNING, READY, FAILED,
+    DEPENDENT_FAILED
+  }
+
+  ;
   public static final String CREATE_DIR = "mapreduce.jobcontrol.createdir.ifnotexist";
   private State state;
   private String controlID;     // assigned and used by JobControl class
@@ -62,13 +66,13 @@ public class ControlledJob {
   private String message;
   // the jobs the current job depends on
   private List<ControlledJob> dependingJobs;
-	
-  /** 
+
+  /**
    * Construct a job.
    * @param job a mapreduce job to be executed.
    * @param dependingJobs an array of jobs the current job depends on
    */
-  public ControlledJob(Job job, List<ControlledJob> dependingJobs) 
+  public ControlledJob(Job job, List<ControlledJob> dependingJobs)
       throws IOException {
     this.job = job;
     this.dependingJobs = dependingJobs;
@@ -76,17 +80,17 @@ public class ControlledJob {
     this.controlID = "unassigned";
     this.message = "just initialized";
   }
-  
+
   /**
    * Construct a job.
-   * 
+   *
    * @param conf mapred job configuration representing a job to be executed.
    * @throws IOException
    */
   public ControlledJob(Configuration conf) throws IOException {
     this(new Job(conf), null);
   }
-	
+
   @Override
   public String toString() {
     StringBuffer sb = new StringBuffer();
@@ -95,12 +99,12 @@ public class ControlledJob {
     sb.append("job state:\t").append(this.state).append("\n");
     sb.append("job mapred id:\t").append(this.job.getJobID()).append("\n");
     sb.append("job message:\t").append(this.message).append("\n");
-		
+
     if (this.dependingJobs == null || this.dependingJobs.size() == 0) {
       sb.append("job has no depending job:\t").append("\n");
     } else {
       sb.append("job has ").append(this.dependingJobs.size()).
-         append(" dependeng jobs:\n");
+          append(" dependeng jobs:\n");
       for (int i = 0; i < this.dependingJobs.size(); i++) {
         sb.append("\t depending job ").append(i).append(":\t");
         sb.append((this.dependingJobs.get(i)).getJobName()).append("\n");
@@ -108,14 +112,14 @@ public class ControlledJob {
     }
     return sb.toString();
   }
-	
+
   /**
    * @return the job name of this job
    */
   public String getJobName() {
     return job.getJobName();
   }
-	
+
   /**
    * Set the job name for  this job.
    * @param jobName the job name
@@ -123,14 +127,14 @@ public class ControlledJob {
   public void setJobName(String jobName) {
     job.setJobName(jobName);
   }
-	
+
   /**
    * @return the job ID of this job assigned by JobControl
    */
   public String getJobID() {
     return this.controlID;
   }
-	
+
   /**
    * Set the job ID for  this job.
    * @param id the job ID
@@ -145,7 +149,7 @@ public class ControlledJob {
   public synchronized JobID getMapredJobId() {
     return this.job.getJobID();
   }
-  
+
   /**
    * @return the mapreduce job 
    */
@@ -167,7 +171,7 @@ public class ControlledJob {
   public synchronized State getJobState() {
     return this.state;
   }
-	
+
   /**
    * Set the state for this job.
    * @param state the new state for this job.
@@ -175,7 +179,7 @@ public class ControlledJob {
   protected synchronized void setJobState(State state) {
     this.state = state;
   }
-	
+
   /**
    * @return the message of this job
    */
@@ -197,12 +201,12 @@ public class ControlledJob {
   public List<ControlledJob> getDependentJobs() {
     return this.dependingJobs;
   }
-  
+
   /**
    * Add a job to this jobs' dependency list. 
    * Dependent jobs can only be added while a Job 
    * is waiting to run, not during or afterwards.
-   * 
+   *
    * @param dependingJob Job that this Job depends on.
    * @return <tt>true</tt> if the Job was added.
    */
@@ -216,16 +220,16 @@ public class ControlledJob {
       return false;
     }
   }
-	
+
   /**
    * @return true if this job is in a complete state
    */
   public synchronized boolean isCompleted() {
-    return this.state == State.FAILED || 
-      this.state == State.DEPENDENT_FAILED ||
-      this.state == State.SUCCESS;
+    return this.state == State.FAILED ||
+        this.state == State.DEPENDENT_FAILED ||
+        this.state == State.SUCCESS;
   }
-	
+
   /**
    * @return true if this job is in READY state
    */
@@ -236,10 +240,10 @@ public class ControlledJob {
   public void killJob() throws IOException, InterruptedException {
     job.killJob();
   }
-  
+
   public synchronized void failJob(String message) throws IOException, InterruptedException {
     try {
-      if(job != null && this.state == State.RUNNING) {
+      if (job != null && this.state == State.RUNNING) {
         job.killJob();
       }
     } finally {
@@ -247,7 +251,7 @@ public class ControlledJob {
       this.message = message;
     }
   }
-  
+
   /**
    * Check the state of this running job. The state may 
    * remain the same, become SUCCESS or FAILED.
@@ -269,15 +273,16 @@ public class ControlledJob {
         if (job != null) {
           job.killJob();
         }
-      } catch (IOException e) {}
+      } catch (IOException e) {
+      }
     }
   }
-	
+
   /**
    * Check and update the state of this job. The state changes  
    * depending on its current state and the states of the depending jobs.
    */
-   synchronized State checkState() throws IOException, InterruptedException {
+  synchronized State checkState() throws IOException, InterruptedException {
     if (this.state == State.RUNNING) {
       checkRunningState();
     }
@@ -300,7 +305,7 @@ public class ControlledJob {
       if (s == State.FAILED || s == State.DEPENDENT_FAILED) {
         this.state = State.DEPENDENT_FAILED;
         this.message = "depending job " + i + " with jobID "
-          + pred.getJobID() + " failed. " + pred.getMessage();
+            + pred.getJobID() + " failed. " + pred.getMessage();
         break;
       }
       // pred must be in success state
@@ -311,7 +316,7 @@ public class ControlledJob {
 
     return this.state;
   }
-	
+
   /**
    * Submit this job to mapred. The state becomes RUNNING if submission 
    * is successful, FAILED otherwise.  
@@ -335,10 +340,10 @@ public class ControlledJob {
       job.submit();
       this.state = State.RUNNING;
     } catch (Exception ioe) {
-      LOG.info(getJobName()+" got an error while submitting ",ioe);
+      LOG.info(getJobName() + " got an error while submitting ", ioe);
       this.state = State.FAILED;
       this.message = StringUtils.stringifyException(ioe);
     }
   }
-	
+
 }

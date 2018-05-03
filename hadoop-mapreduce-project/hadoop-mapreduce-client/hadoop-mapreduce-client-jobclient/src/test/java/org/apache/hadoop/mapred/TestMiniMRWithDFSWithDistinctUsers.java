@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,9 +16,6 @@
  * limitations under the License.
  */
 package org.apache.hadoop.mapred;
-
-import java.io.IOException;
-import java.security.PrivilegedExceptionAction;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -33,13 +30,16 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.security.PrivilegedExceptionAction;
+
 /**
  * A JUnit test to test Mini Map-Reduce Cluster with Mini-DFS.
  */
 public class TestMiniMRWithDFSWithDistinctUsers {
-  static final UserGroupInformation DFS_UGI = createUGI("dfs", true); 
-  static final UserGroupInformation ALICE_UGI = createUGI("alice", false); 
-  static final UserGroupInformation BOB_UGI = createUGI("bob", false); 
+  static final UserGroupInformation DFS_UGI = createUGI("dfs", true);
+  static final UserGroupInformation ALICE_UGI = createUGI("alice", false);
+  static final UserGroupInformation BOB_UGI = createUGI("bob", false);
 
   MiniMRCluster mr = null;
   MiniDFSCluster dfs = null;
@@ -47,11 +47,11 @@ public class TestMiniMRWithDFSWithDistinctUsers {
   Configuration conf = new Configuration();
 
   static UserGroupInformation createUGI(String name, boolean issuper) {
-    String group = issuper? "supergroup": name;
-    
+    String group = issuper ? "supergroup" : name;
+
     return UserGroupInformation.createUserForTesting(name, new String[]{group});
   }
-  
+
   static void mkdir(FileSystem fs, String dir,
                     String user, String group, short mode) throws IOException {
     Path p = new Path(dir);
@@ -61,13 +61,13 @@ public class TestMiniMRWithDFSWithDistinctUsers {
   }
 
   // runs a sample job as a user (ugi)
-  void runJobAsUser(final JobConf job, UserGroupInformation ugi) 
-  throws Exception {
+  void runJobAsUser(final JobConf job, UserGroupInformation ugi)
+      throws Exception {
     RunningJob rj = ugi.doAs(new PrivilegedExceptionAction<RunningJob>() {
-        public RunningJob run() throws IOException {
-          return JobClient.runJob(job);
-        }
-      });
+      public RunningJob run() throws IOException {
+        return JobClient.runJob(job);
+      }
+    });
 
     rj.waitForCompletion();
     Assert.assertEquals("SUCCEEDED", JobStatus.getJobRunState(rj.getJobState()));
@@ -78,37 +78,41 @@ public class TestMiniMRWithDFSWithDistinctUsers {
     dfs = new MiniDFSCluster.Builder(conf).numDataNodes(4).build();
 
     fs = DFS_UGI.doAs(new PrivilegedExceptionAction<FileSystem>() {
-        public FileSystem run() throws IOException {
-          return dfs.getFileSystem();
-        }
-      });
+      public FileSystem run() throws IOException {
+        return dfs.getFileSystem();
+      }
+    });
     // Home directories for users
-    mkdir(fs, "/user", "nobody", "nogroup", (short)01777);
-    mkdir(fs, "/user/alice", "alice", "nogroup", (short)0755);
-    mkdir(fs, "/user/bob", "bob", "nogroup", (short)0755);
+    mkdir(fs, "/user", "nobody", "nogroup", (short) 01777);
+    mkdir(fs, "/user/alice", "alice", "nogroup", (short) 0755);
+    mkdir(fs, "/user/bob", "bob", "nogroup", (short) 0755);
 
     // staging directory root with sticky bit
-    UserGroupInformation MR_UGI = UserGroupInformation.getLoginUser(); 
-    mkdir(fs, "/staging", MR_UGI.getShortUserName(), "nogroup", (short)01777);
+    UserGroupInformation MR_UGI = UserGroupInformation.getLoginUser();
+    mkdir(fs, "/staging", MR_UGI.getShortUserName(), "nogroup", (short) 01777);
 
     JobConf mrConf = new JobConf();
     mrConf.set(JTConfig.JT_STAGING_AREA_ROOT, "/staging");
 
     mr = new MiniMRCluster(0, 0, 4, dfs.getFileSystem().getUri().toString(),
-                           1, null, null, MR_UGI, mrConf);
+        1, null, null, MR_UGI, mrConf);
   }
 
   @After
   public void tearDown() throws Exception {
-    if (mr != null) { mr.shutdown();}
-    if (dfs != null) { dfs.shutdown(); }
+    if (mr != null) {
+      mr.shutdown();
+    }
+    if (dfs != null) {
+      dfs.shutdown();
+    }
   }
-  
+
   @Test
   public void testDistinctUsers() throws Exception {
     JobConf job1 = mr.createJobConf();
-    String input = "The quick brown fox\nhas many silly\n" 
-      + "red fox sox\n";
+    String input = "The quick brown fox\nhas many silly\n"
+        + "red fox sox\n";
     Path inDir = new Path("/testing/distinct/input");
     Path outDir = new Path("/user/alice/output");
     TestMiniMRClasspath
@@ -139,8 +143,8 @@ public class TestMiniMRWithDFSWithDistinctUsers {
     // Make sure the spill records don't fit in index cache
     job1.setInt(MRJobConfig.INDEX_CACHE_MEMORY_LIMIT, 0);
 
-    String input = "The quick brown fox\nhas many silly\n" 
-      + "red fox sox\n";
+    String input = "The quick brown fox\nhas many silly\n"
+        + "red fox sox\n";
     Path inDir = new Path("/testing/distinct/input");
     Path outDir = new Path("/user/alice/output");
     TestMiniMRClasspath

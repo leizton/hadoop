@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,15 +18,26 @@
 
 package org.apache.hadoop.mapred;
 
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.Flushable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import com.google.common.base.Charsets;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.classification.InterfaceAudience;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.*;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.io.IOUtils;
+import org.apache.hadoop.io.SecureIOUtils;
+import org.apache.hadoop.mapreduce.JobID;
+import org.apache.hadoop.mapreduce.util.ProcessTree;
+import org.apache.hadoop.util.Shell;
+import org.apache.hadoop.util.ShutdownHookManager;
+import org.apache.hadoop.util.StringUtils;
+import org.apache.hadoop.yarn.conf.YarnConfiguration;
+import org.apache.log4j.Appender;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -35,53 +46,30 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.classification.InterfaceAudience;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.FileUtil;
-import org.apache.hadoop.fs.LocalFileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IOUtils;
-import org.apache.hadoop.io.SecureIOUtils;
-import org.apache.hadoop.mapreduce.JobID;
-import org.apache.hadoop.mapreduce.util.ProcessTree;
-import org.apache.hadoop.util.Shell;
-import org.apache.hadoop.util.StringUtils;
-import org.apache.hadoop.util.ShutdownHookManager;
-import org.apache.hadoop.yarn.conf.YarnConfiguration;
-import org.apache.log4j.Appender;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-
-import com.google.common.base.Charsets;
-
 /**
  * A simple logger to handle the task-specific user logs.
  * This class uses the system property <code>hadoop.log.dir</code>.
- * 
+ *
  */
 @InterfaceAudience.Private
 public class TaskLog {
   private static final Log LOG =
-    LogFactory.getLog(TaskLog.class);
+      LogFactory.getLog(TaskLog.class);
 
   static final String USERLOGS_DIR_NAME = "userlogs";
 
-  private static final File LOG_DIR = 
-    new File(getBaseLogDir(), USERLOGS_DIR_NAME).getAbsoluteFile();
-  
+  private static final File LOG_DIR =
+      new File(getBaseLogDir(), USERLOGS_DIR_NAME).getAbsoluteFile();
+
   // localFS is set in (and used by) writeToIndexFile()
   static LocalFileSystem localFS = null;
-  
+
   public static String getMRv2LogDir() {
     return System.getProperty(YarnConfiguration.YARN_APP_CONTAINER_LOG_DIR);
   }
-  
+
   public static File getTaskLogFile(TaskAttemptID taskid, boolean isCleanup,
-      LogName filter) {
+                                    LogName filter) {
     if (getMRv2LogDir() != null) {
       return new File(getMRv2LogDir(), filter.toString());
     } else {
@@ -90,7 +78,7 @@ public class TaskLog {
   }
 
   static File getRealTaskLogFileLocation(TaskAttemptID taskid,
-      boolean isCleanup, LogName filter) {
+                                         boolean isCleanup, LogName filter) {
     LogFileDetail l;
     try {
       l = getLogFileDetail(taskid, filter, isCleanup);
@@ -100,21 +88,22 @@ public class TaskLog {
     }
     return new File(l.location, filter.toString());
   }
+
   private static class LogFileDetail {
     final static String LOCATION = "LOG_DIR:";
     String location;
     long start;
     long length;
   }
-  
-  private static LogFileDetail getLogFileDetail(TaskAttemptID taskid, 
+
+  private static LogFileDetail getLogFileDetail(TaskAttemptID taskid,
                                                 LogName filter,
-                                                boolean isCleanup) 
-  throws IOException {
+                                                boolean isCleanup)
+      throws IOException {
     File indexFile = getIndexFile(taskid, isCleanup);
     BufferedReader fis = new BufferedReader(new InputStreamReader(
-      SecureIOUtils.openForRead(indexFile, obtainLogDirOwner(taskid), null),
-      Charsets.UTF_8));
+        SecureIOUtils.openForRead(indexFile, obtainLogDirOwner(taskid), null),
+        Charsets.UTF_8));
     //the format of the index file is
     //LOG_DIR: <the dir where the task logs are really stored>
     //stdout:<start-offset in the stdout file> <length>
@@ -159,7 +148,7 @@ public class TaskLog {
     }
     return l;
   }
-  
+
   private static File getTmpIndexFile(TaskAttemptID taskid, boolean isCleanup) {
     return new File(getAttemptDir(taskid, isCleanup), "log.tmp");
   }
@@ -188,20 +177,20 @@ public class TaskLog {
     String cleanupSuffix = isCleanup ? ".cleanup" : "";
     return new File(getJobDir(taskid.getJobID()), taskid + cleanupSuffix);
   }
+
   private static long prevOutLength;
   private static long prevErrLength;
   private static long prevLogLength;
-  
-  private static synchronized 
-  void writeToIndexFile(String logLocation,
-                        boolean isCleanup) throws IOException {
+
+  private static synchronized void writeToIndexFile(String logLocation,
+                                                    boolean isCleanup) throws IOException {
     // To ensure atomicity of updates to index file, write to temporary index
     // file first and then rename.
     File tmpIndexFile = getTmpIndexFile(currentTaskid, isCleanup);
 
     BufferedOutputStream bos = null;
     DataOutputStream dos = null;
-    try{
+    try {
       bos = new BufferedOutputStream(
           SecureIOUtils.createForWrite(tmpIndexFile, 0644));
       dos = new DataOutputStream(bos);
@@ -240,20 +229,22 @@ public class TaskLog {
     if (localFS == null) {// set localFS once
       localFS = FileSystem.getLocal(new Configuration());
     }
-    localFS.rename (tmpIndexFilePath, indexFilePath);
+    localFS.rename(tmpIndexFilePath, indexFilePath);
   }
+
   private static void resetPrevLengths(String logLocation) {
     prevOutLength = new File(logLocation, LogName.STDOUT.toString()).length();
     prevErrLength = new File(logLocation, LogName.STDERR.toString()).length();
     prevLogLength = new File(logLocation, LogName.SYSLOG.toString()).length();
   }
+
   private volatile static TaskAttemptID currentTaskid = null;
 
   @SuppressWarnings("unchecked")
-  public synchronized static void syncLogs(String logLocation, 
+  public synchronized static void syncLogs(String logLocation,
                                            TaskAttemptID taskid,
-                                           boolean isCleanup) 
-  throws IOException {
+                                           boolean isCleanup)
+      throws IOException {
     System.out.flush();
     System.err.flush();
     Enumeration<Logger> allLoggers = LogManager.getCurrentLoggers();
@@ -263,7 +254,7 @@ public class TaskLog {
       while (allAppenders.hasMoreElements()) {
         Appender a = allAppenders.nextElement();
         if (a instanceof TaskLogAppender) {
-          ((TaskLogAppender)a).flush();
+          ((TaskLogAppender) a).flush();
         }
       }
     }
@@ -275,8 +266,7 @@ public class TaskLog {
   }
 
   public static synchronized void syncLogsShutdown(
-    ScheduledExecutorService scheduler) 
-  {
+      ScheduledExecutorService scheduler) {
     // flush standard streams
     //
     System.out.flush();
@@ -287,7 +277,7 @@ public class TaskLog {
     }
 
     // flush & close all appenders
-    LogManager.shutdown(); 
+    LogManager.shutdown();
   }
 
   @SuppressWarnings("unchecked")
@@ -302,7 +292,7 @@ public class TaskLog {
     final Logger rootLogger = Logger.getRootLogger();
     flushAppenders(rootLogger);
     final Enumeration<Logger> allLoggers = rootLogger.getLoggerRepository().
-      getCurrentLoggers();
+        getCurrentLoggers();
     while (allLoggers.hasMoreElements()) {
       final Logger l = allLoggers.nextElement();
       flushAppenders(l);
@@ -319,7 +309,7 @@ public class TaskLog {
           ((Flushable) a).flush();
         } catch (IOException ioe) {
           System.err.println(a + ": Failed to flush!"
-            + StringUtils.stringifyException(ioe));
+              + StringUtils.stringifyException(ioe));
         }
       }
     }
@@ -327,22 +317,22 @@ public class TaskLog {
 
   public static ScheduledExecutorService createLogSyncer() {
     final ScheduledExecutorService scheduler =
-      Executors.newSingleThreadScheduledExecutor(
-        new ThreadFactory() {
-          @Override
-          public Thread newThread(Runnable r) {
-            final Thread t = Executors.defaultThreadFactory().newThread(r);
-            t.setDaemon(true);
-            t.setName("Thread for syncLogs");
-            return t;
-          }
-        });
+        Executors.newSingleThreadScheduledExecutor(
+            new ThreadFactory() {
+              @Override
+              public Thread newThread(Runnable r) {
+                final Thread t = Executors.defaultThreadFactory().newThread(r);
+                t.setDaemon(true);
+                t.setName("Thread for syncLogs");
+                return t;
+              }
+            });
     ShutdownHookManager.get().addShutdownHook(new Runnable() {
-        @Override
-        public void run() {
-          TaskLog.syncLogsShutdown(scheduler);
-        }
-      }, 50);
+      @Override
+      public void run() {
+        TaskLog.syncLogsShutdown(scheduler);
+      }
+    }, 50);
     scheduler.scheduleWithFixedDelay(
         new Runnable() {
           @Override
@@ -359,26 +349,26 @@ public class TaskLog {
   @InterfaceAudience.Private
   public static enum LogName {
     /** Log on the stdout of the task. */
-    STDOUT ("stdout"),
+    STDOUT("stdout"),
 
     /** Log on the stderr of the task. */
-    STDERR ("stderr"),
-    
+    STDERR("stderr"),
+
     /** Log on the map-reduce system logs of the task. */
-    SYSLOG ("syslog"),
-    
+    SYSLOG("syslog"),
+
     /** The java profiler information. */
-    PROFILE ("profile.out"),
-    
+    PROFILE("profile.out"),
+
     /** Log the debug script's stdout  */
-    DEBUGOUT ("debugout");
-        
+    DEBUGOUT("debugout");
+
     private String prefix;
-    
+
     private LogName(String prefix) {
       this.prefix = prefix;
     }
-    
+
     @Override
     public String toString() {
       return prefix;
@@ -401,7 +391,7 @@ public class TaskLog {
      * @param isCleanup whether the attempt is cleanup attempt or not
      * @throws IOException
      */
-    public Reader(TaskAttemptID taskid, LogName kind, 
+    public Reader(TaskAttemptID taskid, LogName kind,
                   long start, long end, boolean isCleanup) throws IOException {
       // find the right log file
       LogFileDetail fileDetail = getLogFileDetail(taskid, kind, isCleanup);
@@ -419,7 +409,7 @@ public class TaskLog {
       end += fileDetail.start;
       bytesRemaining = end - start;
       String owner = obtainLogDirOwner(taskid);
-      file = SecureIOUtils.openForRead(new File(fileDetail.location, kind.toString()), 
+      file = SecureIOUtils.openForRead(new File(fileDetail.location, kind.toString()),
           owner, null);
       // skip upto start
       long pos = 0;
@@ -432,7 +422,7 @@ public class TaskLog {
         pos += result;
       }
     }
-    
+
     @Override
     public int read() throws IOException {
       int result = -1;
@@ -442,7 +432,7 @@ public class TaskLog {
       }
       return result;
     }
-    
+
     @Override
     public int read(byte[] buffer, int offset, int length) throws IOException {
       length = (int) Math.min(length, bytesRemaining);
@@ -452,7 +442,7 @@ public class TaskLog {
       }
       return bytes;
     }
-    
+
     @Override
     public int available() throws IOException {
       return (int) Math.min(bytesRemaining, file.available());
@@ -466,7 +456,7 @@ public class TaskLog {
 
   private static final String bashCommand = "bash";
   private static final String tailCommand = "tail";
-  
+
   /**
    * Get the desired maximum length of task's logs.
    * @param conf the job to look in
@@ -476,7 +466,7 @@ public class TaskLog {
     return conf.getLong(JobContext.TASK_USERLOG_LIMIT, 0) * 1024;
   }
 
-  
+
   /**
    * Wrap a command in a shell to capture stdout and stderr to files.
    * Setup commands such as setting memory limit can be passed which 
@@ -491,22 +481,22 @@ public class TaskLog {
    * @return the modified command that should be run
    */
   public static List<String> captureOutAndError(List<String> setup,
-                                                List<String> cmd, 
+                                                List<String> cmd,
                                                 File stdoutFilename,
                                                 File stderrFilename,
                                                 long tailLength,
                                                 boolean useSetsid
-                                               ) throws IOException {
+  ) throws IOException {
     List<String> result = new ArrayList<String>(3);
     result.add(bashCommand);
     result.add("-c");
     String mergedCmd = buildCommandLine(setup, cmd, stdoutFilename,
-                                                    stderrFilename, tailLength, 
-                                                    useSetsid);
+        stderrFilename, tailLength,
+        useSetsid);
     result.add(mergedCmd);
     return result;
   }
-  
+
   /**
    * Construct the command line for running the task JVM
    * @param setup The setup commands for the execed process.
@@ -517,17 +507,17 @@ public class TaskLog {
    * @return the command line as a String
    * @throws IOException
    */
-  static String buildCommandLine(List<String> setup, List<String> cmd, 
-                                      File stdoutFilename,
-                                      File stderrFilename,
-                                      long tailLength, 
-                                      boolean useSetsid)
-                                throws IOException {
-    
+  static String buildCommandLine(List<String> setup, List<String> cmd,
+                                 File stdoutFilename,
+                                 File stderrFilename,
+                                 long tailLength,
+                                 boolean useSetsid)
+      throws IOException {
+
     String stdout = FileUtil.makeShellPath(stdoutFilename);
-    String stderr = FileUtil.makeShellPath(stderrFilename);    
+    String stderr = FileUtil.makeShellPath(stderrFilename);
     StringBuffer mergedCmd = new StringBuffer();
-    
+
     // Export the pid of taskJvm to env variable JVM_PID.
     // Currently pid is not used on Windows
     if (!Shell.WINDOWS) {
@@ -540,7 +530,7 @@ public class TaskLog {
     }
     if (tailLength > 0) {
       mergedCmd.append("(");
-    } else if(ProcessTree.isSetsidAvailable && useSetsid &&
+    } else if (ProcessTree.isSetsidAvailable && useSetsid &&
         !Shell.WINDOWS) {
       mergedCmd.append("exec setsid ");
     } else {
@@ -570,7 +560,7 @@ public class TaskLog {
     }
     return mergedCmd.toString();
   }
-  
+
   /**
    * Construct the command line for running the debug script
    * @param cmd The command and the arguments that should be run
@@ -581,16 +571,16 @@ public class TaskLog {
    * @throws IOException
    */
   static String buildDebugScriptCommandLine(List<String> cmd, String debugout)
-  throws IOException {
+      throws IOException {
     StringBuilder mergedCmd = new StringBuilder();
     mergedCmd.append("exec ");
     boolean isExecutable = true;
-    for(String s: cmd) {
+    for (String s : cmd) {
       if (isExecutable) {
         // the executable name needs to be expressed as a shell path for the  
         // shell to find it.
         mergedCmd.append(FileUtil.makeShellPath(new File(s)));
-        isExecutable = false; 
+        isExecutable = false;
       } else {
         mergedCmd.append(s);
       }
@@ -602,6 +592,7 @@ public class TaskLog {
     mergedCmd.append(" 2>&1 ");
     return mergedCmd.toString();
   }
+
   /**
    * Add quotes to each of the command strings and
    * return as a single string 
@@ -611,29 +602,29 @@ public class TaskLog {
    * @return returns The quoted string. 
    * @throws IOException
    */
-  public static String addCommand(List<String> cmd, boolean isExecutable) 
-  throws IOException {
+  public static String addCommand(List<String> cmd, boolean isExecutable)
+      throws IOException {
     StringBuffer command = new StringBuffer();
-    for(String s: cmd) {
-    	command.append('\'');
+    for (String s : cmd) {
+      command.append('\'');
       if (isExecutable) {
         // the executable name needs to be expressed as a shell path for the  
         // shell to find it.
-    	  command.append(FileUtil.makeShellPath(new File(s)));
-        isExecutable = false; 
+        command.append(FileUtil.makeShellPath(new File(s)));
+        isExecutable = false;
       } else {
-    	  command.append(s);
+        command.append(s);
       }
       command.append('\'');
       command.append(" ");
     }
     return command.toString();
   }
-  
-  
+
+
   /**
    * Method to return the location of user log directory.
-   * 
+   *
    * @return base log directory
    */
   static File getUserLogDir() {
@@ -645,10 +636,10 @@ public class TaskLog {
     }
     return LOG_DIR;
   }
-  
+
   /**
    * Get the user log directory for the job jobid.
-   * 
+   *
    * @param jobid
    * @return user log directory for the job
    */

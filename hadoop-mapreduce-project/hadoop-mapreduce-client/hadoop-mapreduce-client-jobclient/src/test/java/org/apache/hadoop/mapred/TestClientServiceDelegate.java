@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,25 +18,10 @@
 
 package org.apache.hadoop.mapred;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.Arrays;
-import java.util.Collection;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.JobID;
 import org.apache.hadoop.mapreduce.JobStatus;
-import org.apache.hadoop.mapreduce.MRConfig;
-import org.apache.hadoop.mapreduce.MRJobConfig;
-import org.apache.hadoop.mapreduce.TypeConverter;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.v2.api.MRClientProtocol;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetCountersRequest;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetCountersResponse;
@@ -45,14 +30,9 @@ import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetJobReportResponse;
 import org.apache.hadoop.mapreduce.v2.api.records.Counter;
 import org.apache.hadoop.mapreduce.v2.api.records.CounterGroup;
 import org.apache.hadoop.mapreduce.v2.api.records.Counters;
-import org.apache.hadoop.mapreduce.v2.api.records.JobReport;
-import org.apache.hadoop.mapreduce.v2.api.records.JobState;
+import org.apache.hadoop.mapreduce.v2.api.records.*;
 import org.apache.hadoop.mapreduce.v2.util.MRBuilderUtils;
-import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
-import org.apache.hadoop.yarn.api.records.ApplicationId;
-import org.apache.hadoop.yarn.api.records.ApplicationReport;
-import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
-import org.apache.hadoop.yarn.api.records.YarnApplicationState;
+import org.apache.hadoop.yarn.api.records.*;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.ApplicationNotFoundException;
 import org.apache.hadoop.yarn.exceptions.YarnException;
@@ -62,6 +42,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.Arrays;
+import java.util.Collection;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests for ClientServiceDelegate.java
@@ -80,7 +68,7 @@ public class TestClientServiceDelegate {
 
   @Parameters
   public static Collection<Object[]> data() {
-    Object[][] data = new Object[][] { { true }, { false } };
+    Object[][] data = new Object[][]{{true}, {false}};
     return Arrays.asList(data);
   }
 
@@ -124,7 +112,7 @@ public class TestClientServiceDelegate {
 
     MRClientProtocol historyServerProxy = mock(MRClientProtocol.class);
     when(historyServerProxy.getJobReport(getJobReportRequest())).thenThrow(
-        new RuntimeException("1")).thenThrow(new RuntimeException("2"))       
+        new RuntimeException("1")).thenThrow(new RuntimeException("2"))
         .thenReturn(getJobReportResponse());
 
     ResourceMgrDelegate rm = mock(ResourceMgrDelegate.class);
@@ -148,20 +136,20 @@ public class TestClientServiceDelegate {
 
     ResourceMgrDelegate rm = mock(ResourceMgrDelegate.class);
     when(rm.getApplicationReport(TypeConverter.toYarn(oldJobId).getAppId()))
-      .thenReturn(getRunningApplicationReport("am1", 78));
+        .thenReturn(getRunningApplicationReport("am1", 78));
 
     // throw exception in 1st, 2nd, 3rd and 4th call of getJobReport, and
     // succeed in the 5th call.
     final MRClientProtocol amProxy = mock(MRClientProtocol.class);
     when(amProxy.getJobReport(any(GetJobReportRequest.class)))
-      .thenThrow(new RuntimeException("11"))
-      .thenThrow(new RuntimeException("22"))
-      .thenThrow(new RuntimeException("33"))
-      .thenThrow(new RuntimeException("44")).thenReturn(getJobReportResponse());
+        .thenThrow(new RuntimeException("11"))
+        .thenThrow(new RuntimeException("22"))
+        .thenThrow(new RuntimeException("33"))
+        .thenThrow(new RuntimeException("44")).thenReturn(getJobReportResponse());
     Configuration conf = new YarnConfiguration();
     conf.set(MRConfig.FRAMEWORK_NAME, MRConfig.YARN_FRAMEWORK_NAME);
     conf.setBoolean(MRJobConfig.JOB_AM_ACCESS_DISABLED,
-      !isAMReachableFromClient);
+        !isAMReachableFromClient);
     ClientServiceDelegate clientServiceDelegate =
         new ClientServiceDelegate(conf, rm, oldJobId, null) {
           @Override
@@ -177,8 +165,8 @@ public class TestClientServiceDelegate {
     Assert.assertNotNull(jobStatus);
     // assert maxClientRetry is not decremented.
     Assert.assertEquals(conf.getInt(MRJobConfig.MR_CLIENT_MAX_RETRIES,
-      MRJobConfig.DEFAULT_MR_CLIENT_MAX_RETRIES), clientServiceDelegate
-      .getMaxClientRetry());
+        MRJobConfig.DEFAULT_MR_CLIENT_MAX_RETRIES), clientServiceDelegate
+        .getMaxClientRetry());
     verify(amProxy, times(5)).getJobReport(any(GetJobReportRequest.class));
   }
 
@@ -202,47 +190,47 @@ public class TestClientServiceDelegate {
     Assert.assertEquals(applicationReport.getUser(), jobStatus.getUsername());
     Assert.assertEquals(JobStatus.State.SUCCEEDED, jobStatus.getState());
   }
-  
+
   @Test
-  public void testJobReportFromHistoryServer() throws Exception {                                 
-    MRClientProtocol historyServerProxy = mock(MRClientProtocol.class);                           
-    when(historyServerProxy.getJobReport(getJobReportRequest())).thenReturn(                      
-        getJobReportResponseFromHistoryServer());                                                 
-    ResourceMgrDelegate rm = mock(ResourceMgrDelegate.class);                                     
-    when(rm.getApplicationReport(TypeConverter.toYarn(oldJobId).getAppId()))                      
-    .thenReturn(null);                                                                        
-    ClientServiceDelegate clientServiceDelegate = getClientServiceDelegate(                       
+  public void testJobReportFromHistoryServer() throws Exception {
+    MRClientProtocol historyServerProxy = mock(MRClientProtocol.class);
+    when(historyServerProxy.getJobReport(getJobReportRequest())).thenReturn(
+        getJobReportResponseFromHistoryServer());
+    ResourceMgrDelegate rm = mock(ResourceMgrDelegate.class);
+    when(rm.getApplicationReport(TypeConverter.toYarn(oldJobId).getAppId()))
+        .thenReturn(null);
+    ClientServiceDelegate clientServiceDelegate = getClientServiceDelegate(
         historyServerProxy, rm);
 
     JobStatus jobStatus = clientServiceDelegate.getJobStatus(oldJobId);
     Assert.assertNotNull(jobStatus);
-    Assert.assertEquals("TestJobFilePath", jobStatus.getJobFile());                               
-    Assert.assertEquals("http://TestTrackingUrl", jobStatus.getTrackingUrl());                    
+    Assert.assertEquals("TestJobFilePath", jobStatus.getJobFile());
+    Assert.assertEquals("http://TestTrackingUrl", jobStatus.getTrackingUrl());
     Assert.assertEquals(1.0f, jobStatus.getMapProgress(), 0.0f);
     Assert.assertEquals(1.0f, jobStatus.getReduceProgress(), 0.0f);
   }
-  
+
   @Test
-  public void testCountersFromHistoryServer() throws Exception {                                 
-    MRClientProtocol historyServerProxy = mock(MRClientProtocol.class);                           
-    when(historyServerProxy.getCounters(getCountersRequest())).thenReturn(                      
+  public void testCountersFromHistoryServer() throws Exception {
+    MRClientProtocol historyServerProxy = mock(MRClientProtocol.class);
+    when(historyServerProxy.getCounters(getCountersRequest())).thenReturn(
         getCountersResponseFromHistoryServer());
-    ResourceMgrDelegate rm = mock(ResourceMgrDelegate.class);                                     
-    when(rm.getApplicationReport(TypeConverter.toYarn(oldJobId).getAppId()))                      
-        .thenReturn(null);                                                                        
-    ClientServiceDelegate clientServiceDelegate = getClientServiceDelegate(                       
+    ResourceMgrDelegate rm = mock(ResourceMgrDelegate.class);
+    when(rm.getApplicationReport(TypeConverter.toYarn(oldJobId).getAppId()))
+        .thenReturn(null);
+    ClientServiceDelegate clientServiceDelegate = getClientServiceDelegate(
         historyServerProxy, rm);
 
     Counters counters = TypeConverter.toYarn(clientServiceDelegate.getJobCounters(oldJobId));
     Assert.assertNotNull(counters);
-    Assert.assertEquals(1001, counters.getCounterGroup("dummyCounters").getCounter("dummyCounter").getValue());                               
+    Assert.assertEquals(1001, counters.getCounterGroup("dummyCounters").getCounter("dummyCounter").getValue());
   }
 
   @Test
   public void testReconnectOnAMRestart() throws IOException {
     //test not applicable when AM not reachable
     //as instantiateAMProxy is not called at all
-    if(!isAMReachableFromClient) {
+    if (!isAMReachableFromClient) {
       return;
     }
 
@@ -272,7 +260,7 @@ public class TestClientServiceDelegate {
     MRClientProtocol firstGenAMProxy = mock(MRClientProtocol.class);
     when(firstGenAMProxy.getJobReport(any(GetJobReportRequest.class)))
         .thenReturn(jobReportResponse1).thenThrow(
-            new RuntimeException("AM is down!"));
+        new RuntimeException("AM is down!"));
 
     GetJobReportResponse jobReportResponse2 = mock(GetJobReportResponse.class);
     when(jobReportResponse2.getJobReport()).thenReturn(
@@ -284,7 +272,7 @@ public class TestClientServiceDelegate {
     MRClientProtocol secondGenAMProxy = mock(MRClientProtocol.class);
     when(secondGenAMProxy.getJobReport(any(GetJobReportRequest.class)))
         .thenReturn(jobReportResponse2);
-    
+
     ClientServiceDelegate clientServiceDelegate = spy(getClientServiceDelegate(
         historyServerProxy, rmDelegate));
     // First time, connection should be to AM1, then to AM2. Further requests
@@ -308,24 +296,24 @@ public class TestClientServiceDelegate {
     verify(clientServiceDelegate, times(2)).instantiateAMProxy(
         any(InetSocketAddress.class));
   }
-  
+
   @Test
   public void testAMAccessDisabled() throws IOException {
     //test only applicable when AM not reachable
-    if(isAMReachableFromClient) {
+    if (isAMReachableFromClient) {
       return;
     }
 
     MRClientProtocol historyServerProxy = mock(MRClientProtocol.class);
-    when(historyServerProxy.getJobReport(getJobReportRequest())).thenReturn(                      
-        getJobReportResponseFromHistoryServer());                                                 
+    when(historyServerProxy.getJobReport(getJobReportRequest())).thenReturn(
+        getJobReportResponseFromHistoryServer());
 
     ResourceMgrDelegate rmDelegate = mock(ResourceMgrDelegate.class);
     try {
       when(rmDelegate.getApplicationReport(jobId.getAppId())).thenReturn(
           getRunningApplicationReport("am1", 78)).thenReturn(
-            getRunningApplicationReport("am1", 78)).thenReturn(
-              getRunningApplicationReport("am1", 78)).thenReturn(
+          getRunningApplicationReport("am1", 78)).thenReturn(
+          getRunningApplicationReport("am1", 78)).thenReturn(
           getFinishedApplicationReport());
     } catch (YarnException e) {
       throw new IOException(e);
@@ -337,34 +325,34 @@ public class TestClientServiceDelegate {
     JobStatus jobStatus = clientServiceDelegate.getJobStatus(oldJobId);
     Assert.assertNotNull(jobStatus);
     Assert.assertEquals("N/A", jobStatus.getJobName());
-    
+
     verify(clientServiceDelegate, times(0)).instantiateAMProxy(
         any(InetSocketAddress.class));
 
     // Should not reach AM even for second and third times too.
     jobStatus = clientServiceDelegate.getJobStatus(oldJobId);
     Assert.assertNotNull(jobStatus);
-    Assert.assertEquals("N/A", jobStatus.getJobName());    
+    Assert.assertEquals("N/A", jobStatus.getJobName());
     verify(clientServiceDelegate, times(0)).instantiateAMProxy(
         any(InetSocketAddress.class));
     jobStatus = clientServiceDelegate.getJobStatus(oldJobId);
     Assert.assertNotNull(jobStatus);
-    Assert.assertEquals("N/A", jobStatus.getJobName());    
+    Assert.assertEquals("N/A", jobStatus.getJobName());
     verify(clientServiceDelegate, times(0)).instantiateAMProxy(
         any(InetSocketAddress.class));
 
     // The third time around, app is completed, so should go to JHS
     JobStatus jobStatus1 = clientServiceDelegate.getJobStatus(oldJobId);
     Assert.assertNotNull(jobStatus1);
-    Assert.assertEquals("TestJobFilePath", jobStatus1.getJobFile());                               
-    Assert.assertEquals("http://TestTrackingUrl", jobStatus1.getTrackingUrl());                    
+    Assert.assertEquals("TestJobFilePath", jobStatus1.getJobFile());
+    Assert.assertEquals("http://TestTrackingUrl", jobStatus1.getTrackingUrl());
     Assert.assertEquals(1.0f, jobStatus1.getMapProgress(), 0.0f);
     Assert.assertEquals(1.0f, jobStatus1.getReduceProgress(), 0.0f);
-    
+
     verify(clientServiceDelegate, times(0)).instantiateAMProxy(
         any(InetSocketAddress.class));
   }
-  
+
   @Test
   public void testRMDownForJobStatusBeforeGetAMReport() throws IOException {
     Configuration conf = new YarnConfiguration();
@@ -381,7 +369,7 @@ public class TestClientServiceDelegate {
         MRJobConfig.MR_CLIENT_MAX_RETRIES,
         MRJobConfig.DEFAULT_MR_CLIENT_MAX_RETRIES));
   }
-  
+
   @Test
   public void testRMDownRestoreForJobStatusBeforeGetAMReport()
       throws IOException {
@@ -414,7 +402,7 @@ public class TestClientServiceDelegate {
   }
 
   private void testRMDownForJobStatusBeforeGetAMReport(Configuration conf,
-      int noOfRetries) throws IOException {
+                                                       int noOfRetries) throws IOException {
     conf.set(MRConfig.FRAMEWORK_NAME, MRConfig.YARN_FRAMEWORK_NAME);
     conf.setBoolean(MRJobConfig.JOB_AM_ACCESS_DISABLED,
         !isAMReachableFromClient);
@@ -441,14 +429,14 @@ public class TestClientServiceDelegate {
     } catch (YarnException e) {
       throw new IOException(e);
     }
-  }  
+  }
 
   private GetJobReportRequest getJobReportRequest() {
     GetJobReportRequest request = Records.newRecord(GetJobReportRequest.class);
     request.setJobId(jobId);
     return request;
   }
-  
+
   private GetJobReportResponse getJobReportResponse() {
     GetJobReportResponse jobReportResponse = Records
         .newRecord(GetJobReportResponse.class);
@@ -470,9 +458,9 @@ public class TestClientServiceDelegate {
     ApplicationAttemptId attemptId = ApplicationAttemptId.newInstance(
         appId, 0);
     return ApplicationReport.newInstance(appId, attemptId, "user", "queue",
-      "appname", "host", 124, null, YarnApplicationState.FINISHED,
-      "diagnostics", "url", 0, 0, FinalApplicationStatus.SUCCEEDED, null,
-      "N/A", 0.0f, YarnConfiguration.DEFAULT_APPLICATION_TYPE, null);
+        "appname", "host", 124, null, YarnApplicationState.FINISHED,
+        "diagnostics", "url", 0, 0, FinalApplicationStatus.SUCCEEDED, null,
+        "N/A", 0.0f, YarnConfiguration.DEFAULT_APPLICATION_TYPE, null);
   }
 
   private ApplicationReport getRunningApplicationReport(String host, int port) {
@@ -480,9 +468,9 @@ public class TestClientServiceDelegate {
     ApplicationAttemptId attemptId = ApplicationAttemptId.newInstance(
         appId, 0);
     return ApplicationReport.newInstance(appId, attemptId, "user", "queue",
-      "appname", host, port, null, YarnApplicationState.RUNNING, "diagnostics",
-      "url", 0, 0, FinalApplicationStatus.UNDEFINED, null, "N/A", 0.0f,
-      YarnConfiguration.DEFAULT_APPLICATION_TYPE, null);
+        "appname", host, port, null, YarnApplicationState.RUNNING, "diagnostics",
+        "url", 0, 0, FinalApplicationStatus.UNDEFINED, null, "N/A", 0.0f,
+        YarnConfiguration.DEFAULT_APPLICATION_TYPE, null);
   }
 
   private ResourceMgrDelegate getRMDelegate() throws IOException {
@@ -508,11 +496,11 @@ public class TestClientServiceDelegate {
   }
 
   private GetJobReportResponse getJobReportResponseFromHistoryServer() {
-    GetJobReportResponse jobReportResponse = Records                                              
-        .newRecord(GetJobReportResponse.class);                                                   
-    JobReport jobReport = Records.newRecord(JobReport.class);                                     
-    jobReport.setJobId(jobId);                                                                    
-    jobReport.setJobState(JobState.SUCCEEDED);                                                    
+    GetJobReportResponse jobReportResponse = Records
+        .newRecord(GetJobReportResponse.class);
+    JobReport jobReport = Records.newRecord(JobReport.class);
+    jobReport.setJobId(jobId);
+    jobReport.setJobState(JobState.SUCCEEDED);
     jobReport.setMapProgress(1.0f);
     jobReport.setReduceProgress(1.0f);
     jobReport.setJobFile("TestJobFilePath");
@@ -520,7 +508,7 @@ public class TestClientServiceDelegate {
     jobReportResponse.setJobReport(jobReport);
     return jobReportResponse;
   }
-  
+
   private GetCountersResponse getCountersResponseFromHistoryServer() {
     GetCountersResponse countersResponse = Records
         .newRecord(GetCountersResponse.class);

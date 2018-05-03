@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,11 +17,6 @@
  */
 
 package org.apache.hadoop.mapreduce;
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
-
-import java.io.IOException;
 
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.JobConf;
@@ -32,6 +27,12 @@ import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.token.Token;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.io.IOException;
+
+import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TestJob {
   @Test
@@ -61,11 +62,11 @@ public class TestJob {
     Text tokenService = new Text("service");
     Text secretName = new Text("secret");
     byte secret[] = new byte[]{};
-        
-    creds.addToken(tokenService,  token);
+
+    creds.addToken(tokenService, token);
     creds.addSecretKey(secretName, secret);
     UserGroupInformation.getLoginUser().addCredentials(creds);
-    
+
     JobConf jobConf = new JobConf();
     Job job = new Job(jobConf);
 

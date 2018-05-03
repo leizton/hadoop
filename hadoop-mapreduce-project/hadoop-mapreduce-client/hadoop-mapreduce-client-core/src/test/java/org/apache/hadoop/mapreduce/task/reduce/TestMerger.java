@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,45 +17,19 @@
  */
 package org.apache.hadoop.mapreduce.task.reduce;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.LocalDirAllocator;
-import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.io.DataInputBuffer;
 import org.apache.hadoop.io.RawComparator;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.Counters.Counter;
-import org.apache.hadoop.mapred.IFile;
+import org.apache.hadoop.mapred.*;
 import org.apache.hadoop.mapred.IFile.Reader;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.MROutputFiles;
-import org.apache.hadoop.mapred.Merger;
 import org.apache.hadoop.mapred.Merger.Segment;
-import org.apache.hadoop.mapred.RawKeyValueIterator;
-import org.apache.hadoop.mapred.Reporter;
-import org.apache.hadoop.mapreduce.CryptoUtils;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.JobID;
-import org.apache.hadoop.mapreduce.MRConfig;
-import org.apache.hadoop.mapreduce.MRJobConfig;
 import org.apache.hadoop.mapreduce.TaskAttemptID;
 import org.apache.hadoop.mapreduce.TaskID;
-import org.apache.hadoop.mapreduce.TaskType;
 import org.apache.hadoop.mapreduce.security.TokenCache;
 import org.apache.hadoop.mapreduce.task.reduce.MergeManagerImpl.CompressAwarePath;
 import org.apache.hadoop.security.Credentials;
@@ -67,6 +41,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.*;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 
 public class TestMerger {
 
@@ -189,7 +170,7 @@ public class TestMerger {
         reduceId2, jobConf, fs, lda, Reporter.NULL, null, null, null, null, null,
         null, null, new Progress(), new MROutputFiles());
 
-    MergeThread<CompressAwarePath,Text,Text> onDiskMerger = mergeManager.createOnDiskMerger();
+    MergeThread<CompressAwarePath, Text, Text> onDiskMerger = mergeManager.createOnDiskMerger();
     onDiskMerger.merge(paths);
 
     Assert.assertEquals(1, mergeManager.onDiskMapOutputs.size());
@@ -221,7 +202,7 @@ public class TestMerger {
   }
 
   private void readOnDiskMapOutput(Configuration conf, FileSystem fs, Path path,
-      List<String> keys, List<String> values) throws IOException {
+                                   List<String> keys, List<String> values) throws IOException {
     FSDataInputStream in = CryptoUtils.wrapIfNecessary(conf, fs.open(path));
 
     IFile.Reader<Text, Text> reader = new IFile.Reader<Text, Text>(conf, in,
@@ -242,14 +223,14 @@ public class TestMerger {
   @Test
   public void testCompressed() throws IOException {
     testMergeShouldReturnProperProgress(getCompressedSegments());
-}
+  }
 
   @Test
   public void testUncompressed() throws IOException {
     testMergeShouldReturnProperProgress(getUncompressedSegments());
   }
 
-  @SuppressWarnings( { "unchecked" })
+  @SuppressWarnings({"unchecked"})
   public void testMergeShouldReturnProperProgress(
       List<Segment<Text, Text>> segments) throws IOException {
     Path tmpDir = new Path("localpath");
@@ -267,27 +248,27 @@ public class TestMerger {
     // Reading 6 keys total, 3 each in 2 segments, so each key read moves the
     // progress forward 1/6th of the way. Initially the first keys from each
     // segment have been read as part of the merge setup, so progress = 2/6.
-    Assert.assertEquals(2/6.0f, mergeQueue.getProgress().get(), epsilon);
+    Assert.assertEquals(2 / 6.0f, mergeQueue.getProgress().get(), epsilon);
 
     // The first next() returns one of the keys already read during merge setup
     Assert.assertTrue(mergeQueue.next());
-    Assert.assertEquals(2/6.0f, mergeQueue.getProgress().get(), epsilon);
+    Assert.assertEquals(2 / 6.0f, mergeQueue.getProgress().get(), epsilon);
 
     // Subsequent next() calls should read one key and move progress
     Assert.assertTrue(mergeQueue.next());
-    Assert.assertEquals(3/6.0f, mergeQueue.getProgress().get(), epsilon);
+    Assert.assertEquals(3 / 6.0f, mergeQueue.getProgress().get(), epsilon);
     Assert.assertTrue(mergeQueue.next());
-    Assert.assertEquals(4/6.0f, mergeQueue.getProgress().get(), epsilon);
+    Assert.assertEquals(4 / 6.0f, mergeQueue.getProgress().get(), epsilon);
 
     // At this point we've exhausted all of the keys in one segment
     // so getting the next key will return the already cached key from the
     // other segment
     Assert.assertTrue(mergeQueue.next());
-    Assert.assertEquals(4/6.0f, mergeQueue.getProgress().get(), epsilon);
+    Assert.assertEquals(4 / 6.0f, mergeQueue.getProgress().get(), epsilon);
 
     // Subsequent next() calls should read one key and move progress
     Assert.assertTrue(mergeQueue.next());
-    Assert.assertEquals(5/6.0f, mergeQueue.getProgress().get(), epsilon);
+    Assert.assertEquals(5 / 6.0f, mergeQueue.getProgress().get(), epsilon);
     Assert.assertTrue(mergeQueue.next());
     Assert.assertEquals(1.0f, mergeQueue.getProgress().get(), epsilon);
 
@@ -346,7 +327,7 @@ public class TestMerger {
   }
 
   private Answer<?> getKeyAnswer(final String segmentName,
-      final boolean isCompressedInput) {
+                                 final boolean isCompressedInput) {
     return new Answer<Object>() {
       int i = 0;
 
@@ -355,7 +336,7 @@ public class TestMerger {
         if (i++ == 3) {
           return false;
         }
-        Reader<Text,Text> mock = (Reader<Text,Text>) invocation.getMock();
+        Reader<Text, Text> mock = (Reader<Text, Text>) invocation.getMock();
         int multiplier = isCompressedInput ? 100 : 1;
         mock.bytesRead += 10 * multiplier;
         Object[] args = invocation.getArguments();

@@ -1,33 +1,22 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2.app;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -36,31 +25,14 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.TaskCompletionEvent;
 import org.apache.hadoop.mapreduce.Counters;
 import org.apache.hadoop.mapreduce.JobACL;
-import org.apache.hadoop.mapreduce.v2.api.records.AMInfo;
-import org.apache.hadoop.mapreduce.v2.api.records.JobId;
-import org.apache.hadoop.mapreduce.v2.api.records.JobReport;
-import org.apache.hadoop.mapreduce.v2.api.records.JobState;
-import org.apache.hadoop.mapreduce.v2.api.records.Phase;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptCompletionEvent;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptReport;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptState;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskReport;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskState;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskType;
+import org.apache.hadoop.mapreduce.v2.api.records.*;
 import org.apache.hadoop.mapreduce.v2.app.job.Job;
 import org.apache.hadoop.mapreduce.v2.app.job.Task;
 import org.apache.hadoop.mapreduce.v2.app.job.TaskAttempt;
 import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptStatusUpdateEvent.TaskAttemptStatus;
 import org.apache.hadoop.mapreduce.v2.app.job.event.TaskEvent;
 import org.apache.hadoop.mapreduce.v2.app.job.event.TaskEventType;
-import org.apache.hadoop.mapreduce.v2.app.speculate.DefaultSpeculator;
-import org.apache.hadoop.mapreduce.v2.app.speculate.ExponentiallySmoothedTaskRuntimeEstimator;
-import org.apache.hadoop.mapreduce.v2.app.speculate.LegacyTaskRuntimeEstimator;
-import org.apache.hadoop.mapreduce.v2.app.speculate.Speculator;
-import org.apache.hadoop.mapreduce.v2.app.speculate.SpeculatorEvent;
-import org.apache.hadoop.mapreduce.v2.app.speculate.TaskRuntimeEstimator;
+import org.apache.hadoop.mapreduce.v2.app.speculate.*;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.authorize.AccessControlList;
 import org.apache.hadoop.service.CompositeService;
@@ -68,7 +40,6 @@ import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.api.records.NodeId;
-import org.apache.hadoop.yarn.api.records.Token;
 import org.apache.hadoop.yarn.event.AsyncDispatcher;
 import org.apache.hadoop.yarn.event.EventHandler;
 import org.apache.hadoop.yarn.factories.RecordFactory;
@@ -78,6 +49,11 @@ import org.apache.hadoop.yarn.util.Clock;
 import org.apache.hadoop.yarn.util.SystemClock;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class TestRuntimeEstimators {
@@ -113,14 +89,14 @@ public class TestRuntimeEstimators {
       = new AtomicInteger(0);
   private final AtomicLong taskTimeSavedBySpeculation
       = new AtomicLong(0L);
-  
+
   private final RecordFactory recordFactory = RecordFactoryProvider.getRecordFactory(null);
 
   private void coreTestEstimator
       (TaskRuntimeEstimator testedEstimator, int expectedSpeculations) {
     estimator = testedEstimator;
-	clock = new MockClock();
-	dispatcher = new AsyncDispatcher();
+    clock = new MockClock();
+    dispatcher = new AsyncDispatcher();
     myJob = null;
     slotsInUse.set(0);
     completedMaps.set(0);
@@ -147,7 +123,6 @@ public class TestRuntimeEstimators {
     dispatcher.start();
 
 
-
     speculator.init(conf);
     speculator.start();
 
@@ -171,7 +146,8 @@ public class TestRuntimeEstimators {
     allTasksSequence.addAll(myJob.getTasks(TaskType.REDUCE).values());
 
     while (undoneMaps + undoneReduces > 0) {
-      undoneMaps = 0; undoneReduces = 0;
+      undoneMaps = 0;
+      undoneReduces = 0;
       // start all attempts which are new but for which there is enough slots
       for (Task task : allTasksSequence) {
         if (!task.isFinished()) {
@@ -184,8 +160,8 @@ public class TestRuntimeEstimators {
         for (TaskAttempt attempt : task.getAttempts().values()) {
           if (attempt.getState() == TaskAttemptState.NEW
               && INITIAL_NUMBER_FREE_SLOTS - slotsInUse.get()
-                    >= taskTypeSlots(task.getType())) {
-            MyTaskAttemptImpl attemptImpl = (MyTaskAttemptImpl)attempt;
+              >= taskTypeSlots(task.getType())) {
+            MyTaskAttemptImpl attemptImpl = (MyTaskAttemptImpl) attempt;
             SpeculatorEvent event
                 = new SpeculatorEvent(attempt.getID(), false, clock.getTime());
             speculator.handle(event);
@@ -309,11 +285,11 @@ public class TestRuntimeEstimators {
       float result = 0.0F;
 
 
-     for (TaskAttempt attempt : attempts.values()) {
-       result = Math.max(result, attempt.getProgress());
-     }
+      for (TaskAttempt attempt : attempts.values()) {
+        result = Math.max(result, attempt.getProgress());
+      }
 
-     return result;
+      return result;
     }
 
     @Override
@@ -440,13 +416,13 @@ public class TestRuntimeEstimators {
 
     @Override
     public TaskAttemptCompletionEvent[]
-            getTaskAttemptCompletionEvents(int fromEventId, int maxEvents) {
+    getTaskAttemptCompletionEvents(int fromEventId, int maxEvents) {
       throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public TaskCompletionEvent[]
-            getMapAttemptCompletionEvents(int startIndex, int maxEvents) {
+    getMapAttemptCompletionEvents(int startIndex, int maxEvents) {
       throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -477,10 +453,10 @@ public class TestRuntimeEstimators {
 
     @Override
     public boolean checkAccess(UserGroupInformation callerUGI,
-        JobACL jobOperation) {
+                               JobACL jobOperation) {
       return true;
     }
-    
+
     @Override
     public String getUserName() {
       throw new UnsupportedOperationException("Not supported yet.");
@@ -500,7 +476,7 @@ public class TestRuntimeEstimators {
     public List<AMInfo> getAMInfos() {
       throw new UnsupportedOperationException("Not supported yet.");
     }
-    
+
     @Override
     public Configuration loadConfFile() {
       throw new UnsupportedOperationException();
@@ -545,10 +521,10 @@ public class TestRuntimeEstimators {
     }
 
     @Override
-    public NodeId getNodeId() throws UnsupportedOperationException{
+    public NodeId getNodeId() throws UnsupportedOperationException {
       throw new UnsupportedOperationException();
     }
-    
+
     @Override
     public TaskAttemptId getID() {
       return myAttemptID;
@@ -630,8 +606,8 @@ public class TestRuntimeEstimators {
 
         return Math.min
             ((float) (clock.getTime() - shuffleCompletedTime)
-                        / (runtime * 2000.0F) + 0.5F,
-             1.0F);
+                    / (runtime * 2000.0F) + 0.5F,
+                1.0F);
       } else {
         return ((float) numberDoneMaps) / numberMaps * 0.5F;
       }
@@ -664,7 +640,7 @@ public class TestRuntimeEstimators {
 
         System.out.println("MyTaskAttemptImpl.getState() -- attempt " + myAttemptID + " finished.");
 
-        slotsInUse.addAndGet(- taskTypeSlots(myAttemptID.getTaskId().getTaskType()));
+        slotsInUse.addAndGet(-taskTypeSlots(myAttemptID.getTaskId().getTaskType()));
 
         (myAttemptID.getTaskId().getTaskType() == TaskType.MAP
             ? completedMaps : completedReduces).getAndIncrement();
@@ -683,7 +659,7 @@ public class TestRuntimeEstimators {
               // the speculation won
               successfulSpeculations.getAndIncrement();
               float hisProgress = otherAttempt.getProgress();
-              long hisStartTime = ((MyTaskAttemptImpl)otherAttempt).startMockTime;
+              long hisStartTime = ((MyTaskAttemptImpl) otherAttempt).startMockTime;
               System.out.println("TLTRE:A speculation finished at time "
                   + clock.getTime()
                   + ".  The stalled attempt is at " + (hisProgress * 100.0)
@@ -692,21 +668,21 @@ public class TestRuntimeEstimators {
                   + (clock.getTime() - hisStartTime) + " ago.");
               long originalTaskEndEstimate
                   = (hisStartTime
-                      + estimator.estimatedRuntime(otherAttempt.getID()));
+                  + estimator.estimatedRuntime(otherAttempt.getID()));
               System.out.println(
                   "TLTRE: We would have expected the original attempt to take "
-                  + estimator.estimatedRuntime(otherAttempt.getID())
-                  + ", finishing at " + originalTaskEndEstimate);
+                      + estimator.estimatedRuntime(otherAttempt.getID())
+                      + ", finishing at " + originalTaskEndEstimate);
               long estimatedSavings = originalTaskEndEstimate - clock.getTime();
               taskTimeSavedBySpeculation.addAndGet(estimatedSavings);
               System.out.println("TLTRE: The task is " + task.getID());
-              slotsInUse.addAndGet(- taskTypeSlots(myAttemptID.getTaskId().getTaskType()));
-              ((MyTaskAttemptImpl)otherAttempt).overridingState
+              slotsInUse.addAndGet(-taskTypeSlots(myAttemptID.getTaskId().getTaskType()));
+              ((MyTaskAttemptImpl) otherAttempt).overridingState
                   = TaskAttemptState.KILLED;
             } else {
               System.out.println(
                   "TLTRE: The normal attempt beat the speculation in "
-                  + task.getID());
+                      + task.getID());
             }
           }
         }
@@ -729,7 +705,7 @@ public class TestRuntimeEstimators {
     public String getNodeHttpAddress() {
       throw new UnsupportedOperationException("Not supported yet.");
     }
-    
+
     @Override
     public String getNodeRackName() {
       throw new UnsupportedOperationException("Not supported yet.");
@@ -779,11 +755,12 @@ public class TestRuntimeEstimators {
 
   class MyAppMaster extends CompositeService {
     final Clock clock;
-      public MyAppMaster(Clock clock) {
-        super(MyAppMaster.class.getName());
-        if (clock == null) {
-          clock = new SystemClock();
-        }
+
+    public MyAppMaster(Clock clock) {
+      super(MyAppMaster.class.getName());
+      if (clock == null) {
+        clock = new SystemClock();
+      }
       this.clock = clock;
       LOG.info("Created MyAppMaster");
     }
@@ -862,7 +839,7 @@ public class TestRuntimeEstimators {
     public Set<String> getBlacklistedNodes() {
       return null;
     }
-    
+
     @Override
     public ClientToAMTokenSecretManager getClientToAMTokenSecretManager() {
       return null;

@@ -1,40 +1,33 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.EnumSet;
-import java.util.List;
-
-import org.junit.Assert;
 
 import org.apache.avro.AvroRemoteException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.mapreduce.SleepJob;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.mapreduce.Counters;
 import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.SleepJob;
 import org.apache.hadoop.mapreduce.TypeConverter;
 import org.apache.hadoop.mapreduce.v2.api.HSClientProtocol;
 import org.apache.hadoop.mapreduce.v2.api.protocolrecords.GetJobReportRequest;
@@ -50,21 +43,28 @@ import org.apache.hadoop.yarn.ipc.YarnRPC;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMAppState;
 import org.apache.hadoop.yarn.util.Records;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.EnumSet;
+import java.util.List;
 
 public class TestMRJobsWithHistoryService {
 
   private static final Log LOG =
-    LogFactory.getLog(TestMRJobsWithHistoryService.class);
+      LogFactory.getLog(TestMRJobsWithHistoryService.class);
 
   private static final EnumSet<RMAppState> TERMINAL_RM_APP_STATES =
-    EnumSet.of(RMAppState.FINISHED, RMAppState.FAILED, RMAppState.KILLED);
+      EnumSet.of(RMAppState.FINISHED, RMAppState.FAILED, RMAppState.KILLED);
 
   private static MiniMRYarnCluster mrCluster;
 
   private static Configuration conf = new Configuration();
   private static FileSystem localFs;
+
   static {
     try {
       localFs = FileSystem.getLocal(conf);
@@ -82,7 +82,7 @@ public class TestMRJobsWithHistoryService {
 
     if (!(new File(MiniMRYarnCluster.APPJAR)).exists()) {
       LOG.info("MRAppJar " + MiniMRYarnCluster.APPJAR
-               + " not found. Not running test.");
+          + " not found. Not running test.");
       return;
     }
 
@@ -111,7 +111,7 @@ public class TestMRJobsWithHistoryService {
     }
   }
 
-  @Test (timeout = 90000)
+  @Test(timeout = 90000)
   public void testJobHistoryData() throws IOException, InterruptedException,
       AvroRemoteException, ClassNotFoundException {
     if (!(new File(MiniMRYarnCluster.APPJAR)).exists()) {
@@ -121,7 +121,6 @@ public class TestMRJobsWithHistoryService {
     }
 
 
-    
     SleepJob sleepJob = new SleepJob();
     sleepJob.setConf(mrCluster.getConfig());
     // Job with 3 maps and 2 reduces
@@ -139,7 +138,7 @@ public class TestMRJobsWithHistoryService {
 
       if (TERMINAL_RM_APP_STATES.contains(
           mrCluster.getResourceManager().getRMContext().getRMApps().get(appID)
-          .getState())) {
+              .getState())) {
         break;
       }
 
@@ -149,14 +148,14 @@ public class TestMRJobsWithHistoryService {
       }
     }
     Assert.assertEquals(RMAppState.FINISHED, mrCluster.getResourceManager()
-      .getRMContext().getRMApps().get(appID).getState());
+        .getRMContext().getRMApps().get(appID).getState());
     Counters counterHS = job.getCounters();
     //TODO the Assert below worked. need to check
     //Should we compare each field or convert to V2 counter and compare
     LOG.info("CounterHS " + counterHS);
     LOG.info("CounterMR " + counterMR);
     Assert.assertEquals(counterHS, counterMR);
-    
+
     HSClientProtocol historyClient = instantiateHistoryProxy();
     GetJobReportRequest gjReq = Records.newRecord(GetJobReportRequest.class);
     gjReq.setJobId(jobId);
@@ -178,7 +177,7 @@ public class TestMRJobsWithHistoryService {
     Assert.assertTrue(jobReport.getFinishTime() > 0
         && jobReport.getFinishTime() >= jobReport.getStartTime());
   }
-  
+
   private HSClientProtocol instantiateHistoryProxy() {
     final String serviceAddr =
         mrCluster.getConfig().get(JHAdminConfig.MR_HISTORY_ADDRESS);

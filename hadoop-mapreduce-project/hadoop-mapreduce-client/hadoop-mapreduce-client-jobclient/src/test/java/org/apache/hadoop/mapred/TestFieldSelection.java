@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,19 +17,22 @@
  */
 package org.apache.hadoop.mapred;
 
-import org.apache.hadoop.fs.*;
-import org.apache.hadoop.io.*;
-import org.apache.hadoop.mapred.lib.*;
+import junit.framework.TestCase;
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.lib.FieldSelectionMapReduce;
 import org.apache.hadoop.mapreduce.MapReduceTestUtil;
 import org.apache.hadoop.mapreduce.lib.fieldsel.FieldSelectionHelper;
 import org.apache.hadoop.mapreduce.lib.fieldsel.TestMRFieldSelection;
 
-import junit.framework.TestCase;
 import java.text.NumberFormat;
 
 public class TestFieldSelection extends TestCase {
 
-private static NumberFormat idFormat = NumberFormat.getInstance();
+  private static NumberFormat idFormat = NumberFormat.getInstance();
+
   static {
     idFormat.setMinimumIntegerDigits(4);
     idFormat.setGroupingUsed(false);
@@ -55,7 +58,7 @@ private static NumberFormat idFormat = NumberFormat.getInstance();
     StringBuffer expectedOutput = new StringBuffer();
 
     TestMRFieldSelection.constructInputOutputData(inputData,
-      expectedOutput, numOfInputLines);
+        expectedOutput, numOfInputLines);
     FSDataOutputStream fileOut = fs.create(new Path(INPUT_DIR, inputFile));
     fileOut.write(inputData.toString().getBytes("utf-8"));
     fileOut.close();
@@ -87,9 +90,9 @@ private static NumberFormat idFormat = NumberFormat.getInstance();
     //
     boolean success = true;
     Path outPath = new Path(OUTPUT_DIR, "part-00000");
-    String outdata = MapReduceTestUtil.readOutput(outPath,job);
+    String outdata = MapReduceTestUtil.readOutput(outPath, job);
 
-    assertEquals(expectedOutput.toString(),outdata);
+    assertEquals(expectedOutput.toString(), outdata);
     fs.delete(OUTPUT_DIR, true);
     fs.delete(INPUT_DIR, true);
   }

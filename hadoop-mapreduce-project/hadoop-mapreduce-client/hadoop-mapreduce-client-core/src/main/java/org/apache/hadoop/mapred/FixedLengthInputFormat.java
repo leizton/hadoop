@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,8 +17,6 @@
  */
 
 package org.apache.hadoop.mapred;
-
-import java.io.IOException;
 
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
@@ -29,6 +27,8 @@ import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.io.compress.CompressionCodecFactory;
+
+import java.io.IOException;
 
 /**
  * FixedLengthInputFormat is an input format used to read input files
@@ -47,9 +47,9 @@ public class FixedLengthInputFormat
     implements JobConfigurable {
 
   private CompressionCodecFactory compressionCodecs = null;
-  
+
   public static final String FIXED_RECORD_LENGTH =
-      "fixedlengthinputformat.record.length"; 
+      "fixedlengthinputformat.record.length";
 
   /**
    * Set the length of each record
@@ -76,7 +76,7 @@ public class FixedLengthInputFormat
 
   @Override
   public RecordReader<LongWritable, BytesWritable>
-      getRecordReader(InputSplit genericSplit, JobConf job, Reporter reporter)
+  getRecordReader(InputSplit genericSplit, JobConf job, Reporter reporter)
       throws IOException {
     reporter.setStatus(genericSplit.toString());
     int recordLength = getRecordLength(job);
@@ -84,14 +84,14 @@ public class FixedLengthInputFormat
       throw new IOException("Fixed record length " + recordLength
           + " is invalid.  It should be set to a value greater than zero");
     }
-    return new FixedLengthRecordReader(job, (FileSplit)genericSplit,
-                                       recordLength);
+    return new FixedLengthRecordReader(job, (FileSplit) genericSplit,
+        recordLength);
   }
 
   @Override
   protected boolean isSplitable(FileSystem fs, Path file) {
     final CompressionCodec codec = compressionCodecs.getCodec(file);
-    return(null == codec);
+    return (null == codec);
   }
 
 }

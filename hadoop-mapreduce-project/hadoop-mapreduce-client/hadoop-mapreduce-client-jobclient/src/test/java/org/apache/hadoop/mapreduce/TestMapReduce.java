@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,16 +16,6 @@
  * limitations under the License.
  */
 package org.apache.hadoop.mapreduce;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.File;
-import java.util.Iterator;
-import java.util.Random;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -43,6 +33,10 @@ import org.apache.hadoop.mapreduce.lib.output.MapFileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.junit.After;
 import org.junit.Test;
+
+import java.io.*;
+import java.util.Iterator;
+import java.util.Random;
 
 import static org.junit.Assert.assertTrue;
 
@@ -84,15 +78,15 @@ public class TestMapReduce {
       System.getProperty("test.build.data",
           System.getProperty("java.io.tmpdir")), "TestMapReduce-mapreduce");
   private static FileSystem fs;
-  
+
   static {
     try {
-       fs = FileSystem.getLocal(new Configuration());
+      fs = FileSystem.getLocal(new Configuration());
     } catch (IOException ioe) {
       fs = null;
     }
   }
-  
+
   /**
    * Modified to make it a junit test.
    * The RandomGen Job does the actual work of creating
@@ -119,25 +113,26 @@ public class TestMapReduce {
    */
   static class RandomGenMapper
       extends Mapper<IntWritable, IntWritable, IntWritable, IntWritable> {
-    
+
     public void map(IntWritable key, IntWritable val,
-        Context context) throws IOException, InterruptedException {
+                    Context context) throws IOException, InterruptedException {
       int randomVal = key.get();
       int randomCount = val.get();
 
       for (int i = 0; i < randomCount; i++) {
         context.write(new IntWritable(Math.abs(r.nextInt())),
-          new IntWritable(randomVal));
+            new IntWritable(randomVal));
       }
     }
   }
+
   /**
    */
   static class RandomGenReducer
       extends Reducer<IntWritable, IntWritable, IntWritable, IntWritable> {
-    
+
     public void reduce(IntWritable key, Iterable<IntWritable> it,
-        Context context) throws IOException, InterruptedException {
+                       Context context) throws IOException, InterruptedException {
       for (IntWritable iw : it) {
         context.write(iw, null);
       }
@@ -162,20 +157,20 @@ public class TestMapReduce {
    */
   static class RandomCheckMapper
       extends Mapper<WritableComparable<?>, Text, IntWritable, IntWritable> {
-    
+
     public void map(WritableComparable<?> key, Text val,
-        Context context) throws IOException, InterruptedException {
+                    Context context) throws IOException, InterruptedException {
       context.write(new IntWritable(
-        Integer.parseInt(val.toString().trim())), new IntWritable(1));
+          Integer.parseInt(val.toString().trim())), new IntWritable(1));
     }
   }
-  
+
   /**
    */
   static class RandomCheckReducer
       extends Reducer<IntWritable, IntWritable, IntWritable, IntWritable> {
     public void reduce(IntWritable key, Iterable<IntWritable> it,
-        Context context) throws IOException, InterruptedException {
+                       Context context) throws IOException, InterruptedException {
       int keyint = key.get();
       int count = 0;
       for (IntWritable iw : it) {
@@ -195,19 +190,19 @@ public class TestMapReduce {
    */
   static class MergeMapper
       extends Mapper<IntWritable, IntWritable, IntWritable, IntWritable> {
-    
+
     public void map(IntWritable key, IntWritable val,
-        Context context) throws IOException, InterruptedException {
+                    Context context) throws IOException, InterruptedException {
       int keyint = key.get();
       int valint = val.get();
       context.write(new IntWritable(keyint), new IntWritable(valint));
     }
   }
-  
+
   static class MergeReducer
       extends Reducer<IntWritable, IntWritable, IntWritable, IntWritable> {
     public void reduce(IntWritable key, Iterator<IntWritable> it,
-        Context context) throws IOException, InterruptedException {
+                       Context context) throws IOException, InterruptedException {
       int keyint = key.get();
       int total = 0;
       while (it.hasNext()) {
@@ -240,12 +235,12 @@ public class TestMapReduce {
     int dist[] = new int[range];
     for (int i = 0; i < range; i++) {
       double avgInts = (1.0 * countsToGo) / (range - i);
-      dist[i] = (int) Math.max(0, Math.round(avgInts + 
-        (Math.sqrt(avgInts) * r.nextGaussian())));
+      dist[i] = (int) Math.max(0, Math.round(avgInts +
+          (Math.sqrt(avgInts) * r.nextGaussian())));
       countsToGo -= dist[i];
     }
     if (countsToGo > 0) {
-      dist[dist.length-1] += countsToGo;
+      dist[dist.length - 1] += countsToGo;
     }
 
     //
@@ -262,10 +257,10 @@ public class TestMapReduce {
     }
 
     Path answerkey = new Path(randomIns, "answer.key");
-    SequenceFile.Writer out = 
-      SequenceFile.createWriter(fs, conf, answerkey, IntWritable.class,
-                                IntWritable.class, 
-                                SequenceFile.CompressionType.NONE);
+    SequenceFile.Writer out =
+        SequenceFile.createWriter(fs, conf, answerkey, IntWritable.class,
+            IntWritable.class,
+            SequenceFile.CompressionType.NONE);
     try {
       for (int i = 0; i < range; i++) {
         out.append(new IntWritable(i), new IntWritable(dist[i]));
@@ -273,7 +268,7 @@ public class TestMapReduce {
     } finally {
       out.close();
     }
-    
+
     printFiles(randomIns, conf);
 
     //
@@ -354,7 +349,7 @@ public class TestMapReduce {
     checkJob.setReducerClass(RandomCheckReducer.class);
     checkJob.setNumReduceTasks(intermediateReduces);
     checkJob.waitForCompletion(true);
-    printFiles(intermediateOuts, conf); 
+    printFiles(intermediateOuts, conf);
 
     //
     // OK, now we take the output from the last job and
@@ -369,17 +364,17 @@ public class TestMapReduce {
     FileInputFormat.setInputPaths(mergeJob, intermediateOuts);
     mergeJob.setInputFormatClass(SequenceFileInputFormat.class);
     mergeJob.setMapperClass(MergeMapper.class);
-        
+
     FileOutputFormat.setOutputPath(mergeJob, finalOuts);
     mergeJob.setOutputKeyClass(IntWritable.class);
     mergeJob.setOutputValueClass(IntWritable.class);
     mergeJob.setOutputFormatClass(SequenceFileOutputFormat.class);
     mergeJob.setReducerClass(MergeReducer.class);
     mergeJob.setNumReduceTasks(1);
-        
+
     mergeJob.waitForCompletion(true);
-    printFiles(finalOuts, conf); 
- 
+    printFiles(finalOuts, conf);
+
     //
     // Finally, we compare the reconstructed answer key with the
     // original one.  Remember, we need to ignore zero-count items
@@ -391,7 +386,7 @@ public class TestMapReduce {
     int totalseen = 0;
     try {
       IntWritable key = new IntWritable();
-      IntWritable val = new IntWritable();            
+      IntWritable val = new IntWritable();
       for (int i = 0; i < range; i++) {
         if (dist[i] == 0) {
           continue;
@@ -402,8 +397,8 @@ public class TestMapReduce {
           break;
         } else {
           if (!((key.get() == i) && (val.get() == dist[i]))) {
-            System.err.println("Mismatch!  Pos=" + key.get() + ", i=" + i + 
-                               ", val=" + val.get() + ", dist[i]=" + dist[i]);
+            System.err.println("Mismatch!  Pos=" + key.get() + ", i=" + i +
+                ", val=" + val.get() + ", dist[i]=" + dist[i]);
             success = false;
           }
           totalseen += val.get();
@@ -430,7 +425,7 @@ public class TestMapReduce {
     //
     Path resultFile = new Path(testdir, "results");
     BufferedWriter bw = new BufferedWriter(
-      new OutputStreamWriter(fs.create(resultFile)));
+        new OutputStreamWriter(fs.create(resultFile)));
     try {
       bw.write("Success=" + success + "\n");
       System.out.println("Success=" + success);
@@ -450,8 +445,8 @@ public class TestMapReduce {
     in.close();
   }
 
-  private static void printSequenceFile(FileSystem fs, Path p, 
-      Configuration conf) throws IOException {
+  private static void printSequenceFile(FileSystem fs, Path p,
+                                        Configuration conf) throws IOException {
     SequenceFile.Reader r = new SequenceFile.Reader(fs, p, conf);
     Object key = null;
     Object value = null;
@@ -459,14 +454,14 @@ public class TestMapReduce {
       value = r.getCurrentValue(value);
       System.out.println("  Row: " + key + ", " + value);
     }
-    r.close();    
+    r.close();
   }
 
   private static boolean isSequenceFile(FileSystem fs,
                                         Path f) throws IOException {
     DataInputStream in = fs.open(f);
     byte[] seq = "SEQ".getBytes();
-    for(int i=0; i < seq.length; ++i) {
+    for (int i = 0; i < seq.length; ++i) {
       if (seq[i] != in.read()) {
         return false;
       }
@@ -474,10 +469,10 @@ public class TestMapReduce {
     return true;
   }
 
-  private static void printFiles(Path dir, 
+  private static void printFiles(Path dir,
                                  Configuration conf) throws IOException {
     FileSystem fs = dir.getFileSystem(conf);
-    for(FileStatus f: fs.listStatus(dir)) {
+    for (FileStatus f : fs.listStatus(dir)) {
       System.out.println("Reading " + f.getPath() + ": ");
       if (f.isDirectory()) {
         System.out.println("  it is a map file.");

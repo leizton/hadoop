@@ -1,45 +1,29 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2.jobhistory;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Calendar;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.CommonConfigurationKeysPublic;
-import org.apache.hadoop.fs.FileContext;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.PathFilter;
-import org.apache.hadoop.fs.RemoteIterator;
-import org.apache.hadoop.fs.UnsupportedFileSystemException;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.mapreduce.JobID;
 import org.apache.hadoop.mapreduce.MRJobConfig;
@@ -49,76 +33,82 @@ import org.apache.hadoop.mapreduce.v2.util.MRApps;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 @InterfaceAudience.Private
 @InterfaceStability.Unstable
 public class JobHistoryUtils {
-  
+
   /**
    * Permissions for the history staging dir while JobInProgress.
    */
   public static final FsPermission HISTORY_STAGING_DIR_PERMISSIONS =
-    
-    FsPermission.createImmutable( (short) 0700);
-  
+
+      FsPermission.createImmutable((short) 0700);
+
   /**
    * Permissions for the user directory under the staging directory.
    */
-  public static final FsPermission HISTORY_STAGING_USER_DIR_PERMISSIONS = 
-    FsPermission.createImmutable((short) 0700);
-  
-  
-  
+  public static final FsPermission HISTORY_STAGING_USER_DIR_PERMISSIONS =
+      FsPermission.createImmutable((short) 0700);
+
+
   /**
    * Permissions for the history done dir and derivatives.
    */
   public static final FsPermission HISTORY_DONE_DIR_PERMISSION =
-    FsPermission.createImmutable((short) 0770); 
+      FsPermission.createImmutable((short) 0770);
 
   public static final FsPermission HISTORY_DONE_FILE_PERMISSION =
-    FsPermission.createImmutable((short) 0770); // rwx------
+      FsPermission.createImmutable((short) 0770); // rwx------
 
- /**
+  /**
    * Umask for the done dir and derivatives.
    */
   public static final FsPermission HISTORY_DONE_DIR_UMASK = FsPermission
       .createImmutable((short) (0770 ^ 0777));
 
-  
+
   /**
    * Permissions for the intermediate done directory.
    */
-  public static final FsPermission HISTORY_INTERMEDIATE_DONE_DIR_PERMISSIONS = 
-    FsPermission.createImmutable((short) 01777);
-  
+  public static final FsPermission HISTORY_INTERMEDIATE_DONE_DIR_PERMISSIONS =
+      FsPermission.createImmutable((short) 01777);
+
   /**
    * Permissions for the user directory under the intermediate done directory.
    */
-  public static final FsPermission HISTORY_INTERMEDIATE_USER_DIR_PERMISSIONS = 
-    FsPermission.createImmutable((short) 0770);
-  
-  public static final FsPermission HISTORY_INTERMEDIATE_FILE_PERMISSIONS = 
-    FsPermission.createImmutable((short) 0770); // rwx------
-  
+  public static final FsPermission HISTORY_INTERMEDIATE_USER_DIR_PERMISSIONS =
+      FsPermission.createImmutable((short) 0770);
+
+  public static final FsPermission HISTORY_INTERMEDIATE_FILE_PERMISSIONS =
+      FsPermission.createImmutable((short) 0770); // rwx------
+
   /**
    * Suffix for configuration files.
    */
   public static final String CONF_FILE_NAME_SUFFIX = "_conf.xml";
-  
+
   /**
    * Suffix for summary files.
    */
   public static final String SUMMARY_FILE_NAME_SUFFIX = ".summary";
-  
+
   /**
    * Job History File extension.
    */
   public static final String JOB_HISTORY_FILE_EXTENSION = ".jhist";
-  
+
   public static final int VERSION = 4;
 
   public static final int SERIAL_NUMBER_DIRECTORY_DIGITS = 6;
-  
-  public static final String TIMESTAMP_DIR_REGEX = "\\d{4}" + "\\" + Path.SEPARATOR +  "\\d{2}" + "\\" + Path.SEPARATOR + "\\d{2}";
+
+  public static final String TIMESTAMP_DIR_REGEX = "\\d{4}" + "\\" + Path.SEPARATOR + "\\d{2}" + "\\" + Path.SEPARATOR + "\\d{2}";
   public static final Pattern TIMESTAMP_DIR_PATTERN = Pattern.compile(TIMESTAMP_DIR_REGEX);
   private static final String TIMESTAMP_DIR_FORMAT = "%04d" + File.separator + "%02d" + File.separator + "%02d";
   private static final Log LOG = LogFactory.getLog(JobHistoryUtils.class);
@@ -129,7 +119,7 @@ public class JobHistoryUtils {
       return path.getName().endsWith(CONF_FILE_NAME_SUFFIX);
     }
   };
-  
+
   private static final PathFilter JOB_HISTORY_FILE_FILTER = new PathFilter() {
     @Override
     public boolean accept(Path path) {
@@ -153,9 +143,9 @@ public class JobHistoryUtils {
    * @throws IOException if the filename format is invalid.
    */
   public static JobID getJobIDFromHistoryFilePath(String pathString) throws IOException {
-    String [] parts = pathString.split(Path.SEPARATOR);
-    String fileNamePart = parts[parts.length -1];
-    JobIndexInfo jobIndexInfo =  FileNameIndexUtils.getIndexInfo(fileNamePart);
+    String[] parts = pathString.split(Path.SEPARATOR);
+    String fileNamePart = parts[parts.length - 1];
+    JobIndexInfo jobIndexInfo = FileNameIndexUtils.getIndexInfo(fileNamePart);
     return TypeConverter.fromYarn(jobIndexInfo.getJobId());
   }
 
@@ -166,7 +156,7 @@ public class JobHistoryUtils {
   public static PathFilter getConfFileFilter() {
     return CONF_FILTER;
   }
-  
+
   /**
    * Gets a PathFilter which would match job history file names.
    * @return the path filter {@link PathFilter} matching job history files.
@@ -182,15 +172,15 @@ public class JobHistoryUtils {
    * @return A string representation of the prefix.
    */
   public static String
-      getConfiguredHistoryStagingDirPrefix(Configuration conf, String jobId)
-          throws IOException {
+  getConfiguredHistoryStagingDirPrefix(Configuration conf, String jobId)
+      throws IOException {
     String user = UserGroupInformation.getCurrentUser().getShortUserName();
     Path stagingPath = MRApps.getStagingAreaDir(conf, user);
     Path path = new Path(stagingPath, jobId);
     String logDir = path.toString();
     return ensurePathInDefaultFileSystem(logDir, conf);
   }
-  
+
   /**
    * Gets the configured directory prefix for intermediate done history files.
    * @param conf
@@ -207,7 +197,7 @@ public class JobHistoryUtils {
     }
     return ensurePathInDefaultFileSystem(doneDirPrefix, conf);
   }
-  
+
   /**
    * Gets the configured directory prefix for Done history files.
    * @param conf the configuration object
@@ -242,19 +232,18 @@ public class JobHistoryUtils {
         CommonConfigurationKeysPublic.FS_DEFAULT_NAME_KEY);
     if (sources != null &&
         (!Arrays.asList(sources).contains("core-default.xml") ||
-        sources.length > 1)) {
+            sources.length > 1)) {
       try {
         fc = FileContext.getFileContext(defaultConf);
         LOG.info("Default file system [" +
-                  fc.getDefaultFileSystem().getUri() + "]");
+            fc.getDefaultFileSystem().getUri() + "]");
       } catch (UnsupportedFileSystemException e) {
         LOG.error("Unable to create default file context [" +
-            defaultConf.get(CommonConfigurationKeysPublic.FS_DEFAULT_NAME_KEY) +
-            "]",
+                defaultConf.get(CommonConfigurationKeysPublic.FS_DEFAULT_NAME_KEY) +
+                "]",
             e);
       }
-    }
-    else {
+    } else {
       LOG.info("Default file system is set solely " +
           "by core-default.xml therefore -  ignoring");
     }
@@ -279,7 +268,7 @@ public class JobHistoryUtils {
         fc.getDefaultFileSystem().getUri().toString().equals(
             conf.get(CommonConfigurationKeysPublic.FS_DEFAULT_NAME_KEY, "")) ||
         path.toUri().getAuthority() != null ||
-        path.toUri().getScheme()!= null) {
+        path.toUri().getScheme() != null) {
       return sourcePath;
     }
 
@@ -299,7 +288,7 @@ public class JobHistoryUtils {
   public static boolean shouldCreateNonUserDirectory(Configuration conf) {
     // Returning true by default to allow non secure single node clusters to work
     // without any configuration change.
-    return conf.getBoolean(MRJobConfig.MR_AM_CREATE_JH_INTERMEDIATE_BASE_DIR, true); 
+    return conf.getBoolean(MRJobConfig.MR_AM_CREATE_JH_INTERMEDIATE_BASE_DIR, true);
   }
 
   /**
@@ -308,15 +297,15 @@ public class JobHistoryUtils {
   public static Path getStagingJobHistoryFile(Path dir, JobId jobId, int attempt) {
     return getStagingJobHistoryFile(dir, TypeConverter.fromYarn(jobId).toString(), attempt);
   }
-  
+
   /**
    * Get the job history file path for non Done history files.
    */
   public static Path getStagingJobHistoryFile(Path dir, String jobId, int attempt) {
-    return new Path(dir, jobId + "_" + 
+    return new Path(dir, jobId + "_" +
         attempt + JOB_HISTORY_FILE_EXTENSION);
   }
-  
+
   /**
    * Get the done configuration file name for a job.
    * @param jobId the jobId.
@@ -325,7 +314,7 @@ public class JobHistoryUtils {
   public static String getIntermediateConfFileName(JobId jobId) {
     return TypeConverter.fromYarn(jobId).toString() + CONF_FILE_NAME_SUFFIX;
   }
-  
+
   /**
    * Get the done summary file name for a job.
    * @param jobId the jobId.
@@ -334,10 +323,10 @@ public class JobHistoryUtils {
   public static String getIntermediateSummaryFileName(JobId jobId) {
     return TypeConverter.fromYarn(jobId).toString() + SUMMARY_FILE_NAME_SUFFIX;
   }
-  
+
   /**
    * Gets the conf file path for jobs in progress.
-   * 
+   *
    * @param logDir the log directory prefix.
    * @param jobId the jobId.
    * @param attempt attempt number for this job.
@@ -351,7 +340,7 @@ public class JobHistoryUtils {
     }
     return jobFilePath;
   }
-  
+
   /**
    * Gets the serial number part of the path based on the jobId and serialNumber format.
    * @param id
@@ -363,7 +352,7 @@ public class JobHistoryUtils {
         Integer.valueOf(jobSerialNumber(id))).substring(0,
         SERIAL_NUMBER_DIRECTORY_DIGITS);
   }
-  
+
   /**Extracts the timstamp component from the path.
    * @param path
    * @return the timestamp component from the path
@@ -378,7 +367,7 @@ public class JobHistoryUtils {
       return null;
     }
   }
-  
+
   /**
    * Gets the history subdirectory based on the jobId, timestamp and serial number format.
    * @param id
@@ -390,15 +379,15 @@ public class JobHistoryUtils {
 //    String result = LOG_VERSION_STRING;
     String result = "";
     String serialNumberDirectory = serialNumberDirectoryComponent(id, serialNumberFormat);
-    
-    result = result 
-      + timestampComponent
-      + File.separator + serialNumberDirectory
-      + File.separator;
-    
+
+    result = result
+        + timestampComponent
+        + File.separator + serialNumberDirectory
+        + File.separator;
+
     return result;
   }
-  
+
   /**
    * Gets the timestamp component based on millisecond time.
    * @param millisecondTime
@@ -418,13 +407,13 @@ public class JobHistoryUtils {
     dateString = dateString.intern();
     return dateString;
   }
-  
+
   public static String doneSubdirsBeforeSerialTail() {
     // date
     String result = "/*/*/*"; // YYYY/MM/DD ;
     return result;
   }
-  
+
   /**
    * Computes a serial number used as part of directory naming for the given jobId.
    * @param id the jobId.
@@ -433,21 +422,21 @@ public class JobHistoryUtils {
   public static int jobSerialNumber(JobId id) {
     return id.getId();
   }
-  
+
   public static List<FileStatus> localGlobber(FileContext fc, Path root, String tail)
       throws IOException {
     return localGlobber(fc, root, tail, null);
   }
 
   public static List<FileStatus> localGlobber(FileContext fc, Path root, String tail,
-      PathFilter filter) throws IOException {
+                                              PathFilter filter) throws IOException {
     return localGlobber(fc, root, tail, filter, null);
   }
 
   // hasMismatches is just used to return a second value if you want
   // one. I would have used MutableBoxedBoolean if such had been provided.
   public static List<FileStatus> localGlobber(FileContext fc, Path root, String tail,
-      PathFilter filter, AtomicBoolean hasFlatFiles) throws IOException {
+                                              PathFilter filter, AtomicBoolean hasFlatFiles) throws IOException {
     if (tail.equals("")) {
       return (listFilteredStatus(fc, root, filter));
     }
@@ -501,7 +490,7 @@ public class JobHistoryUtils {
   }
 
   private static List<FileStatus> listFilteredStatus(FileContext fc, Path root,
-      PathFilter filter) throws IOException {
+                                                     PathFilter filter) throws IOException {
     List<FileStatus> fsList = remoteIterToList(fc.listStatus(root));
     if (filter == null) {
       return fsList;
@@ -526,11 +515,11 @@ public class JobHistoryUtils {
     }
     return fsList;
   }
-  
+
   // hasMismatches is just used to return a second value if you want
   // one. I would have used MutableBoxedBoolean if such had been provided.
   private static Path[] filteredStat2Paths(List<FileStatus> stats, boolean dirs,
-      AtomicBoolean hasMismatches) {
+                                           AtomicBoolean hasMismatches) {
     int resultCount = 0;
 
     if (hasMismatches == null) {
@@ -558,14 +547,14 @@ public class JobHistoryUtils {
       throws IOException {
     String jobId =
         TypeConverter.fromYarn(applicationAttemptId.getApplicationId())
-          .toString();
+            .toString();
     String jobhistoryDir =
         JobHistoryUtils.getConfiguredHistoryStagingDirPrefix(conf, jobId);
     Path histDirPath = FileContext.getFileContext(conf).makeQualified(
-            new Path(jobhistoryDir));
+        new Path(jobhistoryDir));
     FileContext fc = FileContext.getFileContext(histDirPath.toUri(), conf);
     return fc.makeQualified(JobHistoryUtils.getStagingJobHistoryFile(
-        histDirPath,jobId, (applicationAttemptId.getAttemptId() - 1)));
+        histDirPath, jobId, (applicationAttemptId.getAttemptId() - 1)));
   }
 
   /**
@@ -581,7 +570,7 @@ public class JobHistoryUtils {
    * @throws IOException
    */
   public static List<FileStatus> getHistoryDirsForCleaning(FileContext fc,
-      Path root, long cutoff) throws IOException {
+                                                           Path root, long cutoff) throws IOException {
     List<FileStatus> fsList = new ArrayList<FileStatus>();
     Calendar cCal = Calendar.getInstance();
     cCal.setTimeInMillis(cutoff);

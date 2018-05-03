@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,19 +22,12 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.mapreduce.QueueState;
 import org.apache.hadoop.security.authorize.AccessControlList;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * A class for storing the properties of a job queue.
  */
-class Queue implements Comparable<Queue>{
+class Queue implements Comparable<Queue> {
 
   private static final Log LOG = LogFactory.getLog(Queue.class);
 
@@ -62,7 +55,7 @@ class Queue implements Comparable<Queue>{
    * The variables are populated using mutator methods.
    */
   Queue() {
-    
+
   }
 
   /**
@@ -72,20 +65,20 @@ class Queue implements Comparable<Queue>{
    * @param state state of the queue
    */
   Queue(String name, Map<String, AccessControlList> acls, QueueState state) {
-	  this.name = name;
-	  this.acls = acls;
-	  this.state = state;
+    this.name = name;
+    this.acls = acls;
+    this.state = state;
   }
-  
+
   /**
    * Return the name of the queue
-   * 
+   *
    * @return name of the queue
    */
   String getName() {
     return name;
   }
-  
+
   /**
    * Set the name of the queue
    * @param name name of the queue
@@ -96,18 +89,18 @@ class Queue implements Comparable<Queue>{
 
   /**
    * Return the ACLs for the queue
-   * 
+   *
    * The keys in the map indicate the operations that can be performed,
    * and the values indicate the list of users/groups who can perform
    * the operation.
-   * 
+   *
    * @return Map containing the operations that can be performed and
    *          who can perform the operations.
    */
   Map<String, AccessControlList> getAcls() {
     return acls;
   }
-  
+
   /**
    * Set the ACLs for the queue
    * @param acls Map containing the operations that can be performed and
@@ -116,7 +109,7 @@ class Queue implements Comparable<Queue>{
   void setAcls(Map<String, AccessControlList> acls) {
     this.acls = acls;
   }
-  
+
   /**
    * Return the state of the queue.
    * @return state of the queue
@@ -124,7 +117,7 @@ class Queue implements Comparable<Queue>{
   QueueState getState() {
     return state;
   }
-  
+
   /**
    * Set the state of the queue.
    * @param state state of the queue.
@@ -132,7 +125,7 @@ class Queue implements Comparable<Queue>{
   void setState(QueueState state) {
     this.state = state;
   }
-  
+
   /**
    * Return the scheduling information for the queue
    * @return scheduling information for the queue.
@@ -140,7 +133,7 @@ class Queue implements Comparable<Queue>{
   Object getSchedulingInfo() {
     return schedulingInfo;
   }
-  
+
   /**
    * Set the scheduling information from the queue.
    * @param schedulingInfo scheduling information for the queue.
@@ -152,7 +145,7 @@ class Queue implements Comparable<Queue>{
   /**
    * Copy the scheduling information from the sourceQueue into this queue
    * recursively.
-   * 
+   *
    * @param sourceQueue
    */
   void copySchedulingInfo(Queue sourceQueue) {
@@ -174,7 +167,7 @@ class Queue implements Comparable<Queue>{
    *
    */
   void addChild(Queue child) {
-    if(children == null) {
+    if (children == null) {
       children = new TreeSet<Queue>();
     }
 
@@ -190,11 +183,11 @@ class Queue implements Comparable<Queue>{
   }
 
   /**
-   * 
+   *
    * @param props
    */
   void setProperties(Properties props) {
-     this.props = props;
+    this.props = props;
   }
 
   /**
@@ -216,20 +209,20 @@ class Queue implements Comparable<Queue>{
    * This helps in case of creating union of inner and leaf queues.
    * @return
    */
-  Map<String,Queue> getInnerQueues() {
-    Map<String,Queue> l = new HashMap<String,Queue>();
+  Map<String, Queue> getInnerQueues() {
+    Map<String, Queue> l = new HashMap<String, Queue>();
 
     //If no children , return empty set.
     //This check is required for root node.
-    if(children == null) {
+    if (children == null) {
       return l;
     }
 
     //check for children if they are parent.
-    for(Queue child:children) {
+    for (Queue child : children) {
       //check if children are themselves parent add them
-      if(child.getChildren() != null && child.getChildren().size() > 0) {
-        l.put(child.getName(),child);
+      if (child.getChildren() != null && child.getChildren().size() > 0) {
+        l.put(child.getName(), child);
         l.putAll(child.getInnerQueues());
       }
     }
@@ -247,14 +240,14 @@ class Queue implements Comparable<Queue>{
    * Adds itself if this is leaf node.
    * @return
    */
-  Map<String,Queue> getLeafQueues() {
-    Map<String,Queue> l = new HashMap<String,Queue>();
-    if(children == null) {
-      l.put(name,this);
+  Map<String, Queue> getLeafQueues() {
+    Map<String, Queue> l = new HashMap<String, Queue>();
+    if (children == null) {
+      l.put(name, this);
       return l;
     }
 
-    for(Queue child:children) {
+    for (Queue child : children) {
       l.putAll(child.getLeafQueues());
     }
     return l;
@@ -265,17 +258,17 @@ class Queue implements Comparable<Queue>{
   public int compareTo(Queue queue) {
     return name.compareTo(queue.getName());
   }
-  
+
   @Override
   public boolean equals(Object o) {
-    if(o == this) {
+    if (o == this) {
       return true;
     }
-    if(! (o instanceof Queue)) {
+    if (!(o instanceof Queue)) {
       return false;
     }
-    
-    return ((Queue)o).getName().equals(name);
+
+    return ((Queue) o).getName().equals(name);
   }
 
   @Override
@@ -325,26 +318,26 @@ class Queue implements Comparable<Queue>{
   /**
    * For each node validate if current node hierarchy is same newState.
    * recursively check for child nodes.
-   * 
+   *
    * @param newState
    * @return
    */
   boolean isHierarchySameAs(Queue newState) {
-    if(newState == null) {
+    if (newState == null) {
       return false;
     }
     //First check if names are equal
-    if(!(name.equals(newState.getName())) ) {
+    if (!(name.equals(newState.getName()))) {
       LOG.info(" current name " + name + " not equal to " + newState.getName());
       return false;
     }
 
     if (children == null || children.size() == 0) {
-      if(newState.getChildren() != null && newState.getChildren().size() > 0) {
-        LOG.info( newState + " has added children in refresh ");
+      if (newState.getChildren() != null && newState.getChildren().size() > 0) {
+        LOG.info(newState + " has added children in refresh ");
         return false;
       }
-    } else if(children.size() > 0) {
+    } else if (children.size() > 0) {
       //check for the individual children and then see if all of them
       //are updated.
       if (newState.getChildren() == null) {
@@ -365,10 +358,10 @@ class Queue implements Comparable<Queue>{
       Iterator<Queue> itr1 = children.iterator();
       Iterator<Queue> itr2 = newState.getChildren().iterator();
 
-      while(itr1.hasNext()) {
+      while (itr1.hasNext()) {
         Queue q = itr1.next();
         Queue newq = itr2.next();
-        if(! (q.isHierarchySameAs(newq)) ) {
+        if (!(q.isHierarchySameAs(newq))) {
           LOG.info(" Queue " + q.getName() + " not equal to " + newq.getName());
           return false;
         }

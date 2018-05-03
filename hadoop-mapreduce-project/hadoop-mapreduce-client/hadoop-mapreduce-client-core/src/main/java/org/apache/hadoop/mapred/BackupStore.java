@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,14 +17,6 @@
  */
 
 package org.apache.hadoop.mapred;
-
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.NoSuchElementException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,10 +33,18 @@ import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.mapred.IFile.Reader;
 import org.apache.hadoop.mapred.IFile.Writer;
 import org.apache.hadoop.mapred.Merger.Segment;
+import org.apache.hadoop.mapreduce.CryptoUtils;
 import org.apache.hadoop.mapreduce.MRConfig;
 import org.apache.hadoop.mapreduce.MRJobConfig;
 import org.apache.hadoop.mapreduce.TaskAttemptID;
-import org.apache.hadoop.mapreduce.CryptoUtils;
+
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
  * <code>BackupStore</code> is an utility class that is used to support
@@ -54,21 +54,21 @@ import org.apache.hadoop.mapreduce.CryptoUtils;
  * stored as they are iterated, after a mark. On reset, values are retrieved
  * from these caches. Framework moves from the memory cache to the 
  * file cache when the memory cache becomes full.
- * 
+ *
  */
 @InterfaceAudience.Private
 @InterfaceStability.Unstable
-public class BackupStore<K,V> {
+public class BackupStore<K, V> {
 
   private static final Log LOG = LogFactory.getLog(BackupStore.class.getName());
   private static final int MAX_VINT_SIZE = 9;
   private static final int EOF_MARKER_SIZE = 2 * MAX_VINT_SIZE;
   private final TaskAttemptID tid;
- 
+
   private MemoryCache memCache;
   private FileCache fileCache;
 
-  List<Segment<K,V>> segmentList = new LinkedList<Segment<K,V>>();
+  List<Segment<K, V>> segmentList = new LinkedList<Segment<K, V>>();
   private int readSegmentIndex = 0;
   private int firstSegmentOffset = 0;
 
@@ -78,40 +78,40 @@ public class BackupStore<K,V> {
   private DataInputBuffer currentKey = null;
   private DataInputBuffer currentValue = new DataInputBuffer();
   private DataInputBuffer currentDiskValue = new DataInputBuffer();
- 
+
   private boolean hasMore = false;
   private boolean inReset = false;
   private boolean clearMarkFlag = false;
   private boolean lastSegmentEOF = false;
-  
+
   private Configuration conf;
 
   public BackupStore(Configuration conf, TaskAttemptID taskid)
-  throws IOException {
-    
+      throws IOException {
+
     final float bufferPercent =
-      conf.getFloat(JobContext.REDUCE_MARKRESET_BUFFER_PERCENT, 0f);
+        conf.getFloat(JobContext.REDUCE_MARKRESET_BUFFER_PERCENT, 0f);
 
     if (bufferPercent > 1.0 || bufferPercent < 0.0) {
       throw new IOException(JobContext.REDUCE_MARKRESET_BUFFER_PERCENT +
           bufferPercent);
     }
 
-    int maxSize = (int)Math.min(
+    int maxSize = (int) Math.min(
         Runtime.getRuntime().maxMemory() * bufferPercent, Integer.MAX_VALUE);
 
     // Support an absolute size also.
     int tmp = conf.getInt(JobContext.REDUCE_MARKRESET_BUFFER_SIZE, 0);
-    if (tmp >  0) {
+    if (tmp > 0) {
       maxSize = tmp;
     }
 
     memCache = new MemoryCache(maxSize);
     fileCache = new FileCache(conf);
     tid = taskid;
-    
+
     this.conf = conf;
-    
+
     LOG.info("Created a new BackupStore with a memory of " + maxSize);
 
   }
@@ -124,7 +124,7 @@ public class BackupStore<K,V> {
    * @throws IOException
    */
   public void write(DataInputBuffer key, DataInputBuffer value)
-  throws IOException {
+      throws IOException {
 
     assert (key != null && value != null);
 
@@ -151,15 +151,15 @@ public class BackupStore<K,V> {
     if (nextKVOffset == 0) {
       assert (readSegmentIndex != 0);
       assert (currentKVOffset != 0);
-      readSegmentIndex --;
+      readSegmentIndex--;
     }
 
     // just drop segments before the current active segment
 
     int i = 0;
-    Iterator<Segment<K,V>> itr = segmentList.iterator();
+    Iterator<Segment<K, V>> itr = segmentList.iterator();
     while (itr.hasNext()) {
-      Segment<K,V> s = itr.next();
+      Segment<K, V> s = itr.next();
       if (i == readSegmentIndex) {
         break;
       }
@@ -182,21 +182,21 @@ public class BackupStore<K,V> {
 
     // Create a new segment for the previously written records only if we
     // are not already in the reset mode
-    
+
     if (!inReset) {
       if (fileCache.isActive) {
         fileCache.createInDiskSegment();
       } else {
         memCache.createInMemorySegment();
       }
-    } 
+    }
 
     inReset = true;
-    
+
     // Reset the segments to the correct position from where the next read
     // should begin. 
     for (int i = 0; i < segmentList.size(); i++) {
-      Segment<K,V> s = segmentList.get(i);
+      Segment<K, V> s = segmentList.get(i);
       if (s.inMemory()) {
         int offset = (i == 0) ? firstSegmentOffset : 0;
         s.getReader().reset(offset);
@@ -208,7 +208,7 @@ public class BackupStore<K,V> {
         }
       }
     }
-    
+
     currentKVOffset = firstSegmentOffset;
     nextKVOffset = -1;
     readSegmentIndex = 0;
@@ -220,11 +220,11 @@ public class BackupStore<K,V> {
   }
 
   public boolean hasNext() throws IOException {
-    
+
     if (lastSegmentEOF) {
       return false;
     }
-    
+
     // We read the next KV from the cache to decide if there is any left.
     // Since hasNext can be called several times before the actual call to 
     // next(), we use hasMore to avoid extra reads. hasMore is set to false
@@ -234,7 +234,7 @@ public class BackupStore<K,V> {
       return true;
     }
 
-    Segment<K,V> seg = segmentList.get(readSegmentIndex);
+    Segment<K, V> seg = segmentList.get(readSegmentIndex);
     // Mark the current position. This would be set to currentKVOffset
     // when the user consumes this record in next(). 
     nextKVOffset = (int) seg.getActualPosition();
@@ -257,20 +257,20 @@ public class BackupStore<K,V> {
     }
 
     nextKVOffset = 0;
-    readSegmentIndex ++;
+    readSegmentIndex++;
 
-    Segment<K,V> nextSegment = segmentList.get(readSegmentIndex);
-    
+    Segment<K, V> nextSegment = segmentList.get(readSegmentIndex);
+
     // We possibly are moving from a memory segment to a disk segment.
     // Reset so that we do not corrupt the in-memory segment buffer.
     // See HADOOP-5494
-    
+
     if (!nextSegment.inMemory()) {
-      currentValue.reset(currentDiskValue.getData(), 
+      currentValue.reset(currentDiskValue.getData(),
           currentDiskValue.getLength());
       nextSegment.init(null);
     }
- 
+
     if (nextSegment.nextRawKey()) {
       currentKey = nextSegment.getKey();
       nextSegment.getValue(currentValue);
@@ -292,11 +292,11 @@ public class BackupStore<K,V> {
   }
 
   public DataInputBuffer nextValue() {
-    return  currentValue;
+    return currentValue;
   }
 
   public DataInputBuffer nextKey() {
-    return  currentKey;
+    return currentKey;
   }
 
   public void reinitialize() throws IOException {
@@ -315,9 +315,9 @@ public class BackupStore<K,V> {
    * This function is called the ValuesIterator when a mark is called
    * outside of a reset zone.  
    */
-  public void exitResetMode() throws IOException { 
+  public void exitResetMode() throws IOException {
     inReset = false;
-    if (clearMarkFlag ) {
+    if (clearMarkFlag) {
       // If a flag was set to clear mark, do the reinit now.
       // See clearMark()
       reinitialize();
@@ -343,7 +343,7 @@ public class BackupStore<K,V> {
 
   /** This method is called by the valueIterators after writing the first
    *  key and value bytes to the BackupStore
-   * @param length 
+   * @param length
    */
   public void updateCounters(int length) {
     if (fileCache.isActive) {
@@ -363,13 +363,13 @@ public class BackupStore<K,V> {
       reinitialize();
     }
   }
-  
+
   private void clearSegmentList() throws IOException {
-    for (Segment<K,V> segment: segmentList) {
+    for (Segment<K, V> segment : segmentList) {
       long len = segment.getLength();
       segment.close();
       if (segment.inMemory()) {
-       memCache.unreserve(len);
+        memCache.unreserve(len);
       }
     }
     segmentList.clear();
@@ -392,21 +392,21 @@ public class BackupStore<K,V> {
     }
 
     public void unreserve(long len) {
-      ramManager.unreserve((int)len);
+      ramManager.unreserve((int) len);
     }
 
     /**
      * Re-initialize the memory cache.
-     * 
+     *
      * @param clearAll If true, re-initialize the ramManager also.
      */
     void reinitialize(boolean clearAll) {
       if (clearAll) {
         ramManager.reinitialize();
       }
-      int allocatedSize = createNewMemoryBlock(defaultBlockSize, 
+      int allocatedSize = createNewMemoryBlock(defaultBlockSize,
           defaultBlockSize);
-      assert(allocatedSize == defaultBlockSize || allocatedSize == 0);
+      assert (allocatedSize == defaultBlockSize || allocatedSize == 0);
       LOG.debug("Created a new mem block of " + allocatedSize);
     }
 
@@ -436,29 +436,29 @@ public class BackupStore<K,V> {
         return true;
       }
       // Not enough available. Close this block 
-      assert (!inReset); 
+      assert (!inReset);
 
       createInMemorySegment();
-      
+
       // Create a new block
       int tmp = Math.max(length + EOF_MARKER_SIZE, defaultBlockSize);
-      availableSize = createNewMemoryBlock(tmp, 
+      availableSize = createNewMemoryBlock(tmp,
           (length + EOF_MARKER_SIZE));
-      
+
       return (availableSize == 0) ? false : true;
     }
 
     boolean reserveSpace(DataInputBuffer key, DataInputBuffer value)
-    throws IOException {
+        throws IOException {
       int keyLength = key.getLength() - key.getPosition();
       int valueLength = value.getLength() - value.getPosition();
 
-      int requestedSize = keyLength + valueLength + 
-        WritableUtils.getVIntSize(keyLength) +
-        WritableUtils.getVIntSize(valueLength);
+      int requestedSize = keyLength + valueLength +
+          WritableUtils.getVIntSize(keyLength) +
+          WritableUtils.getVIntSize(valueLength);
       return reserveSpace(requestedSize);
     }
-    
+
     /**
      * Write the key and value to the cache in the IFile format
      * @param key
@@ -466,16 +466,16 @@ public class BackupStore<K,V> {
      * @throws IOException
      */
     public void write(DataInputBuffer key, DataInputBuffer value)
-    throws IOException {
+        throws IOException {
       int keyLength = key.getLength() - key.getPosition();
       int valueLength = value.getLength() - value.getPosition();
       WritableUtils.writeVInt(dataOut, keyLength);
       WritableUtils.writeVInt(dataOut, valueLength);
       dataOut.write(key.getData(), key.getPosition(), keyLength);
       dataOut.write(value.getData(), value.getPosition(), valueLength);
-      usedSize += keyLength + valueLength + 
-        WritableUtils.getVIntSize(keyLength) +
-        WritableUtils.getVIntSize(valueLength);
+      usedSize += keyLength + valueLength +
+          WritableUtils.getVIntSize(keyLength) +
+          WritableUtils.getVIntSize(valueLength);
       LOG.debug("ID: " + segmentList.size() + " WRITE TO MEM");
     }
 
@@ -483,7 +483,7 @@ public class BackupStore<K,V> {
      * This method creates a memory segment from the existing buffer
      * @throws IOException
      */
-    void createInMemorySegment () throws IOException {
+    void createInMemorySegment() throws IOException {
 
       // If nothing was written in this block because the record size
       // was greater than the allocated block size, just return.
@@ -495,7 +495,7 @@ public class BackupStore<K,V> {
       // spaceAvailable would have ensured that there is enough space
       // left for the EOF markers.
       assert ((blockSize - usedSize) >= EOF_MARKER_SIZE);
-  
+
       WritableUtils.writeVInt(dataOut, IFile.EOF_MARKER);
       WritableUtils.writeVInt(dataOut, IFile.EOF_MARKER);
 
@@ -503,13 +503,13 @@ public class BackupStore<K,V> {
 
       ramManager.unreserve(blockSize - usedSize);
 
-      Reader<K, V> reader = 
-        new org.apache.hadoop.mapreduce.task.reduce.InMemoryReader<K, V>(null, 
-            (org.apache.hadoop.mapred.TaskAttemptID) tid, 
-            dataOut.getData(), 0, usedSize, conf);
+      Reader<K, V> reader =
+          new org.apache.hadoop.mapreduce.task.reduce.InMemoryReader<K, V>(null,
+              (org.apache.hadoop.mapred.TaskAttemptID) tid,
+              dataOut.getData(), 0, usedSize, conf);
       Segment<K, V> segment = new Segment<K, V>(reader, false);
       segmentList.add(segment);
-      LOG.debug("Added Memory Segment to List. List Size is " + 
+      LOG.debug("Added Memory Segment to List. List Size is " +
           segmentList.size());
     }
   }
@@ -521,22 +521,22 @@ public class BackupStore<K,V> {
     private boolean isActive = false;
 
     private Path file = null;
-    private IFile.Writer<K,V> writer = null;
+    private IFile.Writer<K, V> writer = null;
     private int spillNumber = 0;
 
     public FileCache(Configuration conf)
-    throws IOException {
+        throws IOException {
       this.conf = conf;
       this.fs = FileSystem.getLocal(conf);
       this.lDirAlloc = new LocalDirAllocator(MRConfig.LOCAL_DIR);
     }
 
     void write(DataInputBuffer key, DataInputBuffer value)
-    throws IOException {
+        throws IOException {
       if (writer == null) {
         // If spillNumber is 0, we should have called activate and not
         // come here at all
-        assert (spillNumber != 0); 
+        assert (spillNumber != 0);
         writer = createSpillFile();
       }
       writer.append(key, value);
@@ -557,22 +557,24 @@ public class BackupStore<K,V> {
     void createInDiskSegment() throws IOException {
       assert (writer != null);
       writer.close();
-      Segment<K,V> s = new Segment<K, V>(conf, fs, file, null, true);
+      Segment<K, V> s = new Segment<K, V>(conf, fs, file, null, true);
       writer = null;
       segmentList.add(s);
-      LOG.debug("Disk Segment added to List. Size is "  + segmentList.size());
+      LOG.debug("Disk Segment added to List. Size is " + segmentList.size());
     }
 
-    boolean isActive() { return isActive; }
+    boolean isActive() {
+      return isActive;
+    }
 
-    private Writer<K,V> createSpillFile() throws IOException {
+    private Writer<K, V> createSpillFile() throws IOException {
       Path tmp =
           new Path(MRJobConfig.OUTPUT + "/backup_" + tid.getId() + "_"
               + (spillNumber++) + ".out");
 
       LOG.info("Created file: " + tmp);
 
-      file = lDirAlloc.getLocalPathForWrite(tmp.toUri().getPath(), 
+      file = lDirAlloc.getLocalPathForWrite(tmp.toUri().getPath(),
           -1, conf);
       FSDataOutputStream out = fs.create(file);
       out = CryptoUtils.wrapIfNecessary(conf, out);
@@ -607,7 +609,7 @@ public class BackupStore<K,V> {
 
     int reserve(int requestedSize, int minSize) {
       if (availableSize < minSize) {
-        LOG.debug("No space available. Available: " + availableSize + 
+        LOG.debug("No space available. Available: " + availableSize +
             " MinSize: " + minSize);
         return 0;
       } else {
@@ -620,7 +622,7 @@ public class BackupStore<K,V> {
       LOG.debug("Unreserving: " + requestedSize +
           ". Available: " + availableSize);
     }
-    
+
     void reinitialize() {
       availableSize = maxSize;
     }

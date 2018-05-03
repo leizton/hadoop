@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,11 +17,6 @@
  */
 
 package org.apache.hadoop.examples.terasort;
-
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.net.URI;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -39,6 +34,11 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.net.URI;
+
 /**
  * Generates the sampled split points, launches the job, and waits for it to
  * finish. 
@@ -55,7 +55,7 @@ public class TeraSort extends Configured implements Tool {
    * A partitioner that splits text keys into roughly equal partitions
    * in a global sorted order.
    */
-  static class TotalOrderPartitioner extends Partitioner<Text,Text>
+  static class TotalOrderPartitioner extends Partitioner<Text, Text>
       implements Configurable {
     private TrieNode trie;
     private Text[] splitPoints;
@@ -66,11 +66,15 @@ public class TeraSort extends Configured implements Tool {
      */
     static abstract class TrieNode {
       private int level;
+
       TrieNode(int level) {
         this.level = level;
       }
+
       abstract int findPartition(Text key);
+
       abstract void print(PrintStream strm) throws IOException;
+
       int getLevel() {
         return level;
       }
@@ -82,10 +86,11 @@ public class TeraSort extends Configured implements Tool {
      */
     static class InnerTrieNode extends TrieNode {
       private TrieNode[] child = new TrieNode[256];
-      
+
       InnerTrieNode(int level) {
         super(level);
       }
+
       int findPartition(Text key) {
         int level = getLevel();
         if (key.getLength() <= level) {
@@ -93,12 +98,14 @@ public class TeraSort extends Configured implements Tool {
         }
         return child[key.getBytes()[level] & 0xff].findPartition(key);
       }
+
       void setChild(int idx, TrieNode child) {
         this.child[idx] = child;
       }
+
       void print(PrintStream strm) throws IOException {
-        for(int ch=0; ch < 256; ++ch) {
-          for(int i = 0; i < 2*getLevel(); ++i) {
+        for (int ch = 0; ch < 256; ++ch) {
+          for (int i = 0; i < 2 * getLevel(); ++i) {
             strm.print(' ');
           }
           strm.print(ch);
@@ -118,22 +125,25 @@ public class TeraSort extends Configured implements Tool {
       int lower;
       int upper;
       Text[] splitPoints;
+
       LeafTrieNode(int level, Text[] splitPoints, int lower, int upper) {
         super(level);
         this.splitPoints = splitPoints;
         this.lower = lower;
         this.upper = upper;
       }
+
       int findPartition(Text key) {
-        for(int i=lower; i<upper; ++i) {
+        for (int i = lower; i < upper; ++i) {
           if (splitPoints[i].compareTo(key) > 0) {
             return i;
           }
         }
         return upper;
       }
+
       void print(PrintStream strm) throws IOException {
-        for(int i = 0; i < 2*getLevel(); ++i) {
+        for (int i = 0; i < 2 * getLevel(); ++i) {
           strm.print(' ');
         }
         strm.print(lower);
@@ -152,11 +162,11 @@ public class TeraSort extends Configured implements Tool {
      * @throws IOException
      */
     private static Text[] readPartitions(FileSystem fs, Path p,
-        Configuration conf) throws IOException {
+                                         Configuration conf) throws IOException {
       int reduces = conf.getInt(MRJobConfig.NUM_REDUCES, 1);
       Text[] result = new Text[reduces - 1];
       DataInputStream reader = fs.open(p);
-      for(int i=0; i < reduces - 1; ++i) {
+      for (int i = 0; i < reduces - 1; ++i) {
         result[i] = new Text();
         result[i].readFields(reader);
       }
@@ -174,7 +184,7 @@ public class TeraSort extends Configured implements Tool {
      * @param maxDepth the maximum depth we will build a trie for
      * @return the trie node that will divide the splits correctly
      */
-    private static TrieNode buildTrie(Text[] splits, int lower, int upper, 
+    private static TrieNode buildTrie(Text[] splits, int lower, int upper,
                                       Text prefix, int maxDepth) {
       int depth = prefix.getLength();
       if (depth >= maxDepth || lower == upper) {
@@ -185,7 +195,7 @@ public class TeraSort extends Configured implements Tool {
       // append an extra byte on to the prefix
       trial.append(new byte[1], 0, 1);
       int currentBound = lower;
-      for(int ch = 0; ch < 255; ++ch) {
+      for (int ch = 0; ch < 255; ++ch) {
         trial.getBytes()[depth] = (byte) (ch + 1);
         lower = currentBound;
         while (currentBound < upper) {
@@ -195,13 +205,13 @@ public class TeraSort extends Configured implements Tool {
           currentBound += 1;
         }
         trial.getBytes()[depth] = (byte) ch;
-        result.child[ch] = buildTrie(splits, lower, currentBound, trial, 
-                                     maxDepth);
+        result.child[ch] = buildTrie(splits, lower, currentBound, trial,
+            maxDepth);
       }
       // pick up the rest
       trial.getBytes()[depth] = (byte) 255;
       result.child[255] = buildTrie(splits, currentBound, upper, trial,
-                                    maxDepth);
+          maxDepth);
       return result;
     }
 
@@ -220,16 +230,16 @@ public class TeraSort extends Configured implements Tool {
     public Configuration getConf() {
       return conf;
     }
-    
+
     public TotalOrderPartitioner() {
     }
 
     public int getPartition(Text key, Text value, int numPartitions) {
       return trie.findPartition(key);
     }
-    
+
   }
-  
+
   /**
    * A total order partitioner that assigns keys based on their first 
    * PREFIX_LENGTH bytes, assuming a flat distribution.
@@ -239,22 +249,23 @@ public class TeraSort extends Configured implements Tool {
     int prefixesPerReduce;
     private static final int PREFIX_LENGTH = 3;
     private Configuration conf = null;
+
     public void setConf(Configuration conf) {
       this.conf = conf;
-      prefixesPerReduce = (int) Math.ceil((1 << (8 * PREFIX_LENGTH)) / 
-        (float) conf.getInt(MRJobConfig.NUM_REDUCES, 1));
+      prefixesPerReduce = (int) Math.ceil((1 << (8 * PREFIX_LENGTH)) /
+          (float) conf.getInt(MRJobConfig.NUM_REDUCES, 1));
     }
-    
+
     public Configuration getConf() {
       return conf;
     }
-    
+
     @Override
     public int getPartition(Text key, Text value, int numPartitions) {
       byte[] bytes = key.getBytes();
       int len = Math.min(PREFIX_LENGTH, key.getLength());
       int prefix = 0;
-      for(int i=0; i < len; ++i) {
+      for (int i = 0; i < len; ++i) {
         prefix = (prefix << 8) | (0xff & bytes[i]);
       }
       return prefix / prefixesPerReduce;
@@ -295,22 +306,22 @@ public class TeraSort extends Configured implements Tool {
       job.setPartitionerClass(SimplePartitioner.class);
     } else {
       long start = System.currentTimeMillis();
-      Path partitionFile = new Path(outputDir, 
-                                    TeraInputFormat.PARTITION_FILENAME);
+      Path partitionFile = new Path(outputDir,
+          TeraInputFormat.PARTITION_FILENAME);
       URI partitionUri = new URI(partitionFile.toString() +
-                                 "#" + TeraInputFormat.PARTITION_FILENAME);
+          "#" + TeraInputFormat.PARTITION_FILENAME);
       try {
         TeraInputFormat.writePartitionFile(job, partitionFile);
       } catch (Throwable e) {
         LOG.error(e.getMessage());
         return -1;
       }
-      job.addCacheFile(partitionUri);  
+      job.addCacheFile(partitionUri);
       long end = System.currentTimeMillis();
       System.out.println("Spent " + (end - start) + "ms computing partitions.");
       job.setPartitionerClass(TotalOrderPartitioner.class);
     }
-    
+
     job.getConfiguration().setInt("dfs.replication", getOutputReplication(job));
     TeraOutputFormat.setFinalSync(job, true);
     int ret = job.waitForCompletion(true) ? 0 : 1;

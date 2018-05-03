@@ -1,30 +1,22 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapred;
-
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
-import java.security.PrivilegedExceptionAction;
-import java.util.concurrent.ScheduledExecutorService;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -59,6 +51,14 @@ import org.apache.hadoop.yarn.api.ApplicationConstants.Environment;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.security.PrivilegedExceptionAction;
+import java.util.concurrent.ScheduledExecutorService;
+
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
 /**
  * The main() for MapReduce task processes.
  */
@@ -88,30 +88,30 @@ class YarnChild {
 
     // initialize metrics
     DefaultMetricsSystem.initialize(
-        StringUtils.camelize(firstTaskid.getTaskType().name()) +"Task");
+        StringUtils.camelize(firstTaskid.getTaskType().name()) + "Task");
 
     // Security framework already loaded the tokens into current ugi
     Credentials credentials =
         UserGroupInformation.getCurrentUser().getCredentials();
     LOG.info("Executing with tokens:");
-    for (Token<?> token: credentials.getAllTokens()) {
+    for (Token<?> token : credentials.getAllTokens()) {
       LOG.info(token);
     }
 
     // Create TaskUmbilicalProtocol as actual task owner.
     UserGroupInformation taskOwner =
-      UserGroupInformation.createRemoteUser(firstTaskid.getJobID().toString());
+        UserGroupInformation.createRemoteUser(firstTaskid.getJobID().toString());
     Token<JobTokenIdentifier> jt = TokenCache.getJobToken(credentials);
     SecurityUtil.setTokenService(jt, address);
     taskOwner.addToken(jt);
     final TaskUmbilicalProtocol umbilical =
-      taskOwner.doAs(new PrivilegedExceptionAction<TaskUmbilicalProtocol>() {
-      @Override
-      public TaskUmbilicalProtocol run() throws Exception {
-        return (TaskUmbilicalProtocol)RPC.getProxy(TaskUmbilicalProtocol.class,
-            TaskUmbilicalProtocol.versionID, address, job);
-      }
-    });
+        taskOwner.doAs(new PrivilegedExceptionAction<TaskUmbilicalProtocol>() {
+          @Override
+          public TaskUmbilicalProtocol run() throws Exception {
+            return (TaskUmbilicalProtocol) RPC.getProxy(TaskUmbilicalProtocol.class,
+                TaskUmbilicalProtocol.versionID, address, job);
+          }
+        });
 
     // report non-pid to application master
     JvmContext context = new JvmContext(jvmId, "-1000");
@@ -122,7 +122,8 @@ class YarnChild {
 
     try {
       int idleLoopCount = 0;
-      JvmTask myTask = null;;
+      JvmTask myTask = null;
+      ;
       // poll for new task
       for (int idle = 0; null == myTask; ++idle) {
         long sleepTimeMilliSecs = Math.min(idle * 500, 1500);
@@ -200,7 +201,7 @@ class YarnChild {
       }
     } catch (Throwable throwable) {
       LOG.fatal("Error running child : "
-    	        + StringUtils.stringifyException(throwable));
+          + StringUtils.stringifyException(throwable));
       if (taskid != null) {
         if (!ShutdownHookManager.get().isShutdownInProgress()) {
           Throwable tCause = throwable.getCause();
@@ -220,7 +221,7 @@ class YarnChild {
   /**
    * Configure mapred-local dirs. This config is used by the task for finding
    * out an output directory.
-   * @throws IOException 
+   * @throws IOException
    */
   private static void configureLocalDirs(Task task, JobConf job) throws IOException {
     String[] localSysDirs = StringUtils.getTrimmedStrings(
@@ -252,17 +253,17 @@ class YarnChild {
         workDir = lDirAlloc.getLocalPathToRead("work", job);
       }
       if (!madeDir) {
-          throw new IOException("Mkdirs failed to create "
-              + workDir.toString());
+        throw new IOException("Mkdirs failed to create "
+            + workDir.toString());
       }
     }
-    job.set(MRJobConfig.JOB_LOCAL_DIR,workDir.toString());
+    job.set(MRJobConfig.JOB_LOCAL_DIR, workDir.toString());
   }
 
   private static void configureTask(JobConf job, Task task,
-      Credentials credentials, Token<JobTokenIdentifier> jt) throws IOException {
+                                    Credentials credentials, Token<JobTokenIdentifier> jt) throws IOException {
     job.setCredentials(credentials);
-    
+
     ApplicationAttemptId appAttemptId =
         ConverterUtils.toContainerId(
             System.getenv(Environment.CONTAINER_ID.name()))
@@ -307,7 +308,7 @@ class YarnChild {
   }
 
   private static final FsPermission urw_gr =
-    FsPermission.createImmutable((short) 0640);
+      FsPermission.createImmutable((short) 0640);
 
   /**
    * Write the task specific job-configuration file.

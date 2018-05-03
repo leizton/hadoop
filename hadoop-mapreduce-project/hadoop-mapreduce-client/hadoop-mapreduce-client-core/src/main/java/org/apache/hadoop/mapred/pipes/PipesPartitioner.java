@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,16 +29,16 @@ import org.apache.hadoop.util.ReflectionUtils;
  * can fall back onto a Java partitioner that was set by the user.
  */
 class PipesPartitioner<K extends WritableComparable,
-                       V extends Writable>
-  implements Partitioner<K, V> {
-  
+    V extends Writable>
+    implements Partitioner<K, V> {
+
   private static ThreadLocal<Integer> cache = new ThreadLocal<Integer>();
   private Partitioner<K, V> part = null;
-  
+
   @SuppressWarnings("unchecked")
   public void configure(JobConf conf) {
     part =
-      ReflectionUtils.newInstance(Submitter.getJavaPartitioner(conf), conf);
+        ReflectionUtils.newInstance(Submitter.getJavaPartitioner(conf), conf);
   }
 
   /**
@@ -56,7 +56,7 @@ class PipesPartitioner<K extends WritableComparable,
    * @param value the value to partition
    * @param numPartitions the number of reduces
    */
-  public int getPartition(K key, V value, 
+  public int getPartition(K key, V value,
                           int numPartitions) {
     Integer result = cache.get();
     if (result == null) {

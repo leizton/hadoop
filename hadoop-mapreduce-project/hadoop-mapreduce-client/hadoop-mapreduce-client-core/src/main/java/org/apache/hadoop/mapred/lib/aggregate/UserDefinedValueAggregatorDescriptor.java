@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -43,17 +43,17 @@ public class UserDefinedValueAggregatorDescriptor extends org.apache.hadoop.
    */
   public static Object createInstance(String className) {
     return org.apache.hadoop.mapreduce.lib.aggregate.
-      UserDefinedValueAggregatorDescriptor.createInstance(className);
+        UserDefinedValueAggregatorDescriptor.createInstance(className);
   }
 
   /**
-   * 
+   *
    * @param className the class name of the user defined descriptor class
    * @param job a configure object used for decriptor configuration
    */
   public UserDefinedValueAggregatorDescriptor(String className, JobConf job) {
     super(className, job);
-    ((ValueAggregatorDescriptor)theAggregatorDescriptor).configure(job);
+    ((ValueAggregatorDescriptor) theAggregatorDescriptor).configure(job);
   }
 
   /**

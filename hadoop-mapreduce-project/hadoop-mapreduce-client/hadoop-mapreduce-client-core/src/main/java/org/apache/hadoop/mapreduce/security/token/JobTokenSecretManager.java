@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,15 +18,14 @@
 
 package org.apache.hadoop.mapreduce.security.token;
 
-import java.util.Map;
-import java.util.TreeMap;
-
-import javax.crypto.SecretKey;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.security.token.SecretManager;
 import org.apache.hadoop.security.token.Token;
+
+import javax.crypto.SecretKey;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * SecretManager for job token. It can be used to cache generated job tokens.
@@ -45,7 +44,7 @@ public class JobTokenSecretManager extends SecretManager<JobTokenIdentifier> {
   public static SecretKey createSecretKey(byte[] key) {
     return SecretManager.createSecretKey(key);
   }
-  
+
   /**
    * Compute the HMAC hash of the message using the key
    * @param msg the message to hash
@@ -55,7 +54,7 @@ public class JobTokenSecretManager extends SecretManager<JobTokenIdentifier> {
   public static byte[] computeHash(byte[] msg, SecretKey key) {
     return createPassword(msg, key);
   }
-  
+
   /**
    * Default constructor
    */
@@ -63,7 +62,7 @@ public class JobTokenSecretManager extends SecretManager<JobTokenIdentifier> {
     this.masterKey = generateSecret();
     this.currentJobTokens = new TreeMap<String, SecretKey>();
   }
-  
+
   /**
    * Create a new password/secret for the given job token identifier.
    * @param identifier the job token identifier
@@ -96,7 +95,7 @@ public class JobTokenSecretManager extends SecretManager<JobTokenIdentifier> {
       currentJobTokens.remove(jobId);
     }
   }
-  
+
   /**
    * Look up the token password/secret for the given jobId.
    * @param jobId the jobId to look up
@@ -113,7 +112,7 @@ public class JobTokenSecretManager extends SecretManager<JobTokenIdentifier> {
     }
     return tokenSecret;
   }
-  
+
   /**
    * Look up the token password/secret for the given job token identifier.
    * @param identifier the job token identifier to look up

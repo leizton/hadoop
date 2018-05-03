@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,29 +17,29 @@
  */
 package org.apache.hadoop.mapred;
 
-import org.junit.Ignore;
-import org.junit.Test;
-import java.io.File;
-import java.net.URLClassLoader;
-import java.net.URL;
-
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.ClassUtil;
+import org.junit.Ignore;
+import org.junit.Test;
 
+import java.io.File;
+import java.net.URL;
+import java.net.URLClassLoader;
 
 import static org.junit.Assert.*;
+
 @Ignore
 public class TestMRCJCJobConf {
   private static final String JAR_RELATIVE_PATH =
-    "build/test/mapred/testjar/testjob.jar";
+      "build/test/mapred/testjar/testjob.jar";
   private static final String CLASSNAME = "testjar.ClassWordCount";
 
   private static String TEST_DIR_WITH_SPECIAL_CHARS =
-    System.getProperty("test.build.data","/tmp") +
-    File.separator + "test jobconf with + and spaces";
+      System.getProperty("test.build.data", "/tmp") +
+          File.separator + "test jobconf with + and spaces";
 
   @Test
   public void testFindContainingJar() throws Exception {
@@ -58,8 +58,8 @@ public class TestMRCJCJobConf {
     FileSystem localfs = FileSystem.getLocal(conf);
 
     FileUtil.copy(localfs, new Path(JAR_RELATIVE_PATH),
-                  localfs, new Path(TEST_DIR_WITH_SPECIAL_CHARS, "test.jar"),
-                  false, true, conf);
+        localfs, new Path(TEST_DIR_WITH_SPECIAL_CHARS, "test.jar"),
+        false, true, conf);
     testJarAtPath(TEST_DIR_WITH_SPECIAL_CHARS + File.separator + "test.jar");
   }
 
@@ -72,8 +72,8 @@ public class TestMRCJCJobConf {
     File jar = new File(path).getAbsoluteFile();
     assertTrue(jar.exists());
 
-    URL urls[] = new URL[] {
-      jar.toURI().toURL()
+    URL urls[] = new URL[]{
+        jar.toURI().toURL()
     };
 
     ClassLoader cl = new URLClassLoader(urls);

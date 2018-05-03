@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,16 +16,6 @@
  * limitations under the License.
  */
 package org.apache.hadoop.mapred;
-
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileUtil;
@@ -35,8 +25,14 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.*;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * TestCounters checks the sanity and recoverability of Queue
@@ -58,10 +54,10 @@ public class TestQueue {
   /**
    * test QueueManager
    * configuration from file
-   * 
+   *
    * @throws IOException
    */
-  @Test (timeout=5000)
+  @Test(timeout = 5000)
   public void testQueue() throws IOException {
     File f = null;
     try {
@@ -96,7 +92,7 @@ public class TestQueue {
 
       UserGroupInformation mockUGI = mock(UserGroupInformation.class);
       when(mockUGI.getShortUserName()).thenReturn("user1");
-      String[] groups = { "group1" };
+      String[] groups = {"group1"};
       when(mockUGI.getGroupNames()).thenReturn(groups);
       assertTrue(manager.hasAccess("first", QueueACL.SUBMIT_JOB, mockUGI));
       assertFalse(manager.hasAccess("second", QueueACL.SUBMIT_JOB, mockUGI));
@@ -129,12 +125,12 @@ public class TestQueue {
       // test
       assertEquals(manager.getSchedulerInfo("first"), "queueInfo");
       Set<String> queueJobQueueInfos = new HashSet<String>();
-      for(JobQueueInfo jobInfo : manager.getJobQueueInfos()){
-    	  queueJobQueueInfos.add(jobInfo.getQueueName());
+      for (JobQueueInfo jobInfo : manager.getJobQueueInfos()) {
+        queueJobQueueInfos.add(jobInfo.getQueueName());
       }
       Set<String> rootJobQueueInfos = new HashSet<String>();
-      for(Queue queue : root.getChildren()){
-    	  rootJobQueueInfos.add(queue.getJobQueueInfo().getQueueName());
+      for (Queue queue : root.getChildren()) {
+        rootJobQueueInfos.add(queue.getJobQueueInfo().getQueueName());
       }
       assertEquals(queueJobQueueInfos, rootJobQueueInfos);
       // test getJobQueueInfoMapping
@@ -181,7 +177,7 @@ public class TestQueue {
     return conf;
   }
 
-  @Test (timeout=5000)
+  @Test(timeout = 5000)
   public void testDefaultConfig() {
     QueueManager manager = new QueueManager(true);
     assertEquals(manager.getRoot().getChildren().size(), 2);
@@ -189,11 +185,11 @@ public class TestQueue {
 
   /**
    * test for Qmanager with empty configuration
-   * 
+   *
    * @throws IOException
    */
 
-  @Test (timeout=5000)
+  @Test(timeout = 5000)
   public void test2Queue() throws IOException {
     Configuration conf = getConfiguration();
 
@@ -202,7 +198,7 @@ public class TestQueue {
     manager.setSchedulerInfo("second", "queueInfoqueueInfo");
 
     Queue root = manager.getRoot();
-    
+
     // test children queues
     assertTrue(root.getChildren().size() == 2);
     Iterator<Queue> iterator = root.getChildren().iterator();
@@ -228,13 +224,14 @@ public class TestQueue {
     template.add("second");
     assertEquals(manager.getLeafQueueNames(), template);
 
-    
+
   }
-/**
- * write cofiguration
- * @return
- * @throws IOException
- */
+
+  /**
+   * write cofiguration
+   * @return
+   * @throws IOException
+   */
   private File writeFile() throws IOException {
 
     File f = new File(testDir, "tst.xml");
@@ -253,5 +250,5 @@ public class TestQueue {
     return f;
 
   }
-  
+
 }

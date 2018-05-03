@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,8 +17,6 @@
  */
 package org.apache.hadoop.mapreduce.task.reduce;
 
-import java.io.IOException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.mapred.MapTaskCompletionEventsUpdate;
@@ -26,7 +24,9 @@ import org.apache.hadoop.mapred.TaskCompletionEvent;
 import org.apache.hadoop.mapred.TaskUmbilicalProtocol;
 import org.apache.hadoop.mapreduce.TaskAttemptID;
 
-class EventFetcher<K,V> extends Thread {
+import java.io.IOException;
+
+class EventFetcher<K, V> extends Thread {
   private static final long SLEEP_TIME = 1000;
   private static final int MAX_RETRIES = 10;
   private static final int RETRY_PERIOD = 5000;
@@ -34,20 +34,20 @@ class EventFetcher<K,V> extends Thread {
 
   private final TaskAttemptID reduce;
   private final TaskUmbilicalProtocol umbilical;
-  private final ShuffleScheduler<K,V> scheduler;
+  private final ShuffleScheduler<K, V> scheduler;
   private int fromEventIdx = 0;
   private final int maxEventsToFetch;
   private final ExceptionReporter exceptionReporter;
-  
+
   private volatile boolean stopped = false;
-  
+
   public EventFetcher(TaskAttemptID reduce,
                       TaskUmbilicalProtocol umbilical,
-                      ShuffleScheduler<K,V> scheduler,
+                      ShuffleScheduler<K, V> scheduler,
                       ExceptionReporter reporter,
                       int maxEventsToFetch) {
     setName("EventFetcher for fetching Map Completion Events");
-    setDaemon(true);    
+    setDaemon(true);
     this.reduce = reduce;
     this.umbilical = umbilical;
     this.scheduler = scheduler;
@@ -59,7 +59,7 @@ class EventFetcher<K,V> extends Thread {
   public void run() {
     int failures = 0;
     LOG.info(reduce + " Thread started: " + getName());
-    
+
     try {
       while (!stopped && !Thread.currentThread().isInterrupted()) {
         try {
@@ -100,32 +100,32 @@ class EventFetcher<K,V> extends Thread {
     interrupt();
     try {
       join(5000);
-    } catch(InterruptedException ie) {
+    } catch (InterruptedException ie) {
       LOG.warn("Got interrupted while joining " + getName(), ie);
     }
   }
-  
-  /** 
+
+  /**
    * Queries the {@link TaskTracker} for a set of map-completion events 
    * from a given event ID.
    * @throws IOException
-   */  
+   */
   protected int getMapCompletionEvents()
       throws IOException, InterruptedException {
-    
+
     int numNewMaps = 0;
     TaskCompletionEvent events[] = null;
 
     do {
       MapTaskCompletionEventsUpdate update =
           umbilical.getMapCompletionEvents(
-              (org.apache.hadoop.mapred.JobID)reduce.getJobID(),
+              (org.apache.hadoop.mapred.JobID) reduce.getJobID(),
               fromEventIdx,
               maxEventsToFetch,
-              (org.apache.hadoop.mapred.TaskAttemptID)reduce);
+              (org.apache.hadoop.mapred.TaskAttemptID) reduce);
       events = update.getMapTaskCompletionEvents();
       LOG.debug("Got " + events.length + " map completion events from " +
-               fromEventIdx);
+          fromEventIdx);
 
       assert !update.shouldReset() : "Unexpected legacy state";
 

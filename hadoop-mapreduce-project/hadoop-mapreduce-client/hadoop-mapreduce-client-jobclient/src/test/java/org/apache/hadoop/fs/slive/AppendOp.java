@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,12 +18,6 @@
 
 package org.apache.hadoop.fs.slive;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.List;
-import java.util.Random;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FileSystem;
@@ -31,10 +25,16 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.slive.DataWriter.GenerateOutput;
 import org.apache.hadoop.fs.slive.OperationOutput.OutputType;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.List;
+import java.util.Random;
+
 /**
  * Operation which selects a random file and appends a random amount of bytes
  * (selected from the configuration for append size) to that file if it exists.
- * 
+ *
  * This operation will capture statistics on success for bytes written, time
  * taken (milliseconds), and success count and on failure it will capture the
  * number of failures and the time taken (milliseconds) to fail.
@@ -49,7 +49,7 @@ class AppendOp extends Operation {
 
   /**
    * Gets the file to append to
-   * 
+   *
    * @return Path
    */
   protected Path getAppendFile() {
@@ -57,7 +57,8 @@ class AppendOp extends Operation {
     return fn;
   }
 
-  @Override // Operation
+  @Override
+    // Operation
   List<OperationOutput> run(FileSystem fs) {
     List<OperationOutput> out = super.run(fs);
     OutputStream os = null;

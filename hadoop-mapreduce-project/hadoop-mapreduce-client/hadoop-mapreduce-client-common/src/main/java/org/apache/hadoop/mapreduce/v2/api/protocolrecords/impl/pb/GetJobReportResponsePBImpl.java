@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,15 +28,14 @@ import org.apache.hadoop.mapreduce.v2.proto.MRServiceProtos.GetJobReportResponse
 import org.apache.hadoop.yarn.api.records.impl.pb.ProtoBase;
 
 
-    
 public class GetJobReportResponsePBImpl extends ProtoBase<GetJobReportResponseProto> implements GetJobReportResponse {
   GetJobReportResponseProto proto = GetJobReportResponseProto.getDefaultInstance();
   GetJobReportResponseProto.Builder builder = null;
   boolean viaProto = false;
-  
+
   private JobReport jobReport = null;
-  
-  
+
+
   public GetJobReportResponsePBImpl() {
     builder = GetJobReportResponseProto.newBuilder();
   }
@@ -45,9 +44,9 @@ public class GetJobReportResponsePBImpl extends ProtoBase<GetJobReportResponsePr
     this.proto = proto;
     viaProto = true;
   }
-  
+
   public GetJobReportResponseProto getProto() {
-      mergeLocalToProto();
+    mergeLocalToProto();
     proto = viaProto ? proto : builder.build();
     viaProto = true;
     return proto;
@@ -60,7 +59,7 @@ public class GetJobReportResponsePBImpl extends ProtoBase<GetJobReportResponsePr
   }
 
   private void mergeLocalToProto() {
-    if (viaProto) 
+    if (viaProto)
       maybeInitBuilder();
     mergeLocalToBuilder();
     proto = builder.build();
@@ -73,8 +72,8 @@ public class GetJobReportResponsePBImpl extends ProtoBase<GetJobReportResponsePr
     }
     viaProto = false;
   }
-    
-  
+
+
   @Override
   public JobReport getJobReport() {
     GetJobReportResponseProtoOrBuilder p = viaProto ? proto : builder;
@@ -91,7 +90,7 @@ public class GetJobReportResponsePBImpl extends ProtoBase<GetJobReportResponsePr
   @Override
   public void setJobReport(JobReport jobReport) {
     maybeInitBuilder();
-    if (jobReport == null) 
+    if (jobReport == null)
       builder.clearJobReport();
     this.jobReport = jobReport;
   }
@@ -101,9 +100,8 @@ public class GetJobReportResponsePBImpl extends ProtoBase<GetJobReportResponsePr
   }
 
   private JobReportProto convertToProtoFormat(JobReport t) {
-    return ((JobReportPBImpl)t).getProto();
+    return ((JobReportPBImpl) t).getProto();
   }
 
 
-
-}  
+}

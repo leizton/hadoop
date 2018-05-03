@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,12 +17,6 @@
  */
 package org.apache.hadoop.mapreduce.lib.input;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.Map;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -30,14 +24,19 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.HadoopTestCase;
-import org.apache.hadoop.mapreduce.lib.input.KeyValueTextInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Map;
 
 /**
  * @see TestDelegatingInputFormat
@@ -146,27 +145,27 @@ public class TestMultipleInputs extends HadoopTestCase {
     MultipleInputs.addInputPath(conf, new Path("/bar"),
         KeyValueTextInputFormat.class);
     final Map<Path, InputFormat> inputs = MultipleInputs
-       .getInputFormatMap(conf);
+        .getInputFormatMap(conf);
     assertEquals(TextInputFormat.class, inputs.get(new Path("/foo")).getClass());
     assertEquals(KeyValueTextInputFormat.class, inputs.get(new Path("/bar"))
-       .getClass());
+        .getClass());
   }
 
   @SuppressWarnings("unchecked")
   public void testAddInputPathWithMapper() throws IOException {
     final Job conf = Job.getInstance();
     MultipleInputs.addInputPath(conf, new Path("/foo"), TextInputFormat.class,
-       MapClass.class);
+        MapClass.class);
     MultipleInputs.addInputPath(conf, new Path("/bar"),
         KeyValueTextInputFormat.class, KeyValueMapClass.class);
     final Map<Path, InputFormat> inputs = MultipleInputs
-       .getInputFormatMap(conf);
+        .getInputFormatMap(conf);
     final Map<Path, Class<? extends Mapper>> maps = MultipleInputs
-       .getMapperTypeMap(conf);
+        .getMapperTypeMap(conf);
 
     assertEquals(TextInputFormat.class, inputs.get(new Path("/foo")).getClass());
     assertEquals(KeyValueTextInputFormat.class, inputs.get(new Path("/bar"))
-       .getClass());
+        .getClass());
     assertEquals(MapClass.class, maps.get(new Path("/foo")));
     assertEquals(KeyValueMapClass.class, maps.get(new Path("/bar")));
   }

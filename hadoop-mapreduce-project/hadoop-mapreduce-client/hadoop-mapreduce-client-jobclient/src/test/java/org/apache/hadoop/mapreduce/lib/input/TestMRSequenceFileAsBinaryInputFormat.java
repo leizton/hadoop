@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,21 +18,18 @@
 
 package org.apache.hadoop.mapreduce.lib.input;
 
-import java.io.IOException;
-import java.util.Random;
-
-import org.apache.hadoop.fs.*;
-import org.apache.hadoop.io.*;
-import org.apache.hadoop.mapreduce.InputFormat;
-import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.MapContext;
-import org.apache.hadoop.mapreduce.MapReduceTestUtil;
-import org.apache.hadoop.mapreduce.RecordReader;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import junit.framework.TestCase;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.io.DataInputBuffer;
+import org.apache.hadoop.io.SequenceFile;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.task.MapContextImpl;
 
-import junit.framework.TestCase;
+import java.io.IOException;
+import java.util.Random;
 
 public class TestMRSequenceFileAsBinaryInputFormat extends TestCase {
   private static final int RECORDS = 10000;
@@ -40,7 +37,7 @@ public class TestMRSequenceFileAsBinaryInputFormat extends TestCase {
   public void testBinary() throws IOException, InterruptedException {
     Job job = Job.getInstance();
     FileSystem fs = FileSystem.getLocal(job.getConfiguration());
-    Path dir = new Path(System.getProperty("test.build.data",".") + "/mapred");
+    Path dir = new Path(System.getProperty("test.build.data", ".") + "/mapred");
     Path file = new Path(dir, "testbinary.seq");
     Random r = new Random();
     long seed = r.nextLong();
@@ -53,7 +50,7 @@ public class TestMRSequenceFileAsBinaryInputFormat extends TestCase {
     Text tval = new Text();
 
     SequenceFile.Writer writer = new SequenceFile.Writer(fs,
-      job.getConfiguration(), file, Text.class, Text.class);
+        job.getConfiguration(), file, Text.class, Text.class);
     try {
       for (int i = 0; i < RECORDS; ++i) {
         tkey.set(Integer.toString(r.nextInt(), 36));
@@ -64,9 +61,9 @@ public class TestMRSequenceFileAsBinaryInputFormat extends TestCase {
       writer.close();
     }
     TaskAttemptContext context = MapReduceTestUtil.
-      createDummyMapTaskAttemptContext(job.getConfiguration());
-    InputFormat<BytesWritable,BytesWritable> bformat =
-      new SequenceFileAsBinaryInputFormat();
+        createDummyMapTaskAttemptContext(job.getConfiguration());
+    InputFormat<BytesWritable, BytesWritable> bformat =
+        new SequenceFileAsBinaryInputFormat();
 
     int count = 0;
     r.setSeed(seed);
@@ -78,12 +75,12 @@ public class TestMRSequenceFileAsBinaryInputFormat extends TestCase {
     FileInputFormat.setInputPaths(job, file);
     for (InputSplit split : bformat.getSplits(job)) {
       RecordReader<BytesWritable, BytesWritable> reader =
-            bformat.createRecordReader(split, context);
-      MapContext<BytesWritable, BytesWritable, BytesWritable, BytesWritable> 
-        mcontext = new MapContextImpl<BytesWritable, BytesWritable,
-          BytesWritable, BytesWritable>(job.getConfiguration(), 
-          context.getTaskAttemptID(), reader, null, null, 
-          MapReduceTestUtil.createDummyReporter(), 
+          bformat.createRecordReader(split, context);
+      MapContext<BytesWritable, BytesWritable, BytesWritable, BytesWritable>
+          mcontext = new MapContextImpl<BytesWritable, BytesWritable,
+          BytesWritable, BytesWritable>(job.getConfiguration(),
+          context.getTaskAttemptID(), reader, null, null,
+          MapReduceTestUtil.createDummyReporter(),
           split);
       reader.initialize(split, mcontext);
       try {
@@ -97,13 +94,13 @@ public class TestMRSequenceFileAsBinaryInputFormat extends TestCase {
           buf.reset(bval.getBytes(), bval.getLength());
           cmpval.readFields(buf);
           assertTrue(
-            "Keys don't match: " + "*" + cmpkey.toString() + ":" +
-            tkey.toString() + "*",
-            cmpkey.toString().equals(tkey.toString()));
+              "Keys don't match: " + "*" + cmpkey.toString() + ":" +
+                  tkey.toString() + "*",
+              cmpkey.toString().equals(tkey.toString()));
           assertTrue(
-            "Vals don't match: " + "*" + cmpval.toString() + ":" +
-            tval.toString() + "*",
-            cmpval.toString().equals(tval.toString()));
+              "Vals don't match: " + "*" + cmpval.toString() + ":" +
+                  tval.toString() + "*",
+              cmpval.toString().equals(tval.toString()));
           ++count;
         }
       } finally {

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,23 +18,20 @@
 
 package org.apache.hadoop.mapreduce.lib.db;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.sql.Types;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.MRJobConfig;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Implement DBSplitter over date/time values.
@@ -127,22 +124,22 @@ public class DateSplitter extends IntegerSplitter {
   }
 
   /** Retrieve the value from the column in a type-appropriate manner and return
-      its timestamp since the epoch. If the column is null, then return Long.MIN_VALUE.
-      This will cause a special split to be generated for the NULL case, but may also
-      cause poorly-balanced splits if most of the actual dates are positive time
-      since the epoch, etc.
-    */
+   its timestamp since the epoch. If the column is null, then return Long.MIN_VALUE.
+   This will cause a special split to be generated for the NULL case, but may also
+   cause poorly-balanced splits if most of the actual dates are positive time
+   since the epoch, etc.
+   */
   private long resultSetColToLong(ResultSet rs, int colNum, int sqlDataType) throws SQLException {
     try {
       switch (sqlDataType) {
-      case Types.DATE:
-        return rs.getDate(colNum).getTime();
-      case Types.TIME:
-        return rs.getTime(colNum).getTime();
-      case Types.TIMESTAMP:
-        return rs.getTimestamp(colNum).getTime();
-      default:
-        throw new SQLException("Not a date-type field");
+        case Types.DATE:
+          return rs.getDate(colNum).getTime();
+        case Types.TIME:
+          return rs.getTime(colNum).getTime();
+        case Types.TIMESTAMP:
+          return rs.getTimestamp(colNum).getTime();
+        default:
+          throw new SQLException("Not a date-type field");
       }
     } catch (NullPointerException npe) {
       // null column. return minimum long value.
@@ -154,14 +151,14 @@ public class DateSplitter extends IntegerSplitter {
   /**  Parse the long-valued timestamp into the appropriate SQL date type. */
   private Date longToDate(long val, int sqlDataType) {
     switch (sqlDataType) {
-    case Types.DATE:
-      return new java.sql.Date(val);
-    case Types.TIME:
-      return new java.sql.Time(val);
-    case Types.TIMESTAMP:
-      return new java.sql.Timestamp(val);
-    default: // Shouldn't ever hit this case.
-      return null;
+      case Types.DATE:
+        return new java.sql.Date(val);
+      case Types.TIME:
+        return new java.sql.Time(val);
+      case Types.TIMESTAMP:
+        return new java.sql.Timestamp(val);
+      default: // Shouldn't ever hit this case.
+        return null;
     }
   }
 

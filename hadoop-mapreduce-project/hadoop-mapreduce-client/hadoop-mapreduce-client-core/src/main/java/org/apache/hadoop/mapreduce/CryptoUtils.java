@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,10 +16,6 @@
  * limitations under the License.
  */
 package org.apache.hadoop.mapreduce;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
@@ -34,10 +30,13 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.crypto.CryptoFSDataInputStream;
 import org.apache.hadoop.fs.crypto.CryptoFSDataOutputStream;
 import org.apache.hadoop.io.IOUtils;
-import org.apache.hadoop.mapreduce.MRJobConfig;
 import org.apache.hadoop.mapreduce.security.TokenCache;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.util.LimitInputStream;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
 
 /**
  * This class provides utilities to make it easier to work with Cryptographic
@@ -57,7 +56,7 @@ public class CryptoUtils {
 
   /**
    * This method creates and initializes an IV (Initialization Vector)
-   * 
+   *
    * @param conf
    * @return byte[]
    * @throws IOException
@@ -94,14 +93,14 @@ public class CryptoUtils {
    * data buffer required for the stream is specified by the
    * "mapreduce.job.encrypted-intermediate-data.buffer.kb" Job configuration
    * variable.
-   * 
+   *
    * @param conf
    * @param out
    * @return FSDataOutputStream
    * @throws IOException
    */
   public static FSDataOutputStream wrapIfNecessary(Configuration conf,
-      FSDataOutputStream out) throws IOException {
+                                                   FSDataOutputStream out) throws IOException {
     if (isShuffleEncrypted(conf)) {
       out.write(ByteBuffer.allocate(8).putLong(out.getPos()).array());
       byte[] iv = createIV(conf);
@@ -122,13 +121,13 @@ public class CryptoUtils {
    * buffer required for the stream is specified by the
    * "mapreduce.job.encrypted-intermediate-data.buffer.kb" Job configuration
    * variable.
-   * 
+   *
    * If the value of 'length' is > -1, The InputStream is additionally wrapped
    * in a LimitInputStream. CryptoStreams are late buffering in nature. This
    * means they will always try to read ahead if they can. The LimitInputStream
    * will ensure that the CryptoStream does not read past the provided length
    * from the given Input Stream.
-   * 
+   *
    * @param conf
    * @param in
    * @param length
@@ -136,7 +135,7 @@ public class CryptoUtils {
    * @throws IOException
    */
   public static InputStream wrapIfNecessary(Configuration conf, InputStream in,
-      long length) throws IOException {
+                                            long length) throws IOException {
     if (isShuffleEncrypted(conf)) {
       int bufferSize = getBufferSize(conf);
       if (length > -1) {
@@ -146,9 +145,9 @@ public class CryptoUtils {
       IOUtils.readFully(in, offsetArray, 0, 8);
       long offset = ByteBuffer.wrap(offsetArray).getLong();
       CryptoCodec cryptoCodec = CryptoCodec.getInstance(conf);
-      byte[] iv = 
+      byte[] iv =
           new byte[cryptoCodec.getCipherSuite().getAlgorithmBlockSize()];
-      IOUtils.readFully(in, iv, 0, 
+      IOUtils.readFully(in, iv, 0,
           cryptoCodec.getCipherSuite().getAlgorithmBlockSize());
       if (LOG.isDebugEnabled()) {
         LOG.debug("IV read from ["
@@ -166,23 +165,23 @@ public class CryptoUtils {
    * data buffer required for the stream is specified by the
    * "mapreduce.job.encrypted-intermediate-data.buffer.kb" Job configuration
    * variable.
-   * 
+   *
    * @param conf
    * @param in
    * @return FSDataInputStream
    * @throws IOException
    */
   public static FSDataInputStream wrapIfNecessary(Configuration conf,
-      FSDataInputStream in) throws IOException {
+                                                  FSDataInputStream in) throws IOException {
     if (isShuffleEncrypted(conf)) {
       CryptoCodec cryptoCodec = CryptoCodec.getInstance(conf);
       int bufferSize = getBufferSize(conf);
       // Not going to be used... but still has to be read...
       // Since the O/P stream always writes it..
       IOUtils.readFully(in, new byte[8], 0, 8);
-      byte[] iv = 
+      byte[] iv =
           new byte[cryptoCodec.getCipherSuite().getAlgorithmBlockSize()];
-      IOUtils.readFully(in, iv, 0, 
+      IOUtils.readFully(in, iv, 0,
           cryptoCodec.getCipherSuite().getAlgorithmBlockSize());
       if (LOG.isDebugEnabled()) {
         LOG.debug("IV read from Stream ["

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,19 +18,19 @@
 
 package org.apache.hadoop.mapred;
 
-import java.io.DataInput;
-import java.io.IOException;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.mapreduce.TaskType;
+
+import java.io.DataInput;
+import java.io.IOException;
 
 /**
  * TaskID represents the immutable and unique identifier for 
  * a Map or Reduce Task. Each TaskID encompasses multiple attempts made to
  * execute the Map or Reduce Task, each of which are uniquely indentified by
  * their TaskAttemptID.
- * 
+ *
  * TaskID consists of 3 parts. First part is the {@link JobID}, that this 
  * TaskInProgress belongs to. Second part of the TaskID is either 'm' or 'r' 
  * representing whether the task is a map task or a reduce task. 
@@ -41,9 +41,9 @@ import org.apache.hadoop.mapreduce.TaskType;
  * started at <code>200707121733</code>. 
  * <p>
  * Applications should never construct or parse TaskID strings
- * , but rather use appropriate constructors or {@link #forName(String)} 
+ * , but rather use appropriate constructors or {@link #forName(String)}
  * method. 
- * 
+ *
  * @see JobID
  * @see TaskAttemptID
  */
@@ -59,10 +59,10 @@ public class TaskID extends org.apache.hadoop.mapreduce.TaskID {
    * @deprecated Use {@link #TaskID(String, int, TaskType, int)}
    */
   @Deprecated
-  public TaskID(org.apache.hadoop.mapreduce.JobID jobId, boolean isMap,int id) {
+  public TaskID(org.apache.hadoop.mapreduce.JobID jobId, boolean isMap, int id) {
     this(jobId, isMap ? TaskType.MAP : TaskType.REDUCE, id);
   }
-   
+
   /**
    * Constructs a TaskInProgressId object from given parts.
    * @param jtIdentifier jobTracker identifier
@@ -76,17 +76,17 @@ public class TaskID extends org.apache.hadoop.mapreduce.TaskID {
   public TaskID(String jtIdentifier, int jobId, boolean isMap, int id) {
     this(jtIdentifier, jobId, isMap ? TaskType.MAP : TaskType.REDUCE, id);
   }
-    
+
   /**
    * Constructs a TaskID object from given {@link JobID}.  
    * @param jobId JobID that this tip belongs to 
    * @param type the {@link TaskType} 
    * @param id the tip number
    */
-  public TaskID(org.apache.hadoop.mapreduce.JobID jobId, TaskType type,int id) {
+  public TaskID(org.apache.hadoop.mapreduce.JobID jobId, TaskType type, int id) {
     super(jobId, type, id);
   }
-  
+
   /**
    * Constructs a TaskInProgressId object from given parts.
    * @param jtIdentifier jobTracker identifier
@@ -97,11 +97,11 @@ public class TaskID extends org.apache.hadoop.mapreduce.TaskID {
   public TaskID(String jtIdentifier, int jobId, TaskType type, int id) {
     this(new JobID(jtIdentifier, jobId), type, id);
   }
-  
+
   public TaskID() {
     super(new JobID(), TaskType.REDUCE, 0);
   }
-  
+
   /**
    * Downgrade a new TaskID to an old one
    * @param old a new or old TaskID
@@ -111,8 +111,8 @@ public class TaskID extends org.apache.hadoop.mapreduce.TaskID {
     if (old instanceof TaskID) {
       return (TaskID) old;
     } else {
-      return new TaskID(JobID.downgrade(old.getJobID()), old.getTaskType(), 
-                        old.getId());
+      return new TaskID(JobID.downgrade(old.getJobID()), old.getTaskType(),
+          old.getId());
     }
   }
 
@@ -122,12 +122,12 @@ public class TaskID extends org.apache.hadoop.mapreduce.TaskID {
     tipId.readFields(in);
     return tipId;
   }
-  
+
   public JobID getJobID() {
     return (JobID) super.getJobID();
   }
 
-  /** 
+  /**
    * Returns a regex pattern which matches task IDs. Arguments can 
    * be given null, in which case that part of the regex will be generic.  
    * For example to obtain a regex matching <i>the first map task</i> 
@@ -149,10 +149,10 @@ public class TaskID extends org.apache.hadoop.mapreduce.TaskID {
   public static String getTaskIDsPattern(String jtIdentifier, Integer jobId
       , Boolean isMap, Integer taskId) {
     return getTaskIDsPattern(jtIdentifier, jobId,
-	isMap ? TaskType.MAP : TaskType.REDUCE, taskId);
+        isMap ? TaskType.MAP : TaskType.REDUCE, taskId);
   }
-  
-  /** 
+
+  /**
    * Returns a regex pattern which matches task IDs. Arguments can 
    * be given null, in which case that part of the regex will be generic.  
    * For example to obtain a regex matching <i>the first map task</i> 
@@ -172,26 +172,26 @@ public class TaskID extends org.apache.hadoop.mapreduce.TaskID {
   public static String getTaskIDsPattern(String jtIdentifier, Integer jobId
       , TaskType type, Integer taskId) {
     StringBuilder builder = new StringBuilder(TASK).append(SEPARATOR)
-      .append(getTaskIDsPatternWOPrefix(jtIdentifier, jobId, type, taskId));
+        .append(getTaskIDsPatternWOPrefix(jtIdentifier, jobId, type, taskId));
     return builder.toString();
   }
-  
+
   @Deprecated
   static StringBuilder getTaskIDsPatternWOPrefix(String jtIdentifier
       , Integer jobId, TaskType type, Integer taskId) {
     StringBuilder builder = new StringBuilder();
     builder.append(JobID.getJobIDsPatternWOPrefix(jtIdentifier, jobId))
-      .append(SEPARATOR)
-      .append(type != null ? 
-          (org.apache.hadoop.mapreduce.TaskID.getRepresentingCharacter(type)) : 
+        .append(SEPARATOR)
+        .append(type != null ?
+            (org.apache.hadoop.mapreduce.TaskID.getRepresentingCharacter(type)) :
             org.apache.hadoop.mapreduce.TaskID.getAllTaskTypes()).
-            append(SEPARATOR)
-      .append(taskId != null ? idFormat.format(taskId) : "[0-9]*");
+        append(SEPARATOR)
+        .append(taskId != null ? idFormat.format(taskId) : "[0-9]*");
     return builder;
   }
 
   public static TaskID forName(String str
-                               ) throws IllegalArgumentException {
+  ) throws IllegalArgumentException {
     return (TaskID) org.apache.hadoop.mapreduce.TaskID.forName(str);
   }
 

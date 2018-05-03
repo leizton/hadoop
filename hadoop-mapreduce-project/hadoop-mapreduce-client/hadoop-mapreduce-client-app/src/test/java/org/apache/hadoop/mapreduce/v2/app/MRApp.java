@@ -1,28 +1,22 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2.app;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.EnumSet;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -32,43 +26,22 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.WrappedJvmID;
-import org.apache.hadoop.mapreduce.JobContext;
-import org.apache.hadoop.mapreduce.JobID;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.JobStatus.State;
-import org.apache.hadoop.mapreduce.MRJobConfig;
-import org.apache.hadoop.mapreduce.OutputCommitter;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.TypeConverter;
 import org.apache.hadoop.mapreduce.jobhistory.JobHistoryEvent;
 import org.apache.hadoop.mapreduce.jobhistory.NormalizedResourceEvent;
 import org.apache.hadoop.mapreduce.security.TokenCache;
 import org.apache.hadoop.mapreduce.security.token.JobTokenSecretManager;
 import org.apache.hadoop.mapreduce.split.JobSplit.TaskSplitMetaInfo;
-import org.apache.hadoop.mapreduce.v2.api.records.JobId;
-import org.apache.hadoop.mapreduce.v2.api.records.JobReport;
-import org.apache.hadoop.mapreduce.v2.api.records.JobState;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptReport;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptState;
+import org.apache.hadoop.mapreduce.v2.api.records.*;
 import org.apache.hadoop.mapreduce.v2.api.records.TaskReport;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskState;
 import org.apache.hadoop.mapreduce.v2.app.client.ClientService;
 import org.apache.hadoop.mapreduce.v2.app.client.MRClientService;
 import org.apache.hadoop.mapreduce.v2.app.commit.CommitterEvent;
 import org.apache.hadoop.mapreduce.v2.app.commit.CommitterEventHandler;
 import org.apache.hadoop.mapreduce.v2.app.job.Job;
-import org.apache.hadoop.mapreduce.v2.app.job.JobStateInternal;
-import org.apache.hadoop.mapreduce.v2.app.job.Task;
-import org.apache.hadoop.mapreduce.v2.app.job.TaskAttempt;
-import org.apache.hadoop.mapreduce.v2.app.job.TaskAttemptStateInternal;
-import org.apache.hadoop.mapreduce.v2.app.job.TaskStateInternal;
-import org.apache.hadoop.mapreduce.v2.app.job.event.JobEvent;
-import org.apache.hadoop.mapreduce.v2.app.job.event.JobEventType;
-import org.apache.hadoop.mapreduce.v2.app.job.event.JobFinishEvent;
-import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptContainerAssignedEvent;
-import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptContainerLaunchedEvent;
-import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptEvent;
-import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptEventType;
+import org.apache.hadoop.mapreduce.v2.app.job.*;
+import org.apache.hadoop.mapreduce.v2.app.job.event.*;
 import org.apache.hadoop.mapreduce.v2.app.job.impl.JobImpl;
 import org.apache.hadoop.mapreduce.v2.app.job.impl.TaskAttemptImpl;
 import org.apache.hadoop.mapreduce.v2.app.job.impl.TaskImpl;
@@ -84,14 +57,7 @@ import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.SecurityUtil;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.service.Service;
-import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
-import org.apache.hadoop.yarn.api.records.ApplicationId;
-import org.apache.hadoop.yarn.api.records.Container;
-import org.apache.hadoop.yarn.api.records.ContainerId;
-import org.apache.hadoop.yarn.api.records.NodeId;
-import org.apache.hadoop.yarn.api.records.Priority;
-import org.apache.hadoop.yarn.api.records.Resource;
-import org.apache.hadoop.yarn.api.records.Token;
+import org.apache.hadoop.yarn.api.records.*;
 import org.apache.hadoop.yarn.event.EventHandler;
 import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
 import org.apache.hadoop.yarn.security.ContainerTokenIdentifier;
@@ -100,6 +66,12 @@ import org.apache.hadoop.yarn.state.StateMachineFactory;
 import org.apache.hadoop.yarn.util.Clock;
 import org.apache.hadoop.yarn.util.SystemClock;
 import org.junit.Assert;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.EnumSet;
 
 
 /**
@@ -116,7 +88,7 @@ public class MRApp extends MRAppMaster {
   private File testWorkDir;
   private Path testAbsPath;
   private ClusterInfo clusterInfo;
-  
+
   // Queue to pretend the RM assigned us
   private String assignedQueue;
 
@@ -134,29 +106,29 @@ public class MRApp extends MRAppMaster {
   }
 
   public MRApp(int maps, int reduces, boolean autoComplete, String testName,
-      boolean cleanOnStart, Clock clock) {
+               boolean cleanOnStart, Clock clock) {
     this(maps, reduces, autoComplete, testName, cleanOnStart, 1, clock, null);
   }
 
   public MRApp(int maps, int reduces, boolean autoComplete, String testName,
-      boolean cleanOnStart, Clock clock, boolean unregistered) {
+               boolean cleanOnStart, Clock clock, boolean unregistered) {
     this(maps, reduces, autoComplete, testName, cleanOnStart, 1, clock,
         unregistered);
   }
 
   public MRApp(int maps, int reduces, boolean autoComplete, String testName,
-      boolean cleanOnStart) {
+               boolean cleanOnStart) {
     this(maps, reduces, autoComplete, testName, cleanOnStart, 1);
   }
-  
+
   public MRApp(int maps, int reduces, boolean autoComplete, String testName,
-      boolean cleanOnStart, String assignedQueue) {
+               boolean cleanOnStart, String assignedQueue) {
     this(maps, reduces, autoComplete, testName, cleanOnStart, 1,
         new SystemClock(), assignedQueue);
   }
 
   public MRApp(int maps, int reduces, boolean autoComplete, String testName,
-      boolean cleanOnStart, boolean unregistered) {
+               boolean cleanOnStart, boolean unregistered) {
     this(maps, reduces, autoComplete, testName, cleanOnStart, 1, unregistered);
   }
 
@@ -173,9 +145,9 @@ public class MRApp extends MRAppMaster {
         ApplicationAttemptId.newInstance(applicationId, startCount);
     return applicationAttemptId;
   }
-  
+
   private static ContainerId getContainerId(ApplicationId applicationId,
-      int startCount) {
+                                            int startCount) {
     ApplicationAttemptId appAttemptId =
         getApplicationAttemptId(applicationId, startCount);
     ContainerId containerId =
@@ -184,49 +156,49 @@ public class MRApp extends MRAppMaster {
   }
 
   public MRApp(int maps, int reduces, boolean autoComplete, String testName,
-      boolean cleanOnStart, int startCount) {
+               boolean cleanOnStart, int startCount) {
     this(maps, reduces, autoComplete, testName, cleanOnStart, startCount,
         new SystemClock(), null);
   }
 
   public MRApp(int maps, int reduces, boolean autoComplete, String testName,
-      boolean cleanOnStart, int startCount, boolean unregistered) {
+               boolean cleanOnStart, int startCount, boolean unregistered) {
     this(maps, reduces, autoComplete, testName, cleanOnStart, startCount,
         new SystemClock(), unregistered);
   }
 
   public MRApp(int maps, int reduces, boolean autoComplete, String testName,
-      boolean cleanOnStart, int startCount, Clock clock, boolean unregistered) {
+               boolean cleanOnStart, int startCount, Clock clock, boolean unregistered) {
     this(getApplicationAttemptId(applicationId, startCount), getContainerId(
-      applicationId, startCount), maps, reduces, autoComplete, testName,
-      cleanOnStart, startCount, clock, unregistered, null);
+        applicationId, startCount), maps, reduces, autoComplete, testName,
+        cleanOnStart, startCount, clock, unregistered, null);
   }
 
   public MRApp(int maps, int reduces, boolean autoComplete, String testName,
-      boolean cleanOnStart, int startCount, Clock clock, String assignedQueue) {
+               boolean cleanOnStart, int startCount, Clock clock, String assignedQueue) {
     this(getApplicationAttemptId(applicationId, startCount), getContainerId(
-      applicationId, startCount), maps, reduces, autoComplete, testName,
-      cleanOnStart, startCount, clock, true, assignedQueue);
+        applicationId, startCount), maps, reduces, autoComplete, testName,
+        cleanOnStart, startCount, clock, true, assignedQueue);
   }
 
   public MRApp(ApplicationAttemptId appAttemptId, ContainerId amContainerId,
-      int maps, int reduces, boolean autoComplete, String testName,
-      boolean cleanOnStart, int startCount, boolean unregistered) {
+               int maps, int reduces, boolean autoComplete, String testName,
+               boolean cleanOnStart, int startCount, boolean unregistered) {
     this(appAttemptId, amContainerId, maps, reduces, autoComplete, testName,
         cleanOnStart, startCount, new SystemClock(), unregistered, null);
   }
 
   public MRApp(ApplicationAttemptId appAttemptId, ContainerId amContainerId,
-      int maps, int reduces, boolean autoComplete, String testName,
-      boolean cleanOnStart, int startCount) {
+               int maps, int reduces, boolean autoComplete, String testName,
+               boolean cleanOnStart, int startCount) {
     this(appAttemptId, amContainerId, maps, reduces, autoComplete, testName,
         cleanOnStart, startCount, new SystemClock(), true, null);
   }
 
   public MRApp(ApplicationAttemptId appAttemptId, ContainerId amContainerId,
-      int maps, int reduces, boolean autoComplete, String testName,
-      boolean cleanOnStart, int startCount, Clock clock, boolean unregistered,
-      String assignedQueue) {
+               int maps, int reduces, boolean autoComplete, String testName,
+               boolean cleanOnStart, int startCount, Clock clock, boolean unregistered,
+               String assignedQueue) {
     super(appAttemptId, amContainerId, NM_HOST, NM_PORT, NM_HTTP_PORT, clock,
         System.currentTimeMillis());
     this.testWorkDir = new File("target", testName);
@@ -262,7 +234,7 @@ public class MRApp extends MRAppMaster {
     } catch (Exception e) {
       throw new YarnRuntimeException("Error creating staging dir", e);
     }
-    
+
     super.serviceInit(conf);
     if (this.clusterInfo != null) {
       getContext().getClusterInfo().setMaxContainerCapability(
@@ -280,7 +252,7 @@ public class MRApp extends MRAppMaster {
   }
 
   public Job submit(Configuration conf, boolean mapSpeculative,
-      boolean reduceSpeculative) throws Exception {
+                    boolean reduceSpeculative) throws Exception {
     String user = conf.get(MRJobConfig.USER_NAME, UserGroupInformation
         .getCurrentUser().getShortUserName());
     conf.set(MRJobConfig.USER_NAME, user);
@@ -310,7 +282,7 @@ public class MRApp extends MRAppMaster {
   }
 
   public void waitForInternalState(JobImpl job,
-      JobStateInternal finalState) throws Exception {
+                                   JobStateInternal finalState) throws Exception {
     int timeoutSecs = 0;
     JobStateInternal iState = job.getInternalState();
     while (!finalState.equals(iState) && timeoutSecs++ < 20) {
@@ -325,7 +297,7 @@ public class MRApp extends MRAppMaster {
   }
 
   public void waitForInternalState(TaskImpl task,
-      TaskStateInternal finalState) throws Exception {
+                                   TaskStateInternal finalState) throws Exception {
     int timeoutSecs = 0;
     TaskReport report = task.getReport();
     TaskStateInternal iState = task.getInternalState();
@@ -343,7 +315,7 @@ public class MRApp extends MRAppMaster {
   }
 
   public void waitForInternalState(TaskAttemptImpl attempt,
-      TaskAttemptStateInternal finalState) throws Exception {
+                                   TaskAttemptStateInternal finalState) throws Exception {
     int timeoutSecs = 0;
     TaskAttemptReport report = attempt.getReport();
     TaskAttemptStateInternal iState = attempt.getInternalState();
@@ -360,8 +332,8 @@ public class MRApp extends MRAppMaster {
         finalState, iState);
   }
 
-  public void waitForState(TaskAttempt attempt, 
-      TaskAttemptState finalState) throws Exception {
+  public void waitForState(TaskAttempt attempt,
+                           TaskAttemptState finalState) throws Exception {
     int timeoutSecs = 0;
     TaskAttemptReport report = attempt.getReport();
     while (!finalState.equals(report.getTaskAttemptState()) &&
@@ -374,7 +346,7 @@ public class MRApp extends MRAppMaster {
     }
     System.out.println("TaskAttempt State is : " + report.getTaskAttemptState());
     Assert.assertEquals("TaskAttempt state is not correct (timedout)",
-        finalState, 
+        finalState,
         report.getTaskAttemptState());
   }
 
@@ -390,7 +362,7 @@ public class MRApp extends MRAppMaster {
       Thread.sleep(500);
     }
     System.out.println("Task State is : " + report.getTaskState());
-    Assert.assertEquals("Task state is not correct (timedout)", finalState, 
+    Assert.assertEquals("Task state is not correct (timedout)", finalState,
         report.getTaskState());
   }
 
@@ -401,20 +373,20 @@ public class MRApp extends MRAppMaster {
         timeoutSecs++ < 20) {
       System.out.println("Job State is : " + report.getJobState() +
           " Waiting for state : " + finalState +
-          "   map progress : " + report.getMapProgress() + 
+          "   map progress : " + report.getMapProgress() +
           "   reduce progress : " + report.getReduceProgress());
       report = job.getReport();
       Thread.sleep(500);
     }
     System.out.println("Job State is : " + report.getJobState());
-    Assert.assertEquals("Job state is not correct (timedout)", finalState, 
+    Assert.assertEquals("Job state is not correct (timedout)", finalState,
         job.getState());
   }
 
   public void waitForState(Service.STATE finalState) throws Exception {
     if (finalState == Service.STATE.STOPPED) {
-       Assert.assertTrue("Timeout while waiting for MRApp to stop",
-           waitForServiceToStop(20 * 1000));
+      Assert.assertTrue("Timeout while waiting for MRApp to stop",
+          waitForServiceToStop(20 * 1000));
     } else {
       int timeoutSecs = 0;
       while (!finalState.equals(getServiceState()) && timeoutSecs++ < 20) {
@@ -453,20 +425,20 @@ public class MRApp extends MRAppMaster {
   }
 
   @Override
-  protected Job createJob(Configuration conf, JobStateInternal forcedState, 
-      String diagnostic) {
+  protected Job createJob(Configuration conf, JobStateInternal forcedState,
+                          String diagnostic) {
     UserGroupInformation currentUser = null;
     try {
       currentUser = UserGroupInformation.getCurrentUser();
     } catch (IOException e) {
       throw new YarnRuntimeException(e);
     }
-    Job newJob = new TestJob(getJobId(), getAttemptID(), conf, 
-    		getDispatcher().getEventHandler(),
-            getTaskAttemptListener(), getContext().getClock(),
-            getCommitter(), isNewApiCommitter(),
-            currentUser.getUserName(), getContext(),
-            forcedState, diagnostic);
+    Job newJob = new TestJob(getJobId(), getAttemptID(), conf,
+        getDispatcher().getEventHandler(),
+        getTaskAttemptListener(), getContext().getClock(),
+        getCommitter(), isNewApiCommitter(),
+        currentUser.getUserName(), getContext(),
+        forcedState, diagnostic);
     ((AppContext) getContext()).getAllJobs().put(newJob.getID(), newJob);
 
     getDispatcher().register(JobFinishEvent.Type.class,
@@ -482,21 +454,24 @@ public class MRApp extends MRAppMaster {
 
   @Override
   protected TaskAttemptListener createTaskAttemptListener(AppContext context) {
-    return new TaskAttemptListener(){
+    return new TaskAttemptListener() {
       @Override
       public InetSocketAddress getAddress() {
         return NetUtils.createSocketAddr("localhost:54321");
       }
+
       @Override
       public void registerLaunchedTask(TaskAttemptId attemptID,
-          WrappedJvmID jvmID) {
+                                       WrappedJvmID jvmID) {
       }
+
       @Override
       public void unregister(TaskAttemptId attemptID, WrappedJvmID jvmID) {
       }
+
       @Override
       public void registerPendingTask(org.apache.hadoop.mapred.Task task,
-          WrappedJvmID jvmID) {
+                                      WrappedJvmID jvmID) {
       }
     };
   }
@@ -510,7 +485,7 @@ public class MRApp extends MRAppMaster {
       }
     };
   }
-  
+
   @Override
   protected ContainerLauncher createContainerLauncher(AppContext context) {
     return new MockContainerLauncher();
@@ -527,18 +502,18 @@ public class MRApp extends MRAppMaster {
     @Override
     public void handle(ContainerLauncherEvent event) {
       switch (event.getType()) {
-      case CONTAINER_REMOTE_LAUNCH:
-        getContext().getEventHandler().handle(
-            new TaskAttemptContainerLaunchedEvent(event.getTaskAttemptID(),
-                shufflePort));
-        
-        attemptLaunched(event.getTaskAttemptID());
-        break;
-      case CONTAINER_REMOTE_CLEANUP:
-        getContext().getEventHandler().handle(
-            new TaskAttemptEvent(event.getTaskAttemptID(),
-                TaskAttemptEventType.TA_CONTAINER_CLEANED));
-        break;
+        case CONTAINER_REMOTE_LAUNCH:
+          getContext().getEventHandler().handle(
+              new TaskAttemptContainerLaunchedEvent(event.getTaskAttemptID(),
+                  shufflePort));
+
+          attemptLaunched(event.getTaskAttemptID());
+          break;
+        case CONTAINER_REMOTE_CLEANUP:
+          getContext().getEventHandler().handle(
+              new TaskAttemptEvent(event.getTaskAttemptID(),
+                  TaskAttemptEventType.TA_CONTAINER_CLEANED));
+          break;
       }
     }
   }
@@ -562,35 +537,35 @@ public class MRApp extends MRAppMaster {
       implements ContainerAllocator, RMHeartbeatHandler {
     private int containerCount;
 
-     @Override
-      public void handle(ContainerAllocatorEvent event) {
-        ContainerId cId =
-            ContainerId.newContainerId(getContext().getApplicationAttemptId(),
+    @Override
+    public void handle(ContainerAllocatorEvent event) {
+      ContainerId cId =
+          ContainerId.newContainerId(getContext().getApplicationAttemptId(),
               containerCount++);
-        NodeId nodeId = NodeId.newInstance(NM_HOST, NM_PORT);
-        Resource resource = Resource.newInstance(1234, 2);
-        ContainerTokenIdentifier containerTokenIdentifier =
-            new ContainerTokenIdentifier(cId, nodeId.toString(), "user",
-            resource, System.currentTimeMillis() + 10000, 42, 42,
-            Priority.newInstance(0), 0);
-        Token containerToken = newContainerToken(nodeId, "password".getBytes(),
-              containerTokenIdentifier);
-        Container container = Container.newInstance(cId, nodeId,
-            NM_HOST + ":" + NM_HTTP_PORT, resource, null, containerToken);
-        JobID id = TypeConverter.fromYarn(applicationId);
-        JobId jobId = TypeConverter.toYarn(id);
-        getContext().getEventHandler().handle(new JobHistoryEvent(jobId, 
-            new NormalizedResourceEvent(
-                org.apache.hadoop.mapreduce.TaskType.REDUCE,
-            100)));
-        getContext().getEventHandler().handle(new JobHistoryEvent(jobId, 
-            new NormalizedResourceEvent(
-                org.apache.hadoop.mapreduce.TaskType.MAP,
-            100)));
-        getContext().getEventHandler().handle(
-            new TaskAttemptContainerAssignedEvent(event.getAttemptID(),
-                container, null));
-      }
+      NodeId nodeId = NodeId.newInstance(NM_HOST, NM_PORT);
+      Resource resource = Resource.newInstance(1234, 2);
+      ContainerTokenIdentifier containerTokenIdentifier =
+          new ContainerTokenIdentifier(cId, nodeId.toString(), "user",
+              resource, System.currentTimeMillis() + 10000, 42, 42,
+              Priority.newInstance(0), 0);
+      Token containerToken = newContainerToken(nodeId, "password".getBytes(),
+          containerTokenIdentifier);
+      Container container = Container.newInstance(cId, nodeId,
+          NM_HOST + ":" + NM_HTTP_PORT, resource, null, containerToken);
+      JobID id = TypeConverter.fromYarn(applicationId);
+      JobId jobId = TypeConverter.toYarn(id);
+      getContext().getEventHandler().handle(new JobHistoryEvent(jobId,
+          new NormalizedResourceEvent(
+              org.apache.hadoop.mapreduce.TaskType.REDUCE,
+              100)));
+      getContext().getEventHandler().handle(new JobHistoryEvent(jobId,
+          new NormalizedResourceEvent(
+              org.apache.hadoop.mapreduce.TaskType.MAP,
+              100)));
+      getContext().getEventHandler().handle(
+          new TaskAttemptContainerAssignedEvent(event.getAttemptID(),
+              container, null));
+    }
 
     @Override
     public long getLastHeartbeatTime() {
@@ -612,15 +587,18 @@ public class MRApp extends MRAppMaster {
       public void setupJob(JobContext jobContext) throws IOException {
         committer.setupJob(jobContext);
       }
+
       @SuppressWarnings("deprecation")
       @Override
       public void cleanupJob(JobContext jobContext) throws IOException {
         committer.cleanupJob(jobContext);
       }
+
       @Override
       public void commitJob(JobContext jobContext) throws IOException {
         committer.commitJob(jobContext);
       }
+
       @Override
       public void abortJob(JobContext jobContext, State state)
           throws IOException {
@@ -628,7 +606,7 @@ public class MRApp extends MRAppMaster {
       }
 
       @Override
-      public boolean isRecoverySupported(JobContext jobContext) throws IOException{
+      public boolean isRecoverySupported(JobContext jobContext) throws IOException {
         return committer.isRecoverySupported(jobContext);
       }
 
@@ -642,19 +620,23 @@ public class MRApp extends MRAppMaster {
       public void setupTask(TaskAttemptContext taskContext)
           throws IOException {
       }
+
       @Override
       public boolean needsTaskCommit(TaskAttemptContext taskContext)
           throws IOException {
         return false;
       }
+
       @Override
       public void commitTask(TaskAttemptContext taskContext)
           throws IOException {
       }
+
       @Override
       public void abortTask(TaskAttemptContext taskContext)
           throws IOException {
       }
+
       @Override
       public void recoverTask(TaskAttemptContext taskContext)
           throws IOException {
@@ -697,10 +679,10 @@ public class MRApp extends MRAppMaster {
         maps, reduces);
     StateMachineFactory<JobImpl, JobStateInternal, JobEventType, JobEvent> localFactory
         = stateMachineFactory.addTransition(JobStateInternal.NEW,
-            EnumSet.of(JobStateInternal.INITED, JobStateInternal.FAILED),
-            JobEventType.JOB_INIT,
-            // This is abusive.
-            initTransition);
+        EnumSet.of(JobStateInternal.INITED, JobStateInternal.FAILED),
+        JobEventType.JOB_INIT,
+        // This is abusive.
+        initTransition);
 
     private final StateMachine<JobStateInternal, JobEventType, JobEvent>
         localStateMachine;
@@ -712,11 +694,11 @@ public class MRApp extends MRAppMaster {
 
     @SuppressWarnings("rawtypes")
     public TestJob(JobId jobId, ApplicationAttemptId applicationAttemptId,
-        Configuration conf, EventHandler eventHandler,
-        TaskAttemptListener taskAttemptListener, Clock clock,
-        OutputCommitter committer, boolean newApiCommitter,
-        String user, AppContext appContext,
-        JobStateInternal forcedState, String diagnostic) {
+                   Configuration conf, EventHandler eventHandler,
+                   TaskAttemptListener taskAttemptListener, Clock clock,
+                   OutputCommitter committer, boolean newApiCommitter,
+                   String user, AppContext appContext,
+                   JobStateInternal forcedState, String diagnostic) {
       super(jobId, getApplicationAttemptId(applicationId, getStartCount()),
           conf, eventHandler, taskAttemptListener,
           new JobTokenSecretManager(), new Credentials(), clock,
@@ -734,20 +716,23 @@ public class MRApp extends MRAppMaster {
   static class TestInitTransition extends JobImpl.InitTransition {
     private int maps;
     private int reduces;
+
     TestInitTransition(int maps, int reduces) {
       this.maps = maps;
       this.reduces = reduces;
     }
+
     @Override
     protected void setup(JobImpl job) throws IOException {
       super.setup(job);
       job.conf.setInt(MRJobConfig.NUM_REDUCES, reduces);
       job.remoteJobConfFile = new Path("test");
     }
+
     @Override
     protected TaskSplitMetaInfo[] createSplits(JobImpl job, JobId jobId) {
       TaskSplitMetaInfo[] splits = new TaskSplitMetaInfo[maps];
-      for (int i = 0; i < maps ; i++) {
+      for (int i = 0; i < maps; i++) {
         splits[i] = new TaskSplitMetaInfo();
       }
       return splits;
@@ -755,21 +740,21 @@ public class MRApp extends MRAppMaster {
   }
 
   public static Token newContainerToken(NodeId nodeId,
-      byte[] password, ContainerTokenIdentifier tokenIdentifier) {
+                                        byte[] password, ContainerTokenIdentifier tokenIdentifier) {
     // RPC layer client expects ip:port as service for tokens
     InetSocketAddress addr =
         NetUtils.createSocketAddrForHost(nodeId.getHost(), nodeId.getPort());
     // NOTE: use SecurityUtil.setTokenService if this becomes a "real" token
     Token containerToken =
         Token.newInstance(tokenIdentifier.getBytes(),
-          ContainerTokenIdentifier.KIND.toString(), password, SecurityUtil
-            .buildTokenService(addr).toString());
+            ContainerTokenIdentifier.KIND.toString(), password, SecurityUtil
+                .buildTokenService(addr).toString());
     return containerToken;
   }
 
 
   public static ContainerId newContainerId(int appId, int appAttemptId,
-      long timestamp, int containerId) {
+                                           long timestamp, int containerId) {
     ApplicationId applicationId = ApplicationId.newInstance(timestamp, appId);
     ApplicationAttemptId applicationAttemptId =
         ApplicationAttemptId.newInstance(applicationId, appAttemptId);
@@ -782,7 +767,7 @@ public class MRApp extends MRAppMaster {
         new org.apache.hadoop.security.token.Token<ContainerTokenIdentifier>(
             containerToken.getIdentifier()
                 .array(), containerToken.getPassword().array(), new Text(
-                containerToken.getKind()),
+            containerToken.getKind()),
             new Text(containerToken.getService()));
     return token.decodeIdentifier();
   }

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,28 +18,23 @@
 
 package org.apache.hadoop.mapred.lib.db;
 
+import org.apache.hadoop.classification.InterfaceAudience;
+import org.apache.hadoop.classification.InterfaceStability;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Writable;
+import org.apache.hadoop.mapred.*;
+import org.apache.hadoop.mapreduce.Job;
+
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-import org.apache.hadoop.classification.InterfaceAudience;
-import org.apache.hadoop.classification.InterfaceStability;
-import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Writable;
-import org.apache.hadoop.mapred.InputFormat;
-import org.apache.hadoop.mapred.InputSplit;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.JobConfigurable;
-import org.apache.hadoop.mapred.RecordReader;
-import org.apache.hadoop.mapred.Reporter;
-import org.apache.hadoop.mapreduce.Job;
-
 @InterfaceAudience.Public
 @InterfaceStability.Stable
 @SuppressWarnings("deprecation")
-public class DBInputFormat<T  extends DBWritable>
-    extends org.apache.hadoop.mapreduce.lib.db.DBInputFormat<T> 
+public class DBInputFormat<T extends DBWritable>
+    extends org.apache.hadoop.mapreduce.lib.db.DBInputFormat<T>
     implements InputFormat<LongWritable, T>, JobConfigurable {
   /**
    * A RecordReader that reads records from a SQL table.
@@ -56,23 +51,23 @@ public class DBInputFormat<T  extends DBWritable>
      * @throws SQLException
      */
     protected DBRecordReader(DBInputSplit split, Class<T> inputClass,
-        JobConf job) throws SQLException {
+                             JobConf job) throws SQLException {
       super(split, inputClass, job, connection, dbConf, conditions, fieldNames, tableName);
     }
 
     /**
      * @param split The InputSplit to read data for
-     * @throws SQLException 
+     * @throws SQLException
      */
-    protected DBRecordReader(DBInputSplit split, Class<T> inputClass, 
-        JobConf job, Connection conn, DBConfiguration dbConfig, String cond,
-        String [] fields, String table) throws SQLException {
+    protected DBRecordReader(DBInputSplit split, Class<T> inputClass,
+                             JobConf job, Connection conn, DBConfiguration dbConfig, String cond,
+                             String[] fields, String table) throws SQLException {
       super(split, inputClass, job, conn, dbConfig, cond, fields, table);
     }
 
     /** {@inheritDoc} */
     public LongWritable createKey() {
-      return new LongWritable();  
+      return new LongWritable();
     }
 
     /** {@inheritDoc} */
@@ -98,7 +93,7 @@ public class DBInputFormat<T  extends DBWritable>
       implements RecordReader<LongWritable, T> {
 
     private org.apache.hadoop.mapreduce.lib.db.DBRecordReader<T> rr;
-    
+
     public DBRecordReaderWrapper(
         org.apache.hadoop.mapreduce.lib.db.DBRecordReader<T> inner) {
       this.rr = inner;
@@ -119,7 +114,7 @@ public class DBInputFormat<T  extends DBWritable>
     public float getProgress() throws IOException {
       return rr.getProgress();
     }
-    
+
     public long getPos() throws IOException {
       return rr.getPos();
     }
@@ -132,15 +127,16 @@ public class DBInputFormat<T  extends DBWritable>
   /**
    * A Class that does nothing, implementing DBWritable
    */
-  public static class NullDBWritable extends 
-      org.apache.hadoop.mapreduce.lib.db.DBInputFormat.NullDBWritable 
+  public static class NullDBWritable extends
+      org.apache.hadoop.mapreduce.lib.db.DBInputFormat.NullDBWritable
       implements DBWritable, Writable {
   }
+
   /**
    * A InputSplit that spans a set of rows
    */
-  protected static class DBInputSplit extends 
-      org.apache.hadoop.mapreduce.lib.db.DBInputFormat.DBInputSplit 
+  protected static class DBInputSplit extends
+      org.apache.hadoop.mapreduce.lib.db.DBInputFormat.DBInputSplit
       implements InputSplit {
     /**
      * Default Constructor
@@ -165,24 +161,24 @@ public class DBInputFormat<T  extends DBWritable>
 
   /** {@inheritDoc} */
   public RecordReader<LongWritable, T> getRecordReader(InputSplit split,
-      JobConf job, Reporter reporter) throws IOException {
+                                                       JobConf job, Reporter reporter) throws IOException {
 
     // wrap the DBRR in a shim class to deal with API differences.
     return new DBRecordReaderWrapper<T>(
-        (org.apache.hadoop.mapreduce.lib.db.DBRecordReader<T>) 
-        createDBRecordReader(
-          (org.apache.hadoop.mapreduce.lib.db.DBInputFormat.DBInputSplit) split, job));
+        (org.apache.hadoop.mapreduce.lib.db.DBRecordReader<T>)
+            createDBRecordReader(
+                (org.apache.hadoop.mapreduce.lib.db.DBInputFormat.DBInputSplit) split, job));
   }
 
   /** {@inheritDoc} */
   public InputSplit[] getSplits(JobConf job, int chunks) throws IOException {
-    List<org.apache.hadoop.mapreduce.InputSplit> newSplits = 
-      super.getSplits(new Job(job));
+    List<org.apache.hadoop.mapreduce.InputSplit> newSplits =
+        super.getSplits(new Job(job));
     InputSplit[] ret = new InputSplit[newSplits.size()];
     int i = 0;
     for (org.apache.hadoop.mapreduce.InputSplit s : newSplits) {
-      org.apache.hadoop.mapreduce.lib.db.DBInputFormat.DBInputSplit split = 
-    	(org.apache.hadoop.mapreduce.lib.db.DBInputFormat.DBInputSplit)s;
+      org.apache.hadoop.mapreduce.lib.db.DBInputFormat.DBInputSplit split =
+          (org.apache.hadoop.mapreduce.lib.db.DBInputFormat.DBInputSplit) s;
       ret[i++] = new DBInputSplit(split.getStart(), split.getEnd());
     }
     return ret;
@@ -190,7 +186,7 @@ public class DBInputFormat<T  extends DBWritable>
 
   /**
    * Initializes the map-part of the job with the appropriate input settings.
-   * 
+   *
    * @param job The job
    * @param inputClass the class object implementing DBWritable, which is the 
    * Java object holding tuple fields.
@@ -202,7 +198,7 @@ public class DBInputFormat<T  extends DBWritable>
    * @see #setInput(JobConf, Class, String, String)
    */
   public static void setInput(JobConf job, Class<? extends DBWritable> inputClass,
-      String tableName,String conditions, String orderBy, String... fieldNames) {
+                              String tableName, String conditions, String orderBy, String... fieldNames) {
     job.setInputFormat(DBInputFormat.class);
 
     DBConfiguration dbConf = new DBConfiguration(job);
@@ -212,10 +208,10 @@ public class DBInputFormat<T  extends DBWritable>
     dbConf.setInputConditions(conditions);
     dbConf.setInputOrderBy(orderBy);
   }
-  
+
   /**
    * Initializes the map-part of the job with the appropriate input settings.
-   * 
+   *
    * @param job The job
    * @param inputClass the class object implementing DBWritable, which is the 
    * Java object holding tuple fields.
@@ -227,13 +223,13 @@ public class DBInputFormat<T  extends DBWritable>
    * @see #setInput(JobConf, Class, String, String, String, String...)
    */
   public static void setInput(JobConf job, Class<? extends DBWritable> inputClass,
-      String inputQuery, String inputCountQuery) {
+                              String inputQuery, String inputCountQuery) {
     job.setInputFormat(DBInputFormat.class);
-    
+
     DBConfiguration dbConf = new DBConfiguration(job);
     dbConf.setInputClass(inputClass);
     dbConf.setInputQuery(inputQuery);
     dbConf.setInputCountQuery(inputCountQuery);
-    
+
   }
 }

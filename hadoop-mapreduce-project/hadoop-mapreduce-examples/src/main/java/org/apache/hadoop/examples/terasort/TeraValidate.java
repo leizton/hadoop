@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,15 +18,11 @@
 
 package org.apache.hadoop.examples.terasort;
 
-import java.io.IOException;
-import java.util.zip.Checksum;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Cluster;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -36,6 +32,9 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.PureJavaCrc32;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+
+import java.io.IOException;
+import java.util.zip.Checksum;
 
 /**
  * Generate 1 mapper per a file that checks to make sure the keys
@@ -53,14 +52,14 @@ import org.apache.hadoop.util.ToolRunner;
 public class TeraValidate extends Configured implements Tool {
   private static final Text ERROR = new Text("error");
   private static final Text CHECKSUM = new Text("checksum");
-  
+
   private static String textifyBytes(Text t) {
     BytesWritable b = new BytesWritable();
     b.set(t.getBytes(), 0, t.getLength());
     return b.toString();
   }
 
-  static class ValidateMapper extends Mapper<Text,Text,Text,Text> {
+  static class ValidateMapper extends Mapper<Text, Text, Text, Text> {
     private Text lastKey;
     private String filename;
     private Unsigned16 checksum = new Unsigned16();
@@ -76,7 +75,7 @@ public class TeraValidate extends Configured implements Tool {
       return split.getPath().getName();
     }
 
-    public void map(Text key, Text value, Context context) 
+    public void map(Text key, Text value, Context context)
         throws IOException, InterruptedException {
       if (lastKey == null) {
         FileSplit fs = (FileSplit) context.getInputSplit();
@@ -85,9 +84,9 @@ public class TeraValidate extends Configured implements Tool {
         lastKey = new Text();
       } else {
         if (key.compareTo(lastKey) < 0) {
-          context.write(ERROR, new Text("misorder in " + filename + 
-                                         " between " + textifyBytes(lastKey) + 
-                                         " and " + textifyBytes(key)));
+          context.write(ERROR, new Text("misorder in " + filename +
+              " between " + textifyBytes(lastKey) +
+              " and " + textifyBytes(key)));
         }
       }
       // compute the crc of the key and value and add it to the sum
@@ -98,9 +97,9 @@ public class TeraValidate extends Configured implements Tool {
       checksum.add(tmp);
       lastKey.set(key);
     }
-    
-    public void cleanup(Context context) 
-        throws IOException, InterruptedException  {
+
+    public void cleanup(Context context)
+        throws IOException, InterruptedException {
       if (lastKey != null) {
         context.write(new Text(filename + ":end"), lastKey);
         context.write(CHECKSUM, new Text(checksum.toString()));
@@ -113,12 +112,13 @@ public class TeraValidate extends Configured implements Tool {
    * boundary keys are always increasing.
    * Also passes any error reports along intact.
    */
-  static class ValidateReducer extends Reducer<Text,Text,Text,Text> {
+  static class ValidateReducer extends Reducer<Text, Text, Text, Text> {
     private boolean firstKey = true;
     private Text lastKey = new Text();
     private Text lastValue = new Text();
+
     public void reduce(Text key, Iterable<Text> values,
-        Context context) throws IOException, InterruptedException  {
+                       Context context) throws IOException, InterruptedException {
       if (ERROR.equals(key)) {
         for (Text val : values) {
           context.write(key, val);
@@ -137,19 +137,19 @@ public class TeraValidate extends Configured implements Tool {
           firstKey = false;
         } else {
           if (value.compareTo(lastValue) < 0) {
-            context.write(ERROR, 
-                           new Text("bad key partitioning:\n  file " + 
-                                    lastKey + " key " + 
-                                    textifyBytes(lastValue) +
-                                    "\n  file " + key + " key " + 
-                                    textifyBytes(value)));
+            context.write(ERROR,
+                new Text("bad key partitioning:\n  file " +
+                    lastKey + " key " +
+                    textifyBytes(lastValue) +
+                    "\n  file " + key + " key " +
+                    textifyBytes(value)));
           }
         }
         lastKey.set(key);
         lastValue.set(value);
       }
     }
-    
+
   }
 
   private static void usage() throws IOException {

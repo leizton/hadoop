@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,24 +16,6 @@
  * limitations under the License.
  */
 package org.apache.hadoop.mapreduce.task.reduce;
-
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.URI;
-import java.net.UnknownHostException;
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import java.util.concurrent.DelayQueue;
-import java.util.concurrent.Delayed;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -51,9 +33,19 @@ import org.apache.hadoop.mapreduce.task.reduce.MapHost.State;
 import org.apache.hadoop.util.Progress;
 import org.apache.hadoop.util.Time;
 
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.URI;
+import java.net.UnknownHostException;
+import java.text.DecimalFormat;
+import java.util.*;
+import java.util.concurrent.DelayQueue;
+import java.util.concurrent.Delayed;
+import java.util.concurrent.TimeUnit;
+
 @InterfaceAudience.Private
 @InterfaceStability.Unstable
-public class ShuffleSchedulerImpl<K,V> implements ShuffleScheduler<K,V> {
+public class ShuffleSchedulerImpl<K, V> implements ShuffleScheduler<K, V> {
   static ThreadLocal<Long> shuffleStart = new ThreadLocal<Long>() {
     protected Long initialValue() {
       return 0L;
@@ -66,7 +58,7 @@ public class ShuffleSchedulerImpl<K,V> implements ShuffleScheduler<K,V> {
   private static final float PENALTY_GROWTH_RATE = 1.3f;
   private final static int REPORT_FAILURE_LIMIT = 10;
   private static final float BYTES_PER_MILLIS_TO_MBS = 1000f / 1024 / 1024;
-  
+
   private final boolean[] finishedMaps;
 
   private final int totalMaps;
@@ -79,10 +71,10 @@ public class ShuffleSchedulerImpl<K,V> implements ShuffleScheduler<K,V> {
   private final Random random = new Random();
   private final DelayQueue<Penalty> penalties = new DelayQueue<Penalty>();
   private final Referee referee = new Referee();
-  private final Map<TaskAttemptID,IntWritable> failureCounts =
-    new HashMap<TaskAttemptID,IntWritable>();
-  private final Map<String,IntWritable> hostFailures =
-    new HashMap<String,IntWritable>();
+  private final Map<TaskAttemptID, IntWritable> failureCounts =
+      new HashMap<TaskAttemptID, IntWritable>();
+  private final Map<String, IntWritable> hostFailures =
+      new HashMap<String, IntWritable>();
   private final TaskStatus status;
   private final ExceptionReporter reporter;
   private final int abortFailureLimit;
@@ -108,12 +100,12 @@ public class ShuffleSchedulerImpl<K,V> implements ShuffleScheduler<K,V> {
   private int maxHostFailures;
 
   public ShuffleSchedulerImpl(JobConf job, TaskStatus status,
-                          TaskAttemptID reduceId,
-                          ExceptionReporter reporter,
-                          Progress progress,
-                          Counters.Counter shuffledMapsCounter,
-                          Counters.Counter reduceShuffleBytes,
-                          Counters.Counter failedShuffleCounter) {
+                              TaskAttemptID reduceId,
+                              ExceptionReporter reporter,
+                              Progress progress,
+                              Counters.Counter shuffledMapsCounter,
+                              Counters.Counter reduceShuffleBytes,
+                              Counters.Counter failedShuffleCounter) {
     totalMaps = job.getNumMapTasks();
     abortFailureLimit = Math.max(30, totalMaps / 10);
     copyTimeTracker = new CopyTimeTracker();
@@ -145,25 +137,25 @@ public class ShuffleSchedulerImpl<K,V> implements ShuffleScheduler<K,V> {
   @Override
   public void resolve(TaskCompletionEvent event) {
     switch (event.getTaskStatus()) {
-    case SUCCEEDED:
-      URI u = getBaseURI(reduceId, event.getTaskTrackerHttp());
-      addKnownMapOutput(u.getHost() + ":" + u.getPort(),
-          u.toString(),
-          event.getTaskAttemptId());
-      maxMapRuntime = Math.max(maxMapRuntime, event.getTaskRunTime());
-      break;
-    case FAILED:
-    case KILLED:
-    case OBSOLETE:
-      obsoleteMapOutput(event.getTaskAttemptId());
-      LOG.info("Ignoring obsolete output of " + event.getTaskStatus() +
-          " map-task: '" + event.getTaskAttemptId() + "'");
-      break;
-    case TIPFAILED:
-      tipFailed(event.getTaskAttemptId().getTaskID());
-      LOG.info("Ignoring output of failed map TIP: '" +
-          event.getTaskAttemptId() + "'");
-      break;
+      case SUCCEEDED:
+        URI u = getBaseURI(reduceId, event.getTaskTrackerHttp());
+        addKnownMapOutput(u.getHost() + ":" + u.getPort(),
+            u.toString(),
+            event.getTaskAttemptId());
+        maxMapRuntime = Math.max(maxMapRuntime, event.getTaskRunTime());
+        break;
+      case FAILED:
+      case KILLED:
+      case OBSOLETE:
+        obsoleteMapOutput(event.getTaskAttemptId());
+        LOG.info("Ignoring obsolete output of " + event.getTaskStatus() +
+            " map-task: '" + event.getTaskAttemptId() + "'");
+        break;
+      case TIPFAILED:
+        tipFailed(event.getTaskAttemptId().getTaskID());
+        LOG.info("Ignoring output of failed map TIP: '" +
+            event.getTaskAttemptId() + "'");
+        break;
     }
   }
 
@@ -186,8 +178,8 @@ public class ShuffleSchedulerImpl<K,V> implements ShuffleScheduler<K,V> {
                                          long bytes,
                                          long startMillis,
                                          long endMillis,
-                                         MapOutput<K,V> output
-                                         ) throws IOException {
+                                         MapOutput<K, V> output
+  ) throws IOException {
     failureCounts.remove(mapId);
     hostFailures.remove(host.getHostName());
     int mapIndex = mapId.getTaskID().getId();
@@ -229,17 +221,17 @@ public class ShuffleSchedulerImpl<K,V> implements ShuffleScheduler<K,V> {
     status.setStateString(statusString);
 
     if (individualProgress != null) {
-      progress.setStatus(individualProgress + " Aggregated copy rate(" + 
-          mapsDone + " of " + totalMaps + " at " + 
-      mbpsFormat.format(transferRate) + " MB/s)");
+      progress.setStatus(individualProgress + " Aggregated copy rate(" +
+          mapsDone + " of " + totalMaps + " at " +
+          mbpsFormat.format(transferRate) + " MB/s)");
     } else {
       progress.setStatus("copy(" + mapsDone + " of " + totalMaps + " at "
           + mbpsFormat.format(transferRate) + " MB/s)");
     }
   }
-  
+
   private void updateStatus() {
-    updateStatus(null);	
+    updateStatus(null);
   }
 
   public synchronized void hostFailed(String hostname) {
@@ -252,7 +244,7 @@ public class ShuffleSchedulerImpl<K,V> implements ShuffleScheduler<K,V> {
   }
 
   public synchronized void copyFailed(TaskAttemptID mapId, MapHost host,
-      boolean readError, boolean connectExcpt) {
+                                      boolean readError, boolean connectExcpt) {
     host.penalize();
     int failures = 1;
     if (failureCounts.containsKey(mapId)) {
@@ -265,7 +257,7 @@ public class ShuffleSchedulerImpl<K,V> implements ShuffleScheduler<K,V> {
     String hostname = host.getHostName();
     //report failure if already retried maxHostFailures times
     boolean hostFail = hostFailures.get(hostname).get() > getMaxHostFailures() ? true : false;
-    
+
     if (failures >= abortFailureLimit) {
       try {
         throw new IOException(failures + " failures downloading " + mapId);
@@ -288,7 +280,7 @@ public class ShuffleSchedulerImpl<K,V> implements ShuffleScheduler<K,V> {
 
     failedShuffleCounter.increment(1);
   }
-  
+
   public void reportLocalError(IOException ioe) {
     try {
       LOG.error("Shuffle failed : local error on this node: "
@@ -321,30 +313,30 @@ public class ShuffleSchedulerImpl<K,V> implements ShuffleScheduler<K,V> {
     int doneMaps = totalMaps - remainingMaps;
 
     boolean reducerHealthy =
-      (((float)totalFailures / (totalFailures + doneMaps))
-          < MAX_ALLOWED_FAILED_FETCH_ATTEMPT_PERCENT);
+        (((float) totalFailures / (totalFailures + doneMaps))
+            < MAX_ALLOWED_FAILED_FETCH_ATTEMPT_PERCENT);
 
     // check if the reducer has progressed enough
     boolean reducerProgressedEnough =
-      (((float)doneMaps / totalMaps)
-          >= MIN_REQUIRED_PROGRESS_PERCENT);
+        (((float) doneMaps / totalMaps)
+            >= MIN_REQUIRED_PROGRESS_PERCENT);
 
     // check if the reducer is stalled for a long time
     // duration for which the reducer is stalled
     int stallDuration =
-      (int)(Time.monotonicNow() - lastProgressTime);
+        (int) (Time.monotonicNow() - lastProgressTime);
 
     // duration for which the reducer ran with progress
     int shuffleProgressDuration =
-      (int)(lastProgressTime - startTime);
+        (int) (lastProgressTime - startTime);
 
     // min time the reducer should run without getting killed
     int minShuffleRunDuration =
-      Math.max(shuffleProgressDuration, maxMapRuntime);
+        Math.max(shuffleProgressDuration, maxMapRuntime);
 
     boolean reducerStalled =
-      (((float)stallDuration / minShuffleRunDuration)
-          >= MAX_ALLOWED_STALL_TIME_PERCENT);
+        (((float) stallDuration / minShuffleRunDuration)
+            >= MAX_ALLOWED_STALL_TIME_PERCENT);
 
     // kill if not healthy and has insufficient progress
     if ((failureCounts.size() >= maxFailedUniqueFetches ||
@@ -352,7 +344,7 @@ public class ShuffleSchedulerImpl<K,V> implements ShuffleScheduler<K,V> {
         && !reducerHealthy
         && (!reducerProgressedEnough || reducerStalled)) {
       LOG.fatal("Shuffle failed with too many fetch failures " +
-      "and insufficient progress!");
+          "and insufficient progress!");
       String errorMsg = "Exceeded MAX_FAILED_UNIQUE_FETCHES; bailing-out.";
       reporter.reportException(new IOException(errorMsg));
     }
@@ -398,25 +390,25 @@ public class ShuffleSchedulerImpl<K,V> implements ShuffleScheduler<K,V> {
 
 
   public synchronized MapHost getHost() throws InterruptedException {
-      while(pendingHosts.isEmpty()) {
-        wait();
-      }
+    while (pendingHosts.isEmpty()) {
+      wait();
+    }
 
-      MapHost host = null;
-      Iterator<MapHost> iter = pendingHosts.iterator();
-      int numToPick = random.nextInt(pendingHosts.size());
-      for (int i=0; i <= numToPick; ++i) {
-        host = iter.next();
-      }
+    MapHost host = null;
+    Iterator<MapHost> iter = pendingHosts.iterator();
+    int numToPick = random.nextInt(pendingHosts.size());
+    for (int i = 0; i <= numToPick; ++i) {
+      host = iter.next();
+    }
 
-      pendingHosts.remove(host);
-      host.markBusy();
+    pendingHosts.remove(host);
+    host.markBusy();
 
-      LOG.info("Assigning " + host + " with " + host.getNumKnownMapOutputs() +
-               " to " + Thread.currentThread().getName());
-      shuffleStart.set(Time.monotonicNow());
+    LOG.info("Assigning " + host + " with " + host.getNumKnownMapOutputs() +
+        " to " + Thread.currentThread().getName());
+    shuffleStart.set(Time.monotonicNow());
 
-      return host;
+    return host;
   }
 
   public synchronized List<TaskAttemptID> getMapsForHost(MapHost host) {
@@ -443,7 +435,7 @@ public class ShuffleSchedulerImpl<K,V> implements ShuffleScheduler<K,V> {
       }
     }
     LOG.info("assigned " + includedMaps + " of " + totalSize + " to " +
-             host + " to " + Thread.currentThread().getName());
+        host + " to " + Thread.currentThread().getName());
     return result;
   }
 
@@ -455,7 +447,7 @@ public class ShuffleSchedulerImpl<K,V> implements ShuffleScheduler<K,V> {
       }
     }
     LOG.info(host + " freed by " + Thread.currentThread().getName() + " in " +
-             (Time.monotonicNow()-shuffleStart.get()) + "ms");
+        (Time.monotonicNow() - shuffleStart.get()) + "ms");
   }
 
   public synchronized void resetKnownMaps() {
@@ -472,7 +464,7 @@ public class ShuffleSchedulerImpl<K,V> implements ShuffleScheduler<K,V> {
    */
   @Override
   public synchronized boolean waitUntilDone(int millis
-                                            ) throws InterruptedException {
+  ) throws InterruptedException {
     if (remainingMaps > 0) {
       wait(millis);
       return remainingMaps == 0;
@@ -548,31 +540,34 @@ public class ShuffleSchedulerImpl<K,V> implements ShuffleScheduler<K,V> {
   private static class CopyTimeTracker {
     List<Interval> intervals;
     long copyMillis;
+
     public CopyTimeTracker() {
       intervals = Collections.emptyList();
       copyMillis = 0;
     }
+
     public void add(long s, long e) {
       Interval interval = new Interval(s, e);
       copyMillis = getTotalCopyMillis(interval);
     }
-  
+
     public long getCopyMillis() {
       return copyMillis;
     }
-    // This method captures the time during which any copy was in progress 
+
+    // This method captures the time during which any copy was in progress
     // each copy time period is record in the Interval list
     private long getTotalCopyMillis(Interval newInterval) {
       if (newInterval == null) {
         return copyMillis;
       }
       List<Interval> result = new ArrayList<Interval>(intervals.size() + 1);
-      for (Interval interval: intervals) {
+      for (Interval interval : intervals) {
         if (interval.end < newInterval.start) {
           result.add(interval);
         } else if (interval.start > newInterval.end) {
           result.add(newInterval);
-          newInterval = interval;        
+          newInterval = interval;
         } else {
           newInterval = new Interval(
               Math.min(interval.start, newInterval.start),
@@ -581,7 +576,7 @@ public class ShuffleSchedulerImpl<K,V> implements ShuffleScheduler<K,V> {
       }
       result.add(newInterval);
       intervals = result;
-      
+
       //compute total millis
       long length = 0;
       for (Interval interval : intervals) {
@@ -589,15 +584,16 @@ public class ShuffleSchedulerImpl<K,V> implements ShuffleScheduler<K,V> {
       }
       return length;
     }
-    
+
     private static class Interval {
       final long start;
       final long end;
+
       public Interval(long s, long e) {
         start = s;
         end = e;
       }
-      
+
       public long getIntervalLength() {
         return end - start;
       }

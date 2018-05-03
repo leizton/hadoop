@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,12 +17,6 @@
  */
 
 package org.apache.hadoop.mapred;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.io.IOException;
-import java.util.StringTokenizer;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -37,6 +31,12 @@ import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.util.StringTokenizer;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Basic testing for the MiniMRClientCluster. This test shows an example class
@@ -129,25 +129,25 @@ public class TestMiniMRClientCluster {
         JHAdminConfig.MR_HISTORY_WEBAPP_ADDRESS);
 
     assertEquals("Address before restart: " + rmAddress1
-        + " is different from new address: " + rmAddress2, rmAddress1,
+            + " is different from new address: " + rmAddress2, rmAddress1,
         rmAddress2);
     assertEquals("Address before restart: " + rmAdminAddress1
-        + " is different from new address: " + rmAdminAddress2,
+            + " is different from new address: " + rmAdminAddress2,
         rmAdminAddress1, rmAdminAddress2);
     assertEquals("Address before restart: " + rmSchedAddress1
-        + " is different from new address: " + rmSchedAddress2,
+            + " is different from new address: " + rmSchedAddress2,
         rmSchedAddress1, rmSchedAddress2);
     assertEquals("Address before restart: " + rmRstrackerAddress1
-        + " is different from new address: " + rmRstrackerAddress2,
+            + " is different from new address: " + rmRstrackerAddress2,
         rmRstrackerAddress1, rmRstrackerAddress2);
     assertEquals("Address before restart: " + rmWebAppAddress1
-        + " is different from new address: " + rmWebAppAddress2,
+            + " is different from new address: " + rmWebAppAddress2,
         rmWebAppAddress1, rmWebAppAddress2);
     assertEquals("Address before restart: " + mrHistAddress1
-        + " is different from new address: " + mrHistAddress2, mrHistAddress1,
+            + " is different from new address: " + mrHistAddress2, mrHistAddress1,
         mrHistAddress2);
     assertEquals("Address before restart: " + mrHistWebAppAddress1
-        + " is different from new address: " + mrHistWebAppAddress2,
+            + " is different from new address: " + mrHistWebAppAddress2,
         mrHistWebAppAddress1, mrHistWebAppAddress2);
 
   }
@@ -164,7 +164,7 @@ public class TestMiniMRClientCluster {
   }
 
   private void validateCounters(Counters counters, long mapInputRecords,
-      long mapOutputRecords, long reduceInputGroups, long reduceOutputRecords) {
+                                long mapOutputRecords, long reduceInputGroups, long reduceOutputRecords) {
     assertEquals("MapInputRecords", mapInputRecords, counters.findCounter(
         "MyCounterGroup", "MAP_INPUT_RECORDS").getValue());
     assertEquals("MapOutputRecords", mapOutputRecords, counters.findCounter(

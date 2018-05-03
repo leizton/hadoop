@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,27 +18,9 @@
 
 package org.apache.hadoop.mapreduce.v2.hs.webapp;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.JobACL;
-import org.apache.hadoop.mapreduce.v2.api.records.JobId;
-import org.apache.hadoop.mapreduce.v2.api.records.JobReport;
-import org.apache.hadoop.mapreduce.v2.api.records.JobState;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptReport;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptState;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskReport;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskState;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskType;
+import org.apache.hadoop.mapreduce.v2.api.records.*;
 import org.apache.hadoop.mapreduce.v2.api.records.impl.pb.JobIdPBImpl;
 import org.apache.hadoop.mapreduce.v2.api.records.impl.pb.TaskAttemptIdPBImpl;
 import org.apache.hadoop.mapreduce.v2.api.records.impl.pb.TaskIdPBImpl;
@@ -67,9 +49,18 @@ import org.apache.hadoop.yarn.webapp.view.HtmlBlock;
 import org.apache.hadoop.yarn.webapp.view.HtmlBlock.Block;
 import org.junit.Test;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Test some HtmlBlock classes
@@ -137,7 +128,7 @@ public class TestBlocks {
     when(attempt.getAssignedContainerID()).thenReturn(containerId);
 
     when(attempt.getAssignedContainerMgrAddress()).thenReturn(
-            "assignedContainerMgrAddress");
+        "assignedContainerMgrAddress");
     when(attempt.getNodeRackName()).thenReturn("nodeRackName");
 
     final long taStartTime = 100002L;
@@ -187,7 +178,7 @@ public class TestBlocks {
     assertFalse(data.toString().contains("Processed 128/128 records <p> \n"));
     assertTrue(data.toString().contains("Processed 128\\/128 records &lt;p&gt; \\n"));
     assertTrue(data.toString().contains(
-            "_0005_01_000001:attempt_0_0001_r_000000_0:User:"));
+        "_0005_01_000001:attempt_0_0001_r_000000_0:User:"));
     assertTrue(data.toString().contains("100002"));
     assertTrue(data.toString().contains("100010"));
     assertTrue(data.toString().contains("100011"));
@@ -216,6 +207,7 @@ public class TestBlocks {
     assertTrue(data.toString().contains("QueueName"));
     assertTrue(data.toString().contains("SUCCEEDED"));
   }
+
   /**
    * test HsController
    */
@@ -223,15 +215,15 @@ public class TestBlocks {
   @Test
   public void testHsController() throws Exception {
     AppContext ctx = mock(AppContext.class);
-    ApplicationId appId = ApplicationIdPBImpl.newInstance(0,5);
-    
+    ApplicationId appId = ApplicationIdPBImpl.newInstance(0, 5);
+
     when(ctx.getApplicationID()).thenReturn(appId);
 
     AppForTest app = new AppForTest(ctx);
     Configuration config = new Configuration();
     RequestContext requestCtx = mock(RequestContext.class);
     HsControllerForTest controller = new HsControllerForTest(app, config,
-            requestCtx);
+        requestCtx);
     controller.index();
     assertEquals("JobHistory", controller.get(Params.TITLE, ""));
     assertEquals(HsJobPage.class, controller.jobPage());
@@ -251,7 +243,7 @@ public class TestBlocks {
     JobId jobID = MRApps.toJobID("job_01_01");
     when(ctx.getJob(jobID)).thenReturn(job);
     when(job.checkAccess(any(UserGroupInformation.class), any(JobACL.class)))
-            .thenReturn(true);
+        .thenReturn(true);
 
     controller.job();
     assertEquals(HsJobPage.class, controller.getClazz());
@@ -335,7 +327,7 @@ public class TestBlocks {
 
     JobId jobId = new JobIdPBImpl();
 
-    ApplicationId appId = ApplicationIdPBImpl.newInstance(System.currentTimeMillis(),4);
+    ApplicationId appId = ApplicationIdPBImpl.newInstance(System.currentTimeMillis(), 4);
     jobId.setAppId(appId);
     jobId.setId(1);
     when(job.getID()).thenReturn(jobId);
@@ -359,10 +351,10 @@ public class TestBlocks {
 
 
   private Task getTask(long timestamp) {
-    
+
     JobId jobId = new JobIdPBImpl();
     jobId.setId(0);
-    jobId.setAppId(ApplicationIdPBImpl.newInstance(timestamp,1));
+    jobId.setAppId(ApplicationIdPBImpl.newInstance(timestamp, 1));
 
     TaskId taskId = new TaskIdPBImpl();
     taskId.setId(0);

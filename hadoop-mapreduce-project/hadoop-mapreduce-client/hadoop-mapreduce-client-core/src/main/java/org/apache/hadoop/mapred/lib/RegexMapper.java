@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,22 +18,18 @@
 
 package org.apache.hadoop.mapred.lib;
 
-import java.io.IOException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.MapReduceBase;
-import org.apache.hadoop.mapred.Mapper;
-import org.apache.hadoop.mapred.OutputCollector;
-import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapred.*;
+
+import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
-/** 
+/**
  * A {@link Mapper} that extracts text matching a regular expression.
  */
 @InterfaceAudience.Public
@@ -46,15 +42,15 @@ public class RegexMapper<K> extends MapReduceBase
 
   public void configure(JobConf job) {
     pattern = Pattern.compile(job.get(org.apache.hadoop.mapreduce.lib.map.
-                RegexMapper.PATTERN));
+        RegexMapper.PATTERN));
     group = job.getInt(org.apache.hadoop.mapreduce.lib.map.
-              RegexMapper.GROUP, 0);
+        RegexMapper.GROUP, 0);
   }
 
   public void map(K key, Text value,
                   OutputCollector<Text, LongWritable> output,
                   Reporter reporter)
-    throws IOException {
+      throws IOException {
     String text = value.toString();
     Matcher matcher = pattern.matcher(text);
     while (matcher.find()) {

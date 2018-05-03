@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,13 +19,11 @@
 
 package org.apache.hadoop.mapreduce.v2.api.records;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import org.apache.hadoop.mapreduce.v2.util.MRBuilderUtils;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 public class TestIds {
 
@@ -125,13 +123,13 @@ public class TestIds {
   }
 
   private TaskId createTaskId(long clusterTimestamp, int jobIdInt,
-      int taskIdInt, TaskType taskType) {
+                              int taskIdInt, TaskType taskType) {
     return MRBuilderUtils.newTaskId(createJobId(clusterTimestamp, jobIdInt),
         taskIdInt, taskType);
   }
 
   private TaskAttemptId createTaskAttemptId(long clusterTimestamp,
-      int jobIdInt, int taskIdInt, TaskType taskType, int taskAttemptIdInt) {
+                                            int jobIdInt, int taskIdInt, TaskType taskType, int taskAttemptIdInt) {
     return MRBuilderUtils.newTaskAttemptId(
         createTaskId(clusterTimestamp, jobIdInt, taskIdInt, taskType),
         taskAttemptIdInt);

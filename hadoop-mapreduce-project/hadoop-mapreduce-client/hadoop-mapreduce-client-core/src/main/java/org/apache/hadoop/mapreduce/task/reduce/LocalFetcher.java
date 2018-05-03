@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,32 +17,27 @@
  */
 package org.apache.hadoop.mapreduce.task.reduce;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapred.*;
+import org.apache.hadoop.mapreduce.CryptoUtils;
+import org.apache.hadoop.mapreduce.TaskAttemptID;
+
+import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import javax.crypto.SecretKey;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapred.IndexRecord;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.MapOutputFile;
-import org.apache.hadoop.mapred.Reporter;
-import org.apache.hadoop.mapred.SpillRecord;
-import org.apache.hadoop.mapreduce.TaskAttemptID;
-import org.apache.hadoop.mapreduce.CryptoUtils;
-
 /**
  * LocalFetcher is used by LocalJobRunner to perform a local filesystem
  * fetch.
  */
-class LocalFetcher<K,V> extends Fetcher<K, V> {
+class LocalFetcher<K, V> extends Fetcher<K, V> {
 
   private static final Log LOG = LogFactory.getLog(LocalFetcher.class);
 
@@ -52,12 +47,12 @@ class LocalFetcher<K,V> extends Fetcher<K, V> {
   private Map<TaskAttemptID, MapOutputFile> localMapFiles;
 
   public LocalFetcher(JobConf job, TaskAttemptID reduceId,
-                 ShuffleSchedulerImpl<K, V> scheduler,
-                 MergeManager<K,V> merger,
-                 Reporter reporter, ShuffleClientMetrics metrics,
-                 ExceptionReporter exceptionReporter,
-                 SecretKey shuffleKey,
-                 Map<TaskAttemptID, MapOutputFile> localMapFiles) {
+                      ShuffleSchedulerImpl<K, V> scheduler,
+                      MergeManager<K, V> merger,
+                      Reporter reporter, ShuffleClientMetrics metrics,
+                      ExceptionReporter exceptionReporter,
+                      SecretKey shuffleKey,
+                      Map<TaskAttemptID, MapOutputFile> localMapFiles) {
     super(job, reduceId, scheduler, merger, reporter, metrics,
         exceptionReporter, shuffleKey);
 
@@ -138,10 +133,10 @@ class LocalFetcher<K,V> extends Fetcher<K, V> {
     }
 
     // Go!
-    LOG.info("localfetcher#" + id + " about to shuffle output of map " + 
-             mapOutput.getMapId() + " decomp: " +
-             decompressedLength + " len: " + compressedLength + " to " +
-             mapOutput.getDescription());
+    LOG.info("localfetcher#" + id + " about to shuffle output of map " +
+        mapOutput.getMapId() + " decomp: " +
+        decompressedLength + " len: " + compressedLength + " to " +
+        mapOutput.getDescription());
 
     // now read the file, seek to the appropriate section, and send it.
     FileSystem localFs = FileSystem.getLocal(job).getRaw();

@@ -1,26 +1,22 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapred.JobPriority;
@@ -29,30 +25,18 @@ import org.apache.hadoop.mapreduce.JobStatus.State;
 import org.apache.hadoop.mapreduce.v2.api.records.Counter;
 import org.apache.hadoop.mapreduce.v2.api.records.CounterGroup;
 import org.apache.hadoop.mapreduce.v2.api.records.Counters;
-import org.apache.hadoop.mapreduce.v2.api.records.JobId;
-import org.apache.hadoop.mapreduce.v2.api.records.JobReport;
-import org.apache.hadoop.mapreduce.v2.api.records.JobState;
-import org.apache.hadoop.mapreduce.v2.api.records.Phase;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptCompletionEvent;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptCompletionEventStatus;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptState;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskState;
+import org.apache.hadoop.mapreduce.v2.api.records.*;
 import org.apache.hadoop.mapreduce.v2.api.records.TaskType;
 import org.apache.hadoop.mapreduce.v2.util.MRApps;
-import org.apache.hadoop.yarn.api.records.ApplicationId;
-import org.apache.hadoop.yarn.api.records.ApplicationReport;
-import org.apache.hadoop.yarn.api.records.ApplicationResourceUsageReport;
-import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
-import org.apache.hadoop.yarn.api.records.NodeReport;
-import org.apache.hadoop.yarn.api.records.QueueACL;
+import org.apache.hadoop.yarn.api.records.*;
 import org.apache.hadoop.yarn.api.records.QueueState;
-import org.apache.hadoop.yarn.api.records.QueueUserACLInfo;
-import org.apache.hadoop.yarn.api.records.YarnApplicationState;
 import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
 import org.apache.hadoop.yarn.factories.RecordFactory;
 import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class TypeConverter {
 
@@ -94,30 +78,30 @@ public class TypeConverter {
   public static org.apache.hadoop.mapreduce.TaskType fromYarn(
       TaskType taskType) {
     switch (taskType) {
-    case MAP:
-      return org.apache.hadoop.mapreduce.TaskType.MAP;
-    case REDUCE:
-      return org.apache.hadoop.mapreduce.TaskType.REDUCE;
-    default:
-      throw new YarnRuntimeException("Unrecognized task type: " + taskType);
+      case MAP:
+        return org.apache.hadoop.mapreduce.TaskType.MAP;
+      case REDUCE:
+        return org.apache.hadoop.mapreduce.TaskType.REDUCE;
+      default:
+        throw new YarnRuntimeException("Unrecognized task type: " + taskType);
     }
   }
 
   public static TaskType
-      toYarn(org.apache.hadoop.mapreduce.TaskType taskType) {
+  toYarn(org.apache.hadoop.mapreduce.TaskType taskType) {
     switch (taskType) {
-    case MAP:
-      return TaskType.MAP;
-    case REDUCE:
-      return TaskType.REDUCE;
-    default:
-      throw new YarnRuntimeException("Unrecognized task type: " + taskType);
+      case MAP:
+        return TaskType.MAP;
+      case REDUCE:
+        return TaskType.REDUCE;
+      default:
+        throw new YarnRuntimeException("Unrecognized task type: " + taskType);
     }
   }
 
   public static org.apache.hadoop.mapred.TaskID fromYarn(TaskId id) {
     return new org.apache.hadoop.mapred.TaskID(fromYarn(id.getJobId()),
-      fromYarn(id.getTaskType()), id.getId());
+        fromYarn(id.getTaskType()), id.getId());
   }
 
   public static TaskId toYarn(org.apache.hadoop.mapreduce.TaskID id) {
@@ -131,39 +115,39 @@ public class TypeConverter {
   public static TaskAttemptState toYarn(
       org.apache.hadoop.mapred.TaskStatus.State state) {
     switch (state) {
-    case COMMIT_PENDING:
-      return TaskAttemptState.COMMIT_PENDING;
-    case FAILED:
-    case FAILED_UNCLEAN:
-      return TaskAttemptState.FAILED;
-    case KILLED:
-    case KILLED_UNCLEAN:
-      return TaskAttemptState.KILLED;
-    case RUNNING:
-      return TaskAttemptState.RUNNING;
-    case SUCCEEDED:
-      return TaskAttemptState.SUCCEEDED;
-    case UNASSIGNED:
-      return TaskAttemptState.STARTING;
-    default:
-      throw new YarnRuntimeException("Unrecognized State: " + state);
+      case COMMIT_PENDING:
+        return TaskAttemptState.COMMIT_PENDING;
+      case FAILED:
+      case FAILED_UNCLEAN:
+        return TaskAttemptState.FAILED;
+      case KILLED:
+      case KILLED_UNCLEAN:
+        return TaskAttemptState.KILLED;
+      case RUNNING:
+        return TaskAttemptState.RUNNING;
+      case SUCCEEDED:
+        return TaskAttemptState.SUCCEEDED;
+      case UNASSIGNED:
+        return TaskAttemptState.STARTING;
+      default:
+        throw new YarnRuntimeException("Unrecognized State: " + state);
     }
   }
 
   public static Phase toYarn(org.apache.hadoop.mapred.TaskStatus.Phase phase) {
     switch (phase) {
-    case STARTING:
-      return Phase.STARTING;
-    case MAP:
-      return Phase.MAP;
-    case SHUFFLE:
-      return Phase.SHUFFLE;
-    case SORT:
-      return Phase.SORT;
-    case REDUCE:
-      return Phase.REDUCE;
-    case CLEANUP:
-      return Phase.CLEANUP;
+      case STARTING:
+        return Phase.STARTING;
+      case MAP:
+        return Phase.MAP;
+      case SHUFFLE:
+        return Phase.SHUFFLE;
+      case SORT:
+        return Phase.SORT;
+      case REDUCE:
+        return Phase.REDUCE;
+      case CLEANUP:
+        return Phase.CLEANUP;
     }
     throw new YarnRuntimeException("Unrecognized Phase: " + phase);
   }
@@ -183,25 +167,25 @@ public class TypeConverter {
   public static TaskCompletionEvent fromYarn(
       TaskAttemptCompletionEvent newEvent) {
     return new TaskCompletionEvent(newEvent.getEventId(),
-              fromYarn(newEvent.getAttemptId()), newEvent.getAttemptId().getId(),
-              newEvent.getAttemptId().getTaskId().getTaskType().equals(TaskType.MAP),
-              fromYarn(newEvent.getStatus()),
-              newEvent.getMapOutputServerAddress());
+        fromYarn(newEvent.getAttemptId()), newEvent.getAttemptId().getId(),
+        newEvent.getAttemptId().getTaskId().getTaskType().equals(TaskType.MAP),
+        fromYarn(newEvent.getStatus()),
+        newEvent.getMapOutputServerAddress());
   }
 
   public static TaskCompletionEvent.Status fromYarn(
       TaskAttemptCompletionEventStatus newStatus) {
     switch (newStatus) {
-    case FAILED:
-      return TaskCompletionEvent.Status.FAILED;
-    case KILLED:
-      return TaskCompletionEvent.Status.KILLED;
-    case OBSOLETE:
-      return TaskCompletionEvent.Status.OBSOLETE;
-    case SUCCEEDED:
-      return TaskCompletionEvent.Status.SUCCEEDED;
-    case TIPFAILED:
-      return TaskCompletionEvent.Status.TIPFAILED;
+      case FAILED:
+        return TaskCompletionEvent.Status.FAILED;
+      case KILLED:
+        return TaskCompletionEvent.Status.KILLED;
+      case OBSOLETE:
+        return TaskCompletionEvent.Status.OBSOLETE;
+      case SUCCEEDED:
+        return TaskCompletionEvent.Status.SUCCEEDED;
+      case TIPFAILED:
+        return TaskCompletionEvent.Status.TIPFAILED;
     }
     throw new YarnRuntimeException("Unrecognized status: " + newStatus);
   }
@@ -234,13 +218,13 @@ public class TypeConverter {
       return null;
     }
     org.apache.hadoop.mapreduce.Counters counters =
-      new org.apache.hadoop.mapreduce.Counters();
+        new org.apache.hadoop.mapreduce.Counters();
     for (CounterGroup yGrp : yCntrs.getAllCounterGroups().values()) {
       counters.addGroup(yGrp.getName(), yGrp.getDisplayName());
       for (Counter yCntr : yGrp.getAllCounters().values()) {
         org.apache.hadoop.mapreduce.Counter c =
-          counters.findCounter(yGrp.getName(),
-              yCntr.getName());
+            counters.findCounter(yGrp.getName(),
+                yCntr.getName());
         // if c can be found, or it will be skipped.
         if (c != null) {
           c.setValue(yCntr.getValue());
@@ -295,15 +279,15 @@ public class TypeConverter {
     }
     return yCntrs;
   }
-  
+
   public static JobStatus fromYarn(JobReport jobreport, String trackingUrl) {
     JobPriority jobPriority = JobPriority.NORMAL;
     JobStatus jobStatus = new org.apache.hadoop.mapred.JobStatus(
         fromYarn(jobreport.getJobId()), jobreport.getSetupProgress(), jobreport
-            .getMapProgress(), jobreport.getReduceProgress(), jobreport
-            .getCleanupProgress(), fromYarn(jobreport.getJobState()),
+        .getMapProgress(), jobreport.getReduceProgress(), jobreport
+        .getCleanupProgress(), fromYarn(jobreport.getJobState()),
         jobPriority, jobreport.getUser(), jobreport.getJobName(), jobreport
-            .getJobFile(), trackingUrl, jobreport.isUber());
+        .getJobFile(), trackingUrl, jobreport.isUber());
     jobStatus.setStartTime(jobreport.getStartTime());
     jobStatus.setFinishTime(jobreport.getFinishTime());
     jobStatus.setFailureInfo(jobreport.getDiagnostics());
@@ -313,26 +297,26 @@ public class TypeConverter {
   public static org.apache.hadoop.mapreduce.QueueState fromYarn(
       QueueState state) {
     org.apache.hadoop.mapreduce.QueueState qState =
-      org.apache.hadoop.mapreduce.QueueState.getState(
-        state.toString().toLowerCase());
+        org.apache.hadoop.mapreduce.QueueState.getState(
+            state.toString().toLowerCase());
     return qState;
   }
 
 
   public static int fromYarn(JobState state) {
     switch (state) {
-    case NEW:
-    case INITED:
-      return org.apache.hadoop.mapred.JobStatus.PREP;
-    case RUNNING:
-      return org.apache.hadoop.mapred.JobStatus.RUNNING;
-    case KILLED:
-      return org.apache.hadoop.mapred.JobStatus.KILLED;
-    case SUCCEEDED:
-      return org.apache.hadoop.mapred.JobStatus.SUCCEEDED;
-    case FAILED:
-    case ERROR:
-      return org.apache.hadoop.mapred.JobStatus.FAILED;
+      case NEW:
+      case INITED:
+        return org.apache.hadoop.mapred.JobStatus.PREP;
+      case RUNNING:
+        return org.apache.hadoop.mapred.JobStatus.RUNNING;
+      case KILLED:
+        return org.apache.hadoop.mapred.JobStatus.KILLED;
+      case SUCCEEDED:
+        return org.apache.hadoop.mapred.JobStatus.SUCCEEDED;
+      case FAILED:
+      case ERROR:
+        return org.apache.hadoop.mapred.JobStatus.FAILED;
     }
     throw new YarnRuntimeException("Unrecognized job state: " + state);
   }
@@ -340,17 +324,17 @@ public class TypeConverter {
   public static org.apache.hadoop.mapred.TIPStatus fromYarn(
       TaskState state) {
     switch (state) {
-    case NEW:
-    case SCHEDULED:
-      return org.apache.hadoop.mapred.TIPStatus.PENDING;
-    case RUNNING:
-      return org.apache.hadoop.mapred.TIPStatus.RUNNING;
-    case KILLED:
-      return org.apache.hadoop.mapred.TIPStatus.KILLED;
-    case SUCCEEDED:
-      return org.apache.hadoop.mapred.TIPStatus.COMPLETE;
-    case FAILED:
-      return org.apache.hadoop.mapred.TIPStatus.FAILED;
+      case NEW:
+      case SCHEDULED:
+        return org.apache.hadoop.mapred.TIPStatus.PENDING;
+      case RUNNING:
+        return org.apache.hadoop.mapred.TIPStatus.RUNNING;
+      case KILLED:
+        return org.apache.hadoop.mapred.TIPStatus.KILLED;
+      case SUCCEEDED:
+        return org.apache.hadoop.mapred.TIPStatus.COMPLETE;
+      case FAILED:
+        return org.apache.hadoop.mapred.TIPStatus.FAILED;
     }
     throw new YarnRuntimeException("Unrecognized task state: " + state);
   }
@@ -369,10 +353,10 @@ public class TypeConverter {
 
     TaskReport rep = new TaskReport(fromYarn(report.getTaskId()),
         report.getProgress(), report.getTaskState().toString(),
-      diagnostics, fromYarn(report.getTaskState()), report.getStartTime(), report.getFinishTime(),
-      fromYarn(report.getCounters()));
+        diagnostics, fromYarn(report.getTaskState()), report.getStartTime(), report.getFinishTime(),
+        fromYarn(report.getCounters()));
     List<org.apache.hadoop.mapreduce.TaskAttemptID> runningAtts
-          = new ArrayList<org.apache.hadoop.mapreduce.TaskAttemptID>();
+        = new ArrayList<org.apache.hadoop.mapreduce.TaskAttemptID>();
     for (org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId id
         : report.getRunningAttemptsList()) {
       runningAtts.add(fromYarn(id));
@@ -392,35 +376,36 @@ public class TypeConverter {
     }
     return reports;
   }
-  
+
   public static State fromYarn(YarnApplicationState yarnApplicationState,
-      FinalApplicationStatus finalApplicationStatus) {
+                               FinalApplicationStatus finalApplicationStatus) {
     switch (yarnApplicationState) {
-    case NEW:
-    case NEW_SAVING:
-    case SUBMITTED:
-    case ACCEPTED:
-      return State.PREP;
-    case RUNNING:
-      return State.RUNNING;
-    case FINISHED:
-      if (finalApplicationStatus == FinalApplicationStatus.SUCCEEDED) {
-        return State.SUCCEEDED;
-      } else if (finalApplicationStatus == FinalApplicationStatus.KILLED) {
+      case NEW:
+      case NEW_SAVING:
+      case SUBMITTED:
+      case ACCEPTED:
+        return State.PREP;
+      case RUNNING:
+        return State.RUNNING;
+      case FINISHED:
+        if (finalApplicationStatus == FinalApplicationStatus.SUCCEEDED) {
+          return State.SUCCEEDED;
+        } else if (finalApplicationStatus == FinalApplicationStatus.KILLED) {
+          return State.KILLED;
+        }
+      case FAILED:
+        return State.FAILED;
+      case KILLED:
         return State.KILLED;
-      }
-    case FAILED:
-      return State.FAILED;
-    case KILLED:
-      return State.KILLED;
     }
     throw new YarnRuntimeException("Unrecognized application state: " + yarnApplicationState);
   }
 
   private static final String TT_NAME_PREFIX = "tracker_";
+
   public static TaskTrackerInfo fromYarn(NodeReport node) {
     TaskTrackerInfo taskTracker =
-      new TaskTrackerInfo(TT_NAME_PREFIX + node.getNodeId().toString());
+        new TaskTrackerInfo(TT_NAME_PREFIX + node.getNodeId().toString());
     return taskTracker;
   }
 
@@ -433,18 +418,18 @@ public class TypeConverter {
   }
 
   public static JobStatus fromYarn(ApplicationReport application,
-      String jobFile) {
+                                   String jobFile) {
     String trackingUrl = application.getTrackingUrl();
     trackingUrl = trackingUrl == null ? "" : trackingUrl;
     JobStatus jobStatus =
-      new JobStatus(
-          TypeConverter.fromYarn(application.getApplicationId()),
-          0.0f, 0.0f, 0.0f, 0.0f,
-          TypeConverter.fromYarn(application.getYarnApplicationState(), application.getFinalApplicationStatus()),
-          org.apache.hadoop.mapreduce.JobPriority.NORMAL,
-          application.getUser(), application.getName(),
-          application.getQueue(), jobFile, trackingUrl, false
-      );
+        new JobStatus(
+            TypeConverter.fromYarn(application.getApplicationId()),
+            0.0f, 0.0f, 0.0f, 0.0f,
+            TypeConverter.fromYarn(application.getYarnApplicationState(), application.getFinalApplicationStatus()),
+            org.apache.hadoop.mapreduce.JobPriority.NORMAL,
+            application.getUser(), application.getName(),
+            application.getQueue(), jobFile, trackingUrl, false
+        );
     jobStatus.setSchedulingInfo(trackingUrl); // Set AM tracking url
     jobStatus.setStartTime(application.getStartTime());
     jobStatus.setFinishTime(application.getFinishTime());
@@ -465,7 +450,7 @@ public class TypeConverter {
   }
 
   public static JobStatus[] fromYarnApps(List<ApplicationReport> applications,
-      Configuration conf) {
+                                         Configuration conf) {
     List<JobStatus> jobStatuses = new ArrayList<JobStatus>();
     for (ApplicationReport application : applications) {
       // each applicationReport has its own jobFile
@@ -479,16 +464,16 @@ public class TypeConverter {
 
 
   public static QueueInfo fromYarn(org.apache.hadoop.yarn.api.records.QueueInfo
-      queueInfo, Configuration conf) {
+                                       queueInfo, Configuration conf) {
     QueueInfo toReturn = new QueueInfo(queueInfo.getQueueName(), "Capacity: " +
-      queueInfo.getCapacity() * 100 + ", MaximumCapacity: " +
-      (queueInfo.getMaximumCapacity() < 0 ? "UNDEFINED" :
-        queueInfo.getMaximumCapacity() * 100) + ", CurrentCapacity: " +
-      queueInfo.getCurrentCapacity() * 100, fromYarn(queueInfo.getQueueState()),
-      TypeConverter.fromYarnApps(queueInfo.getApplications(), conf));
+        queueInfo.getCapacity() * 100 + ", MaximumCapacity: " +
+        (queueInfo.getMaximumCapacity() < 0 ? "UNDEFINED" :
+            queueInfo.getMaximumCapacity() * 100) + ", CurrentCapacity: " +
+        queueInfo.getCurrentCapacity() * 100, fromYarn(queueInfo.getQueueState()),
+        TypeConverter.fromYarnApps(queueInfo.getApplications(), conf));
     List<QueueInfo> childQueues = new ArrayList<QueueInfo>();
-    for(org.apache.hadoop.yarn.api.records.QueueInfo childQueue :
-      queueInfo.getChildQueues()) {
+    for (org.apache.hadoop.yarn.api.records.QueueInfo childQueue :
+        queueInfo.getChildQueues()) {
       childQueues.add(fromYarn(childQueue, conf));
     }
     toReturn.setQueueChildren(childQueues);
@@ -515,8 +500,8 @@ public class TypeConverter {
       }
 
       QueueAclsInfo acl =
-        new QueueAclsInfo(aclInfo.getQueueName(),
-            operations.toArray(new String[operations.size()]));
+          new QueueAclsInfo(aclInfo.getQueueName(),
+              operations.toArray(new String[operations.size()]));
       acls.add(acl);
     }
     return acls.toArray(new QueueAclsInfo[acls.size()]);

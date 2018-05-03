@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,10 +18,6 @@
 
 package org.apache.hadoop.mapred.lib;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
@@ -30,6 +26,10 @@ import org.apache.hadoop.mapred.InputSplit;
 import org.apache.hadoop.mapred.Mapper;
 import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.hadoop.util.StringInterner;
+
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 
 /**
  * An {@link InputSplit} that tags another InputSplit with extra data for use
@@ -53,15 +53,15 @@ class TaggedInputSplit implements Configurable, InputSplit {
 
   /**
    * Creates a new TaggedInputSplit.
-   * 
+   *
    * @param inputSplit The InputSplit to be tagged
    * @param conf The configuration to use
    * @param inputFormatClass The InputFormat class to use for this job
    * @param mapperClass The Mapper class to use for this job
    */
   public TaggedInputSplit(InputSplit inputSplit, Configuration conf,
-      Class<? extends InputFormat> inputFormatClass,
-      Class<? extends Mapper> mapperClass) {
+                          Class<? extends InputFormat> inputFormatClass,
+                          Class<? extends Mapper> mapperClass) {
     this.inputSplitClass = inputSplit.getClass();
     this.inputSplit = inputSplit;
     this.conf = conf;
@@ -71,7 +71,7 @@ class TaggedInputSplit implements Configurable, InputSplit {
 
   /**
    * Retrieves the original InputSplit.
-   * 
+   *
    * @return The InputSplit that was tagged
    */
   public InputSplit getInputSplit() {
@@ -80,7 +80,7 @@ class TaggedInputSplit implements Configurable, InputSplit {
 
   /**
    * Retrieves the InputFormat class to use for this split.
-   * 
+   *
    * @return The InputFormat class to use
    */
   public Class<? extends InputFormat> getInputFormatClass() {
@@ -89,7 +89,7 @@ class TaggedInputSplit implements Configurable, InputSplit {
 
   /**
    * Retrieves the Mapper class to use for this split.
-   * 
+   *
    * @return The Mapper class to use
    */
   public Class<? extends Mapper> getMapperClass() {
@@ -108,7 +108,7 @@ class TaggedInputSplit implements Configurable, InputSplit {
   public void readFields(DataInput in) throws IOException {
     inputSplitClass = (Class<? extends InputSplit>) readClass(in);
     inputSplit = (InputSplit) ReflectionUtils
-       .newInstance(inputSplitClass, conf);
+        .newInstance(inputSplitClass, conf);
     inputSplit.readFields(in);
     inputFormatClass = (Class<? extends InputFormat>) readClass(in);
     mapperClass = (Class<? extends Mapper>) readClass(in);

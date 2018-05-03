@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,37 +17,22 @@
  */
 package org.apache.hadoop.mapred;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-
+import junit.framework.TestCase;
 import org.apache.hadoop.conf.Configuration;
-
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.FileUtil;
-import org.apache.hadoop.fs.LocalFileSystem;
-import org.apache.hadoop.fs.Path;
-
 import org.apache.hadoop.hdfs.MiniDFSCluster;
-
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableUtils;
-
 import org.apache.hadoop.io.serializer.SerializationFactory;
 import org.apache.hadoop.io.serializer.Serializer;
-
 import org.apache.hadoop.mapred.Task.TaskReporter;
 
-import junit.framework.TestCase;
+import java.io.*;
 
-@SuppressWarnings(value={"unchecked", "deprecation"})
+@SuppressWarnings(value = {"unchecked", "deprecation"})
 /**
  * This test tests the support for a merge operation in Hadoop.  The input files
  * are already sorted on the key.  This test implements an external
@@ -80,7 +65,7 @@ public class TestMerge extends TestCase {
           .numDataNodes(NUM_HADOOP_DATA_NODES).build();
       fileSystem = dfsCluster.getFileSystem();
       mrCluster = MiniMRClientClusterFactory.create(this.getClass(),
-                                                 NUM_HADOOP_DATA_NODES, conf);
+          NUM_HADOOP_DATA_NODES, conf);
       // Generate input.
       createInput(fileSystem);
       // Run the test.
@@ -111,7 +96,7 @@ public class TestMerge extends TestCase {
   }
 
   private void runMergeTest(JobConf job, FileSystem fileSystem)
-    throws Exception {
+      throws Exception {
     // Delete any existing output.
     fileSystem.delete(OUTPUT, true);
     job.setJobName("MergeTest");
@@ -130,17 +115,17 @@ public class TestMerge extends TestCase {
     job.setOutputFormat(TextOutputFormat.class);
     job.setNumReduceTasks(NUM_REDUCERS);
     job.set(JobContext.MAP_OUTPUT_COLLECTOR_CLASS_ATTR,
-            MapOutputCopier.class.getName());
+        MapOutputCopier.class.getName());
     try {
       submittedJob = client.submitJob(job);
       try {
-        if (! client.monitorAndPrintJob(job, submittedJob)) {
+        if (!client.monitorAndPrintJob(job, submittedJob)) {
           throw new IOException("Job failed!");
         }
-      } catch(InterruptedException ie) {
+      } catch (InterruptedException ie) {
         Thread.currentThread().interrupt();
       }
-    } catch(IOException ioe) {
+    } catch (IOException ioe) {
       System.err.println("Job failed with: " + ioe);
     } finally {
       verifyOutput(submittedJob, fileSystem);
@@ -148,24 +133,24 @@ public class TestMerge extends TestCase {
   }
 
   private void verifyOutput(RunningJob submittedJob, FileSystem fileSystem)
-    throws Exception {
+      throws Exception {
     FSDataInputStream dis = null;
     long numValidRecords = 0;
     long numInvalidRecords = 0;
     long numMappersLaunched = NUM_MAPPERS;
     String prevKeyValue = "000000000";
-    Path[] fileList = 
-      FileUtil.stat2Paths(fileSystem.listStatus(OUTPUT,
-          new Utils.OutputFileUtils.OutputFilesFilter()));
+    Path[] fileList =
+        FileUtil.stat2Paths(fileSystem.listStatus(OUTPUT,
+            new Utils.OutputFileUtils.OutputFilesFilter()));
     for (Path outFile : fileList) {
       try {
         dis = fileSystem.open(outFile);
         String record;
-        while((record = dis.readLine()) != null) {
+        while ((record = dis.readLine()) != null) {
           // Split the line into key and value.
           int blankPos = record.indexOf(" ");
           String keyString = record.substring(0, blankPos);
-          String valueString = record.substring(blankPos+1);
+          String valueString = record.substring(blankPos + 1);
           // Check for sorted output and correctness of record.
           if (keyString.compareTo(prevKeyValue) >= 0
               && keyString.equals(valueString)) {
@@ -183,7 +168,7 @@ public class TestMerge extends TestCase {
       }
     }
     // Make sure we got all input records in the output in sorted order.
-    assertEquals((long)(NUM_MAPPERS*NUM_LINES), numValidRecords);
+    assertEquals((long) (NUM_MAPPERS * NUM_LINES), numValidRecords);
     // Make sure there is no extraneous invalid record.
     assertEquals(0, numInvalidRecords);
   }
@@ -193,29 +178,29 @@ public class TestMerge extends TestCase {
    * in displayable form.
    */
   public static class MyMapper extends MapReduceBase
-    implements Mapper<LongWritable, Text, Text, Text> {
-      private Text keyText;
-      private Text valueText;
+      implements Mapper<LongWritable, Text, Text, Text> {
+    private Text keyText;
+    private Text valueText;
 
-      public MyMapper() {
-        keyText = new Text();
-        valueText = new Text();
-      }
-
-      @Override
-      public void map(LongWritable key, Text value,
-                      OutputCollector<Text, Text> output,
-                      Reporter reporter) throws IOException {
-        String record = value.toString();
-        int blankPos = record.indexOf(" ");
-        keyText.set(record.substring(0, blankPos));
-        valueText.set(record.substring(blankPos+1));
-        output.collect(keyText, valueText);
-      }
-    
-      public void close() throws IOException {
-      }
+    public MyMapper() {
+      keyText = new Text();
+      valueText = new Text();
     }
+
+    @Override
+    public void map(LongWritable key, Text value,
+                    OutputCollector<Text, Text> output,
+                    Reporter reporter) throws IOException {
+      String record = value.toString();
+      int blankPos = record.indexOf(" ");
+      keyText.set(record.substring(0, blankPos));
+      valueText.set(record.substring(blankPos + 1));
+      output.collect(keyText, valueText);
+    }
+
+    public void close() throws IOException {
+    }
+  }
 
   /**
    * Partitioner implementation to make sure that output is in total sorted
@@ -237,10 +222,10 @@ public class TestMerge extends TestCase {
       int keyValue = 0;
       try {
         keyValue = Integer.parseInt(key.toString());
-      } catch(NumberFormatException nfe) {
+      } catch (NumberFormatException nfe) {
         keyValue = 0;
       }
-      int partitionNumber = (numPartitions*(Math.max(0, keyValue-1)))/NUM_LINES;
+      int partitionNumber = (numPartitions * (Math.max(0, keyValue - 1))) / NUM_LINES;
       return partitionNumber;
     }
   }
@@ -251,8 +236,8 @@ public class TestMerge extends TestCase {
    * reducers.
    */
   static class MapOutputCopier<K, V>
-    implements MapOutputCollector<K, V> {
-    private static final int BUF_SIZE = 128*1024;
+      implements MapOutputCollector<K, V> {
+    private static final int BUF_SIZE = 128 * 1024;
     private MapTask mapTask;
     private JobConf jobConf;
     private TaskReporter reporter;
@@ -267,13 +252,13 @@ public class TestMerge extends TestCase {
 
     @SuppressWarnings("unchecked")
     public void init(MapOutputCollector.Context context)
-      throws IOException, ClassNotFoundException {
+        throws IOException, ClassNotFoundException {
       this.mapTask = context.getMapTask();
       this.jobConf = context.getJobConf();
       this.reporter = context.getReporter();
       numberOfPartitions = jobConf.getNumReduceTasks();
-      keyClass = (Class<K>)jobConf.getMapOutputKeyClass();
-      valueClass = (Class<V>)jobConf.getMapOutputValueClass();
+      keyClass = (Class<K>) jobConf.getMapOutputKeyClass();
+      valueClass = (Class<V>) jobConf.getMapOutputValueClass();
       recordWriters = new KeyValueWriter[numberOfPartitions];
       outStreams = new ByteArrayOutputStream[numberOfPartitions];
 
@@ -281,12 +266,12 @@ public class TestMerge extends TestCase {
       for (int i = 0; i < numberOfPartitions; i++) {
         outStreams[i] = new ByteArrayOutputStream();
         recordWriters[i] = new KeyValueWriter<K, V>(jobConf, outStreams[i],
-                                                    keyClass, valueClass);
+            keyClass, valueClass);
       }
     }
 
     public synchronized void collect(K key, V value, int partitionNumber
-                                    ) throws IOException, InterruptedException {
+    ) throws IOException, InterruptedException {
       if (partitionNumber >= 0 && partitionNumber < numberOfPartitions) {
         recordWriters[partitionNumber].write(key, value);
       } else {
@@ -305,19 +290,19 @@ public class TestMerge extends TestCase {
       MapOutputFile mapOutputFile = mapTask.getMapOutputFile();
       Path finalOutput = mapOutputFile.getOutputFileForWrite(totalSize);
       Path indexPath = mapOutputFile.getOutputIndexFileForWrite(
-                     numberOfPartitions*mapTask.MAP_OUTPUT_INDEX_RECORD_LENGTH);
+          numberOfPartitions * mapTask.MAP_OUTPUT_INDEX_RECORD_LENGTH);
       // Copy partitions to final map output.
       copyPartitions(finalOutput, indexPath);
     }
 
-    public void flush() throws IOException, InterruptedException, 
-                               ClassNotFoundException {
+    public void flush() throws IOException, InterruptedException,
+        ClassNotFoundException {
     }
 
     private void copyPartitions(Path mapOutputPath, Path indexPath)
-      throws IOException {
+        throws IOException {
       FileSystem localFs = FileSystem.getLocal(jobConf);
-      FileSystem rfs = ((LocalFileSystem)localFs).getRaw();
+      FileSystem rfs = ((LocalFileSystem) localFs).getRaw();
       FSDataOutputStream rawOutput = rfs.create(mapOutputPath, true, BUF_SIZE);
       SpillRecord spillRecord = new SpillRecord(numberOfPartitions);
       IndexRecord indexRecord = new IndexRecord();
@@ -329,7 +314,7 @@ public class TestMerge extends TestCase {
         // Write checksum.
         checksumOutput.finish();
         // Write index record
-        indexRecord.rawLength = (long)buffer.length;
+        indexRecord.rawLength = (long) buffer.length;
         indexRecord.partLength = rawOutput.getPos() - indexRecord.startOffset;
         spillRecord.putIndex(indexRecord, i);
         reporter.progress();
@@ -349,43 +334,43 @@ public class TestMerge extends TestCase {
 
     public KeyValueWriter(Configuration conf, OutputStream output,
                           Class<K> kyClass, Class<V> valClass
-                         ) throws IOException {
+    ) throws IOException {
       keyClass = kyClass;
       valueClass = valClass;
       dataBuffer = new DataOutputBuffer();
       SerializationFactory serializationFactory
-                                             = new SerializationFactory(conf);
+          = new SerializationFactory(conf);
       keySerializer
-                  = (Serializer<K>)serializationFactory.getSerializer(keyClass);
+          = (Serializer<K>) serializationFactory.getSerializer(keyClass);
       keySerializer.open(dataBuffer);
       valueSerializer
-                = (Serializer<V>)serializationFactory.getSerializer(valueClass);
+          = (Serializer<V>) serializationFactory.getSerializer(valueClass);
       valueSerializer.open(dataBuffer);
       outputStream = new DataOutputStream(output);
     }
 
     public void write(K key, V value) throws IOException {
       if (key.getClass() != keyClass) {
-        throw new IOException("wrong key class: "+ key.getClass()
-                              +" is not "+ keyClass);
+        throw new IOException("wrong key class: " + key.getClass()
+            + " is not " + keyClass);
       }
       if (value.getClass() != valueClass) {
-        throw new IOException("wrong value class: "+ value.getClass()
-                              +" is not "+ valueClass);
+        throw new IOException("wrong value class: " + value.getClass()
+            + " is not " + valueClass);
       }
       // Append the 'key'
       keySerializer.serialize(key);
       int keyLength = dataBuffer.getLength();
       if (keyLength < 0) {
-        throw new IOException("Negative key-length not allowed: " + keyLength + 
-                              " for " + key);
+        throw new IOException("Negative key-length not allowed: " + keyLength +
+            " for " + key);
       }
       // Append the 'value'
       valueSerializer.serialize(value);
       int valueLength = dataBuffer.getLength() - keyLength;
       if (valueLength < 0) {
-        throw new IOException("Negative value-length not allowed: " + 
-                              valueLength + " for " + value);
+        throw new IOException("Negative value-length not allowed: " +
+            valueLength + " for " + value);
       }
       // Write the record out
       WritableUtils.writeVInt(outputStream, keyLength);
@@ -393,7 +378,7 @@ public class TestMerge extends TestCase {
       outputStream.write(dataBuffer.getData(), 0, dataBuffer.getLength());
       // Reset
       dataBuffer.reset();
-     }
+    }
 
     public void close() throws IOException {
       keySerializer.close();

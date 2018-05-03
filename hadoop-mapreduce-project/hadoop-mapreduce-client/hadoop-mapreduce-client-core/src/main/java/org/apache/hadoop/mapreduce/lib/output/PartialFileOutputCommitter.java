@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,8 +18,7 @@
 
 package org.apache.hadoop.mapreduce.lib.output;
 
-import java.io.IOException;
-
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
@@ -27,14 +26,10 @@ import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapreduce.JobContext;
-import org.apache.hadoop.mapreduce.OutputCommitter;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.TaskAttemptID;
-import org.apache.hadoop.mapreduce.TaskID;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.task.annotation.Checkpointable;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.io.IOException;
 
 /** An {@link OutputCommitter} that commits files specified
  * in job output directory i.e. ${mapreduce.output.fileoutputformat.outputdir}.
@@ -46,16 +41,16 @@ public class PartialFileOutputCommitter
     extends FileOutputCommitter implements PartialOutputCommitter {
 
   private static final Log LOG =
-    LogFactory.getLog(PartialFileOutputCommitter.class);
+      LogFactory.getLog(PartialFileOutputCommitter.class);
 
 
   public PartialFileOutputCommitter(Path outputPath,
-                             TaskAttemptContext context) throws IOException {
+                                    TaskAttemptContext context) throws IOException {
     super(outputPath, context);
   }
 
   public PartialFileOutputCommitter(Path outputPath,
-                             JobContext context) throws IOException {
+                                    JobContext context) throws IOException {
     super(outputPath, context);
   }
 
@@ -84,7 +79,7 @@ public class PartialFileOutputCommitter
           "from non @Preemptable class");
     }
     FileSystem fs =
-      fsFor(getTaskAttemptPath(context), context.getConfiguration());
+        fsFor(getTaskAttemptPath(context), context.getConfiguration());
 
     LOG.info("cleanUpPartialOutputForTask: removing everything belonging to " +
         context.getTaskAttemptID().getTaskID() + " in: " +

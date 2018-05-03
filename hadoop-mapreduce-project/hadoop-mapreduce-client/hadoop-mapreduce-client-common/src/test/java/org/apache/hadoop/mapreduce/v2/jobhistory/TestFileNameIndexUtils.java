@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,26 +18,25 @@
 
 package org.apache.hadoop.mapreduce.v2.jobhistory;
 
-import java.io.IOException;
-
 import org.apache.hadoop.mapreduce.JobID;
 import org.apache.hadoop.mapreduce.TypeConverter;
 import org.apache.hadoop.mapreduce.v2.api.records.JobId;
-
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.io.IOException;
 
 public class TestFileNameIndexUtils {
 
   private static final String OLD_JOB_HISTORY_FILE_FORMATTER = "%s"
-    + FileNameIndexUtils.DELIMITER + "%s"
-    + FileNameIndexUtils.DELIMITER + "%s"
-    + FileNameIndexUtils.DELIMITER + "%s"
-    + FileNameIndexUtils.DELIMITER + "%s"
-    + FileNameIndexUtils.DELIMITER + "%s"
-    + FileNameIndexUtils.DELIMITER + "%s"
-    + FileNameIndexUtils.DELIMITER + "%s"
-    + JobHistoryUtils.JOB_HISTORY_FILE_EXTENSION;
+      + FileNameIndexUtils.DELIMITER + "%s"
+      + FileNameIndexUtils.DELIMITER + "%s"
+      + FileNameIndexUtils.DELIMITER + "%s"
+      + FileNameIndexUtils.DELIMITER + "%s"
+      + FileNameIndexUtils.DELIMITER + "%s"
+      + FileNameIndexUtils.DELIMITER + "%s"
+      + FileNameIndexUtils.DELIMITER + "%s"
+      + JobHistoryUtils.JOB_HISTORY_FILE_EXTENSION;
 
   private static final String OLD_FORMAT_BEFORE_ADD_START_TIME = "%s"
       + FileNameIndexUtils.DELIMITER + "%s"
@@ -51,29 +50,29 @@ public class TestFileNameIndexUtils {
       + JobHistoryUtils.JOB_HISTORY_FILE_EXTENSION;
 
   private static final String JOB_HISTORY_FILE_FORMATTER = "%s"
-    + FileNameIndexUtils.DELIMITER + "%s"
-    + FileNameIndexUtils.DELIMITER + "%s"
-    + FileNameIndexUtils.DELIMITER + "%s"
-    + FileNameIndexUtils.DELIMITER + "%s"
-    + FileNameIndexUtils.DELIMITER + "%s"
-    + FileNameIndexUtils.DELIMITER + "%s"
-    + FileNameIndexUtils.DELIMITER + "%s"
-    + FileNameIndexUtils.DELIMITER + "%s"
-    + FileNameIndexUtils.DELIMITER + "%s"
-    + JobHistoryUtils.JOB_HISTORY_FILE_EXTENSION;
+      + FileNameIndexUtils.DELIMITER + "%s"
+      + FileNameIndexUtils.DELIMITER + "%s"
+      + FileNameIndexUtils.DELIMITER + "%s"
+      + FileNameIndexUtils.DELIMITER + "%s"
+      + FileNameIndexUtils.DELIMITER + "%s"
+      + FileNameIndexUtils.DELIMITER + "%s"
+      + FileNameIndexUtils.DELIMITER + "%s"
+      + FileNameIndexUtils.DELIMITER + "%s"
+      + FileNameIndexUtils.DELIMITER + "%s"
+      + JobHistoryUtils.JOB_HISTORY_FILE_EXTENSION;
 
   private static final String JOB_ID = "job_1317928501754_0001";
   private static final String SUBMIT_TIME = "1317928742025";
   private static final String USER_NAME = "username";
   private static final String USER_NAME_WITH_DELIMITER = "user"
-    + FileNameIndexUtils.DELIMITER + "name";
+      + FileNameIndexUtils.DELIMITER + "name";
   private static final String USER_NAME_WITH_DELIMITER_ESCAPE = "user"
-    + FileNameIndexUtils.DELIMITER_ESCAPE + "name";
+      + FileNameIndexUtils.DELIMITER_ESCAPE + "name";
   private static final String JOB_NAME = "mapreduce";
   private static final String JOB_NAME_WITH_DELIMITER = "map"
-    + FileNameIndexUtils.DELIMITER + "reduce";
+      + FileNameIndexUtils.DELIMITER + "reduce";
   private static final String JOB_NAME_WITH_DELIMITER_ESCAPE = "map"
-    + FileNameIndexUtils.DELIMITER_ESCAPE + "reduce";
+      + FileNameIndexUtils.DELIMITER_ESCAPE + "reduce";
   private static final String FINISH_TIME = "1317928754958";
   private static final String NUM_MAPS = "1";
   private static final String NUM_REDUCES = "1";
@@ -123,7 +122,7 @@ public class TestFileNameIndexUtils {
     Assert.assertEquals("Queue name different after encoding and decoding",
         info.getQueueName(), parsedInfo.getQueueName());
     Assert.assertEquals("Job start time different after encoding and decoding",
-              info.getJobStartTime(), parsedInfo.getJobStartTime());
+        info.getJobStartTime(), parsedInfo.getJobStartTime());
   }
 
   @Test
@@ -199,7 +198,7 @@ public class TestFileNameIndexUtils {
         NUM_REDUCES,
         JOB_STATUS,
         QUEUE_NAME,
-        JOB_START_TIME );
+        JOB_START_TIME);
 
     JobIndexInfo info = FileNameIndexUtils.getIndexInfo(jobHistoryFile);
     Assert.assertEquals("Job name doesn't match",
@@ -239,7 +238,7 @@ public class TestFileNameIndexUtils {
         NUM_REDUCES,
         JOB_STATUS,
         QUEUE_NAME_WITH_DELIMITER_ESCAPE,
-        JOB_START_TIME );
+        JOB_START_TIME);
 
     JobIndexInfo info = FileNameIndexUtils.getIndexInfo(jobHistoryFile);
     Assert.assertEquals("Queue name doesn't match",
@@ -247,7 +246,7 @@ public class TestFileNameIndexUtils {
   }
 
   @Test
-  public void testJobStartTimeBackwardsCompatible() throws IOException{
+  public void testJobStartTimeBackwardsCompatible() throws IOException {
     String jobHistoryFile = String.format(OLD_FORMAT_BEFORE_ADD_START_TIME,
         JOB_ID,
         SUBMIT_TIME,
@@ -257,7 +256,7 @@ public class TestFileNameIndexUtils {
         NUM_MAPS,
         NUM_REDUCES,
         JOB_STATUS,
-        QUEUE_NAME );
+        QUEUE_NAME);
     JobIndexInfo info = FileNameIndexUtils.getIndexInfo(jobHistoryFile);
     Assert.assertEquals(info.getJobStartTime(), info.getSubmitTime());
   }

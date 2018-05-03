@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,21 +18,8 @@
 
 package org.apache.hadoop.mapreduce.v2.hs.webapp;
 
-import java.io.IOException;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriInfo;
-
+import com.google.common.annotations.VisibleForTesting;
+import com.google.inject.Inject;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.JobACL;
 import org.apache.hadoop.mapreduce.v2.api.records.AMInfo;
@@ -43,19 +30,11 @@ import org.apache.hadoop.mapreduce.v2.app.job.Job;
 import org.apache.hadoop.mapreduce.v2.app.job.Task;
 import org.apache.hadoop.mapreduce.v2.app.job.TaskAttempt;
 import org.apache.hadoop.mapreduce.v2.app.webapp.AMWebServices;
-import org.apache.hadoop.mapreduce.v2.app.webapp.dao.ConfInfo;
-import org.apache.hadoop.mapreduce.v2.app.webapp.dao.JobCounterInfo;
-import org.apache.hadoop.mapreduce.v2.app.webapp.dao.JobTaskAttemptCounterInfo;
-import org.apache.hadoop.mapreduce.v2.app.webapp.dao.JobTaskCounterInfo;
-import org.apache.hadoop.mapreduce.v2.app.webapp.dao.ReduceTaskAttemptInfo;
-import org.apache.hadoop.mapreduce.v2.app.webapp.dao.TaskAttemptInfo;
-import org.apache.hadoop.mapreduce.v2.app.webapp.dao.TaskAttemptsInfo;
-import org.apache.hadoop.mapreduce.v2.app.webapp.dao.TaskInfo;
-import org.apache.hadoop.mapreduce.v2.app.webapp.dao.TasksInfo;
+import org.apache.hadoop.mapreduce.v2.app.webapp.dao.*;
 import org.apache.hadoop.mapreduce.v2.hs.HistoryContext;
 import org.apache.hadoop.mapreduce.v2.hs.webapp.dao.AMAttemptInfo;
 import org.apache.hadoop.mapreduce.v2.hs.webapp.dao.AMAttemptsInfo;
-import org.apache.hadoop.mapreduce.v2.hs.webapp.dao.HistoryInfo;
+import org.apache.hadoop.mapreduce.v2.hs.webapp.dao.*;
 import org.apache.hadoop.mapreduce.v2.hs.webapp.dao.JobInfo;
 import org.apache.hadoop.mapreduce.v2.hs.webapp.dao.JobsInfo;
 import org.apache.hadoop.mapreduce.v2.util.MRApps;
@@ -65,21 +44,28 @@ import org.apache.hadoop.yarn.webapp.BadRequestException;
 import org.apache.hadoop.yarn.webapp.NotFoundException;
 import org.apache.hadoop.yarn.webapp.WebApp;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriInfo;
+import java.io.IOException;
 
 @Path("/ws/v1/history")
 public class HsWebServices {
   private final HistoryContext ctx;
   private WebApp webapp;
 
-  private @Context HttpServletResponse response;
+  private @Context
+  HttpServletResponse response;
   @Context
   UriInfo uriInfo;
 
   @Inject
   public HsWebServices(final HistoryContext ctx, final Configuration conf,
-      final WebApp webapp) {
+                       final WebApp webapp) {
     this.ctx = ctx;
     this.webapp = webapp;
   }
@@ -110,14 +96,14 @@ public class HsWebServices {
   }
 
   @GET
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public HistoryInfo get() {
     return getHistoryInfo();
   }
 
   @GET
   @Path("/info")
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public HistoryInfo getHistoryInfo() {
     init();
     return new HistoryInfo();
@@ -125,19 +111,19 @@ public class HsWebServices {
 
   @GET
   @Path("/mapreduce/jobs")
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public JobsInfo getJobs(@QueryParam("user") String userQuery,
-      @QueryParam("limit") String count,
-      @QueryParam("state") String stateQuery,
-      @QueryParam("queue") String queueQuery,
-      @QueryParam("startedTimeBegin") String startedBegin,
-      @QueryParam("startedTimeEnd") String startedEnd,
-      @QueryParam("finishedTimeBegin") String finishBegin,
-      @QueryParam("finishedTimeEnd") String finishEnd) {
+                          @QueryParam("limit") String count,
+                          @QueryParam("state") String stateQuery,
+                          @QueryParam("queue") String queueQuery,
+                          @QueryParam("startedTimeBegin") String startedBegin,
+                          @QueryParam("startedTimeEnd") String startedEnd,
+                          @QueryParam("finishedTimeBegin") String finishBegin,
+                          @QueryParam("finishedTimeEnd") String finishEnd) {
 
     Long countParam = null;
     init();
-    
+
     if (count != null && !count.isEmpty()) {
       try {
         countParam = Long.parseLong(count);
@@ -160,7 +146,7 @@ public class HsWebServices {
         throw new BadRequestException("startedTimeBegin must be greater than 0");
       }
     }
-    
+
     Long sEnd = null;
     if (startedEnd != null && !startedEnd.isEmpty()) {
       try {
@@ -203,21 +189,21 @@ public class HsWebServices {
       throw new BadRequestException(
           "finishedTimeEnd must be greater than finishedTimeBegin");
     }
-    
+
     JobState jobState = null;
     if (stateQuery != null) {
       jobState = JobState.valueOf(stateQuery);
     }
 
-    return ctx.getPartialJobs(0l, countParam, userQuery, queueQuery, 
+    return ctx.getPartialJobs(0l, countParam, userQuery, queueQuery,
         sBegin, sEnd, fBegin, fEnd, jobState);
   }
 
   @GET
   @Path("/mapreduce/jobs/{jobid}")
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public JobInfo getJob(@Context HttpServletRequest hsr,
-      @PathParam("jobid") String jid) {
+                        @PathParam("jobid") String jid) {
 
     init();
     Job job = AMWebServices.getJobFromJobIdString(jid, ctx);
@@ -227,7 +213,7 @@ public class HsWebServices {
 
   @GET
   @Path("/mapreduce/jobs/{jobid}/jobattempts")
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public AMAttemptsInfo getJobAttempts(@PathParam("jobid") String jid) {
 
     init();
@@ -244,9 +230,9 @@ public class HsWebServices {
 
   @GET
   @Path("/mapreduce/jobs/{jobid}/counters")
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public JobCounterInfo getJobCounters(@Context HttpServletRequest hsr,
-      @PathParam("jobid") String jid) {
+                                       @PathParam("jobid") String jid) {
 
     init();
     Job job = AMWebServices.getJobFromJobIdString(jid, ctx);
@@ -256,9 +242,9 @@ public class HsWebServices {
 
   @GET
   @Path("/mapreduce/jobs/{jobid}/conf")
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public ConfInfo getJobConf(@Context HttpServletRequest hsr,
-      @PathParam("jobid") String jid) {
+                             @PathParam("jobid") String jid) {
 
     init();
     Job job = AMWebServices.getJobFromJobIdString(jid, ctx);
@@ -275,9 +261,9 @@ public class HsWebServices {
 
   @GET
   @Path("/mapreduce/jobs/{jobid}/tasks")
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public TasksInfo getJobTasks(@Context HttpServletRequest hsr,
-      @PathParam("jobid") String jid, @QueryParam("type") String type) {
+                               @PathParam("jobid") String jid, @QueryParam("type") String type) {
 
     init();
     Job job = AMWebServices.getJobFromJobIdString(jid, ctx);
@@ -302,9 +288,9 @@ public class HsWebServices {
 
   @GET
   @Path("/mapreduce/jobs/{jobid}/tasks/{taskid}")
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public TaskInfo getJobTask(@Context HttpServletRequest hsr,
-      @PathParam("jobid") String jid, @PathParam("taskid") String tid) {
+                             @PathParam("jobid") String jid, @PathParam("taskid") String tid) {
 
     init();
     Job job = AMWebServices.getJobFromJobIdString(jid, ctx);
@@ -316,7 +302,7 @@ public class HsWebServices {
 
   @GET
   @Path("/mapreduce/jobs/{jobid}/tasks/{taskid}/counters")
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public JobTaskCounterInfo getSingleTaskCounters(
       @Context HttpServletRequest hsr, @PathParam("jobid") String jid,
       @PathParam("taskid") String tid) {
@@ -337,9 +323,9 @@ public class HsWebServices {
 
   @GET
   @Path("/mapreduce/jobs/{jobid}/tasks/{taskid}/attempts")
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public TaskAttemptsInfo getJobTaskAttempts(@Context HttpServletRequest hsr,
-      @PathParam("jobid") String jid, @PathParam("taskid") String tid) {
+                                             @PathParam("jobid") String jid, @PathParam("taskid") String tid) {
 
     init();
     TaskAttemptsInfo attempts = new TaskAttemptsInfo();
@@ -360,10 +346,10 @@ public class HsWebServices {
 
   @GET
   @Path("/mapreduce/jobs/{jobid}/tasks/{taskid}/attempts/{attemptid}")
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public TaskAttemptInfo getJobTaskAttemptId(@Context HttpServletRequest hsr,
-      @PathParam("jobid") String jid, @PathParam("taskid") String tid,
-      @PathParam("attemptid") String attId) {
+                                             @PathParam("jobid") String jid, @PathParam("taskid") String tid,
+                                             @PathParam("attemptid") String attId) {
 
     init();
     Job job = AMWebServices.getJobFromJobIdString(jid, ctx);
@@ -380,7 +366,7 @@ public class HsWebServices {
 
   @GET
   @Path("/mapreduce/jobs/{jobid}/tasks/{taskid}/attempts/{attemptid}/counters")
-  @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+  @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
   public JobTaskAttemptCounterInfo getJobTaskAttemptIdCounters(
       @Context HttpServletRequest hsr, @PathParam("jobid") String jid,
       @PathParam("taskid") String tid, @PathParam("attemptid") String attId) {

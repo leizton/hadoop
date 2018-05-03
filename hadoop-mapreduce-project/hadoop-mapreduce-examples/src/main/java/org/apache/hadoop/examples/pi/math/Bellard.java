@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,30 +17,24 @@
  */
 package org.apache.hadoop.examples.pi.math;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
 import org.apache.hadoop.examples.pi.Container;
 import org.apache.hadoop.examples.pi.Util;
+
+import java.io.IOException;
+import java.util.*;
 
 /**
  * Bellard's BBP-type Pi formula
  * 1/2^6 \sum_{n=0}^\infty (-1)^n/2^{10n}
  * (-2^5/(4n+1) -1/(4n+3) +2^8/(10n+1) -2^6/(10n+3) -2^2/(10n+5)
  *  -2^2/(10n+7) +1/(10n+9))
- *  
+ *
  * References:
  *
  * [1] David H. Bailey, Peter B. Borwein and Simon Plouffe.  On the Rapid
  *     Computation of Various Polylogarithmic Constants.
  *     Math. Comp., 66:903-913, 1996.
- *     
+ *
  * [2] Fabrice Bellard.  A new formula to compute the n'th binary digit of pi,
  *     1997.  Available at http://fabrice.bellard.free.fr/pi .
  */
@@ -60,29 +54,29 @@ public final class Bellard {
      *                               -2^{-4-10k} / (10k + 7)
      *                               +2^{-6-10k} / (10k + 9) )
      */
-    P20_21(true , 1, 20,  2),
-    P20_3(false, 3, 20,  0),
+    P20_21(true, 1, 20, 2),
+    P20_3(false, 3, 20, 0),
     P20_5(false, 5, 20, -4),
     P20_7(false, 7, 20, -4),
-    P20_9(true , 9, 20, -6),
+    P20_9(true, 9, 20, -6),
     P20_11(P20_21),
     P20_13(P20_3),
     P20_15(P20_5),
     P20_17(P20_7),
     P20_19(P20_9);
-    
+
     final boolean isplus;
     final long j;
     final int deltaN;
     final int deltaE;
-    final int offsetE;      
+    final int offsetE;
 
     private Parameter(boolean isplus, long j, int deltaN, int offsetE) {
       this.isplus = isplus;
       this.j = j;
       this.deltaN = deltaN;
       this.deltaE = -20;
-      this.offsetE = offsetE;        
+      this.offsetE = offsetE;
     }
 
     private Parameter(Parameter p) {
@@ -100,8 +94,8 @@ public final class Bellard {
         s = s.substring(1);
       final String[] parts = s.split("\\D+");
       if (parts.length >= 2) {
-        final String name = "P" + parts[0] + "_" + parts[1];  
-        for(Parameter p : values())
+        final String name = "P" + parts[0] + "_" + parts[1];
+        for (Parameter p : values())
           if (p.name().equals(name))
             return p;
       }
@@ -125,9 +119,9 @@ public final class Bellard {
         throw new IllegalArgumentException("b = " + b + " < 0");
       if (nParts < 1)
         throw new IllegalArgumentException("nParts = " + nParts + " < 1");
-      final long i = p.j == 1 && p.offsetE >= 0? 1 : 0;
-      final long e = b + i*p.deltaE + p.offsetE;
-      final long n = i*p.deltaN + p.j;
+      final long i = p.j == 1 && p.offsetE >= 0 ? 1 : 0;
+      final long e = b + i * p.deltaE + p.offsetE;
+      final long n = i * p.deltaN + p.j;
 
       this.parameter = p;
       this.sigma = new Summation(n, p.deltaN, e, p.deltaE, 0);
@@ -141,26 +135,26 @@ public final class Bellard {
       if (existing == null || existing.isEmpty())
         parts.addAll(Arrays.asList(sigma.partition(nParts)));
       else {
-        final long stepsPerPart = sigma.getSteps()/nParts;
+        final long stepsPerPart = sigma.getSteps() / nParts;
         final List<Summation> remaining = sigma.remainingTerms(existing);
 
-        for(Summation s : remaining) {
-          final int n = (int)((s.getSteps() - 1)/stepsPerPart) + 1;
+        for (Summation s : remaining) {
+          final int n = (int) ((s.getSteps() - 1) / stepsPerPart) + 1;
           parts.addAll(Arrays.asList(s.partition(n)));
         }
-        
-        for(Container<Summation> c : existing)
+
+        for (Container<Summation> c : existing)
           parts.add(c.getElement());
         Collections.sort(parts);
       }
       return parts.toArray(new Summation[parts.size()]);
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public String toString() {
       int n = 0;
-      for(Summation s : parts)
+      for (Summation s : parts)
         if (s.getValue() == null)
           n++;
       return getClass().getSimpleName() + "{" + parameter + ": " + sigma
@@ -177,29 +171,29 @@ public final class Bellard {
         throw new IllegalArgumentException("!s.contains(sigma) || !sigma.contains(s)"
             + "\n  sigma=" + sigma
             + "\n  s    =" + s);
-      sigma.setValue(s.getValue());      
+      sigma.setValue(s.getValue());
     }
 
     /** get the value of sigma */
     public double getValue() {
       if (sigma.getValue() == null) {
         double d = 0;
-        for(int i = 0; i < parts.length; i++)
+        for (int i = 0; i < parts.length; i++)
           d = Modular.addMod(d, parts[i].compute());
         sigma.setValue(d);
       }
 
-      final double s = Modular.addMod(sigma.getValue(), tail.compute()); 
-      return parameter.isplus? s: -s;
+      final double s = Modular.addMod(sigma.getValue(), tail.compute());
+      return parameter.isplus ? s : -s;
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public Summation getElement() {
       if (sigma.getValue() == null) {
         int i = 0;
         double d = 0;
-        for(; i < parts.length && parts[i].getValue() != null; i++)
+        for (; i < parts.length && parts[i].getValue() != null; i++)
           d = Modular.addMod(d, parts[i].getValue());
         if (i == parts.length)
           sigma.setValue(d);
@@ -211,7 +205,7 @@ public final class Bellard {
     private class Tail {
       private long n;
       private long e;
-      
+
       private Tail(long n, long e) {
         this.n = n;
         this.e = e;
@@ -227,16 +221,16 @@ public final class Bellard {
             n += q * sigma.N.delta;
           } else {
             e = edelta - r;
-            n += (q + 1)*sigma.N.delta;
+            n += (q + 1) * sigma.N.delta;
           }
         } else if (e < 0)
-          e = -e; 
-    
+          e = -e;
+
         double s = 0;
-        for(;; e -= sigma.E.delta) {
+        for (; ; e -= sigma.E.delta) {
           if (e > ACCURACY_BIT || (1L << (ACCURACY_BIT - e)) < n)
             return s;
-    
+
           s += 1.0 / (n << e);
           if (s >= 1) s--;
           n += sigma.N.delta;
@@ -252,13 +246,21 @@ public final class Bellard {
 
         /** {@inheritDoc} */
         @Override
-        public boolean hasNext() {return i < parts.length;}
+        public boolean hasNext() {
+          return i < parts.length;
+        }
+
         /** {@inheritDoc} */
         @Override
-        public Summation next() {return parts[i++];}
+        public Summation next() {
+          return parts[i++];
+        }
+
         /** Unsupported */
         @Override
-        public void remove() {throw new UnsupportedOperationException();}
+        public void remove() {
+          throw new UnsupportedOperationException();
+        }
       };
     }
   }
@@ -267,7 +269,7 @@ public final class Bellard {
   public static <T extends Container<Summation>> Map<Parameter, Sum> getSums(
       long b, int partsPerSum, Map<Parameter, List<T>> existing) {
     final Map<Parameter, Sum> sums = new TreeMap<Parameter, Sum>();
-    for(Parameter p : Parameter.values()) {
+    for (Parameter p : Parameter.values()) {
       final Sum s = new Sum(b, p, partsPerSum, existing.get(p));
       Util.out.println("put " + s);
       sums.put(p, s);
@@ -284,7 +286,7 @@ public final class Bellard {
           + "\n  m=" + results);
 
     double pi = 0;
-    for(Parameter p : Parameter.values()) {
+    for (Parameter p : Parameter.values()) {
       final Summation sigma = results.get(p).getElement();
       final Sum s = new Sum(b, p, 1, null);
       s.setValue(sigma);
@@ -296,14 +298,14 @@ public final class Bellard {
   /** Compute bits of Pi in the local machine. */
   public static double computePi(final long b) {
     double pi = 0;
-    for(Parameter p : Parameter.values())
+    for (Parameter p : Parameter.values())
       pi = Modular.addMod(pi, new Sum(b, p, 1, null).getValue());
     return pi;
   }
 
   /** Estimate the number of terms. */
   public static long bit2terms(long b) {
-    return 7*(b/10);
+    return 7 * (b / 10);
   }
 
   private static void computePi(Util.Timer t, long b) {
@@ -325,7 +327,7 @@ public final class Bellard {
     computePi(t, 1012);
 
     long b = 10;
-    for(int i = 0; i < 7; i++) {
+    for (int i = 0; i < 7; i++) {
       Util.printBitSkipped(b);
       computePi(t, b - 4);
       computePi(t, b);

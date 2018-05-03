@@ -5,9 +5,9 @@
  * licenses this file to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -29,21 +29,21 @@ public class CancelDelegationTokenRequestPBImpl extends
     ProtoBase<CancelDelegationTokenRequestProto> implements
     CancelDelegationTokenRequest {
 
-  CancelDelegationTokenRequestProto proto = 
+  CancelDelegationTokenRequestProto proto =
       CancelDelegationTokenRequestProto.getDefaultInstance();
   CancelDelegationTokenRequestProto.Builder builder = null;
   boolean viaProto = false;
-  
+
   public CancelDelegationTokenRequestPBImpl() {
     this.builder = CancelDelegationTokenRequestProto.newBuilder();
   }
 
-  public CancelDelegationTokenRequestPBImpl (
+  public CancelDelegationTokenRequestPBImpl(
       CancelDelegationTokenRequestProto proto) {
     this.proto = proto;
     this.viaProto = true;
   }
-    
+
   Token token;
 
   @Override
@@ -59,7 +59,7 @@ public class CancelDelegationTokenRequestPBImpl extends
   @Override
   public void setDelegationToken(Token token) {
     maybeInitBuilder();
-    if (token == null) 
+    if (token == null)
       builder.clearToken();
     this.token = token;
   }
@@ -80,7 +80,7 @@ public class CancelDelegationTokenRequestPBImpl extends
   }
 
   private void mergeLocalToProto() {
-    if (viaProto) 
+    if (viaProto)
       maybeInitBuilder();
     mergeLocalToBuilder();
     proto = builder.build();
@@ -100,6 +100,6 @@ public class CancelDelegationTokenRequestPBImpl extends
   }
 
   private TokenProto convertToProtoFormat(Token t) {
-    return ((TokenPBImpl)t).getProto();
+    return ((TokenPBImpl) t).getProto();
   }
 }

@@ -36,38 +36,45 @@ public interface CounterGroupBase<T extends Counter>
 
   /**
    * Get the internal name of the group
+   *
    * @return the internal name
    */
   String getName();
 
   /**
    * Get the display name of the group.
+   *
    * @return the human readable name
    */
   String getDisplayName();
 
   /**
    * Set the display name of the group
+   *
    * @param displayName of the group
    */
   void setDisplayName(String displayName);
 
-  /** Add a counter to this group.
+  /**
+   * Add a counter to this group.
+   *
    * @param counter to add
    */
   void addCounter(T counter);
 
   /**
    * Add a counter to this group
-   * @param name  of the counter
+   *
+   * @param name        of the counter
    * @param displayName of the counter
-   * @param value of the counter
+   * @param value       of the counter
    * @return the counter
    */
   T addCounter(String name, String displayName, long value);
 
   /**
    * Find a counter in the group.
+   *
    * @param counterName the name of the counter
    * @param displayName the display name of the counter
    * @return the counter that was found or added
@@ -76,14 +83,16 @@ public interface CounterGroupBase<T extends Counter>
 
   /**
    * Find a counter in the group
+   *
    * @param counterName the name of the counter
-   * @param create create the counter if not found if true
+   * @param create      create the counter if not found if true
    * @return the counter that was found or added or null if create is false
    */
   T findCounter(String counterName, boolean create);
 
   /**
    * Find a counter in the group.
+   *
    * @param counterName the name of the counter
    * @return the counter that was found or added
    */
@@ -96,10 +105,11 @@ public interface CounterGroupBase<T extends Counter>
 
   /**
    * Increment all counters by a group of counters
-   * @param rightGroup  the group to be added to this group
+   *
+   * @param rightGroup the group to be added to this group
    */
   void incrAllCounters(CounterGroupBase<T> rightGroup);
-  
+
   @Private
   /**
    * Exposes the underlying group type if a facade.

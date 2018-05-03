@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,12 +17,12 @@
  */
 package org.apache.hadoop.examples.pi.math;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.hadoop.examples.pi.Combinable;
 import org.apache.hadoop.examples.pi.Container;
 import org.apache.hadoop.examples.pi.Util;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /** Represent the summation \sum \frac{2^e \mod n}{n}. */
 public class Summation implements Container<Summation>, Combinable<Summation> {
@@ -44,35 +44,44 @@ public class Summation implements Container<Summation>, Combinable<Summation> {
   }
 
   /** Constructor */
-  Summation(long valueN, long deltaN, 
+  Summation(long valueN, long deltaN,
             long valueE, long deltaE, long limitE) {
-    this(valueN, deltaN, valueN - deltaN*((valueE - limitE)/deltaE),
-         valueE, deltaE, limitE);
+    this(valueN, deltaN, valueN - deltaN * ((valueE - limitE) / deltaE),
+        valueE, deltaE, limitE);
   }
 
   /** Constructor */
-  Summation(long valueN, long deltaN, long limitN, 
+  Summation(long valueN, long deltaN, long limitN,
             long valueE, long deltaE, long limitE) {
     this(new ArithmeticProgression('n', valueN, deltaN, limitN),
-         new ArithmeticProgression('e', valueE, deltaE, limitE));
+        new ArithmeticProgression('e', valueE, deltaE, limitE));
   }
 
   /** {@inheritDoc} */
   @Override
-  public Summation getElement() {return this;}
+  public Summation getElement() {
+    return this;
+  }
 
   /** Return the number of steps of this summation */
-  long getSteps() {return E.getSteps();}
-  
+  long getSteps() {
+    return E.getSteps();
+  }
+
   /** Return the value of this summation */
-  public Double getValue() {return value;}
+  public Double getValue() {
+    return value;
+  }
+
   /** Set the value of this summation */
-  public void setValue(double v) {this.value = v;}
+  public void setValue(double v) {
+    this.value = v;
+  }
 
   /** {@inheritDoc} */
   @Override
   public String toString() {
-    return "[" + N + "; " + E + (value == null? "]": "]value=" + Double.doubleToLongBits(value)); 
+    return "[" + N + "; " + E + (value == null ? "]" : "]value=" + Double.doubleToLongBits(value));
   }
 
   /** {@inheritDoc} */
@@ -81,11 +90,11 @@ public class Summation implements Container<Summation>, Combinable<Summation> {
     if (obj == this)
       return true;
     if (obj != null && obj instanceof Summation) {
-      final Summation that = (Summation)obj;
+      final Summation that = (Summation) obj;
       return this.N.equals(that.N) && this.E.equals(that.E);
     }
-    throw new IllegalArgumentException(obj == null? "obj == null":
-      "obj.getClass()=" + obj.getClass());
+    throw new IllegalArgumentException(obj == null ? "obj == null" :
+        "obj.getClass()=" + obj.getClass());
   }
 
   /** Not supported */
@@ -112,8 +121,8 @@ public class Summation implements Container<Summation>, Combinable<Summation> {
     i = j + 1;
     if (s.length() > i) {
       final String value = Util.parseStringVariable("value", s.substring(i));
-      sigma.setValue(value.indexOf('.') < 0?
-          Double.longBitsToDouble(Long.parseLong(value)):
+      sigma.setValue(value.indexOf('.') < 0 ?
+          Double.longBitsToDouble(Long.parseLong(value)) :
           Double.parseDouble(value));
     }
     return sigma;
@@ -122,31 +131,33 @@ public class Summation implements Container<Summation>, Combinable<Summation> {
   /** Compute the value of the summation. */
   public double compute() {
     if (value == null)
-      value = N.limit <= MAX_MODULAR? compute_modular(): compute_montgomery();
+      value = N.limit <= MAX_MODULAR ? compute_modular() : compute_montgomery();
     return value;
   }
 
   private static final long MAX_MODULAR = 1L << 32;
+
   /** Compute the value using {@link Modular#mod(long, long)}. */
   double compute_modular() {
     long e = E.value;
     long n = N.value;
     double s = 0;
-    for(; e > E.limit; e += E.delta) {
-      s = Modular.addMod(s, Modular.mod(e, n)/(double)n);
+    for (; e > E.limit; e += E.delta) {
+      s = Modular.addMod(s, Modular.mod(e, n) / (double) n);
       n += N.delta;
     }
     return s;
   }
 
   final Montgomery montgomery = new Montgomery();
+
   /** Compute the value using {@link Montgomery#mod(long)}. */
   double compute_montgomery() {
     long e = E.value;
     long n = N.value;
     double s = 0;
-    for(; e > E.limit; e += E.delta) {
-      s = Modular.addMod(s, montgomery.set(n).mod(e)/(double)n);
+    for (; e > E.limit; e += E.delta) {
+      s = Modular.addMod(s, montgomery.set(n).mod(e) / (double) n);
       n += N.delta;
     }
     return s;
@@ -163,11 +174,11 @@ public class Summation implements Container<Summation>, Combinable<Summation> {
   /** {@inheritDoc} */
   @Override
   public Summation combine(Summation that) {
-    if (this.N.delta != that.N.delta || this.E.delta != that.E.delta) 
+    if (this.N.delta != that.N.delta || this.E.delta != that.E.delta)
       throw new IllegalArgumentException(
           "this.N.delta != that.N.delta || this.E.delta != that.E.delta"
-          + ",\n  this=" + this
-          + ",\n  that=" + that);
+              + ",\n  this=" + this
+              + ",\n  that=" + that);
     if (this.E.limit == that.E.value && this.N.limit == that.N.value) {
       final double v = Modular.addMod(this.value, that.value);
       final Summation s = new Summation(
@@ -185,44 +196,44 @@ public class Summation implements Container<Summation>, Combinable<Summation> {
     Summation remaining = this;
 
     if (sorted != null)
-      for(Container<Summation> c : sorted) {
+      for (Container<Summation> c : sorted) {
         final Summation sigma = c.getElement();
         if (!remaining.contains(sigma))
           throw new IllegalArgumentException("!remaining.contains(s),"
               + "\n  remaining = " + remaining
-              + "\n  s         = " + sigma          
+              + "\n  s         = " + sigma
               + "\n  this      = " + this
               + "\n  sorted    = " + sorted);
 
         final Summation s = new Summation(sigma.N.limit, N.delta, remaining.N.limit,
-                                          sigma.E.limit, E.delta, remaining.E.limit);
+            sigma.E.limit, E.delta, remaining.E.limit);
         if (s.getSteps() > 0)
           results.add(s);
         remaining = new Summation(remaining.N.value, N.delta, sigma.N.value,
-                                  remaining.E.value, E.delta, sigma.E.value);
+            remaining.E.value, E.delta, sigma.E.value);
       }
 
     if (remaining.getSteps() > 0)
       results.add(remaining);
-  
+
     return results;
   }
 
   /** Does this contains that? */
   public boolean contains(Summation that) {
-    return this.N.contains(that.N) && this.E.contains(that.E);    
+    return this.N.contains(that.N) && this.E.contains(that.E);
   }
 
   /** Partition the summation. */
   public Summation[] partition(final int nParts) {
     final Summation[] parts = new Summation[nParts];
-    final long steps = (E.limit - E.value)/E.delta + 1;
+    final long steps = (E.limit - E.value) / E.delta + 1;
 
     long prevN = N.value;
     long prevE = E.value;
 
-    for(int i = 1; i < parts.length; i++) {
-      final long k = (i * steps)/parts.length;
+    for (int i = 1; i < parts.length; i++) {
+      final long k = (i * steps) / parts.length;
 
       final long currN = N.skip(k);
       final long currE = E.skip(k);

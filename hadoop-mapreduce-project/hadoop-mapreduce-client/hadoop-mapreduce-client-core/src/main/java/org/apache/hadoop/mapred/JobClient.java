@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,6 +16,25 @@
  * limitations under the License.
  */
 package org.apache.hadoop.mapred;
+
+import org.apache.hadoop.classification.InterfaceAudience;
+import org.apache.hadoop.classification.InterfaceStability;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.ClusterStatus.BlackListInfo;
+import org.apache.hadoop.mapreduce.*;
+import org.apache.hadoop.mapreduce.filecache.DistributedCache;
+import org.apache.hadoop.mapreduce.security.token.delegation.DelegationTokenIdentifier;
+import org.apache.hadoop.mapreduce.tools.CLI;
+import org.apache.hadoop.mapreduce.util.ConfigUtil;
+import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.hadoop.security.token.SecretManager.InvalidToken;
+import org.apache.hadoop.security.token.Token;
+import org.apache.hadoop.util.Tool;
+import org.apache.hadoop.util.ToolRunner;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -26,39 +45,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.hadoop.classification.InterfaceAudience;
-import org.apache.hadoop.classification.InterfaceStability;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.ClusterStatus.BlackListInfo;
-import org.apache.hadoop.mapreduce.Cluster;
-import org.apache.hadoop.mapreduce.ClusterMetrics;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.QueueInfo;
-import org.apache.hadoop.mapreduce.TaskTrackerInfo;
-import org.apache.hadoop.mapreduce.TaskType;
-import org.apache.hadoop.mapreduce.filecache.DistributedCache;
-import org.apache.hadoop.mapreduce.security.token.delegation.DelegationTokenIdentifier;
-import org.apache.hadoop.mapreduce.tools.CLI;
-import org.apache.hadoop.mapreduce.util.ConfigUtil;
-import org.apache.hadoop.security.UserGroupInformation;
-import org.apache.hadoop.security.token.SecretManager.InvalidToken;
-import org.apache.hadoop.security.token.Token;
-import org.apache.hadoop.security.token.TokenRenewer;
-import org.apache.hadoop.util.Tool;
-import org.apache.hadoop.util.ToolRunner;
-
 /**
  * <code>JobClient</code> is the primary interface for the user-job to interact
  * with the cluster.
- * 
+ *
  * <code>JobClient</code> provides facilities to submit jobs, track their 
  * progress, access component-tasks' reports/logs, get the Map-Reduce cluster
  * status information etc.
- * 
+ *
  * <p>The job submission process involves:
  * <ol>
  *   <li>
@@ -68,7 +62,7 @@ import org.apache.hadoop.util.ToolRunner;
  *   Computing the {@link InputSplit}s for the job.
  *   </li>
  *   <li>
- *   Setup the requisite accounting information for the {@link DistributedCache} 
+ *   Setup the requisite accounting information for the {@link DistributedCache}
  *   of the job, if necessary.
  *   </li>
  *   <li>
@@ -80,36 +74,36 @@ import org.apache.hadoop.util.ToolRunner;
  *   it's status.
  *   </li>
  * </ol></p>
- *  
+ *
  * Normally the user creates the application, describes various facets of the
  * job via {@link JobConf} and then uses the <code>JobClient</code> to submit 
  * the job and monitor its progress.
- * 
+ *
  * <p>Here is an example on how to use <code>JobClient</code>:</p>
  * <p><blockquote><pre>
  *     // Create a new JobConf
  *     JobConf job = new JobConf(new Configuration(), MyJob.class);
- *     
+ *
  *     // Specify various job-specific parameters     
  *     job.setJobName("myjob");
- *     
+ *
  *     job.setInputPath(new Path("in"));
  *     job.setOutputPath(new Path("out"));
- *     
+ *
  *     job.setMapperClass(MyJob.MyMapper.class);
  *     job.setReducerClass(MyJob.MyReducer.class);
  *
  *     // Submit the job, then poll for progress until the job is complete
  *     JobClient.runJob(job);
  * </pre></blockquote></p>
- * 
+ *
  * <h4 id="JobControl">Job Control</h4>
- * 
+ *
  * <p>At times clients would chain map-reduce jobs to accomplish complex tasks 
  * which cannot be done via a single map-reduce job. This is fairly easy since 
  * the output of the job, typically, goes to distributed file-system and that 
  * can be used as the input for the next job.</p>
- * 
+ *
  * <p>However, this also means that the onus on ensuring jobs are complete 
  * (success/failure) lies squarely on the clients. In such situations the 
  * various job-control options are:
@@ -128,7 +122,7 @@ import org.apache.hadoop.util.ToolRunner;
  *   on job-completion, thus avoiding polling.
  *   </li>
  * </ol></p>
- * 
+ *
  * @see JobConf
  * @see ClusterStatus
  * @see Tool
@@ -151,10 +145,11 @@ public class JobClient extends CLI {
   public static final String MAPREDUCE_CLIENT_RETRY_POLICY_SPEC_DEFAULT =
       "10000,6,60000,10"; // t1,n1,t2,n2,...
 
-  public static enum TaskStatusFilter { NONE, KILLED, FAILED, SUCCEEDED, ALL }
-  private TaskStatusFilter taskOutputFilter = TaskStatusFilter.FAILED; 
-  
-  static{
+  public static enum TaskStatusFilter {NONE, KILLED, FAILED, SUCCEEDED, ALL}
+
+  private TaskStatusFilter taskOutputFilter = TaskStatusFilter.FAILED;
+
+  static {
     ConfigUtil.loadResources();
   }
 
@@ -165,6 +160,7 @@ public class JobClient extends CLI {
    */
   static class NetworkedJob implements RunningJob {
     Job job;
+
     /**
      * We store a JobProfile and a timestamp for when we last
      * acquired the job profile.  If the job is null, then we cannot
@@ -175,7 +171,7 @@ public class JobClient extends CLI {
     public NetworkedJob(JobStatus status, Cluster cluster) throws IOException {
       this(status, cluster, new JobConf(status.getJobFile()));
     }
-    
+
     private NetworkedJob(JobStatus status, Cluster cluster, JobConf conf)
         throws IOException {
       this(Job.getInstance(cluster, status, conf));
@@ -195,14 +191,14 @@ public class JobClient extends CLI {
     public JobID getID() {
       return JobID.downgrade(job.getJobID());
     }
-    
+
     /** @deprecated This method is deprecated and will be removed. Applications should 
      * rather use {@link #getID()}.*/
     @Deprecated
     public String getJobID() {
       return getID().toString();
     }
-    
+
     /**
      * The user-specified job name
      */
@@ -297,28 +293,28 @@ public class JobClient extends CLI {
         throw new IOException(ie);
       }
     }
-    
+
     /**
      * Tells the service to terminate the current job.
      */
     public synchronized void killJob() throws IOException {
       job.killJob();
     }
-   
-    
+
+
     /** Set the priority of the job.
-    * @param priority new priority of the job. 
-    */
-    public synchronized void setJobPriority(String priority) 
-                                                throws IOException {
+     * @param priority new priority of the job.
+     */
+    public synchronized void setJobPriority(String priority)
+        throws IOException {
       try {
         job.setPriority(
-          org.apache.hadoop.mapreduce.JobPriority.valueOf(priority));
+            org.apache.hadoop.mapreduce.JobPriority.valueOf(priority));
       } catch (InterruptedException ie) {
         throw new IOException(ie);
       }
     }
-    
+
     /**
      * Kill indicated task attempt.
      * @param taskId the id of the task to kill.
@@ -326,7 +322,7 @@ public class JobClient extends CLI {
      * it is just killed, w/o affecting job failure status.
      */
     public synchronized void killTask(TaskAttemptID taskId,
-        boolean shouldFail) throws IOException {
+                                      boolean shouldFail) throws IOException {
       if (shouldFail) {
         job.failTask(taskId);
       } else {
@@ -339,17 +335,17 @@ public class JobClient extends CLI {
     public synchronized void killTask(String taskId, boolean shouldFail) throws IOException {
       killTask(TaskAttemptID.forName(taskId), shouldFail);
     }
-    
+
     /**
      * Fetch task completion events from cluster for this job. 
      */
     public synchronized TaskCompletionEvent[] getTaskCompletionEvents(
         int startFrom) throws IOException {
       try {
-        org.apache.hadoop.mapreduce.TaskCompletionEvent[] acls = 
-          job.getTaskCompletionEvents(startFrom, 10);
+        org.apache.hadoop.mapreduce.TaskCompletionEvent[] acls =
+            job.getTaskCompletionEvents(startFrom, 10);
         TaskCompletionEvent[] ret = new TaskCompletionEvent[acls.length];
-        for (int i = 0 ; i < acls.length; i++ ) {
+        for (int i = 0; i < acls.length; i++) {
           ret[i] = TaskCompletionEvent.downgrade(acls[i]);
         }
         return ret;
@@ -365,22 +361,22 @@ public class JobClient extends CLI {
     public String toString() {
       return job.toString();
     }
-        
+
     /**
      * Returns the counters for this job
      */
     public Counters getCounters() throws IOException {
       Counters result = null;
       org.apache.hadoop.mapreduce.Counters temp = job.getCounters();
-      if(temp != null) {
+      if (temp != null) {
         result = Counters.downgrade(temp);
       }
       return result;
     }
-    
+
     @Override
     public String[] getTaskDiagnostics(TaskAttemptID id) throws IOException {
-      try { 
+      try {
         return job.getTaskDiagnostics(id);
       } catch (InterruptedException ie) {
         throw new IOException(ie);
@@ -402,11 +398,11 @@ public class JobClient extends CLI {
         throw new IOException(ie);
       }
     }
-    
+
     boolean monitorAndPrintJob() throws IOException, InterruptedException {
       return job.monitorAndPrintJob();
     }
-    
+
     @Override
     public String getFailureInfo() throws IOException {
       try {
@@ -431,17 +427,17 @@ public class JobClient extends CLI {
    * then make sure that the same ugi is used to run the various protocols.
    */
   UserGroupInformation clientUgi;
-  
+
   /**
    * Create a job client.
    */
   public JobClient() {
   }
-    
+
   /**
    * Build a job client with the given {@link JobConf}, and connect to the 
    * default cluster
-   * 
+   *
    * @param conf the job configuration.
    * @throws IOException
    */
@@ -452,7 +448,7 @@ public class JobClient extends CLI {
   /**
    * Build a job client with the given {@link Configuration}, 
    * and connect to the default cluster
-   * 
+   *
    * @param conf the configuration.
    * @throws IOException
    */
@@ -473,11 +469,11 @@ public class JobClient extends CLI {
 
   /**
    * Build a job client, connect to the indicated job tracker.
-   * 
+   *
    * @param jobTrackAddr the job tracker to connect to.
    * @param conf configuration.
    */
-  public JobClient(InetSocketAddress jobTrackAddr, 
+  public JobClient(InetSocketAddress jobTrackAddr,
                    Configuration conf) throws IOException {
     cluster = new Cluster(jobTrackAddr, conf);
     clientUgi = UserGroupInformation.getCurrentUser();
@@ -493,30 +489,30 @@ public class JobClient extends CLI {
   /**
    * Get a filesystem handle.  We need this to prepare jobs
    * for submission to the MapReduce system.
-   * 
+   *
    * @return the filesystem handle.
    */
   public synchronized FileSystem getFs() throws IOException {
-    try { 
+    try {
       return cluster.getFileSystem();
     } catch (InterruptedException ie) {
       throw new IOException(ie);
     }
   }
-  
+
   /**
    * Get a handle to the Cluster
    */
   public Cluster getClusterHandle() {
     return cluster;
   }
-  
+
   /**
    * Submit a job to the MR system.
-   * 
+   *
    * This returns a handle to the {@link RunningJob} which can be used to track
    * the running-job.
-   * 
+   *
    * @param jobFile the job configuration.
    * @return a handle to the {@link RunningJob} which can be used to track the
    *         running-job.
@@ -524,19 +520,19 @@ public class JobClient extends CLI {
    * @throws InvalidJobConfException
    * @throws IOException
    */
-  public RunningJob submitJob(String jobFile) throws FileNotFoundException, 
-                                                     InvalidJobConfException, 
-                                                     IOException {
+  public RunningJob submitJob(String jobFile) throws FileNotFoundException,
+      InvalidJobConfException,
+      IOException {
     // Load in the submitted job details
     JobConf job = new JobConf(jobFile);
     return submitJob(job);
   }
-    
+
   /**
    * Submit a job to the MR system.
    * This returns a handle to the {@link RunningJob} which can be used to track
    * the running-job.
-   * 
+   *
    * @param conf the job configuration.
    * @return a handle to the {@link RunningJob} which can be used to track the
    *         running-job.
@@ -544,7 +540,7 @@ public class JobClient extends CLI {
    * @throws IOException
    */
   public RunningJob submitJob(final JobConf conf) throws FileNotFoundException,
-                                                  IOException {
+      IOException {
     return submitJobInternal(conf);
   }
 
@@ -554,10 +550,10 @@ public class JobClient extends CLI {
     try {
       conf.setBooleanIfUnset("mapred.mapper.new-api", false);
       conf.setBooleanIfUnset("mapred.reducer.new-api", false);
-      Job job = clientUgi.doAs(new PrivilegedExceptionAction<Job> () {
+      Job job = clientUgi.doAs(new PrivilegedExceptionAction<Job>() {
         @Override
-        public Job run() throws IOException, ClassNotFoundException, 
-          InterruptedException {
+        public Job run() throws IOException, ClassNotFoundException,
+            InterruptedException {
           Job job = Job.getInstance(conf);
           job.submit();
           return job;
@@ -574,17 +570,18 @@ public class JobClient extends CLI {
   }
 
   private Job getJobUsingCluster(final JobID jobid) throws IOException,
-  InterruptedException {
+      InterruptedException {
     return clientUgi.doAs(new PrivilegedExceptionAction<Job>() {
-      public Job run() throws IOException, InterruptedException  {
-       return cluster.getJob(jobid);
+      public Job run() throws IOException, InterruptedException {
+        return cluster.getJob(jobid);
       }
     });
   }
+
   /**
    * Get an {@link RunningJob} object to track an ongoing job.  Returns
    * null if the id does not correspond to any known job.
-   * 
+   *
    * @param jobid the jobid of the job.
    * @return the {@link RunningJob} handle to track the job, null if the 
    *         <code>jobid</code> doesn't correspond to any known job.
@@ -592,14 +589,14 @@ public class JobClient extends CLI {
    */
   public RunningJob getJob(final JobID jobid) throws IOException {
     try {
-      
+
       Job job = getJobUsingCluster(jobid);
       if (job != null) {
         JobStatus status = JobStatus.downgrade(job.getStatus());
         if (status != null) {
           return new NetworkedJob(status, cluster,
               new JobConf(job.getConfiguration()));
-        } 
+        }
       }
     } catch (InterruptedException ie) {
       throw new IOException(ie);
@@ -613,12 +610,12 @@ public class JobClient extends CLI {
   public RunningJob getJob(String jobid) throws IOException {
     return getJob(JobID.forName(jobid));
   }
-  
+
   private static final TaskReport[] EMPTY_TASK_REPORTS = new TaskReport[0];
-  
+
   /**
    * Get the information of the current state of the map tasks of a job.
-   * 
+   *
    * @param jobId the job to query.
    * @return the list of all of the map tips.
    * @throws IOException
@@ -626,12 +623,12 @@ public class JobClient extends CLI {
   public TaskReport[] getMapTaskReports(JobID jobId) throws IOException {
     return getTaskReports(jobId, TaskType.MAP);
   }
-  
-  private TaskReport[] getTaskReports(final JobID jobId, TaskType type) throws 
-    IOException {
+
+  private TaskReport[] getTaskReports(final JobID jobId, TaskType type) throws
+      IOException {
     try {
       Job j = getJobUsingCluster(jobId);
-      if(j == null) {
+      if (j == null) {
         return EMPTY_TASK_REPORTS;
       }
       return TaskReport.downgradeArray(j.getTaskReports(type));
@@ -639,64 +636,64 @@ public class JobClient extends CLI {
       throw new IOException(ie);
     }
   }
-  
+
   /**@deprecated Applications should rather use {@link #getMapTaskReports(JobID)}*/
   @Deprecated
   public TaskReport[] getMapTaskReports(String jobId) throws IOException {
     return getMapTaskReports(JobID.forName(jobId));
   }
-  
+
   /**
    * Get the information of the current state of the reduce tasks of a job.
-   * 
+   *
    * @param jobId the job to query.
    * @return the list of all of the reduce tips.
    * @throws IOException
-   */    
+   */
   public TaskReport[] getReduceTaskReports(JobID jobId) throws IOException {
     return getTaskReports(jobId, TaskType.REDUCE);
   }
 
   /**
    * Get the information of the current state of the cleanup tasks of a job.
-   * 
+   *
    * @param jobId the job to query.
    * @return the list of all of the cleanup tips.
    * @throws IOException
-   */    
+   */
   public TaskReport[] getCleanupTaskReports(JobID jobId) throws IOException {
     return getTaskReports(jobId, TaskType.JOB_CLEANUP);
   }
 
   /**
    * Get the information of the current state of the setup tasks of a job.
-   * 
+   *
    * @param jobId the job to query.
    * @return the list of all of the setup tips.
    * @throws IOException
-   */    
+   */
   public TaskReport[] getSetupTaskReports(JobID jobId) throws IOException {
     return getTaskReports(jobId, TaskType.JOB_SETUP);
   }
 
-  
+
   /**@deprecated Applications should rather use {@link #getReduceTaskReports(JobID)}*/
   @Deprecated
   public TaskReport[] getReduceTaskReports(String jobId) throws IOException {
     return getReduceTaskReports(JobID.forName(jobId));
   }
-  
+
   /**
    * Display the information about a job's tasks, of a particular type and
    * in a particular state
-   * 
+   *
    * @param jobId the ID of the job
    * @param type the type of the task (map/reduce/setup/cleanup)
    * @param state the state of the task 
    * (pending/running/completed/failed/killed)
    */
-  public void displayTasks(final JobID jobId, String type, String state) 
-  throws IOException {
+  public void displayTasks(final JobID jobId, String type, String state)
+      throws IOException {
     try {
       Job job = getJobUsingCluster(jobId);
       super.displayTasks(job, type, state);
@@ -704,10 +701,10 @@ public class JobClient extends CLI {
       throw new IOException(ie);
     }
   }
-  
+
   /**
    * Get status information about the Map-Reduce cluster.
-   *  
+   *
    * @return the status information about the Map-Reduce cluster as an object
    *         of {@link ClusterStatus}.
    * @throws IOException
@@ -718,11 +715,11 @@ public class JobClient extends CLI {
         public ClusterStatus run() throws IOException, InterruptedException {
           ClusterMetrics metrics = cluster.getClusterStatus();
           return new ClusterStatus(metrics.getTaskTrackerCount(), metrics
-            .getBlackListedTaskTrackerCount(), cluster
-            .getTaskTrackerExpiryInterval(), metrics.getOccupiedMapSlots(),
-            metrics.getOccupiedReduceSlots(), metrics.getMapSlotCapacity(),
-            metrics.getReduceSlotCapacity(), cluster.getJobTrackerStatus(),
-            metrics.getDecommissionedTaskTrackerCount(), metrics
+              .getBlackListedTaskTrackerCount(), cluster
+              .getTaskTrackerExpiryInterval(), metrics.getOccupiedMapSlots(),
+              metrics.getOccupiedReduceSlots(), metrics.getMapSlotCapacity(),
+              metrics.getReduceSlotCapacity(), cluster.getJobTrackerStatus(),
+              metrics.getDecommissionedTaskTrackerCount(), metrics
               .getGrayListedTaskTrackerCount());
         }
       });
@@ -731,17 +728,17 @@ public class JobClient extends CLI {
     }
   }
 
-  private  Collection<String> arrayToStringList(TaskTrackerInfo[] objs) {
+  private Collection<String> arrayToStringList(TaskTrackerInfo[] objs) {
     Collection<String> list = new ArrayList<String>();
-    for (TaskTrackerInfo info: objs) {
+    for (TaskTrackerInfo info : objs) {
       list.add(info.getTaskTrackerName());
     }
     return list;
   }
 
-  private  Collection<BlackListInfo> arrayToBlackListInfo(TaskTrackerInfo[] objs) {
+  private Collection<BlackListInfo> arrayToBlackListInfo(TaskTrackerInfo[] objs) {
     Collection<BlackListInfo> list = new ArrayList<BlackListInfo>();
-    for (TaskTrackerInfo info: objs) {
+    for (TaskTrackerInfo info : objs) {
       BlackListInfo binfo = new BlackListInfo();
       binfo.setTrackerName(info.getTaskTrackerName());
       binfo.setReasonForBlackListing(info.getReasonForBlacklist());
@@ -753,7 +750,7 @@ public class JobClient extends CLI {
 
   /**
    * Get status information about the Map-Reduce cluster.
-   *  
+   *
    * @param  detailed if true then get a detailed status including the
    *         tracker names
    * @return the status information about the Map-Reduce cluster as an object
@@ -764,24 +761,24 @@ public class JobClient extends CLI {
     try {
       return clientUgi.doAs(new PrivilegedExceptionAction<ClusterStatus>() {
         public ClusterStatus run() throws IOException, InterruptedException {
-        ClusterMetrics metrics = cluster.getClusterStatus();
-        return new ClusterStatus(arrayToStringList(cluster.getActiveTaskTrackers()),
-          arrayToBlackListInfo(cluster.getBlackListedTaskTrackers()),
-          cluster.getTaskTrackerExpiryInterval(), metrics.getOccupiedMapSlots(),
-          metrics.getOccupiedReduceSlots(), metrics.getMapSlotCapacity(),
-          metrics.getReduceSlotCapacity(), 
-          cluster.getJobTrackerStatus());
+          ClusterMetrics metrics = cluster.getClusterStatus();
+          return new ClusterStatus(arrayToStringList(cluster.getActiveTaskTrackers()),
+              arrayToBlackListInfo(cluster.getBlackListedTaskTrackers()),
+              cluster.getTaskTrackerExpiryInterval(), metrics.getOccupiedMapSlots(),
+              metrics.getOccupiedReduceSlots(), metrics.getMapSlotCapacity(),
+              metrics.getReduceSlotCapacity(),
+              cluster.getJobTrackerStatus());
         }
       });
     } catch (InterruptedException ie) {
       throw new IOException(ie);
     }
   }
-    
 
-  /** 
+
+  /**
    * Get the jobs that are not completed and not failed.
-   * 
+   *
    * @return array of {@link JobStatus} for the running/to-be-run jobs.
    * @throws IOException
    */
@@ -795,18 +792,18 @@ public class JobClient extends CLI {
     return stats.toArray(new JobStatus[0]);
   }
 
-  /** 
+  /**
    * Get the jobs that are submitted.
-   * 
+   *
    * @return array of {@link JobStatus} for the submitted jobs.
    * @throws IOException
    */
   public JobStatus[] getAllJobs() throws IOException {
     try {
-      org.apache.hadoop.mapreduce.JobStatus[] jobs = 
+      org.apache.hadoop.mapreduce.JobStatus[] jobs =
           clientUgi.doAs(new PrivilegedExceptionAction<
-              org.apache.hadoop.mapreduce.JobStatus[]> () {
-            public org.apache.hadoop.mapreduce.JobStatus[] run() 
+              org.apache.hadoop.mapreduce.JobStatus[]>() {
+            public org.apache.hadoop.mapreduce.JobStatus[] run()
                 throws IOException, InterruptedException {
               return cluster.getAllJobStatuses();
             }
@@ -820,11 +817,11 @@ public class JobClient extends CLI {
       throw new IOException(ie);
     }
   }
-  
-  /** 
+
+  /**
    * Utility that submits a job, then polls for progress until the job is
    * complete.
-   * 
+   *
    * @param job the job configuration.
    * @throws IOException if the job fails
    */
@@ -840,7 +837,7 @@ public class JobClient extends CLI {
     }
     return rj;
   }
-  
+
   /**
    * Monitor a job and print status in real-time as progress is made and tasks 
    * fail.
@@ -849,20 +846,19 @@ public class JobClient extends CLI {
    * @return true if the job succeeded
    * @throws IOException if communication to the JobTracker fails
    */
-  public boolean monitorAndPrintJob(JobConf conf, 
+  public boolean monitorAndPrintJob(JobConf conf,
                                     RunningJob job
   ) throws IOException, InterruptedException {
-    return ((NetworkedJob)job).monitorAndPrintJob();
+    return ((NetworkedJob) job).monitorAndPrintJob();
   }
 
   static String getTaskLogURL(TaskAttemptID taskId, String baseUrl) {
-    return (baseUrl + "/tasklog?plaintext=true&attemptid=" + taskId); 
+    return (baseUrl + "/tasklog?plaintext=true&attemptid=" + taskId);
   }
-  
-  static Configuration getConfiguration(String jobTrackerSpec)
-  {
+
+  static Configuration getConfiguration(String jobTrackerSpec) {
     Configuration conf = new Configuration();
-    if (jobTrackerSpec != null) {        
+    if (jobTrackerSpec != null) {
       if (jobTrackerSpec.indexOf(":") >= 0) {
         conf.set("mapred.job.tracker", jobTrackerSpec);
       } else {
@@ -883,50 +879,50 @@ public class JobClient extends CLI {
    * @param newValue task filter.
    */
   @Deprecated
-  public void setTaskOutputFilter(TaskStatusFilter newValue){
+  public void setTaskOutputFilter(TaskStatusFilter newValue) {
     this.taskOutputFilter = newValue;
   }
-    
+
   /**
    * Get the task output filter out of the JobConf.
-   * 
+   *
    * @param job the JobConf to examine.
    * @return the filter level.
    */
   public static TaskStatusFilter getTaskOutputFilter(JobConf job) {
-    return TaskStatusFilter.valueOf(job.get("jobclient.output.filter", 
-                                            "FAILED"));
+    return TaskStatusFilter.valueOf(job.get("jobclient.output.filter",
+        "FAILED"));
   }
-    
+
   /**
    * Modify the JobConf to set the task output filter.
-   * 
+   *
    * @param job the JobConf to modify.
    * @param newValue the value to set.
    */
-  public static void setTaskOutputFilter(JobConf job, 
+  public static void setTaskOutputFilter(JobConf job,
                                          TaskStatusFilter newValue) {
     job.set("jobclient.output.filter", newValue.toString());
   }
-    
+
   /**
    * Returns task output filter.
    * @return task filter. 
    */
   @Deprecated
-  public TaskStatusFilter getTaskOutputFilter(){
-    return this.taskOutputFilter; 
+  public TaskStatusFilter getTaskOutputFilter() {
+    return this.taskOutputFilter;
   }
 
   protected long getCounter(org.apache.hadoop.mapreduce.Counters cntrs,
-      String counterGroupName, String counterName) throws IOException {
+                            String counterGroupName, String counterName) throws IOException {
     Counters counters = Counters.downgrade(cntrs);
     return counters.findCounter(counterGroupName, counterName).getValue();
   }
 
   /**
    * Get status information about the max available Maps in the cluster.
-   *  
+   *
    * @return the max available Maps in the cluster
    * @throws IOException
    */
@@ -945,7 +941,7 @@ public class JobClient extends CLI {
 
   /**
    * Get status information about the max available Reduces in the cluster.
-   *  
+   *
    * @return the max available Reduces in the cluster
    * @throws IOException
    */
@@ -964,7 +960,7 @@ public class JobClient extends CLI {
 
   /**
    * Grab the jobtracker system directory path where job-specific files are to be placed.
-   * 
+   *
    * @return the system directory where job-specific files are to be placed.
    */
   public Path getSystemDir() {
@@ -975,7 +971,7 @@ public class JobClient extends CLI {
           return cluster.getSystemDir();
         }
       });
-      } catch (IOException ioe) {
+    } catch (IOException ioe) {
       return null;
     } catch (InterruptedException ie) {
       return null;
@@ -1008,7 +1004,7 @@ public class JobClient extends CLI {
 
   /**
    * Fetch the staging area directory for the application
-   * 
+   *
    * @return path to staging area directory
    * @throws IOException
    */
@@ -1071,7 +1067,7 @@ public class JobClient extends CLI {
   /**
    * Returns an array of queue information objects about immediate children
    * of queue queueName.
-   * 
+   *
    * @param queueName
    * @return the array of immediate children JobQueueInfo objects
    * @throws IOException
@@ -1087,11 +1083,11 @@ public class JobClient extends CLI {
       throw new IOException(ie);
     }
   }
-  
+
   /**
    * Return an array of queue information objects about all the Job Queues
    * configured.
-   * 
+   *
    * @return Array of JobQueueInfo objects
    * @throws IOException
    */
@@ -1106,15 +1102,15 @@ public class JobClient extends CLI {
       throw new IOException(ie);
     }
   }
-  
+
   /**
    * Gets all the jobs which were added to particular Job Queue
-   * 
+   *
    * @param queueName name of the Job Queue
    * @return Array of jobs present in the job queue
    * @throws IOException
    */
-  
+
   public JobStatus[] getJobsFromQueue(final String queueName) throws IOException {
     try {
       QueueInfo queue = clientUgi.doAs(new PrivilegedExceptionAction<QueueInfo>() {
@@ -1126,10 +1122,10 @@ public class JobClient extends CLI {
       if (queue == null) {
         return null;
       }
-      org.apache.hadoop.mapreduce.JobStatus[] stats = 
-        queue.getJobStatuses();
+      org.apache.hadoop.mapreduce.JobStatus[] stats =
+          queue.getJobStatuses();
       JobStatus[] ret = new JobStatus[stats.length];
-      for (int i = 0 ; i < stats.length; i++ ) {
+      for (int i = 0; i < stats.length; i++) {
         ret[i] = JobStatus.downgrade(stats[i]);
       }
       return ret;
@@ -1137,22 +1133,22 @@ public class JobClient extends CLI {
       throw new IOException(ie);
     }
   }
-  
+
   /**
    * Gets the queue information associated to a particular Job Queue
-   * 
+   *
    * @param queueName name of the job queue.
    * @return Queue information associated to particular queue.
    * @throws IOException
    */
   public JobQueueInfo getQueueInfo(final String queueName) throws IOException {
     try {
-      QueueInfo queueInfo = clientUgi.doAs(new 
-          PrivilegedExceptionAction<QueueInfo>() {
-        public QueueInfo run() throws IOException, InterruptedException {
-          return cluster.getQueue(queueName);
-        }
-      });
+      QueueInfo queueInfo = clientUgi.doAs(new
+                                               PrivilegedExceptionAction<QueueInfo>() {
+                                                 public QueueInfo run() throws IOException, InterruptedException {
+                                                   return cluster.getQueue(queueName);
+                                                 }
+                                               });
       if (queueInfo != null) {
         return new JobQueueInfo(queueInfo);
       }
@@ -1161,7 +1157,7 @@ public class JobClient extends CLI {
       throw new IOException(ie);
     }
   }
-  
+
   /**
    * Gets the Queue ACLs for current user
    * @return array of QueueAclsInfo object for current user.
@@ -1169,17 +1165,17 @@ public class JobClient extends CLI {
    */
   public QueueAclsInfo[] getQueueAclsForCurrentUser() throws IOException {
     try {
-      org.apache.hadoop.mapreduce.QueueAclsInfo[] acls = 
-        clientUgi.doAs(new 
-            PrivilegedExceptionAction
-            <org.apache.hadoop.mapreduce.QueueAclsInfo[]>() {
-              public org.apache.hadoop.mapreduce.QueueAclsInfo[] run() 
-              throws IOException, InterruptedException {
-                return cluster.getQueueAclsForCurrentUser();
-              }
-        });
+      org.apache.hadoop.mapreduce.QueueAclsInfo[] acls =
+          clientUgi.doAs(new
+                             PrivilegedExceptionAction
+                                 <org.apache.hadoop.mapreduce.QueueAclsInfo[]>() {
+                               public org.apache.hadoop.mapreduce.QueueAclsInfo[] run()
+                                   throws IOException, InterruptedException {
+                                 return cluster.getQueueAclsForCurrentUser();
+                               }
+                             });
       QueueAclsInfo[] ret = new QueueAclsInfo[acls.length];
-      for (int i = 0 ; i < acls.length; i++ ) {
+      for (int i = 0; i < acls.length; i++) {
         ret[i] = QueueAclsInfo.downgrade(acls[i]);
       }
       return ret;
@@ -1194,15 +1190,15 @@ public class JobClient extends CLI {
    * @return the new token
    * @throws IOException
    */
-  public Token<DelegationTokenIdentifier> 
-    getDelegationToken(final Text renewer) throws IOException, InterruptedException {
-    return clientUgi.doAs(new 
-        PrivilegedExceptionAction<Token<DelegationTokenIdentifier>>() {
-      public Token<DelegationTokenIdentifier> run() throws IOException, 
-      InterruptedException {
-        return cluster.getDelegationToken(renewer);
-      }
-    });
+  public Token<DelegationTokenIdentifier>
+  getDelegationToken(final Text renewer) throws IOException, InterruptedException {
+    return clientUgi.doAs(new
+                              PrivilegedExceptionAction<Token<DelegationTokenIdentifier>>() {
+                                public Token<DelegationTokenIdentifier> run() throws IOException,
+                                    InterruptedException {
+                                  return cluster.getDelegationToken(renewer);
+                                }
+                              });
   }
 
   /**
@@ -1214,8 +1210,8 @@ public class JobClient extends CLI {
    * @deprecated Use {@link Token#renew} instead
    */
   public long renewDelegationToken(Token<DelegationTokenIdentifier> token
-                                   ) throws InvalidToken, IOException, 
-                                            InterruptedException {
+  ) throws InvalidToken, IOException,
+      InterruptedException {
     return token.renew(getConf());
   }
 
@@ -1226,8 +1222,8 @@ public class JobClient extends CLI {
    * @deprecated Use {@link Token#cancel} instead
    */
   public void cancelDelegationToken(Token<DelegationTokenIdentifier> token
-                                    ) throws InvalidToken, IOException, 
-                                             InterruptedException {
+  ) throws InvalidToken, IOException,
+      InterruptedException {
     token.cancel(getConf());
   }
 

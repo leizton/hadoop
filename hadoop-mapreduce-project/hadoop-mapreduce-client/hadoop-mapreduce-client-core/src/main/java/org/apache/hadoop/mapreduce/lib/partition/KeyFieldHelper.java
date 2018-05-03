@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,12 +18,12 @@
 
 package org.apache.hadoop.mapreduce.lib.partition;
 
-import java.io.UnsupportedEncodingException;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.StringTokenizer;
-
 import org.apache.hadoop.util.UTF8ByteArrayUtils;
+
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
 
 /**
  * This is used in {@link KeyFieldBasedComparator} & 
@@ -39,7 +39,7 @@ import org.apache.hadoop.util.UTF8ByteArrayUtils;
  */
 
 class KeyFieldHelper {
-  
+
   protected static class KeyDescription {
     int beginFieldIdx = 1;
     int beginChar = 1;
@@ -47,29 +47,30 @@ class KeyFieldHelper {
     int endChar = 0;
     boolean numeric;
     boolean reverse;
+
     @Override
     public String toString() {
-      return "-k" 
-             + beginFieldIdx + "." + beginChar + "," 
-             + endFieldIdx + "." + endChar 
-             + (numeric ? "n" : "") + (reverse ? "r" : "");
+      return "-k"
+          + beginFieldIdx + "." + beginChar + ","
+          + endFieldIdx + "." + endChar
+          + (numeric ? "n" : "") + (reverse ? "r" : "");
     }
   }
-  
+
   private List<KeyDescription> allKeySpecs = new ArrayList<KeyDescription>();
   private byte[] keyFieldSeparator;
   private boolean keySpecSeen = false;
-  
+
   public void setKeyFieldSeparator(String keyFieldSeparator) {
     try {
       this.keyFieldSeparator =
-        keyFieldSeparator.getBytes("UTF-8");
+          keyFieldSeparator.getBytes("UTF-8");
     } catch (UnsupportedEncodingException e) {
       throw new RuntimeException("The current system does not " +
           "support UTF-8 encoding!", e);
-    }    
+    }
   }
-  
+
   /** Required for backcompatibility with num.key.fields.for.partition in
    * {@link KeyFieldBasedPartitioner} */
   public void setKeyFieldSpec(int start, int end) {
@@ -81,63 +82,65 @@ class KeyFieldHelper {
       allKeySpecs.add(k);
     }
   }
-  
+
   public List<KeyDescription> keySpecs() {
     return allKeySpecs;
   }
-    
-  public int[] getWordLengths(byte []b, int start, int end) {
+
+  public int[] getWordLengths(byte[] b, int start, int end) {
     //Given a string like "hello how are you", it returns an array
     //like [4 5, 3, 3, 3], where the first element is the number of
-	//fields
+    //fields
     if (!keySpecSeen) {
       //if there were no key specs, then the whole key is one word
-      return new int[] {1};
+      return new int[]{1};
     }
     int[] lengths = new int[10];
     int currLenLengths = lengths.length;
     int idx = 1;
     int pos;
-    while ((pos = UTF8ByteArrayUtils.findBytes(b, start, end, 
+    while ((pos = UTF8ByteArrayUtils.findBytes(b, start, end,
         keyFieldSeparator)) != -1) {
       if (++idx == currLenLengths) {
         int[] temp = lengths;
-        lengths = new int[(currLenLengths = currLenLengths*2)];
+        lengths = new int[(currLenLengths = currLenLengths * 2)];
         System.arraycopy(temp, 0, lengths, 0, temp.length);
       }
       lengths[idx - 1] = pos - start;
       start = pos + 1;
     }
-    
+
     if (start != end) {
       lengths[idx] = end - start;
     }
     lengths[0] = idx; //number of words is the first element
     return lengths;
   }
-  public int getStartOffset(byte[]b, int start, int end, 
-      int []lengthIndices, KeyDescription k) {
+
+  public int getStartOffset(byte[] b, int start, int end,
+                            int[] lengthIndices, KeyDescription k) {
     //if -k2.5,2 is the keyspec, the startChar is lengthIndices[1] + 5
     //note that the [0]'th element is the number of fields in the key
     if (lengthIndices[0] >= k.beginFieldIdx) {
       int position = 0;
       for (int i = 1; i < k.beginFieldIdx; i++) {
-        position += lengthIndices[i] + keyFieldSeparator.length; 
+        position += lengthIndices[i] + keyFieldSeparator.length;
       }
       if (position + k.beginChar <= (end - start)) {
-        return start + position + k.beginChar - 1; 
+        return start + position + k.beginChar - 1;
       }
     }
     return -1;
   }
-  public int getEndOffset(byte[]b, int start, int end, 
-      int []lengthIndices, KeyDescription k) {
+
+  public int getEndOffset(byte[] b, int start, int end,
+                          int[] lengthIndices, KeyDescription k) {
     //if -k2,2.8 is the keyspec, the endChar is lengthIndices[1] + 8
     //note that the [0]'th element is the number of fields in the key
     if (k.endFieldIdx == 0) {
       //there is no end field specified for this keyspec. So the remaining
       //part of the key is considered in its entirety.
-      return end - 1; 
+      return end - 1;
     }
     if (lengthIndices[0] >= k.endFieldIdx) {
       int position = 0;
@@ -145,7 +148,7 @@ class KeyFieldHelper {
       for (i = 1; i < k.endFieldIdx; i++) {
         position += lengthIndices[i] + keyFieldSeparator.length;
       }
-      if (k.endChar == 0) { 
+      if (k.endChar == 0) {
         position += lengthIndices[i];
       }
       if (position + k.endChar <= (end - start)) {
@@ -155,6 +158,7 @@ class KeyFieldHelper {
     }
     return end - 1;
   }
+
   public void parseOption(String option) {
     if (option == null || option.equals("")) {
       //we will have only default comparison
@@ -164,7 +168,7 @@ class KeyFieldHelper {
     KeyDescription global = new KeyDescription();
     while (args.hasMoreTokens()) {
       String arg = args.nextToken();
-      if (arg.equals("-n")) {  
+      if (arg.equals("-n")) {
         global.numeric = true;
       }
       if (arg.equals("-r")) {
@@ -192,7 +196,7 @@ class KeyFieldHelper {
       allKeySpecs.add(global);
     }
   }
-  
+
   private KeyDescription parseKey(String arg, StringTokenizer args) {
     //we allow for -k<arg> and -k <arg>
     String keyArgs = null;
@@ -206,10 +210,10 @@ class KeyFieldHelper {
     if (keyArgs == null || keyArgs.length() == 0) {
       return null;
     }
-    StringTokenizer st = new StringTokenizer(keyArgs,"nr.,",true);
-       
+    StringTokenizer st = new StringTokenizer(keyArgs, "nr.,", true);
+
     KeyDescription key = new KeyDescription();
-    
+
     String token;
     //the key is of the form 1[.3][nr][,1.5][nr]
     if (st.hasMoreTokens()) {
@@ -227,15 +231,13 @@ class KeyFieldHelper {
         } else {
           return key;
         }
-      } 
+      }
       do {
         if (token.equals("n")) {
           key.numeric = true;
-        }
-        else if (token.equals("r")) {
+        } else if (token.equals("r")) {
           key.reverse = true;
-        }
-        else break;
+        } else break;
         if (st.hasMoreTokens()) {
           token = st.nextToken();
         } else {
@@ -260,14 +262,12 @@ class KeyFieldHelper {
           do {
             if (token.equals("n")) {
               key.numeric = true;
-            }
-            else if (token.equals("r")) {
+            } else if (token.equals("r")) {
               key.reverse = true;
-            }
-            else { 
+            } else {
               throw new IllegalArgumentException("Invalid -k argument. " +
-               "Must be of the form -k pos1,[pos2], where pos is of the form " +
-               "f[.c]nr");
+                  "Must be of the form -k pos1,[pos2], where pos is of the form " +
+                  "f[.c]nr");
             }
             if (st.hasMoreTokens()) {
               token = st.nextToken();
@@ -284,6 +284,7 @@ class KeyFieldHelper {
     }
     return key;
   }
+
   private void printKey(KeyDescription key) {
     System.out.println("key.beginFieldIdx: " + key.beginFieldIdx);
     System.out.println("key.beginChar: " + key.beginChar);
@@ -292,5 +293,5 @@ class KeyFieldHelper {
     System.out.println("key.numeric: " + key.numeric);
     System.out.println("key.reverse: " + key.reverse);
     System.out.println("parseKey over");
-  }  
+  }
 }

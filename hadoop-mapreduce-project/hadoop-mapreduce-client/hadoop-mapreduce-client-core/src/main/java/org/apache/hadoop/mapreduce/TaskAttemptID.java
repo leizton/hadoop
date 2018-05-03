@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,18 +18,18 @@
 
 package org.apache.hadoop.mapreduce;
 
+import org.apache.hadoop.classification.InterfaceAudience;
+import org.apache.hadoop.classification.InterfaceStability;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-
-import org.apache.hadoop.classification.InterfaceAudience;
-import org.apache.hadoop.classification.InterfaceStability;
 
 /**
  * TaskAttemptID represents the immutable and unique identifier for 
  * a task attempt. Each task attempt is one particular instance of a Map or
  * Reduce Task identified by its TaskID. 
- * 
+ *
  * TaskAttemptID consists of 2 parts. First part is the 
  * {@link TaskID}, that this TaskAttemptID belongs to.
  * Second part is the task attempt number. <br> 
@@ -39,9 +39,9 @@ import org.apache.hadoop.classification.InterfaceStability;
  * running at the jobtracker started at <code>200707121733</code>.
  * <p>
  * Applications should never construct or parse TaskAttemptID strings
- * , but rather use appropriate constructors or {@link #forName(String)} 
+ * , but rather use appropriate constructors or {@link #forName(String)}
  * method. 
- * 
+ *
  * @see JobID
  * @see TaskID
  */
@@ -50,7 +50,7 @@ import org.apache.hadoop.classification.InterfaceStability;
 public class TaskAttemptID extends org.apache.hadoop.mapred.ID {
   protected static final String ATTEMPT = "attempt";
   private TaskID taskId;
-  
+
   /**
    * Constructs a TaskAttemptID object from given {@link TaskID}.  
    * @param taskId TaskID that this task belongs to  
@@ -58,12 +58,12 @@ public class TaskAttemptID extends org.apache.hadoop.mapred.ID {
    */
   public TaskAttemptID(TaskID taskId, int id) {
     super(id);
-    if(taskId == null) {
+    if (taskId == null) {
       throw new IllegalArgumentException("taskId cannot be null");
     }
     this.taskId = taskId;
   }
-  
+
   /**
    * Constructs a TaskId object from given parts.
    * @param jtIdentifier jobTracker identifier
@@ -72,7 +72,7 @@ public class TaskAttemptID extends org.apache.hadoop.mapred.ID {
    * @param taskId taskId number
    * @param id the task attempt number
    */
-  public TaskAttemptID(String jtIdentifier, int jobId, TaskType type, 
+  public TaskAttemptID(String jtIdentifier, int jobId, TaskType type,
                        int taskId, int id) {
     this(new TaskID(jtIdentifier, jobId, type, taskId), id);
   }
@@ -90,40 +90,41 @@ public class TaskAttemptID extends org.apache.hadoop.mapred.ID {
                        int taskId, int id) {
     this(new TaskID(jtIdentifier, jobId, isMap, taskId), id);
   }
-  
-  public TaskAttemptID() { 
+
+  public TaskAttemptID() {
     taskId = new TaskID();
   }
-  
+
   /** Returns the {@link JobID} object that this task attempt belongs to */
   public JobID getJobID() {
     return taskId.getJobID();
   }
-  
+
   /** Returns the {@link TaskID} object that this task attempt belongs to */
   public TaskID getTaskID() {
     return taskId;
   }
-  
+
   /**Returns whether this TaskID is a map ID */
   @Deprecated
   public boolean isMap() {
     return taskId.isMap();
   }
-    
+
   /**Returns the TaskType of the TaskAttemptID */
   public TaskType getTaskType() {
     return taskId.getTaskType();
   }
+
   @Override
   public boolean equals(Object o) {
     if (!super.equals(o))
       return false;
 
-    TaskAttemptID that = (TaskAttemptID)o;
+    TaskAttemptID that = (TaskAttemptID) o;
     return this.taskId.equals(that.taskId);
   }
-  
+
   /**
    * Add the unique string to the StringBuilder
    * @param builder the builder to append ot
@@ -132,7 +133,7 @@ public class TaskAttemptID extends org.apache.hadoop.mapred.ID {
   protected StringBuilder appendTo(StringBuilder builder) {
     return taskId.appendTo(builder).append(SEPARATOR).append(id);
   }
-  
+
   @Override
   public void readFields(DataInput in) throws IOException {
     super.readFields(in);
@@ -149,19 +150,19 @@ public class TaskAttemptID extends org.apache.hadoop.mapred.ID {
   public int hashCode() {
     return taskId.hashCode() * 5 + id;
   }
-  
+
   /**Compare TaskIds by first tipIds, then by task numbers. */
   @Override
   public int compareTo(ID o) {
-    TaskAttemptID that = (TaskAttemptID)o;
+    TaskAttemptID that = (TaskAttemptID) o;
     int tipComp = this.taskId.compareTo(that.taskId);
-    if(tipComp == 0) {
+    if (tipComp == 0) {
       return this.id - that.id;
-    }
-    else return tipComp;
+    } else return tipComp;
   }
+
   @Override
-  public String toString() { 
+  public String toString() {
     return appendTo(new StringBuilder(ATTEMPT)).toString();
   }
 
@@ -170,22 +171,22 @@ public class TaskAttemptID extends org.apache.hadoop.mapred.ID {
    * @throws IllegalArgumentException if the given string is malformed
    */
   public static TaskAttemptID forName(String str
-                                      ) throws IllegalArgumentException {
-    if(str == null)
+  ) throws IllegalArgumentException {
+    if (str == null)
       return null;
     String exceptionMsg = null;
     try {
       String[] parts = str.split(Character.toString(SEPARATOR));
-      if(parts.length == 6) {
-        if(parts[0].equals(ATTEMPT)) {
+      if (parts.length == 6) {
+        if (parts[0].equals(ATTEMPT)) {
           String type = parts[3];
           TaskType t = TaskID.getTaskType(type.charAt(0));
-          if(t != null) {
+          if (t != null) {
             return new org.apache.hadoop.mapred.TaskAttemptID
-            (parts[1],
-             Integer.parseInt(parts[2]),
-             t, Integer.parseInt(parts[4]), 
-             Integer.parseInt(parts[5]));  
+                (parts[1],
+                    Integer.parseInt(parts[2]),
+                    t, Integer.parseInt(parts[4]),
+                    Integer.parseInt(parts[5]));
           } else
             exceptionMsg = "Bad TaskType identifier. TaskAttemptId string : "
                 + str + " is not properly formed.";

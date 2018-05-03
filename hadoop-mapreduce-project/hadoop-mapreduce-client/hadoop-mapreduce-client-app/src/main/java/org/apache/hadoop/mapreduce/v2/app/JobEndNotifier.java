@@ -1,29 +1,22 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2.app;
-
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
-import java.net.Proxy;
-import java.net.URL;
 
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
@@ -31,6 +24,9 @@ import org.apache.hadoop.mapred.JobContext;
 import org.apache.hadoop.mapreduce.MRJobConfig;
 import org.apache.hadoop.mapreduce.v2.api.records.JobReport;
 import org.mortbay.log.Log;
+
+import java.io.IOException;
+import java.net.*;
 
 /**
  * <p>This class handles job end notification. Submitters of jobs can choose to
@@ -67,14 +63,14 @@ public class JobEndNotifier implements Configurable {
    */
   public void setConf(Configuration conf) {
     this.conf = conf;
-    
+
     numTries = Math.min(
-      conf.getInt(MRJobConfig.MR_JOB_END_RETRY_ATTEMPTS, 0) + 1
-      , conf.getInt(MRJobConfig.MR_JOB_END_NOTIFICATION_MAX_ATTEMPTS, 1)
+        conf.getInt(MRJobConfig.MR_JOB_END_RETRY_ATTEMPTS, 0) + 1
+        , conf.getInt(MRJobConfig.MR_JOB_END_NOTIFICATION_MAX_ATTEMPTS, 1)
     );
     waitInterval = Math.min(
-    conf.getInt(MRJobConfig.MR_JOB_END_RETRY_INTERVAL, 5000)
-    , conf.getInt(MRJobConfig.MR_JOB_END_NOTIFICATION_MAX_RETRY_INTERVAL, 5000)
+        conf.getInt(MRJobConfig.MR_JOB_END_RETRY_INTERVAL, 5000)
+        , conf.getInt(MRJobConfig.MR_JOB_END_NOTIFICATION_MAX_RETRY_INTERVAL, 5000)
     );
     waitInterval = (waitInterval < 0) ? 5000 : waitInterval;
 
@@ -87,26 +83,26 @@ public class JobEndNotifier implements Configurable {
 
     //Configure the proxy to use if its set. It should be set like
     //proxyType@proxyHostname:port
-    if(proxyConf != null && !proxyConf.equals("") &&
-         proxyConf.lastIndexOf(":") != -1) {
+    if (proxyConf != null && !proxyConf.equals("") &&
+        proxyConf.lastIndexOf(":") != -1) {
       int typeIndex = proxyConf.indexOf("@");
       Proxy.Type proxyType = Proxy.Type.HTTP;
-      if(typeIndex != -1 &&
-        proxyConf.substring(0, typeIndex).compareToIgnoreCase("socks") == 0) {
+      if (typeIndex != -1 &&
+          proxyConf.substring(0, typeIndex).compareToIgnoreCase("socks") == 0) {
         proxyType = Proxy.Type.SOCKS;
       }
       String hostname = proxyConf.substring(typeIndex + 1,
-        proxyConf.lastIndexOf(":"));
+          proxyConf.lastIndexOf(":"));
       String portConf = proxyConf.substring(proxyConf.lastIndexOf(":") + 1);
       try {
         int port = Integer.parseInt(portConf);
         proxyToUse = new Proxy(proxyType,
-          new InetSocketAddress(hostname, port));
-        Log.info("Job end notification using proxy type \"" + proxyType + 
-        "\" hostname \"" + hostname + "\" and port \"" + port + "\"");
-      } catch(NumberFormatException nfe) {
+            new InetSocketAddress(hostname, port));
+        Log.info("Job end notification using proxy type \"" + proxyType +
+            "\" hostname \"" + hostname + "\" and port \"" + port + "\"");
+      } catch (NumberFormatException nfe) {
         Log.warn("Job end notification couldn't parse configured proxy's port "
-          + portConf + ". Not going to use a proxy");
+            + portConf + ". Not going to use a proxy");
       }
     }
 
@@ -115,7 +111,7 @@ public class JobEndNotifier implements Configurable {
   public Configuration getConf() {
     return conf;
   }
-  
+
   /**
    * Notify the URL just once. Use best effort.
    */
@@ -124,20 +120,19 @@ public class JobEndNotifier implements Configurable {
     try {
       Log.info("Job end notification trying " + urlToNotify);
       HttpURLConnection conn =
-        (HttpURLConnection) urlToNotify.openConnection(proxyToUse);
+          (HttpURLConnection) urlToNotify.openConnection(proxyToUse);
       conn.setConnectTimeout(timeout);
       conn.setReadTimeout(timeout);
       conn.setAllowUserInteraction(false);
-      if(conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
-        Log.warn("Job end notification to " + urlToNotify +" failed with code: "
-        + conn.getResponseCode() + " and message \"" + conn.getResponseMessage()
-        +"\"");
-      }
-      else {
+      if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
+        Log.warn("Job end notification to " + urlToNotify + " failed with code: "
+            + conn.getResponseCode() + " and message \"" + conn.getResponseMessage()
+            + "\"");
+      } else {
         success = true;
         Log.info("Job end notification to " + urlToNotify + " succeeded");
       }
-    } catch(IOException ioe) {
+    } catch (IOException ioe) {
       Log.warn("Job end notification to " + urlToNotify + " failed", ioe);
     }
     return success;
@@ -150,7 +145,7 @@ public class JobEndNotifier implements Configurable {
    * @throws InterruptedException
    */
   public void notify(JobReport jobReport)
-    throws InterruptedException {
+      throws InterruptedException {
     // Do we need job-end notification?
     if (userUrl == null) {
       Log.info("Job end notification URL not set, skipping.");

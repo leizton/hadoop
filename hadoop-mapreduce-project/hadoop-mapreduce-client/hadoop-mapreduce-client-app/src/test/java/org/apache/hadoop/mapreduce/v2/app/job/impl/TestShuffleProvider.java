@@ -1,5 +1,5 @@
 /**
-/**
+ * /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -7,9 +7,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,14 +18,6 @@
  */
 
 package org.apache.hadoop.mapreduce.v2.app.job.impl;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.Map;
-import java.nio.ByteBuffer;
 
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -48,14 +40,22 @@ import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
+import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.event.EventHandler;
-import org.apache.hadoop.yarn.util.SystemClock;
-import org.apache.hadoop.yarn.server.api.AuxiliaryService;
 import org.apache.hadoop.yarn.server.api.ApplicationInitializationContext;
 import org.apache.hadoop.yarn.server.api.ApplicationTerminationContext;
-import org.apache.hadoop.yarn.conf.YarnConfiguration;
-import org.junit.Test;
+import org.apache.hadoop.yarn.server.api.AuxiliaryService;
+import org.apache.hadoop.yarn.util.SystemClock;
 import org.junit.Assert;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.util.Map;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TestShuffleProvider {
 
@@ -76,8 +76,8 @@ public class TestShuffleProvider {
     jobConf.set(JobConf.MAPRED_MAP_TASK_ENV, "");
 
     jobConf.set(YarnConfiguration.NM_AUX_SERVICES,
-      TestShuffleHandler1.MAPREDUCE_TEST_SHUFFLE_SERVICEID + "," +
-      TestShuffleHandler2.MAPREDUCE_TEST_SHUFFLE_SERVICEID);
+        TestShuffleHandler1.MAPREDUCE_TEST_SHUFFLE_SERVICEID + "," +
+            TestShuffleHandler2.MAPREDUCE_TEST_SHUFFLE_SERVICEID);
 
     String serviceName = TestShuffleHandler1.MAPREDUCE_TEST_SHUFFLE_SERVICEID;
     String serviceStr = String.format(YarnConfiguration.NM_AUX_SERVICE_FMT, serviceName);
@@ -88,8 +88,8 @@ public class TestShuffleProvider {
     jobConf.set(serviceStr, TestShuffleHandler2.class.getName());
 
     jobConf.set(MRJobConfig.MAPREDUCE_JOB_SHUFFLE_PROVIDER_SERVICES,
-                  TestShuffleHandler1.MAPREDUCE_TEST_SHUFFLE_SERVICEID
-                     + "," + TestShuffleHandler2.MAPREDUCE_TEST_SHUFFLE_SERVICEID);
+        TestShuffleHandler1.MAPREDUCE_TEST_SHUFFLE_SERVICEID
+            + "," + TestShuffleHandler2.MAPREDUCE_TEST_SHUFFLE_SERVICEID);
 
     Credentials credentials = new Credentials();
     Token<JobTokenIdentifier> jobToken = new Token<JobTokenIdentifier>(
@@ -125,15 +125,19 @@ public class TestShuffleProvider {
 
   static public class TestShuffleHandler1 extends AuxiliaryService {
     public static final String MAPREDUCE_TEST_SHUFFLE_SERVICEID = "test_shuffle1";
+
     public TestShuffleHandler1() {
       super("testshuffle1");
     }
+
     @Override
     public void initializeApplication(ApplicationInitializationContext context) {
     }
+
     @Override
     public void stopApplication(ApplicationTerminationContext context) {
     }
+
     @Override
     public synchronized ByteBuffer getMetaData() {
       return ByteBuffer.allocate(0); // Don't 'return null' because of YARN-1256
@@ -142,15 +146,19 @@ public class TestShuffleProvider {
 
   static public class TestShuffleHandler2 extends AuxiliaryService {
     public static final String MAPREDUCE_TEST_SHUFFLE_SERVICEID = "test_shuffle2";
+
     public TestShuffleHandler2() {
       super("testshuffle2");
     }
+
     @Override
     public void initializeApplication(ApplicationInitializationContext context) {
     }
+
     @Override
     public void stopApplication(ApplicationTerminationContext context) {
     }
+
     @Override
     public synchronized ByteBuffer getMetaData() {
       return ByteBuffer.allocate(0); // Don't 'return null' because of YARN-1256

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,17 +18,16 @@
 
 package org.apache.hadoop.mapreduce;
 
-import java.io.IOException;
-import java.net.URI;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configuration.IntegerRanges;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.RawComparator;
-import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.security.Credentials;
+
+import java.io.IOException;
+import java.net.URI;
 
 /**
  * A read-only view of the job that is provided to the tasks while they
@@ -54,17 +53,17 @@ public interface JobContext extends MRJobConfig {
    * @return the object with the job id
    */
   public JobID getJobID();
-  
+
   /**
    * Get configured the number of reduce tasks for this job. Defaults to 
    * <code>1</code>.
    * @return the number of reduce tasks for this job.
    */
   public int getNumReduceTasks();
-  
+
   /**
    * Get the current working directory for the default file system.
-   * 
+   *
    * @return the directory name.
    */
   public Path getWorkingDirectory() throws IOException;
@@ -74,7 +73,7 @@ public interface JobContext extends MRJobConfig {
    * @return the key class for the job output data.
    */
   public Class<?> getOutputKeyClass();
-  
+
   /**
    * Get the value class for job outputs.
    * @return the value class for job outputs.
@@ -93,7 +92,7 @@ public interface JobContext extends MRJobConfig {
    * Get the value class for the map output data. If it is not set, use the
    * (final) output value class This allows the map output value class to be
    * different than the final output value class.
-   *  
+   *
    * @return the map output value class.
    */
   public Class<?> getMapOutputValueClass();
@@ -101,62 +100,62 @@ public interface JobContext extends MRJobConfig {
   /**
    * Get the user-specified job name. This is only used to identify the 
    * job to the user.
-   * 
+   *
    * @return the job's name, defaulting to "".
    */
   public String getJobName();
 
   /**
    * Get the {@link InputFormat} class for the job.
-   * 
+   *
    * @return the {@link InputFormat} class for the job.
    */
-  public Class<? extends InputFormat<?,?>> getInputFormatClass() 
-     throws ClassNotFoundException;
+  public Class<? extends InputFormat<?, ?>> getInputFormatClass()
+      throws ClassNotFoundException;
 
   /**
    * Get the {@link Mapper} class for the job.
-   * 
+   *
    * @return the {@link Mapper} class for the job.
    */
-  public Class<? extends Mapper<?,?,?,?>> getMapperClass() 
-     throws ClassNotFoundException;
+  public Class<? extends Mapper<?, ?, ?, ?>> getMapperClass()
+      throws ClassNotFoundException;
 
   /**
    * Get the combiner class for the job.
-   * 
+   *
    * @return the combiner class for the job.
    */
-  public Class<? extends Reducer<?,?,?,?>> getCombinerClass() 
-     throws ClassNotFoundException;
+  public Class<? extends Reducer<?, ?, ?, ?>> getCombinerClass()
+      throws ClassNotFoundException;
 
   /**
    * Get the {@link Reducer} class for the job.
-   * 
+   *
    * @return the {@link Reducer} class for the job.
    */
-  public Class<? extends Reducer<?,?,?,?>> getReducerClass() 
-     throws ClassNotFoundException;
+  public Class<? extends Reducer<?, ?, ?, ?>> getReducerClass()
+      throws ClassNotFoundException;
 
   /**
    * Get the {@link OutputFormat} class for the job.
-   * 
+   *
    * @return the {@link OutputFormat} class for the job.
    */
-  public Class<? extends OutputFormat<?,?>> getOutputFormatClass() 
-     throws ClassNotFoundException;
+  public Class<? extends OutputFormat<?, ?>> getOutputFormatClass()
+      throws ClassNotFoundException;
 
   /**
    * Get the {@link Partitioner} class for the job.
-   * 
+   *
    * @return the {@link Partitioner} class for the job.
    */
-  public Class<? extends Partitioner<?,?>> getPartitionerClass() 
-     throws ClassNotFoundException;
+  public Class<? extends Partitioner<?, ?>> getPartitionerClass()
+      throws ClassNotFoundException;
 
   /**
    * Get the {@link RawComparator} comparator used to compare keys.
-   * 
+   *
    * @return the {@link RawComparator} comparator used to compare keys.
    */
   public RawComparator<?> getSortComparator();
@@ -176,27 +175,27 @@ public interface JobContext extends MRJobConfig {
    */
   public RawComparator<?> getCombinerKeyGroupingComparator();
 
-    /**
-     * Get the user defined {@link RawComparator} comparator for
-     * grouping keys of inputs to the reduce.
-     *
-     * @return comparator set by the user for grouping values.
-     * @see Job#setGroupingComparatorClass(Class)
-     * @see #getCombinerKeyGroupingComparator()
-     */
+  /**
+   * Get the user defined {@link RawComparator} comparator for
+   * grouping keys of inputs to the reduce.
+   *
+   * @return comparator set by the user for grouping values.
+   * @see Job#setGroupingComparatorClass(Class)
+   * @see #getCombinerKeyGroupingComparator()
+   */
   public RawComparator<?> getGroupingComparator();
-  
+
   /**
    * Get whether job-setup and job-cleanup is needed for the job 
-   * 
-   * @return boolean 
+   *
+   * @return boolean
    */
   public boolean getJobSetupCleanupNeeded();
-  
+
   /**
    * Get whether task-cleanup is needed for the job 
-   * 
-   * @return boolean 
+   *
+   * @return boolean
    */
   public boolean getTaskCleanupNeeded();
 
@@ -211,7 +210,7 @@ public interface JobContext extends MRJobConfig {
    *
    * The default value for this property is
    * "-agentlib:hprof=cpu=samples,heap=sites,force=n,thread=y,verbose=n,file=%s"
-   * 
+   *
    * @return the parameters to pass to the task child to configure profiling
    */
   public String getProfileParams();
@@ -225,11 +224,11 @@ public interface JobContext extends MRJobConfig {
 
   /**
    * Get the reported username for this job.
-   * 
+   *
    * @return the username
    */
   public String getUser();
-  
+
   /**
    * Originally intended to check if symlinks should be used, but currently
    * symlinks cannot be disabled.
@@ -237,7 +236,7 @@ public interface JobContext extends MRJobConfig {
    */
   @Deprecated
   public boolean getSymlink();
-  
+
   /**
    * Get the archive entries in classpath as an array of Path
    */
@@ -284,7 +283,7 @@ public interface JobContext extends MRJobConfig {
    * Get the file entries in classpath as an array of Path
    */
   public Path[] getFileClassPaths();
-  
+
   /**
    * Get the timestamps of the archives.  Used by internal
    * DistributedCache and MapReduce code.
@@ -301,20 +300,20 @@ public interface JobContext extends MRJobConfig {
    */
   public String[] getFileTimestamps();
 
-  /** 
+  /**
    * Get the configured number of maximum attempts that will be made to run a
    * map task, as specified by the <code>mapred.map.max.attempts</code>
    * property. If this property is not already set, the default is 4 attempts.
-   *  
+   *
    * @return the max number of attempts per map task.
    */
   public int getMaxMapAttempts();
 
-  /** 
+  /**
    * Get the configured number of maximum attempts  that will be made to run a
    * reduce task, as specified by the <code>mapred.reduce.max.attempts</code>
    * property. If this property is not already set, the default is 4 attempts.
-   * 
+   *
    * @return the max number of attempts per reduce task.
    */
   public int getMaxReduceAttempts();

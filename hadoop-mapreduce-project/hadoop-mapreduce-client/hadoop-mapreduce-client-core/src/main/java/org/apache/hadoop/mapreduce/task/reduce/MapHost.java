@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,35 +17,34 @@
  */
 package org.apache.hadoop.mapreduce.task.reduce;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
-
 import org.apache.hadoop.mapreduce.TaskAttemptID;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @InterfaceAudience.LimitedPrivate({"MapReduce"})
 @InterfaceStability.Unstable
 public class MapHost {
-  
+
   public static enum State {
     IDLE,               // No map outputs available
     BUSY,               // Map outputs are being fetched
     PENDING,            // Known map outputs which need to be fetched
     PENALIZED           // Host penalized due to shuffle failures
   }
-  
+
   private State state = State.IDLE;
   private final String hostName;
   private final String baseUrl;
   private List<TaskAttemptID> maps = new ArrayList<TaskAttemptID>();
-  
+
   public MapHost(String hostName, String baseUrl) {
     this.hostName = hostName;
     this.baseUrl = baseUrl;
   }
-  
+
   public State getState() {
     return state;
   }
@@ -64,21 +63,21 @@ public class MapHost {
       state = State.PENDING;
     }
   }
-  
+
   public synchronized List<TaskAttemptID> getAndClearKnownMaps() {
     List<TaskAttemptID> currentKnownMaps = maps;
     maps = new ArrayList<TaskAttemptID>();
     return currentKnownMaps;
   }
-  
+
   public synchronized void markBusy() {
     state = State.BUSY;
   }
-  
+
   public synchronized void markPenalized() {
     state = State.PENALIZED;
   }
-  
+
   public synchronized int getNumKnownMapOutputs() {
     return maps.size();
   }
@@ -95,12 +94,12 @@ public class MapHost {
     }
     return state;
   }
-  
+
   @Override
   public String toString() {
     return hostName;
   }
-  
+
   /**
    * Mark the host as penalized
    */

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,20 +18,22 @@
 
 package org.apache.hadoop.mapred;
 
-import java.io.*;
-import java.net.URI;
-
 import junit.framework.TestCase;
-
-import org.apache.hadoop.fs.*;
-import org.apache.hadoop.io.*;
-import org.apache.hadoop.mapred.JobContextImpl;
-import org.apache.hadoop.mapred.TaskAttemptContextImpl;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.FileUtil;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.RawLocalFileSystem;
+import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.JobStatus;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
 
 public class TestMRCJCFileOutputCommitter extends TestCase {
   private static Path outDir = new Path(
-     System.getProperty("test.build.data", "/tmp"), "output");
+      System.getProperty("test.build.data", "/tmp"), "output");
 
   // A random task attempt id for testing.
   private static String attempt = "attempt_200707121733_0001_m_000000_0";
@@ -40,7 +42,7 @@ public class TestMRCJCFileOutputCommitter extends TestCase {
   private Text key2 = new Text("key2");
   private Text val1 = new Text("val1");
   private Text val2 = new Text("val2");
-  
+
   @SuppressWarnings("unchecked")
   private void writeOutput(RecordWriter theRecordWriter, Reporter reporter)
       throws IOException {
@@ -59,7 +61,7 @@ public class TestMRCJCFileOutputCommitter extends TestCase {
       theRecordWriter.close(reporter);
     }
   }
-  
+
   private void setConfForFileOutputCommitter(JobConf job) {
     job.set(JobContext.TASK_ATTEMPT_ID, attempt);
     job.setOutputCommitter(FileOutputCommitter.class);
@@ -73,8 +75,8 @@ public class TestMRCJCFileOutputCommitter extends TestCase {
     JobContext jContext = new JobContextImpl(job, taskID.getJobID());
     TaskAttemptContext tContext = new TaskAttemptContextImpl(job, taskID);
     FileOutputCommitter committer = new FileOutputCommitter();
-    FileOutputFormat.setWorkOutputPath(job, 
-      committer.getTaskAttemptPath(tContext));
+    FileOutputFormat.setWorkOutputPath(job,
+        committer.getTaskAttemptPath(tContext));
 
     committer.setupJob(jContext);
     committer.setupTask(tContext);
@@ -86,13 +88,13 @@ public class TestMRCJCFileOutputCommitter extends TestCase {
     FileSystem localFs = FileSystem.getLocal(job);
     TextOutputFormat theOutputFormat = new TextOutputFormat();
     RecordWriter theRecordWriter =
-      theOutputFormat.getRecordWriter(localFs, job, file, reporter);
+        theOutputFormat.getRecordWriter(localFs, job, file, reporter);
     writeOutput(theRecordWriter, reporter);
 
     // do commit
     committer.commitTask(tContext);
     committer.commitJob(jContext);
-    
+
     // validate output
     File expectedFile = new File(new Path(outDir, file).toString());
     StringBuffer expectedOutput = new StringBuffer();
@@ -140,7 +142,7 @@ public class TestMRCJCFileOutputCommitter extends TestCase {
     committer.abortJob(jContext, JobStatus.State.FAILED);
     expectedFile = new File(new Path(outDir, FileOutputCommitter.TEMP_DIR_NAME)
         .toString());
-    assertFalse("job temp dir "+expectedFile+" still exists", expectedFile.exists());
+    assertFalse("job temp dir " + expectedFile + " still exists", expectedFile.exists());
     assertEquals("Output directory not empty", 0, new File(outDir.toString())
         .listFiles().length);
     FileUtil.fullyDelete(new File(outDir.toString()));
@@ -175,7 +177,7 @@ public class TestMRCJCFileOutputCommitter extends TestCase {
     // do setup
     committer.setupJob(jContext);
     committer.setupTask(tContext);
-    
+
     String file = "test.txt";
     File jobTmpDir = new File(committer.getJobAttemptPath(jContext).toUri().getPath());
     File taskTmpDir = new File(committer.getTaskAttemptPath(tContext).toUri().getPath());

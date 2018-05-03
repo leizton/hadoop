@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,28 +18,26 @@
 
 package org.apache.hadoop.examples;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.Random;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.BooleanWritable;
-import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.SequenceFile;
-import org.apache.hadoop.io.Writable;
-import org.apache.hadoop.io.WritableComparable;
+import org.apache.hadoop.io.*;
 import org.apache.hadoop.io.SequenceFile.CompressionType;
-import org.apache.hadoop.mapreduce.*;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Random;
 
 /**
  * A map/reduce program that estimates the value of Pi
@@ -53,7 +51,7 @@ import org.apache.hadoop.util.ToolRunner;
  * $f(x)=1$ if $(2x_1-1)^2+(2x_2-1)^2 <= 1$ and $f(x)=0$, otherwise.
  * It is easy to see that Pi is equal to $4I$.
  * So an approximation of Pi is obtained once $I$ is evaluated numerically.
- * 
+ *
  * There are better methods for computing Pi.
  * We emphasize numerical approximation of arbitrary integrals in this example.
  * For computing many digits of Pi, consider using bbp.
@@ -79,16 +77,16 @@ public class QuasiMonteCarlo extends Configured implements Tool {
       = "A map/reduce program that estimates Pi using a quasi-Monte Carlo method.";
   /** tmp directory for input/output */
   static private final String TMP_DIR_PREFIX = QuasiMonteCarlo.class.getSimpleName();
-  
+
   /** 2-dimensional Halton sequence {H(i)},
    * where H(i) is a 2-dimensional point and i >= 1 is the index.
    * Halton sequence is used to generate sample points for Pi estimation. 
    */
   private static class HaltonSequence {
     /** Bases */
-    static final int[] P = {2, 3}; 
+    static final int[] P = {2, 3};
     /** Maximum number of digits allowed */
-    static final int[] K = {63, 40}; 
+    static final int[] K = {63, 40};
 
     private long index;
     private double[] x;
@@ -103,19 +101,19 @@ public class QuasiMonteCarlo extends Configured implements Tool {
       x = new double[K.length];
       q = new double[K.length][];
       d = new int[K.length][];
-      for(int i = 0; i < K.length; i++) {
+      for (int i = 0; i < K.length; i++) {
         q[i] = new double[K[i]];
         d[i] = new int[K[i]];
       }
 
-      for(int i = 0; i < K.length; i++) {
+      for (int i = 0; i < K.length; i++) {
         long k = index;
         x[i] = 0;
-        
-        for(int j = 0; j < K[i]; j++) {
-          q[i][j] = (j == 0? 1.0: q[i][j-1])/P[i];
-          d[i][j] = (int)(k % P[i]);
-          k = (k - d[i][j])/P[i];
+
+        for (int j = 0; j < K[i]; j++) {
+          q[i][j] = (j == 0 ? 1.0 : q[i][j - 1]) / P[i];
+          d[i][j] = (int) (k % P[i]);
+          k = (k - d[i][j]) / P[i];
           x[i] += d[i][j] * q[i][j];
         }
       }
@@ -124,20 +122,20 @@ public class QuasiMonteCarlo extends Configured implements Tool {
     /** Compute next point.
      * Assume the current point is H(index).
      * Compute H(index+1).
-     * 
+     *
      * @return a 2-dimensional point with coordinates in [0,1)^2
      */
     double[] nextPoint() {
       index++;
-      for(int i = 0; i < K.length; i++) {
-        for(int j = 0; j < K[i]; j++) {
+      for (int i = 0; i < K.length; i++) {
+        for (int j = 0; j < K[i]; j++) {
           d[i][j]++;
           x[i] += q[i][j];
           if (d[i][j] < P[i]) {
             break;
           }
           d[i][j] = 0;
-          x[i] -= (j == 0? 1.0: q[i][j-1]);
+          x[i] -= (j == 0 ? 1.0 : q[i][j - 1]);
         }
       }
       return x;
@@ -149,7 +147,7 @@ public class QuasiMonteCarlo extends Configured implements Tool {
    * Generate points in a unit square
    * and then count points inside/outside of the inscribed circle of the square.
    */
-  public static class QmcMapper extends 
+  public static class QmcMapper extends
       Mapper<LongWritable, LongWritable, BooleanWritable, LongWritable> {
 
     /** Map method.
@@ -159,21 +157,21 @@ public class QuasiMonteCarlo extends Configured implements Tool {
      */
     public void map(LongWritable offset,
                     LongWritable size,
-                    Context context) 
+                    Context context)
         throws IOException, InterruptedException {
 
       final HaltonSequence haltonsequence = new HaltonSequence(offset.get());
       long numInside = 0L;
       long numOutside = 0L;
 
-      for(long i = 0; i < size.get(); ) {
+      for (long i = 0; i < size.get(); ) {
         //generate points in a unit square
         final double[] point = haltonsequence.nextPoint();
 
         //count points inside/outside of the inscribed circle of the square
         final double x = point[0] - 0.5;
         final double y = point[1] - 0.5;
-        if (x*x + y*y > 0.25) {
+        if (x * x + y * y > 0.25) {
           numOutside++;
         } else {
           numInside++;
@@ -196,12 +194,12 @@ public class QuasiMonteCarlo extends Configured implements Tool {
    * Reducer class for Pi estimation.
    * Accumulate points inside/outside results from the mappers.
    */
-  public static class QmcReducer extends 
+  public static class QmcReducer extends
       Reducer<BooleanWritable, LongWritable, WritableComparable<?>, Writable> {
-    
+
     private long numInside = 0;
     private long numOutside = 0;
-      
+
     /**
      * Accumulate number of points inside/outside results from the mappers.
      * @param isInside Is the points inside? 
@@ -209,7 +207,7 @@ public class QuasiMonteCarlo extends Configured implements Tool {
      * @param context dummy, not used here.
      */
     public void reduce(BooleanWritable isInside,
-        Iterable<LongWritable> values, Context context)
+                       Iterable<LongWritable> values, Context context)
         throws IOException, InterruptedException {
       if (isInside.get()) {
         for (LongWritable val : values) {
@@ -233,7 +231,7 @@ public class QuasiMonteCarlo extends Configured implements Tool {
       Path outFile = new Path(outDir, "reduce-out");
       FileSystem fileSys = FileSystem.get(conf);
       SequenceFile.Writer writer = SequenceFile.createWriter(fileSys, conf,
-          outFile, LongWritable.class, LongWritable.class, 
+          outFile, LongWritable.class, LongWritable.class,
           CompressionType.NONE);
       writer.append(new LongWritable(numInside), new LongWritable(numOutside));
       writer.close();
@@ -246,8 +244,8 @@ public class QuasiMonteCarlo extends Configured implements Tool {
    * @return the estimated value of Pi
    */
   public static BigDecimal estimatePi(int numMaps, long numPoints,
-      Path tmpDir, Configuration conf
-      ) throws IOException, ClassNotFoundException, InterruptedException {
+                                      Path tmpDir, Configuration conf
+  ) throws IOException, ClassNotFoundException, InterruptedException {
     Job job = new Job(conf);
     //setup job conf
     job.setJobName(QuasiMonteCarlo.class.getSimpleName());
@@ -285,8 +283,8 @@ public class QuasiMonteCarlo extends Configured implements Tool {
 
     try {
       //generate an input file for each map task
-      for(int i=0; i < numMaps; ++i) {
-        final Path file = new Path(inDir, "part"+i);
+      for (int i = 0; i < numMaps; ++i) {
+        final Path file = new Path(inDir, "part" + i);
         final LongWritable offset = new LongWritable(i * numPoints);
         final LongWritable size = new LongWritable(numPoints);
         final SequenceFile.Writer writer = SequenceFile.createWriter(
@@ -297,14 +295,14 @@ public class QuasiMonteCarlo extends Configured implements Tool {
         } finally {
           writer.close();
         }
-        System.out.println("Wrote input for Map #"+i);
+        System.out.println("Wrote input for Map #" + i);
       }
-  
+
       //start a map/reduce job
       System.out.println("Starting Job");
       final long startTime = System.currentTimeMillis();
       job.waitForCompletion(true);
-      final double duration = (System.currentTimeMillis() - startTime)/1000.0;
+      final double duration = (System.currentTimeMillis() - startTime) / 1000.0;
       System.out.println("Job Finished in " + duration + " seconds");
 
       //read outputs
@@ -332,25 +330,25 @@ public class QuasiMonteCarlo extends Configured implements Tool {
   /**
    * Parse arguments and then runs a map/reduce job.
    * Print output in standard out.
-   * 
+   *
    * @return a non-zero if there is an error.  Otherwise, return 0.  
    */
   public int run(String[] args) throws Exception {
     if (args.length != 2) {
-      System.err.println("Usage: "+getClass().getName()+" <nMaps> <nSamples>");
+      System.err.println("Usage: " + getClass().getName() + " <nMaps> <nSamples>");
       ToolRunner.printGenericCommandUsage(System.err);
       return 2;
     }
-    
+
     final int nMaps = Integer.parseInt(args[0]);
     final long nSamples = Long.parseLong(args[1]);
     long now = System.currentTimeMillis();
     int rand = new Random().nextInt(Integer.MAX_VALUE);
     final Path tmpDir = new Path(TMP_DIR_PREFIX + "_" + now + "_" + rand);
-        
+
     System.out.println("Number of Maps  = " + nMaps);
     System.out.println("Samples per Map = " + nSamples);
-        
+
     System.out.println("Estimated value of Pi is "
         + estimatePi(nMaps, nSamples, tmpDir, getConf()));
     return 0;

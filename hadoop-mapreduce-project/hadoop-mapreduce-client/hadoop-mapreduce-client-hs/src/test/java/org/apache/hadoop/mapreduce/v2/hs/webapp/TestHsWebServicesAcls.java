@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,22 +17,6 @@
  */
 
 package org.apache.hadoop.mapreduce.v2.hs.webapp;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response.Status;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.CommonConfigurationKeys;
@@ -43,13 +27,7 @@ import org.apache.hadoop.mapred.TaskCompletionEvent;
 import org.apache.hadoop.mapreduce.Counters;
 import org.apache.hadoop.mapreduce.JobACL;
 import org.apache.hadoop.mapreduce.MRConfig;
-import org.apache.hadoop.mapreduce.v2.api.records.AMInfo;
-import org.apache.hadoop.mapreduce.v2.api.records.JobId;
-import org.apache.hadoop.mapreduce.v2.api.records.JobReport;
-import org.apache.hadoop.mapreduce.v2.api.records.JobState;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptCompletionEvent;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskType;
+import org.apache.hadoop.mapreduce.v2.api.records.*;
 import org.apache.hadoop.mapreduce.v2.app.job.Job;
 import org.apache.hadoop.mapreduce.v2.app.job.Task;
 import org.apache.hadoop.mapreduce.v2.hs.HistoryContext;
@@ -61,6 +39,21 @@ import org.apache.hadoop.security.authorize.AccessControlList;
 import org.apache.hadoop.yarn.webapp.WebApp;
 import org.junit.Before;
 import org.junit.Test;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response.Status;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TestHsWebServicesAcls {
   private static String FRIENDLY_USER = "friendly";
@@ -83,7 +76,7 @@ public class TestHsWebServicesAcls {
     this.ctx = buildHistoryContext(this.conf);
     WebApp webApp = mock(HsWebApp.class);
     when(webApp.name()).thenReturn("hsmockwebapp");
-    this.hsWebServices= new HsWebServices(ctx, conf, webApp);
+    this.hsWebServices = new HsWebServices(ctx, conf, webApp);
     this.hsWebServices.setResponse(mock(HttpServletResponse.class));
 
     Job job = ctx.getAllJobs().values().iterator().next();
@@ -289,7 +282,7 @@ public class TestHsWebServicesAcls {
       AccessControlList viewAcl = new AccessControlList(FRIENDLY_USER);
       this.jobAcls = new HashMap<JobACL, AccessControlList>();
       this.jobAcls.put(JobACL.VIEW_JOB, viewAcl);
-      this.aclsMgr = new JobACLsManager(conf); 
+      this.aclsMgr = new JobACLsManager(conf);
     }
 
     @Override
@@ -411,7 +404,7 @@ public class TestHsWebServicesAcls {
 
     @Override
     public boolean checkAccess(UserGroupInformation callerUGI,
-        JobACL jobOperation) {
+                               JobACL jobOperation) {
       return aclsMgr.checkAccess(callerUGI, jobOperation,
           this.getUserName(), jobAcls.get(jobOperation));
     }

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,8 +21,8 @@ package org.apache.hadoop.mapred.lib;
 
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
-import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.Partitioner;
 
@@ -32,11 +32,12 @@ import org.apache.hadoop.mapred.Partitioner;
  */
 @InterfaceAudience.Public
 @InterfaceStability.Stable
-public class TotalOrderPartitioner<K extends WritableComparable<?>,V>
+public class TotalOrderPartitioner<K extends WritableComparable<?>, V>
     extends org.apache.hadoop.mapreduce.lib.partition.TotalOrderPartitioner<K, V>
-    implements Partitioner<K,V> {
+    implements Partitioner<K, V> {
 
-  public TotalOrderPartitioner() { }
+  public TotalOrderPartitioner() {
+  }
 
   public void configure(JobConf job) {
     super.setConf(job);
@@ -46,26 +47,26 @@ public class TotalOrderPartitioner<K extends WritableComparable<?>,V>
    * Set the path to the SequenceFile storing the sorted partition keyset.
    * It must be the case that for <tt>R</tt> reduces, there are <tt>R-1</tt>
    * keys in the SequenceFile.
-   * @deprecated Use 
+   * @deprecated Use
    * {@link #setPartitionFile(Configuration, Path)}
    * instead
    */
   @Deprecated
   public static void setPartitionFile(JobConf job, Path p) {
     org.apache.hadoop.mapreduce.lib.partition.TotalOrderPartitioner.
-            setPartitionFile(job, p);
+        setPartitionFile(job, p);
   }
 
   /**
    * Get the path to the SequenceFile storing the sorted partition keyset.
-   * @see #setPartitionFile(JobConf,Path)
-   * @deprecated Use 
+   * @see #setPartitionFile(JobConf, Path)
+   * @deprecated Use
    * {@link #getPartitionFile(Configuration)}
    * instead
    */
   @Deprecated
   public static String getPartitionFile(JobConf job) {
     return org.apache.hadoop.mapreduce.lib.partition.TotalOrderPartitioner.
-            getPartitionFile(job);
+        getPartitionFile(job);
   }
 }

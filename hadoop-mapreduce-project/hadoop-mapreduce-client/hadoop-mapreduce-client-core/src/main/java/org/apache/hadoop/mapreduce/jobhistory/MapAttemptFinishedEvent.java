@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -33,7 +33,7 @@ import org.apache.hadoop.mapreduce.TaskType;
  */
 @InterfaceAudience.Private
 @InterfaceStability.Unstable
-public class MapAttemptFinishedEvent  implements HistoryEvent {
+public class MapAttemptFinishedEvent implements HistoryEvent {
 
   private MapAttemptFinished datum = null;
 
@@ -53,7 +53,7 @@ public class MapAttemptFinishedEvent  implements HistoryEvent {
   int[] vMemKbytes;
   int[] physMemKbytes;
 
-  /** 
+  /**
    * Create an event for successful completion of map attempts
    * @param id Task Attempt ID
    * @param taskType Type of the task
@@ -74,9 +74,9 @@ public class MapAttemptFinishedEvent  implements HistoryEvent {
    *        parameter. 
    */
   public MapAttemptFinishedEvent
-      (TaskAttemptID id, TaskType taskType, String taskStatus, 
-       long mapFinishTime, long finishTime, String hostname, int port, 
-       String rackName, String state, Counters counters, int[][] allSplits) {
+  (TaskAttemptID id, TaskType taskType, String taskStatus,
+   long mapFinishTime, long finishTime, String hostname, int port,
+   String rackName, String state, Counters counters, int[][] allSplits) {
     this.attemptId = id;
     this.taskType = taskType;
     this.taskStatus = taskStatus;
@@ -94,7 +94,7 @@ public class MapAttemptFinishedEvent  implements HistoryEvent {
     this.physMemKbytes = ProgressSplitsBlock.arrayGetPhysMemKbytes(allSplits);
   }
 
-  /** 
+  /**
    * @deprecated please use the constructor with an additional
    *              argument, an array of splits arrays instead.  See
    *              {@link org.apache.hadoop.mapred.ProgressSplitsBlock}
@@ -112,15 +112,16 @@ public class MapAttemptFinishedEvent  implements HistoryEvent {
    */
   @Deprecated
   public MapAttemptFinishedEvent
-      (TaskAttemptID id, TaskType taskType, String taskStatus, 
-       long mapFinishTime, long finishTime, String hostname,
-       String state, Counters counters) {
+  (TaskAttemptID id, TaskType taskType, String taskStatus,
+   long mapFinishTime, long finishTime, String hostname,
+   String state, Counters counters) {
     this(id, taskType, taskStatus, mapFinishTime, finishTime, hostname, -1, "",
         state, counters, null);
   }
-  
-  
-  MapAttemptFinishedEvent() {}
+
+
+  MapAttemptFinishedEvent() {
+  }
 
   public Object getDatum() {
     if (datum == null) {
@@ -140,19 +141,19 @@ public class MapAttemptFinishedEvent  implements HistoryEvent {
       datum.counters = EventWriter.toAvro(counters);
 
       datum.clockSplits = AvroArrayUtils.toAvro(ProgressSplitsBlock
-        .arrayGetWallclockTime(allSplits));
+          .arrayGetWallclockTime(allSplits));
       datum.cpuUsages = AvroArrayUtils.toAvro(ProgressSplitsBlock
-        .arrayGetCPUTime(allSplits));
+          .arrayGetCPUTime(allSplits));
       datum.vMemKbytes = AvroArrayUtils.toAvro(ProgressSplitsBlock
-        .arrayGetVMemKbytes(allSplits));
+          .arrayGetVMemKbytes(allSplits));
       datum.physMemKbytes = AvroArrayUtils.toAvro(ProgressSplitsBlock
-        .arrayGetPhysMemKbytes(allSplits));
+          .arrayGetPhysMemKbytes(allSplits));
     }
     return datum;
   }
 
   public void setDatum(Object oDatum) {
-    this.datum = (MapAttemptFinished)oDatum;
+    this.datum = (MapAttemptFinished) oDatum;
     this.attemptId = TaskAttemptID.forName(datum.attemptId.toString());
     this.taskType = TaskType.valueOf(datum.taskType.toString());
     this.taskStatus = datum.taskStatus.toString();
@@ -170,7 +171,10 @@ public class MapAttemptFinishedEvent  implements HistoryEvent {
   }
 
   /** Get the task ID */
-  public TaskID getTaskId() { return attemptId.getTaskID(); }
+  public TaskID getTaskId() {
+    return attemptId.getTaskID();
+  }
+
   /** Get the attempt id */
   public TaskAttemptID getAttemptId() {
     return attemptId;
@@ -180,42 +184,66 @@ public class MapAttemptFinishedEvent  implements HistoryEvent {
   public TaskType getTaskType() {
     return taskType;
   }
+
   /** Get the task status */
-  public String getTaskStatus() { return taskStatus.toString(); }
+  public String getTaskStatus() {
+    return taskStatus.toString();
+  }
+
   /** Get the map phase finish time */
-  public long getMapFinishTime() { return mapFinishTime; }
+  public long getMapFinishTime() {
+    return mapFinishTime;
+  }
+
   /** Get the attempt finish time */
-  public long getFinishTime() { return finishTime; }
+  public long getFinishTime() {
+    return finishTime;
+  }
+
   /** Get the host name */
-  public String getHostname() { return hostname.toString(); }
+  public String getHostname() {
+    return hostname.toString();
+  }
+
   /** Get the tracker rpc port */
-  public int getPort() { return port; }
-  
+  public int getPort() {
+    return port;
+  }
+
   /** Get the rack name */
   public String getRackName() {
     return rackName == null ? null : rackName.toString();
   }
-  
+
   /** Get the state string */
-  public String getState() { return state.toString(); }
+  public String getState() {
+    return state.toString();
+  }
+
   /** Get the counters */
-  Counters getCounters() { return counters; }
+  Counters getCounters() {
+    return counters;
+  }
+
   /** Get the event type */
-   public EventType getEventType() {
+  public EventType getEventType() {
     return EventType.MAP_ATTEMPT_FINISHED;
   }
 
   public int[] getClockSplits() {
     return clockSplits;
   }
+
   public int[] getCpuUsages() {
     return cpuUsages;
   }
+
   public int[] getVMemKbytes() {
     return vMemKbytes;
   }
+
   public int[] getPhysMemKbytes() {
     return physMemKbytes;
   }
-  
+
 }

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,17 +18,17 @@
 
 package org.apache.hadoop.mapreduce.v2.hs.webapp;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.util.List;
-
 import org.apache.hadoop.mapreduce.v2.api.records.JobReport;
 import org.apache.hadoop.mapreduce.v2.app.job.Job;
 import org.apache.hadoop.mapreduce.v2.util.MRApps;
 import org.apache.hadoop.yarn.webapp.WebServicesTestUtils;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class VerifyJobsUtils {
 
@@ -43,7 +43,7 @@ public class VerifyJobsUtils {
         info.getInt("mapsCompleted"), info.getInt("reducesTotal"),
         info.getInt("reducesCompleted"));
   }
-  
+
   public static void verifyHsJob(JSONObject info, Job job) throws JSONException {
     assertEquals("incorrect number of elements", 25, info.length());
 
@@ -75,8 +75,8 @@ public class VerifyJobsUtils {
   }
 
   public static void verifyHsJobGeneric(Job job, String id, String user,
-      String name, String state, String queue, long startTime, long finishTime,
-      int mapsTotal, int mapsCompleted, int reducesTotal, int reducesCompleted) {
+                                        String name, String state, String queue, long startTime, long finishTime,
+                                        int mapsTotal, int mapsCompleted, int reducesTotal, int reducesCompleted) {
     JobReport report = job.getReport();
 
     WebServicesTestUtils.checkStringMatch("id", MRApps.toString(job.getID()),
@@ -100,10 +100,10 @@ public class VerifyJobsUtils {
   }
 
   public static void verifyHsJobGenericSecure(Job job, Boolean uberized,
-      String diagnostics, long avgMapTime, long avgReduceTime,
-      long avgShuffleTime, long avgMergeTime, int failedReduceAttempts,
-      int killedReduceAttempts, int successfulReduceAttempts,
-      int failedMapAttempts, int killedMapAttempts, int successfulMapAttempts) {
+                                              String diagnostics, long avgMapTime, long avgReduceTime,
+                                              long avgShuffleTime, long avgMergeTime, int failedReduceAttempts,
+                                              int killedReduceAttempts, int successfulReduceAttempts,
+                                              int failedMapAttempts, int killedMapAttempts, int successfulMapAttempts) {
 
     String diagString = "";
     List<String> diagList = job.getDiagnostics();

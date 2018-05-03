@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,11 +17,6 @@
  */
 
 package org.apache.hadoop.mapreduce.task;
-
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
@@ -35,14 +30,13 @@ import org.apache.hadoop.io.serializer.SerializationFactory;
 import org.apache.hadoop.io.serializer.Serializer;
 import org.apache.hadoop.mapred.BackupStore;
 import org.apache.hadoop.mapred.RawKeyValueIterator;
-import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.Counter;
-import org.apache.hadoop.mapreduce.OutputCommitter;
-import org.apache.hadoop.mapreduce.RecordWriter;
-import org.apache.hadoop.mapreduce.ReduceContext;
-import org.apache.hadoop.mapreduce.StatusReporter;
-import org.apache.hadoop.mapreduce.TaskAttemptID;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.util.Progressable;
+
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * The context passed to the {@link Reducer}.
@@ -53,8 +47,8 @@ import org.apache.hadoop.util.Progressable;
  */
 @InterfaceAudience.Private
 @InterfaceStability.Unstable
-public class ReduceContextImpl<KEYIN,VALUEIN,KEYOUT,VALUEOUT>
-    extends TaskInputOutputContextImpl<KEYIN,VALUEIN,KEYOUT,VALUEOUT> 
+public class ReduceContextImpl<KEYIN, VALUEIN, KEYOUT, VALUEOUT>
+    extends TaskInputOutputContextImpl<KEYIN, VALUEIN, KEYOUT, VALUEOUT>
     implements ReduceContext<KEYIN, VALUEIN, KEYOUT, VALUEOUT> {
   private RawKeyValueIterator input;
   private Counter inputValueCounter;
@@ -72,7 +66,7 @@ public class ReduceContextImpl<KEYIN,VALUEIN,KEYOUT,VALUEOUT>
   private BytesWritable currentRawKey = new BytesWritable();
   private ValueIterable iterable = new ValueIterable();
   private boolean isMarked = false;
-  private BackupStore<KEYIN,VALUEIN> backupStore;
+  private BackupStore<KEYIN, VALUEIN> backupStore;
   private final SerializationFactory serializationFactory;
   private final Class<KEYIN> keyClass;
   private final Class<VALUEIN> valueClass;
@@ -80,18 +74,18 @@ public class ReduceContextImpl<KEYIN,VALUEIN,KEYOUT,VALUEOUT>
   private final TaskAttemptID taskid;
   private int currentKeyLength = -1;
   private int currentValueLength = -1;
-  
+
   public ReduceContextImpl(Configuration conf, TaskAttemptID taskid,
-                           RawKeyValueIterator input, 
+                           RawKeyValueIterator input,
                            Counter inputKeyCounter,
                            Counter inputValueCounter,
-                           RecordWriter<KEYOUT,VALUEOUT> output,
+                           RecordWriter<KEYOUT, VALUEOUT> output,
                            OutputCommitter committer,
                            StatusReporter reporter,
                            RawComparator<KEYIN> comparator,
                            Class<KEYIN> keyClass,
                            Class<VALUEIN> valueClass
-                          ) throws InterruptedException, IOException{
+  ) throws InterruptedException, IOException {
     super(conf, taskid, output, committer, reporter);
     this.input = input;
     this.inputKeyCounter = inputKeyCounter;
@@ -110,7 +104,7 @@ public class ReduceContextImpl<KEYIN,VALUEIN,KEYOUT,VALUEOUT>
   }
 
   /** Start processing next unique key. */
-  public boolean nextKey() throws IOException,InterruptedException {
+  public boolean nextKey() throws IOException, InterruptedException {
     while (hasMore && nextKeyIsSame) {
       nextKeyValue();
     }
@@ -136,8 +130,8 @@ public class ReduceContextImpl<KEYIN,VALUEIN,KEYOUT,VALUEOUT>
     }
     firstValue = !nextKeyIsSame;
     DataInputBuffer nextKey = input.getKey();
-    currentRawKey.set(nextKey.getData(), nextKey.getPosition(), 
-                      nextKey.getLength() - nextKey.getPosition());
+    currentRawKey.set(nextKey.getData(), nextKey.getPosition(),
+        nextKey.getLength() - nextKey.getPosition());
     buffer.reset(currentRawKey.getBytes(), 0, currentRawKey.getLength());
     key = keyDeserializer.deserialize(key);
     DataInputBuffer nextVal = input.getValue();
@@ -155,12 +149,12 @@ public class ReduceContextImpl<KEYIN,VALUEIN,KEYOUT,VALUEOUT>
     hasMore = input.next();
     if (hasMore) {
       nextKey = input.getKey();
-      nextKeyIsSame = comparator.compare(currentRawKey.getBytes(), 0, 
-                                     currentRawKey.getLength(),
-                                     nextKey.getData(),
-                                     nextKey.getPosition(),
-                                     nextKey.getLength() - nextKey.getPosition()
-                                         ) == 0;
+      nextKeyIsSame = comparator.compare(currentRawKey.getBytes(), 0,
+          currentRawKey.getLength(),
+          nextKey.getData(),
+          nextKey.getPosition(),
+          nextKey.getLength() - nextKey.getPosition()
+      ) == 0;
     } else {
       nextKeyIsSame = false;
     }
@@ -176,11 +170,11 @@ public class ReduceContextImpl<KEYIN,VALUEIN,KEYOUT,VALUEOUT>
   public VALUEIN getCurrentValue() {
     return value;
   }
-  
-  BackupStore<KEYIN,VALUEIN> getBackupStore() {
+
+  BackupStore<KEYIN, VALUEIN> getBackupStore() {
     return backupStore;
   }
-  
+
   protected class ValueIterator implements ReduceContext.ValueIterator<VALUEIN> {
 
     private boolean inReset = false;
@@ -191,7 +185,7 @@ public class ReduceContextImpl<KEYIN,VALUEIN,KEYOUT,VALUEOUT>
       try {
         if (inReset && backupStore.hasNext()) {
           return true;
-        } 
+        }
       } catch (Exception e) {
         e.printStackTrace();
         throw new RuntimeException("hasNext failed", e);
@@ -222,7 +216,7 @@ public class ReduceContextImpl<KEYIN,VALUEIN,KEYOUT,VALUEOUT>
           e.printStackTrace();
           throw new RuntimeException("next value iterator failed", e);
         }
-      } 
+      }
 
       // if this is the first record, we don't need to advance
       if (firstValue) {
@@ -242,7 +236,7 @@ public class ReduceContextImpl<KEYIN,VALUEIN,KEYOUT,VALUEOUT>
         throw new RuntimeException("next value iterator failed", ie);
       } catch (InterruptedException ie) {
         // this is bad, but we can't modify the exception list of java.util
-        throw new RuntimeException("next value iterator interrupted", ie);        
+        throw new RuntimeException("next value iterator interrupted", ie);
       }
     }
 
@@ -254,7 +248,7 @@ public class ReduceContextImpl<KEYIN,VALUEIN,KEYOUT,VALUEOUT>
     @Override
     public void mark() throws IOException {
       if (getBackupStore() == null) {
-        backupStore = new BackupStore<KEYIN,VALUEIN>(conf, taskid);
+        backupStore = new BackupStore<KEYIN, VALUEIN>(conf, taskid);
       }
       isMarked = true;
       if (!inReset) {
@@ -265,9 +259,9 @@ public class ReduceContextImpl<KEYIN,VALUEIN,KEYOUT,VALUEOUT>
           return;
         }
         assert (currentValueLength != -1);
-        int requestedSize = currentKeyLength + currentValueLength + 
-          WritableUtils.getVIntSize(currentKeyLength) +
-          WritableUtils.getVIntSize(currentValueLength);
+        int requestedSize = currentKeyLength + currentValueLength +
+            WritableUtils.getVIntSize(currentKeyLength) +
+            WritableUtils.getVIntSize(currentValueLength);
         DataOutputStream out = backupStore.getOutputStream(requestedSize);
         writeFirstKeyValueBytes(out);
         backupStore.updateCounters(requestedSize);
@@ -286,7 +280,7 @@ public class ReduceContextImpl<KEYIN,VALUEIN,KEYOUT,VALUEOUT>
         backupStore.clearMark();
         throw new IOException("Reset called without a previous mark");
       }
-      
+
       if (!isMarked) {
         throw new IOException("Reset called without a previous mark");
       }
@@ -307,7 +301,7 @@ public class ReduceContextImpl<KEYIN,VALUEIN,KEYOUT,VALUEOUT>
         backupStore.reinitialize();
       }
     }
-    
+
     /**
      * This method is called when the reducer moves from one key to 
      * another.
@@ -330,18 +324,18 @@ public class ReduceContextImpl<KEYIN,VALUEIN,KEYOUT,VALUEOUT>
      * @param out
      * @throws IOException
      */
-    private void writeFirstKeyValueBytes(DataOutputStream out) 
-    throws IOException {
+    private void writeFirstKeyValueBytes(DataOutputStream out)
+        throws IOException {
       assert (getCurrentKey() != null && getCurrentValue() != null);
       WritableUtils.writeVInt(out, currentKeyLength);
       WritableUtils.writeVInt(out, currentValueLength);
-      Serializer<KEYIN> keySerializer = 
-        serializationFactory.getSerializer(keyClass);
+      Serializer<KEYIN> keySerializer =
+          serializationFactory.getSerializer(keyClass);
       keySerializer.open(out);
       keySerializer.serialize(getCurrentKey());
 
-      Serializer<VALUEIN> valueSerializer = 
-        serializationFactory.getSerializer(valueClass);
+      Serializer<VALUEIN> valueSerializer =
+          serializationFactory.getSerializer(valueClass);
       valueSerializer.open(out);
       valueSerializer.serialize(getCurrentValue());
     }
@@ -349,20 +343,20 @@ public class ReduceContextImpl<KEYIN,VALUEIN,KEYOUT,VALUEOUT>
 
   protected class ValueIterable implements Iterable<VALUEIN> {
     private ValueIterator iterator = new ValueIterator();
+
     @Override
     public Iterator<VALUEIN> iterator() {
       return iterator;
-    } 
+    }
   }
-  
+
   /**
    * Iterate through the values for the current key, reusing the same value 
    * object, which is stored in the context.
    * @return the series of values associated with the current key. All of the 
    * objects returned directly and indirectly from this method are reused.
    */
-  public 
-  Iterable<VALUEIN> getValues() throws IOException, InterruptedException {
+  public Iterable<VALUEIN> getValues() throws IOException, InterruptedException {
     return iterable;
   }
 }

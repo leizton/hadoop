@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,23 +18,22 @@
 
 package org.apache.hadoop.mapred.lib.db;
 
-import java.sql.DriverManager;
-
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.mapred.InputSplit;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordReader;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapred.lib.db.DBInputFormat.DBInputSplit;
 import org.apache.hadoop.mapred.lib.db.DBInputFormat.DBRecordReader;
 import org.apache.hadoop.mapred.lib.db.DBInputFormat.NullDBWritable;
-import org.apache.hadoop.mapred.InputSplit;
 import org.apache.hadoop.mapreduce.MRJobConfig;
-import org.apache.hadoop.mapred.lib.db.DBConfiguration;
 import org.apache.hadoop.mapreduce.lib.db.DriverForTest;
 import org.junit.Test;
 
+import java.sql.DriverManager;
+
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
 
 public class TestDBInputFormat {
 
@@ -46,7 +45,7 @@ public class TestDBInputFormat {
   public void testDBInputFormat() throws Exception {
     JobConf configuration = new JobConf();
     setupDriver(configuration);
-    
+
     DBInputFormat<NullDBWritable> format = new DBInputFormat<NullDBWritable>();
     format.setConf(configuration);
     format.setConf(configuration);
@@ -66,15 +65,15 @@ public class TestDBInputFormat {
     assertEquals(0, reader.getProgress(), 0.001);
     reader.close();
   }
-  
-  /** 
+
+  /**
    * test configuration for db. should works DBConfiguration.* parameters. 
    */
-  @Test (timeout = 5000)
+  @Test(timeout = 5000)
   public void testSetInput() {
     JobConf configuration = new JobConf();
 
-    String[] fieldNames = { "field1", "field2" };
+    String[] fieldNames = {"field1", "field2"};
     DBInputFormat.setInput(configuration, NullDBWritable.class, "table",
         "conditions", "orderBy", fieldNames);
     assertEquals(
@@ -101,7 +100,7 @@ public class TestDBInputFormat {
     assertEquals("query", configuration.get(DBConfiguration.INPUT_QUERY, null));
     assertEquals("countQuery",
         configuration.get(DBConfiguration.INPUT_COUNT_QUERY, null));
-    
+
     JobConf jConfiguration = new JobConf();
     DBConfiguration.configureDB(jConfiguration, "driverClass", "dbUrl", "user",
         "password");
@@ -121,20 +120,20 @@ public class TestDBInputFormat {
   }
 
   /**
-   * 
+   *
    * test DBRecordReader. This reader should creates keys, values, know about position.. 
    */
   @SuppressWarnings("unchecked")
-  @Test (timeout = 5000)
+  @Test(timeout = 5000)
   public void testDBRecordReader() throws Exception {
 
     JobConf job = mock(JobConf.class);
     DBConfiguration dbConfig = mock(DBConfiguration.class);
-    String[] fields = { "field1", "filed2" };
+    String[] fields = {"field1", "filed2"};
 
     @SuppressWarnings("rawtypes")
     DBRecordReader reader = new DBInputFormat<NullDBWritable>().new DBRecordReader(
-        new DBInputSplit(),  NullDBWritable.class, job,
+        new DBInputSplit(), NullDBWritable.class, job,
         DriverForTest.getConnection(), dbConfig, "condition", fields, "table");
     LongWritable key = reader.createKey();
     assertEquals(0, key.get());

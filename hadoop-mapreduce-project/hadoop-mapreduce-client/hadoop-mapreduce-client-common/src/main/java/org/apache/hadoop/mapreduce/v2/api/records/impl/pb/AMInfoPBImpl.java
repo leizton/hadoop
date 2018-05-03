@@ -1,20 +1,20 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2.api.records.impl.pb;
 
@@ -34,10 +34,10 @@ public class AMInfoPBImpl extends ProtoBase<AMInfoProto> implements AMInfo {
   AMInfoProto proto = AMInfoProto.getDefaultInstance();
   AMInfoProto.Builder builder = null;
   boolean viaProto = false;
-  
+
   private ApplicationAttemptId appAttemptId;
   private ContainerId containerId;
-  
+
   public AMInfoPBImpl() {
     builder = AMInfoProto.newBuilder();
   }
@@ -57,12 +57,12 @@ public class AMInfoPBImpl extends ProtoBase<AMInfoProto> implements AMInfo {
   private synchronized void mergeLocalToBuilder() {
     if (this.appAttemptId != null
         && !((ApplicationAttemptIdPBImpl) this.appAttemptId).getProto().equals(
-            builder.getApplicationAttemptId())) {
+        builder.getApplicationAttemptId())) {
       builder.setApplicationAttemptId(convertToProtoFormat(this.appAttemptId));
     }
     if (this.getContainerId() != null
         && !((ContainerIdPBImpl) this.containerId).getProto().equals(
-            builder.getContainerId())) {
+        builder.getContainerId())) {
       builder.setContainerId(convertToProtoFormat(this.containerId));
     }
   }
@@ -109,7 +109,7 @@ public class AMInfoPBImpl extends ProtoBase<AMInfoProto> implements AMInfo {
     AMInfoProtoOrBuilder p = viaProto ? proto : builder;
     return (p.getStartTime());
   }
-  
+
   @Override
   public synchronized void setStartTime(long startTime) {
     maybeInitBuilder();
@@ -128,7 +128,7 @@ public class AMInfoPBImpl extends ProtoBase<AMInfoProto> implements AMInfo {
     containerId = convertFromProtoFormat(p.getContainerId());
     return containerId;
   }
-  
+
   @Override
   public synchronized void setContainerId(ContainerId containerId) {
     maybeInitBuilder();
@@ -162,7 +162,7 @@ public class AMInfoPBImpl extends ProtoBase<AMInfoProto> implements AMInfo {
     AMInfoProtoOrBuilder p = viaProto ? proto : builder;
     return (p.getNodeManagerPort());
   }
-  
+
   @Override
   public synchronized void setNodeManagerPort(int nmPort) {
     maybeInitBuilder();
@@ -190,8 +190,7 @@ public class AMInfoPBImpl extends ProtoBase<AMInfoProto> implements AMInfo {
     return new ContainerIdPBImpl(p);
   }
 
-  private
-      ApplicationAttemptIdProto convertToProtoFormat(ApplicationAttemptId t) {
+  private ApplicationAttemptIdProto convertToProtoFormat(ApplicationAttemptId t) {
     return ((ApplicationAttemptIdPBImpl) t).getProto();
   }
 

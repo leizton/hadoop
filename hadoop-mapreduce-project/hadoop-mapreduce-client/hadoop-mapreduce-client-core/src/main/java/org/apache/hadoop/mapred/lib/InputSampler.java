@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,25 +18,21 @@
 
 package org.apache.hadoop.mapred.lib;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Random;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
-import org.apache.hadoop.mapred.InputFormat;
-import org.apache.hadoop.mapred.InputSplit;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.RecordReader;
-import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapred.*;
 import org.apache.hadoop.mapreduce.Job;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Random;
 
 @InterfaceAudience.Public
 @InterfaceStability.Stable
-public class InputSampler<K,V> extends 
-  org.apache.hadoop.mapreduce.lib.partition.InputSampler<K, V> {
+public class InputSampler<K, V> extends
+    org.apache.hadoop.mapreduce.lib.partition.InputSampler<K, V> {
 
   private static final Log LOG = LogFactory.getLog(InputSampler.class);
 
@@ -44,29 +40,30 @@ public class InputSampler<K,V> extends
     super(conf);
   }
 
-  public static <K,V> void writePartitionFile(JobConf job, Sampler<K,V> sampler)
+  public static <K, V> void writePartitionFile(JobConf job, Sampler<K, V> sampler)
       throws IOException, ClassNotFoundException, InterruptedException {
     writePartitionFile(new Job(job), sampler);
   }
+
   /**
    * Interface to sample using an {@link org.apache.hadoop.mapred.InputFormat}.
    */
-  public interface Sampler<K,V> extends
-    org.apache.hadoop.mapreduce.lib.partition.InputSampler.Sampler<K, V> {
+  public interface Sampler<K, V> extends
+      org.apache.hadoop.mapreduce.lib.partition.InputSampler.Sampler<K, V> {
     /**
      * For a given job, collect and return a subset of the keys from the
      * input data.
      */
-    K[] getSample(InputFormat<K,V> inf, JobConf job) throws IOException;
+    K[] getSample(InputFormat<K, V> inf, JobConf job) throws IOException;
   }
 
   /**
    * Samples the first n records from s splits.
    * Inexpensive way to sample random data.
    */
-  public static class SplitSampler<K,V> extends
+  public static class SplitSampler<K, V> extends
       org.apache.hadoop.mapreduce.lib.partition.InputSampler.SplitSampler<K, V>
-          implements Sampler<K,V> {
+      implements Sampler<K, V> {
 
     /**
      * Create a SplitSampler sampling <em>all</em> splits.
@@ -92,7 +89,7 @@ public class InputSampler<K,V> extends
      * From each split sampled, take the first numSamples / numSplits records.
      */
     @SuppressWarnings("unchecked") // ArrayList::toArray doesn't preserve type
-    public K[] getSample(InputFormat<K,V> inf, JobConf job) throws IOException {
+    public K[] getSample(InputFormat<K, V> inf, JobConf job) throws IOException {
       InputSplit[] splits = inf.getSplits(job, job.getNumMapTasks());
       ArrayList<K> samples = new ArrayList<K>(numSamples);
       int splitsToSample = Math.min(maxSplitsSampled, splits.length);
@@ -100,7 +97,7 @@ public class InputSampler<K,V> extends
       int samplesPerSplit = numSamples / splitsToSample;
       long records = 0;
       for (int i = 0; i < splitsToSample; ++i) {
-        RecordReader<K,V> reader = inf.getRecordReader(splits[i * splitStep],
+        RecordReader<K, V> reader = inf.getRecordReader(splits[i * splitStep],
             job, Reporter.NULL);
         K key = reader.createKey();
         V value = reader.createValue();
@@ -108,13 +105,13 @@ public class InputSampler<K,V> extends
           samples.add(key);
           key = reader.createKey();
           ++records;
-          if ((i+1) * samplesPerSplit <= records) {
+          if ((i + 1) * samplesPerSplit <= records) {
             break;
           }
         }
         reader.close();
       }
-      return (K[])samples.toArray();
+      return (K[]) samples.toArray();
     }
   }
 
@@ -123,9 +120,9 @@ public class InputSampler<K,V> extends
    * General-purpose sampler. Takes numSamples / maxSplitsSampled inputs from
    * each split.
    */
-  public static class RandomSampler<K,V> extends
+  public static class RandomSampler<K, V> extends
       org.apache.hadoop.mapreduce.lib.partition.InputSampler.RandomSampler<K, V>
-          implements Sampler<K,V> {
+      implements Sampler<K, V> {
 
     /**
      * Create a new RandomSampler sampling <em>all</em> splits.
@@ -156,7 +153,7 @@ public class InputSampler<K,V> extends
      * the quota of keys from that split is satisfied.
      */
     @SuppressWarnings("unchecked") // ArrayList::toArray doesn't preserve type
-    public K[] getSample(InputFormat<K,V> inf, JobConf job) throws IOException {
+    public K[] getSample(InputFormat<K, V> inf, JobConf job) throws IOException {
       InputSplit[] splits = inf.getSplits(job, job.getNumMapTasks());
       ArrayList<K> samples = new ArrayList<K>(numSamples);
       int splitsToSample = Math.min(maxSplitsSampled, splits.length);
@@ -176,8 +173,8 @@ public class InputSampler<K,V> extends
       // but we accept the possibility of sampling additional splits to hit
       // the target sample keyset
       for (int i = 0; i < splitsToSample ||
-                     (i < splits.length && samples.size() < numSamples); ++i) {
-        RecordReader<K,V> reader = inf.getRecordReader(splits[i], job,
+          (i < splits.length && samples.size() < numSamples); ++i) {
+        RecordReader<K, V> reader = inf.getRecordReader(splits[i], job,
             Reporter.NULL);
         K key = reader.createKey();
         V value = reader.createValue();
@@ -201,7 +198,7 @@ public class InputSampler<K,V> extends
         }
         reader.close();
       }
-      return (K[])samples.toArray();
+      return (K[]) samples.toArray();
     }
   }
 
@@ -209,9 +206,9 @@ public class InputSampler<K,V> extends
    * Sample from s splits at regular intervals.
    * Useful for sorted data.
    */
-  public static class IntervalSampler<K,V> extends
+  public static class IntervalSampler<K, V> extends
       org.apache.hadoop.mapreduce.lib.partition.InputSampler.IntervalSampler<K, V>
-          implements Sampler<K,V> {
+      implements Sampler<K, V> {
 
     /**
      * Create a new IntervalSampler sampling <em>all</em> splits.
@@ -237,7 +234,7 @@ public class InputSampler<K,V> extends
      * frequency.
      */
     @SuppressWarnings("unchecked") // ArrayList::toArray doesn't preserve type
-    public K[] getSample(InputFormat<K,V> inf, JobConf job) throws IOException {
+    public K[] getSample(InputFormat<K, V> inf, JobConf job) throws IOException {
       InputSplit[] splits = inf.getSplits(job, job.getNumMapTasks());
       ArrayList<K> samples = new ArrayList<K>();
       int splitsToSample = Math.min(maxSplitsSampled, splits.length);
@@ -245,7 +242,7 @@ public class InputSampler<K,V> extends
       long records = 0;
       long kept = 0;
       for (int i = 0; i < splitsToSample; ++i) {
-        RecordReader<K,V> reader = inf.getRecordReader(splits[i * splitStep],
+        RecordReader<K, V> reader = inf.getRecordReader(splits[i * splitStep],
             job, Reporter.NULL);
         K key = reader.createKey();
         V value = reader.createValue();
@@ -259,7 +256,7 @@ public class InputSampler<K,V> extends
         }
         reader.close();
       }
-      return (K[])samples.toArray();
+      return (K[]) samples.toArray();
     }
   }
 

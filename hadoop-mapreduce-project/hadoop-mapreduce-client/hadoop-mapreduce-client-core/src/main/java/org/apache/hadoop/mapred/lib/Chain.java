@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,8 +23,8 @@ import org.apache.hadoop.io.serializer.Serialization;
 import org.apache.hadoop.io.serializer.SerializationFactory;
 import org.apache.hadoop.io.serializer.Serializer;
 import org.apache.hadoop.mapred.*;
-import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.hadoop.util.GenericsUtil;
+import org.apache.hadoop.util.ReflectionUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -49,9 +49,9 @@ class Chain extends org.apache.hadoop.mapreduce.lib.chain.Chain {
   // to cache the key/value output class serializations for each chain element
   // to avoid everytime lookup.
   private List<Serialization> mappersKeySerialization =
-    new ArrayList<Serialization>();
+      new ArrayList<Serialization>();
   private List<Serialization> mappersValueSerialization =
-    new ArrayList<Serialization>();
+      new ArrayList<Serialization>();
   private Serialization reducerKeySerialization;
   private Serialization reducerValueSerialization;
 
@@ -86,36 +86,36 @@ class Chain extends org.apache.hadoop.mapreduce.lib.chain.Chain {
    * <code>JobConf(boolean loadDefaults)</code> constructor with FALSE.
    */
   public static <K1, V1, K2, V2> void addMapper(boolean isMap, JobConf jobConf,
-                           Class<? extends Mapper<K1, V1, K2, V2>> klass,
-                           Class<? extends K1> inputKeyClass,
-                           Class<? extends V1> inputValueClass,
-                           Class<? extends K2> outputKeyClass,
-                           Class<? extends V2> outputValueClass,
-                           boolean byValue, JobConf mapperConf) {
+                                                Class<? extends Mapper<K1, V1, K2, V2>> klass,
+                                                Class<? extends K1> inputKeyClass,
+                                                Class<? extends V1> inputValueClass,
+                                                Class<? extends K2> outputKeyClass,
+                                                Class<? extends V2> outputValueClass,
+                                                boolean byValue, JobConf mapperConf) {
     String prefix = getPrefix(isMap);
 
     // if a reducer chain check the Reducer has been already set
     checkReducerAlreadySet(isMap, jobConf, prefix, true);
-	    
+
     // set the mapper class
     int index = getIndex(jobConf, prefix);
     jobConf.setClass(prefix + CHAIN_MAPPER_CLASS + index, klass, Mapper.class);
-	    
+
     validateKeyValueTypes(isMap, jobConf, inputKeyClass, inputValueClass,
-      outputKeyClass, outputValueClass, index, prefix);
-	    
+        outputKeyClass, outputValueClass, index, prefix);
+
     // if the Mapper does not have a private JobConf create an empty one
     if (mapperConf == null) {
-    // using a JobConf without defaults to make it lightweight.
-    // still the chain JobConf may have all defaults and this conf is
-    // overlapped to the chain JobConf one.
+      // using a JobConf without defaults to make it lightweight.
+      // still the chain JobConf may have all defaults and this conf is
+      // overlapped to the chain JobConf one.
       mapperConf = new JobConf(true);
     }
     // store in the private mapper conf if it works by value or by reference
     mapperConf.setBoolean(MAPPER_BY_VALUE, byValue);
-    
+
     setMapperConf(isMap, jobConf, inputKeyClass, inputValueClass,
-	      outputKeyClass, outputValueClass, mapperConf, index, prefix);
+        outputKeyClass, outputValueClass, mapperConf, index, prefix);
   }
 
   /**
@@ -137,17 +137,17 @@ class Chain extends org.apache.hadoop.mapreduce.lib.chain.Chain {
    * <code>JobConf(boolean loadDefaults)</code> constructor with FALSE.
    */
   public static <K1, V1, K2, V2> void setReducer(JobConf jobConf,
-                          Class<? extends Reducer<K1, V1, K2, V2>> klass,
-                          Class<? extends K1> inputKeyClass,
-                          Class<? extends V1> inputValueClass,
-                          Class<? extends K2> outputKeyClass,
-                          Class<? extends V2> outputValueClass,
-                          boolean byValue, JobConf reducerConf) {
+                                                 Class<? extends Reducer<K1, V1, K2, V2>> klass,
+                                                 Class<? extends K1> inputKeyClass,
+                                                 Class<? extends V1> inputValueClass,
+                                                 Class<? extends K2> outputKeyClass,
+                                                 Class<? extends V2> outputValueClass,
+                                                 boolean byValue, JobConf reducerConf) {
     String prefix = getPrefix(false);
     checkReducerAlreadySet(false, jobConf, prefix, false);
 
     jobConf.setClass(prefix + CHAIN_REDUCER_CLASS, klass, Reducer.class);
-    
+
     // if the Reducer does not have a private JobConf create an empty one
     if (reducerConf == null) {
       // using a JobConf without defaults to make it lightweight.
@@ -161,7 +161,7 @@ class Chain extends org.apache.hadoop.mapreduce.lib.chain.Chain {
     reducerConf.setBoolean(REDUCER_BY_VALUE, byValue);
 
     setReducerConf(jobConf, inputKeyClass, inputValueClass, outputKeyClass,
-      outputValueClass, reducerConf, prefix);
+        outputValueClass, reducerConf, prefix);
   }
 
   /**
@@ -173,37 +173,37 @@ class Chain extends org.apache.hadoop.mapreduce.lib.chain.Chain {
     String prefix = getPrefix(isMap);
     chainJobConf = jobConf;
     SerializationFactory serializationFactory =
-      new SerializationFactory(chainJobConf);
+        new SerializationFactory(chainJobConf);
     int index = jobConf.getInt(prefix + CHAIN_MAPPER_SIZE, 0);
     for (int i = 0; i < index; i++) {
       Class<? extends Mapper> klass =
-        jobConf.getClass(prefix + CHAIN_MAPPER_CLASS + i, null, Mapper.class);
+          jobConf.getClass(prefix + CHAIN_MAPPER_CLASS + i, null, Mapper.class);
       JobConf mConf = new JobConf(
-        getChainElementConf(jobConf, prefix + CHAIN_MAPPER_CONFIG + i));
+          getChainElementConf(jobConf, prefix + CHAIN_MAPPER_CONFIG + i));
       Mapper mapper = ReflectionUtils.newInstance(klass, mConf);
       mappers.add(mapper);
 
       if (mConf.getBoolean(MAPPER_BY_VALUE, true)) {
         mappersKeySerialization.add(serializationFactory.getSerialization(
-          mConf.getClass(MAPPER_OUTPUT_KEY_CLASS, null)));
+            mConf.getClass(MAPPER_OUTPUT_KEY_CLASS, null)));
         mappersValueSerialization.add(serializationFactory.getSerialization(
-          mConf.getClass(MAPPER_OUTPUT_VALUE_CLASS, null)));
+            mConf.getClass(MAPPER_OUTPUT_VALUE_CLASS, null)));
       } else {
         mappersKeySerialization.add(null);
         mappersValueSerialization.add(null);
       }
     }
     Class<? extends Reducer> klass =
-      jobConf.getClass(prefix + CHAIN_REDUCER_CLASS, null, Reducer.class);
+        jobConf.getClass(prefix + CHAIN_REDUCER_CLASS, null, Reducer.class);
     if (klass != null) {
       JobConf rConf = new JobConf(
-        getChainElementConf(jobConf, prefix + CHAIN_REDUCER_CONFIG));
+          getChainElementConf(jobConf, prefix + CHAIN_REDUCER_CONFIG));
       reducer = ReflectionUtils.newInstance(klass, rConf);
       if (rConf.getBoolean(REDUCER_BY_VALUE, true)) {
         reducerKeySerialization = serializationFactory
-          .getSerialization(rConf.getClass(REDUCER_OUTPUT_KEY_CLASS, null));
+            .getSerialization(rConf.getClass(REDUCER_OUTPUT_KEY_CLASS, null));
         reducerValueSerialization = serializationFactory
-          .getSerialization(rConf.getClass(REDUCER_OUTPUT_VALUE_CLASS, null));
+            .getSerialization(rConf.getClass(REDUCER_OUTPUT_VALUE_CLASS, null));
       } else {
         reducerKeySerialization = null;
         reducerValueSerialization = null;
@@ -252,9 +252,9 @@ class Chain extends org.apache.hadoop.mapreduce.lib.chain.Chain {
                                             Reporter reporter) {
     Serialization keySerialization = mappersKeySerialization.get(mapperIndex);
     Serialization valueSerialization =
-      mappersValueSerialization.get(mapperIndex);
+        mappersValueSerialization.get(mapperIndex);
     return new ChainOutputCollector(mapperIndex, keySerialization,
-                                    valueSerialization, output, reporter);
+        valueSerialization, output, reporter);
   }
 
   /**
@@ -268,8 +268,8 @@ class Chain extends org.apache.hadoop.mapreduce.lib.chain.Chain {
   public OutputCollector getReducerCollector(OutputCollector output,
                                              Reporter reporter) {
     return new ChainOutputCollector(reducerKeySerialization,
-                                    reducerValueSerialization, output,
-                                    reporter);
+        reducerValueSerialization, output,
+        reporter);
   }
 
   /**
@@ -291,11 +291,11 @@ class Chain extends org.apache.hadoop.mapreduce.lib.chain.Chain {
   // it has to be a thread local because if not it would break if used from a
   // MultiThreadedMapRunner.
   private ThreadLocal<DataOutputBuffer> threadLocalDataOutputBuffer =
-    new ThreadLocal<DataOutputBuffer>() {
-      protected DataOutputBuffer initialValue() {
-        return new DataOutputBuffer(1024);
-      }
-    };
+      new ThreadLocal<DataOutputBuffer>() {
+        protected DataOutputBuffer initialValue() {
+          return new DataOutputBuffer(1024);
+        }
+      };
 
   /**
    * OutputCollector implementation used by the chain tasks.
@@ -350,18 +350,18 @@ class Chain extends org.apache.hadoop.mapreduce.lib.chain.Chain {
 
         // gets ser/deser and mapper of next in chain
         Serialization nextKeySerialization =
-          mappersKeySerialization.get(nextMapperIndex);
+            mappersKeySerialization.get(nextMapperIndex);
         Serialization nextValueSerialization =
-          mappersValueSerialization.get(nextMapperIndex);
+            mappersValueSerialization.get(nextMapperIndex);
         Mapper nextMapper = mappers.get(nextMapperIndex);
 
         // invokes next mapper in chain
         nextMapper.map(key, value,
-                       new ChainOutputCollector(nextMapperIndex,
-                                                nextKeySerialization,
-                                                nextValueSerialization,
-                                                output, reporter),
-                       reporter);
+            new ChainOutputCollector(nextMapperIndex,
+                nextKeySerialization,
+                nextValueSerialization,
+                output, reporter),
+            reporter);
       } else {
         // end of chain, user real output collector
         output.collect(key, value);
@@ -369,11 +369,11 @@ class Chain extends org.apache.hadoop.mapreduce.lib.chain.Chain {
     }
 
     private <E> E makeCopyForPassByValue(Serialization<E> serialization,
-                                          E obj) throws IOException {
+                                         E obj) throws IOException {
       Serializer<E> ser =
-        serialization.getSerializer(GenericsUtil.getClass(obj));
+          serialization.getSerializer(GenericsUtil.getClass(obj));
       Deserializer<E> deser =
-        serialization.getDeserializer(GenericsUtil.getClass(obj));
+          serialization.getDeserializer(GenericsUtil.getClass(obj));
 
       DataOutputBuffer dof = threadLocalDataOutputBuffer.get();
 
@@ -382,9 +382,9 @@ class Chain extends org.apache.hadoop.mapreduce.lib.chain.Chain {
       ser.serialize(obj);
       ser.close();
       obj = ReflectionUtils.newInstance(GenericsUtil.getClass(obj),
-                                        getChainJobConf());
+          getChainJobConf());
       ByteArrayInputStream bais =
-        new ByteArrayInputStream(dof.getData(), 0, dof.getLength());
+          new ByteArrayInputStream(dof.getData(), 0, dof.getLength());
       deser.open(bais);
       deser.deserialize(obj);
       deser.close();

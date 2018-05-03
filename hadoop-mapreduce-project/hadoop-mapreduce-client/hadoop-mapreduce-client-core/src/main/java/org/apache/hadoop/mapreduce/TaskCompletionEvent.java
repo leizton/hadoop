@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,14 +18,14 @@
 
 package org.apache.hadoop.mapreduce;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.WritableUtils;
+
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 
 /**
  * This is used to track task completion events on 
@@ -33,25 +33,30 @@ import org.apache.hadoop.io.WritableUtils;
  */
 @InterfaceAudience.Public
 @InterfaceStability.Evolving
-public class TaskCompletionEvent implements Writable{
+public class TaskCompletionEvent implements Writable {
   @InterfaceAudience.Public
   @InterfaceStability.Evolving
-  static public enum Status {FAILED, KILLED, SUCCEEDED, OBSOLETE, TIPFAILED};
-    
-  private int eventId; 
+  static public enum Status {
+    FAILED, KILLED, SUCCEEDED, OBSOLETE, TIPFAILED
+  }
+
+  ;
+
+  private int eventId;
   private String taskTrackerHttp;
   private int taskRunTime; // using int since runtime is the time difference
   private TaskAttemptID taskId;
-  Status status; 
+  Status status;
   boolean isMap = false;
   private int idWithinJob;
-  public static final TaskCompletionEvent[] EMPTY_ARRAY = 
-    new TaskCompletionEvent[0];
+  public static final TaskCompletionEvent[] EMPTY_ARRAY =
+      new TaskCompletionEvent[0];
+
   /**
    * Default constructor for Writable.
    *
    */
-  public TaskCompletionEvent(){
+  public TaskCompletionEvent() {
     taskId = new TaskAttemptID();
   }
 
@@ -64,20 +69,21 @@ public class TaskCompletionEvent implements Writable{
    * @param status task's status 
    * @param taskTrackerHttp task tracker's host:port for http. 
    */
-  public TaskCompletionEvent(int eventId, 
+  public TaskCompletionEvent(int eventId,
                              TaskAttemptID taskId,
                              int idWithinJob,
                              boolean isMap,
-                             Status status, 
-                             String taskTrackerHttp){
-      
+                             Status status,
+                             String taskTrackerHttp) {
+
     this.taskId = taskId;
     this.idWithinJob = idWithinJob;
     this.isMap = isMap;
-    this.eventId = eventId; 
-    this.status =status; 
+    this.eventId = eventId;
+    this.status = status;
     this.taskTrackerHttp = taskTrackerHttp;
   }
+
   /**
    * Returns event Id. 
    * @return event id
@@ -85,7 +91,7 @@ public class TaskCompletionEvent implements Writable{
   public int getEventId() {
     return eventId;
   }
-  
+
   /**
    * Returns task id. 
    * @return task id
@@ -93,7 +99,7 @@ public class TaskCompletionEvent implements Writable{
   public TaskAttemptID getTaskAttemptId() {
     return taskId;
   }
-  
+
   /**
    * Returns {@link Status}
    * @return task completion status
@@ -101,6 +107,7 @@ public class TaskCompletionEvent implements Writable{
   public Status getStatus() {
     return status;
   }
+
   /**
    * http location of the tasktracker where this task ran. 
    * @return http location of tasktracker user logs
@@ -139,7 +146,7 @@ public class TaskCompletionEvent implements Writable{
   protected void setTaskAttemptId(TaskAttemptID taskId) {
     this.taskId = taskId;
   }
-  
+
   /**
    * Set task status. 
    * @param status
@@ -147,7 +154,7 @@ public class TaskCompletionEvent implements Writable{
   protected void setTaskStatus(Status status) {
     this.status = status;
   }
-  
+
   /**
    * Set task tracker http location. 
    * @param taskTrackerHttp
@@ -155,61 +162,62 @@ public class TaskCompletionEvent implements Writable{
   protected void setTaskTrackerHttp(String taskTrackerHttp) {
     this.taskTrackerHttp = taskTrackerHttp;
   }
-    
+
   @Override
-  public String toString(){
-    StringBuffer buf = new StringBuffer(); 
-    buf.append("Task Id : "); 
-    buf.append(taskId); 
-    buf.append(", Status : ");  
+  public String toString() {
+    StringBuffer buf = new StringBuffer();
+    buf.append("Task Id : ");
+    buf.append(taskId);
+    buf.append(", Status : ");
     buf.append(status.name());
     return buf.toString();
   }
-    
+
   @Override
   public boolean equals(Object o) {
-    if(o == null)
+    if (o == null)
       return false;
-    if(o.getClass().equals(this.getClass())) {
+    if (o.getClass().equals(this.getClass())) {
       TaskCompletionEvent event = (TaskCompletionEvent) o;
-      return this.isMap == event.isMapTask() 
-             && this.eventId == event.getEventId()
-             && this.idWithinJob == event.idWithinJob() 
-             && this.status.equals(event.getStatus())
-             && this.taskId.equals(event.getTaskAttemptId()) 
-             && this.taskRunTime == event.getTaskRunTime()
-             && this.taskTrackerHttp.equals(event.getTaskTrackerHttp());
+      return this.isMap == event.isMapTask()
+          && this.eventId == event.getEventId()
+          && this.idWithinJob == event.idWithinJob()
+          && this.status.equals(event.getStatus())
+          && this.taskId.equals(event.getTaskAttemptId())
+          && this.taskRunTime == event.getTaskRunTime()
+          && this.taskTrackerHttp.equals(event.getTaskTrackerHttp());
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return toString().hashCode(); 
+    return toString().hashCode();
   }
 
   public boolean isMapTask() {
     return isMap;
   }
-    
+
   public int idWithinJob() {
     return idWithinJob;
   }
+
   //////////////////////////////////////////////
   // Writable
   //////////////////////////////////////////////
   public void write(DataOutput out) throws IOException {
-    taskId.write(out); 
+    taskId.write(out);
     WritableUtils.writeVInt(out, idWithinJob);
     out.writeBoolean(isMap);
-    WritableUtils.writeEnum(out, status); 
+    WritableUtils.writeEnum(out, status);
     WritableUtils.writeString(out, taskTrackerHttp);
     WritableUtils.writeVInt(out, taskRunTime);
     WritableUtils.writeVInt(out, eventId);
   }
-  
+
   public void readFields(DataInput in) throws IOException {
-    taskId.readFields(in); 
+    taskId.readFields(in);
     idWithinJob = WritableUtils.readVInt(in);
     isMap = in.readBoolean();
     status = WritableUtils.readEnum(in, Status.class);

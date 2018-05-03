@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,8 +17,6 @@
  */
 package org.apache.hadoop.mapreduce.lib.chain;
 
-import java.io.IOException;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
@@ -26,10 +24,12 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.chain.Chain.ChainBlockingQueue;
 
+import java.io.IOException;
+
 /**
  * The ChainMapper class allows to use multiple Mapper classes within a single
  * Map task.
- * 
+ *
  * <p>
  * The Mapper classes are invoked in a chained (or piped) fashion, the output of
  * the first becomes the input of the second, and so on until the last Mapper,
@@ -58,7 +58,7 @@ import org.apache.hadoop.mapreduce.lib.chain.Chain.ChainBlockingQueue;
  * </p>
  * ChainMapper usage pattern:
  * <p/>
- * 
+ *
  * <pre>
  * ...
  * Job = new Job(conf);
@@ -86,7 +86,7 @@ public class ChainMapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT> extends
 
   /**
    * Adds a {@link Mapper} class to the chain mapper.
-   * 
+   *
    * <p>
    * The key and values are passed from one element of the chain to the next, by
    * value. For the added Mapper the configuration given for it,
@@ -97,7 +97,7 @@ public class ChainMapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT> extends
    * IMPORTANT: There is no need to specify the output key/value classes for the
    * ChainMapper, this is done by the addMapper for the last mapper in the chain
    * </p>
-   * 
+   *
    * @param job
    *          The job.
    * @param klass
@@ -117,9 +117,9 @@ public class ChainMapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT> extends
    *          FALSE.
    */
   public static void addMapper(Job job, Class<? extends Mapper> klass,
-      Class<?> inputKeyClass, Class<?> inputValueClass,
-      Class<?> outputKeyClass, Class<?> outputValueClass,
-      Configuration mapperConf) throws IOException {
+                               Class<?> inputKeyClass, Class<?> inputValueClass,
+                               Class<?> outputKeyClass, Class<?> outputValueClass,
+                               Configuration mapperConf) throws IOException {
     job.setMapperClass(ChainMapper.class);
     job.setMapOutputKeyClass(outputKeyClass);
     job.setMapOutputValueClass(outputValueClass);
@@ -161,10 +161,10 @@ public class ChainMapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT> extends
       // add last mapper
       chain.addMapper(outputqueue, context, numMappers - 1);
     }
-    
+
     // start all threads
     chain.startAllThreads();
-    
+
     // wait for all threads
     chain.joinAllThreads();
   }

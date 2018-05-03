@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,21 +18,21 @@
 
 package org.apache.hadoop.mapreduce;
 
-import java.io.IOException;
-import java.util.Iterator;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
+
+import java.io.IOException;
+import java.util.Iterator;
 
 /**
  * <code>MarkableIterator</code> is a wrapper iterator class that 
  * implements the {@link MarkableIteratorInterface}.
- * 
+ *
  */
 @InterfaceAudience.Public
 @InterfaceStability.Evolving
-public class MarkableIterator<VALUE> 
-  implements MarkableIteratorInterface<VALUE> {
+public class MarkableIterator<VALUE>
+    implements MarkableIteratorInterface<VALUE> {
 
   MarkableIteratorInterface<VALUE> baseIterator;
 
@@ -40,7 +40,7 @@ public class MarkableIterator<VALUE>
    * Create a new iterator layered on the input iterator
    * @param itr underlying iterator that implements MarkableIteratorInterface
    */
-  public MarkableIterator(Iterator<VALUE> itr)  {
+  public MarkableIterator(Iterator<VALUE> itr) {
     if (!(itr instanceof MarkableIteratorInterface)) {
       throw new IllegalArgumentException("Input Iterator not markable");
     }
@@ -63,7 +63,7 @@ public class MarkableIterator<VALUE>
   }
 
   @Override
-  public boolean hasNext() { 
+  public boolean hasNext() {
     return baseIterator.hasNext();
   }
 

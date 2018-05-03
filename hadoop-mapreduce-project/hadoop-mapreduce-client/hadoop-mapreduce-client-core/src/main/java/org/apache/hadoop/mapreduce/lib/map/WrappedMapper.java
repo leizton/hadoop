@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,27 +18,17 @@
 
 package org.apache.hadoop.mapreduce.lib.map;
 
-import java.io.IOException;
-import java.net.URI;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configuration.IntegerRanges;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.RawComparator;
-import org.apache.hadoop.mapreduce.Counter;
-import org.apache.hadoop.mapreduce.InputFormat;
-import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.JobID;
-import org.apache.hadoop.mapreduce.MapContext;
-import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.OutputCommitter;
-import org.apache.hadoop.mapreduce.OutputFormat;
-import org.apache.hadoop.mapreduce.Partitioner;
-import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.TaskAttemptID;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.security.Credentials;
+
+import java.io.IOException;
+import java.net.URI;
 
 /**
  * A {@link Mapper} which wraps a given one to allow custom 
@@ -46,9 +36,9 @@ import org.apache.hadoop.security.Credentials;
  */
 @InterfaceAudience.Public
 @InterfaceStability.Evolving
-public class WrappedMapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT> 
+public class WrappedMapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT>
     extends Mapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT> {
-  
+
   /**
    * Get a wrapped {@link Mapper.Context} for custom implementations.
    * @param mapContext <code>MapContext</code> to be wrapped
@@ -58,9 +48,9 @@ public class WrappedMapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT>
   getMapContext(MapContext<KEYIN, VALUEIN, KEYOUT, VALUEOUT> mapContext) {
     return new Context(mapContext);
   }
-  
+
   @InterfaceStability.Evolving
-  public class Context 
+  public class Context
       extends Mapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT>.Context {
 
     protected MapContext<KEYIN, VALUEIN, KEYOUT, VALUEOUT> mapContext;
@@ -322,7 +312,7 @@ public class WrappedMapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT>
     public Credentials getCredentials() {
       return mapContext.getCredentials();
     }
-    
+
     @Override
     public float getProgress() {
       return mapContext.getProgress();

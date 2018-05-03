@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -33,7 +33,7 @@ class LocalJobRunnerMetrics implements Updater {
   private int numReduceTasksCompleted = 0;
   private int numWaitingMaps = 0;
   private int numWaitingReduces = 0;
-  
+
   public LocalJobRunnerMetrics(JobConf conf) {
     String sessionId = conf.getSessionId();
     // Initiate JVM Metrics
@@ -45,7 +45,7 @@ class LocalJobRunnerMetrics implements Updater {
     metricsRecord.setTag("sessionId", sessionId);
     context.registerUpdater(this);
   }
-    
+
   /**
    * Since this object is a registered updater, this method will be called
    * periodically, e.g. every 5 seconds.
@@ -90,8 +90,8 @@ class LocalJobRunnerMetrics implements Updater {
   private synchronized void decWaitingMaps(JobID id, int task) {
     numWaitingMaps -= task;
   }
-  
-  private synchronized void decWaitingReduces(JobID id, int task){
+
+  private synchronized void decWaitingReduces(JobID id, int task) {
     numWaitingReduces -= task;
   }
 

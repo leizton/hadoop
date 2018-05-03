@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,11 +16,6 @@
  * limitations under the License.
  */
 package org.apache.hadoop.mapred;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -30,12 +25,18 @@ import org.apache.hadoop.mapreduce.TestMRJobClient;
 import org.apache.hadoop.mapreduce.tools.CLI;
 import org.apache.hadoop.util.Tool;
 import org.junit.Ignore;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+
 @Ignore
 public class TestMRCJCJobClient extends TestMRJobClient {
-  
+
   private String runJob() throws Exception {
     OutputStream os = getFileSystem().create(new Path(getInputDir(),
-                        "text.txt"));
+        "text.txt"));
     Writer wr = new OutputStreamWriter(os);
     wr.write("hello1\n");
     wr.write("hello2\n");
@@ -45,7 +46,7 @@ public class TestMRCJCJobClient extends TestMRJobClient {
     JobConf conf = createJobConf();
     conf.setJobName("mr");
     conf.setJobPriority(JobPriority.HIGH);
-    
+
     conf.setInputFormat(TextInputFormat.class);
 
     conf.setMapOutputKeyClass(LongWritable.class);
@@ -63,18 +64,18 @@ public class TestMRCJCJobClient extends TestMRJobClient {
 
     return JobClient.runJob(conf).getID().toString();
   }
-  
+
   public static int runTool(Configuration conf, Tool tool, String[] args,
-      OutputStream out) throws Exception {
+                            OutputStream out) throws Exception {
     return TestMRJobClient.runTool(conf, tool, args, out);
   }
-  
+
   static void verifyJobPriority(String jobId, String priority,
-      JobConf conf)  throws Exception {
+                                JobConf conf) throws Exception {
     TestMRCJCJobClient test = new TestMRCJCJobClient();
     test.verifyJobPriority(jobId, priority, conf, test.createJobClient());
   }
-  
+
   public void testJobClient() throws Exception {
     Configuration conf = createJobConf();
     String jobId = runJob();
@@ -82,8 +83,8 @@ public class TestMRCJCJobClient extends TestMRJobClient {
     testAllJobList(jobId, conf);
     testChangingJobPriority(jobId, conf);
   }
-  
-  protected CLI createJobClient() 
+
+  protected CLI createJobClient()
       throws IOException {
     return new JobClient();
   }

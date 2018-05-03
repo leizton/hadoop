@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,13 +18,14 @@
 
 package org.apache.hadoop.mapreduce.v2.api.records;
 
-import java.text.NumberFormat;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
+
+import java.text.NumberFormat;
 
 /**
  * <p><code>JobId</code> represents the <em>globally unique</em> 
  * identifier for a MapReduce job.</p>
- * 
+ *
  * <p>The globally unique nature of the identifier is achieved by using the 
  * <em>cluster timestamp</em> from the associated ApplicationId. i.e. 
  * start-time of the <code>ResourceManager</code> along with a monotonically
@@ -39,7 +40,7 @@ public abstract class JobId implements Comparable<JobId> {
    * @return associated <code>ApplicationId</code>
    */
   public abstract ApplicationId getAppId();
-  
+
   /**
    * Get the short integer identifier of the <code>JobId</code>
    * which is unique for all applications started by a particular instance
@@ -47,8 +48,9 @@ public abstract class JobId implements Comparable<JobId> {
    * @return short integer identifier of the <code>JobId</code>
    */
   public abstract int getId();
-  
+
   public abstract void setAppId(ApplicationId appId);
+
   public abstract void setId(int id);
 
 

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,7 +35,7 @@ public class TestChainMapReduce extends HadoopTestCase {
     // Hack for local FS that does not have the concept of a 'mounting point'
     if (local) {
       String localPathRoot = System.getProperty("test.build.data", "/tmp")
-        .replace(' ', '+');
+          .replace(' ', '+');
       flagDir = new Path(localPathRoot, flagDir);
     }
     return flagDir;
@@ -53,14 +53,14 @@ public class TestChainMapReduce extends HadoopTestCase {
       fail("Flag " + flag + " already exists");
     }
     DataOutputStream file =
-      fs.create(new Path(getFlagDir(conf.getBoolean("localFS", true)), flag));
+        fs.create(new Path(getFlagDir(conf.getBoolean("localFS", true)), flag));
     file.close();
   }
 
   private static boolean getFlag(JobConf conf, String flag) throws IOException {
     FileSystem fs = FileSystem.get(conf);
     return fs
-      .exists(new Path(getFlagDir(conf.getBoolean("localFS", true)), flag));
+        .exists(new Path(getFlagDir(conf.getBoolean("localFS", true)), flag));
   }
 
   public TestChainMapReduce() throws IOException {
@@ -74,7 +74,7 @@ public class TestChainMapReduce extends HadoopTestCase {
     // Hack for local FS that does not have the concept of a 'mounting point'
     if (isLocalFS()) {
       String localPathRoot = System.getProperty("test.build.data", "/tmp")
-        .replace(' ', '+');
+          .replace(' ', '+');
       inDir = new Path(localPathRoot, inDir);
       outDir = new Path(localPathRoot, outDir);
     }
@@ -106,23 +106,23 @@ public class TestChainMapReduce extends HadoopTestCase {
     JobConf mapAConf = new JobConf(false);
     mapAConf.set("a", "A");
     ChainMapper.addMapper(conf, AMap.class, LongWritable.class, Text.class,
-                          LongWritable.class, Text.class, true, mapAConf);
+        LongWritable.class, Text.class, true, mapAConf);
 
     ChainMapper.addMapper(conf, BMap.class, LongWritable.class, Text.class,
-                          LongWritable.class, Text.class, false, null);
+        LongWritable.class, Text.class, false, null);
 
     JobConf reduceConf = new JobConf(false);
     reduceConf.set("a", "C");
     ChainReducer.setReducer(conf, CReduce.class, LongWritable.class, Text.class,
-                            LongWritable.class, Text.class, true, reduceConf);
+        LongWritable.class, Text.class, true, reduceConf);
 
     ChainReducer.addMapper(conf, DMap.class, LongWritable.class, Text.class,
-                           LongWritable.class, Text.class, false, null);
+        LongWritable.class, Text.class, false, null);
 
     JobConf mapEConf = new JobConf(false);
     mapEConf.set("a", "E");
     ChainReducer.addMapper(conf, EMap.class, LongWritable.class, Text.class,
-                           LongWritable.class, Text.class, true, mapEConf);
+        LongWritable.class, Text.class, true, mapEConf);
 
     FileInputFormat.setInputPaths(conf, inDir);
     FileOutputFormat.setOutputPath(conf, outDir);
@@ -188,7 +188,7 @@ public class TestChainMapReduce extends HadoopTestCase {
   }
 
   public static class IDMap
-    implements Mapper<LongWritable, Text, LongWritable, Text> {
+      implements Mapper<LongWritable, Text, LongWritable, Text> {
     private JobConf conf;
     private String name;
     private String prop;
@@ -234,7 +234,7 @@ public class TestChainMapReduce extends HadoopTestCase {
   }
 
   public static class IDReduce
-    implements Reducer<LongWritable, Text, LongWritable, Text> {
+      implements Reducer<LongWritable, Text, LongWritable, Text> {
 
     private JobConf conf;
     private String name;

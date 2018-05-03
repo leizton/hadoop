@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,16 +18,16 @@
 
 package org.apache.hadoop.mapred;
 
-import java.io.IOException;
-import java.util.Map;
-
-import org.apache.hadoop.mapred.Task.CombineOutputCollector;
+import org.apache.hadoop.classification.InterfaceAudience;
+import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocalDirAllocator;
 import org.apache.hadoop.io.compress.CompressionCodec;
+import org.apache.hadoop.mapred.Task.CombineOutputCollector;
 import org.apache.hadoop.util.Progress;
-import org.apache.hadoop.classification.InterfaceAudience;
-import org.apache.hadoop.classification.InterfaceStability;
+
+import java.io.IOException;
+import java.util.Map;
 
 /**
  * ShuffleConsumerPlugin for serving Reducers.  It may shuffle MOF files from
@@ -46,7 +46,7 @@ public interface ShuffleConsumerPlugin<K, V> {
 
   @InterfaceAudience.LimitedPrivate("mapreduce")
   @InterfaceStability.Unstable
-  public static class Context<K,V> {
+  public static class Context<K, V> {
     private final org.apache.hadoop.mapreduce.TaskAttemptID reduceId;
     private final JobConf jobConf;
     private final FileSystem localFS;
@@ -75,7 +75,7 @@ public interface ShuffleConsumerPlugin<K, V> {
                    LocalDirAllocator localDirAllocator,
                    Reporter reporter, CompressionCodec codec,
                    Class<? extends Reducer> combinerClass,
-                   CombineOutputCollector<K,V> combineCollector,
+                   CombineOutputCollector<K, V> combineCollector,
                    Counters.Counter spilledRecordsCounter,
                    Counters.Counter reduceCombineInputCounter,
                    Counters.Counter shuffledMapsCounter,
@@ -88,7 +88,7 @@ public interface ShuffleConsumerPlugin<K, V> {
       this.reduceId = reduceId;
       this.jobConf = jobConf;
       this.localFS = localFS;
-      this. umbilical = umbilical;
+      this.umbilical = umbilical;
       this.localDirAllocator = localDirAllocator;
       this.reporter = reporter;
       this.codec = codec;
@@ -111,63 +111,83 @@ public interface ShuffleConsumerPlugin<K, V> {
     public org.apache.hadoop.mapreduce.TaskAttemptID getReduceId() {
       return reduceId;
     }
+
     public JobConf getJobConf() {
       return jobConf;
     }
+
     public FileSystem getLocalFS() {
       return localFS;
     }
+
     public TaskUmbilicalProtocol getUmbilical() {
       return umbilical;
     }
+
     public LocalDirAllocator getLocalDirAllocator() {
       return localDirAllocator;
     }
+
     public Reporter getReporter() {
       return reporter;
     }
+
     public CompressionCodec getCodec() {
       return codec;
     }
+
     public Class<? extends Reducer> getCombinerClass() {
       return combinerClass;
     }
+
     public CombineOutputCollector<K, V> getCombineCollector() {
       return combineCollector;
     }
+
     public Counters.Counter getSpilledRecordsCounter() {
       return spilledRecordsCounter;
     }
+
     public Counters.Counter getReduceCombineInputCounter() {
       return reduceCombineInputCounter;
     }
+
     public Counters.Counter getShuffledMapsCounter() {
       return shuffledMapsCounter;
     }
+
     public Counters.Counter getReduceShuffleBytes() {
       return reduceShuffleBytes;
     }
+
     public Counters.Counter getFailedShuffleCounter() {
       return failedShuffleCounter;
     }
+
     public Counters.Counter getMergedMapOutputsCounter() {
       return mergedMapOutputsCounter;
     }
+
     public TaskStatus getStatus() {
       return status;
     }
+
     public Progress getCopyPhase() {
       return copyPhase;
     }
+
     public Progress getMergePhase() {
       return mergePhase;
     }
+
     public Task getReduceTask() {
       return reduceTask;
     }
+
     public MapOutputFile getMapOutputFile() {
       return mapOutputFile;
     }
+
     public Map<TaskAttemptID, MapOutputFile> getLocalMapFiles() {
       return localMapFiles;
     }

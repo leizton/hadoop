@@ -1,39 +1,24 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2.app;
 
-import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.security.PrivilegedExceptionAction;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.atomic.AtomicBoolean;
-
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,27 +26,14 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapred.FileOutputCommitter;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.LocalContainerLauncher;
-import org.apache.hadoop.mapred.TaskAttemptListenerImpl;
-import org.apache.hadoop.mapred.TaskLog;
-import org.apache.hadoop.mapred.TaskUmbilicalProtocol;
+import org.apache.hadoop.mapred.*;
 import org.apache.hadoop.mapreduce.JobContext;
-import org.apache.hadoop.mapreduce.MRJobConfig;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.OutputCommitter;
 import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.TaskAttemptID;
-import org.apache.hadoop.mapreduce.TypeConverter;
-import org.apache.hadoop.mapreduce.jobhistory.AMStartedEvent;
-import org.apache.hadoop.mapreduce.jobhistory.EventReader;
-import org.apache.hadoop.mapreduce.jobhistory.EventType;
-import org.apache.hadoop.mapreduce.jobhistory.HistoryEvent;
-import org.apache.hadoop.mapreduce.jobhistory.JobHistoryCopyService;
-import org.apache.hadoop.mapreduce.jobhistory.JobHistoryEvent;
-import org.apache.hadoop.mapreduce.jobhistory.JobHistoryEventHandler;
-import org.apache.hadoop.mapreduce.jobhistory.JobHistoryParser;
+import org.apache.hadoop.mapreduce.jobhistory.*;
 import org.apache.hadoop.mapreduce.jobhistory.JobHistoryParser.JobInfo;
 import org.apache.hadoop.mapreduce.jobhistory.JobHistoryParser.TaskAttemptInfo;
 import org.apache.hadoop.mapreduce.jobhistory.JobHistoryParser.TaskInfo;
@@ -69,12 +41,7 @@ import org.apache.hadoop.mapreduce.security.TokenCache;
 import org.apache.hadoop.mapreduce.security.token.JobTokenSecretManager;
 import org.apache.hadoop.mapreduce.task.JobContextImpl;
 import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
-import org.apache.hadoop.mapreduce.v2.api.records.AMInfo;
-import org.apache.hadoop.mapreduce.v2.api.records.JobId;
-import org.apache.hadoop.mapreduce.v2.api.records.JobReport;
-import org.apache.hadoop.mapreduce.v2.api.records.JobState;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskState;
+import org.apache.hadoop.mapreduce.v2.api.records.*;
 import org.apache.hadoop.mapreduce.v2.api.records.TaskType;
 import org.apache.hadoop.mapreduce.v2.app.client.ClientService;
 import org.apache.hadoop.mapreduce.v2.app.client.MRClientService;
@@ -85,26 +52,14 @@ import org.apache.hadoop.mapreduce.v2.app.job.Job;
 import org.apache.hadoop.mapreduce.v2.app.job.JobStateInternal;
 import org.apache.hadoop.mapreduce.v2.app.job.Task;
 import org.apache.hadoop.mapreduce.v2.app.job.TaskAttempt;
-import org.apache.hadoop.mapreduce.v2.app.job.event.JobEvent;
-import org.apache.hadoop.mapreduce.v2.app.job.event.JobEventType;
-import org.apache.hadoop.mapreduce.v2.app.job.event.JobFinishEvent;
-import org.apache.hadoop.mapreduce.v2.app.job.event.JobStartEvent;
-import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptEvent;
-import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptEventType;
-import org.apache.hadoop.mapreduce.v2.app.job.event.TaskEvent;
-import org.apache.hadoop.mapreduce.v2.app.job.event.TaskEventType;
+import org.apache.hadoop.mapreduce.v2.app.job.event.*;
 import org.apache.hadoop.mapreduce.v2.app.job.impl.JobImpl;
 import org.apache.hadoop.mapreduce.v2.app.launcher.ContainerLauncher;
 import org.apache.hadoop.mapreduce.v2.app.launcher.ContainerLauncherEvent;
 import org.apache.hadoop.mapreduce.v2.app.launcher.ContainerLauncherImpl;
 import org.apache.hadoop.mapreduce.v2.app.local.LocalContainerAllocator;
 import org.apache.hadoop.mapreduce.v2.app.metrics.MRAppMetrics;
-import org.apache.hadoop.mapreduce.v2.app.rm.ContainerAllocator;
-import org.apache.hadoop.mapreduce.v2.app.rm.ContainerAllocatorEvent;
-import org.apache.hadoop.mapreduce.v2.app.rm.RMCommunicator;
-import org.apache.hadoop.mapreduce.v2.app.rm.RMContainerAllocator;
-import org.apache.hadoop.mapreduce.v2.app.rm.RMContainerRequestor;
-import org.apache.hadoop.mapreduce.v2.app.rm.RMHeartbeatHandler;
+import org.apache.hadoop.mapreduce.v2.app.rm.*;
 import org.apache.hadoop.mapreduce.v2.app.speculate.DefaultSpeculator;
 import org.apache.hadoop.mapreduce.v2.app.speculate.Speculator;
 import org.apache.hadoop.mapreduce.v2.app.speculate.SpeculatorEvent;
@@ -143,23 +98,31 @@ import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.SystemClock;
 import org.apache.log4j.LogManager;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.security.PrivilegedExceptionAction;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The Map-Reduce Application Master.
  * The state machine is encapsulated in the implementation of Job interface.
  * All state changes happens via Job interface. Each event 
  * results in a Finite State Transition in Job.
- * 
+ *
  * MR AppMaster is the composition of loosely coupled services. The services 
  * interact with each other via events. The components resembles the 
  * Actors model. The component acts on received event and send out the 
  * events to other components.
  * This keeps it highly concurrent with no or minimal synchronization needs.
- * 
+ *
  * The events are dispatched by a central Dispatch mechanism. All components
  * register to the Dispatcher.
- * 
+ *
  * The information is shared across different components using AppContext.
  */
 
@@ -222,15 +185,15 @@ public class MRAppMaster extends CompositeService {
       new AtomicBoolean(false);
 
   public MRAppMaster(ApplicationAttemptId applicationAttemptId,
-      ContainerId containerId, String nmHost, int nmPort, int nmHttpPort,
-      long appSubmitTime) {
+                     ContainerId containerId, String nmHost, int nmPort, int nmHttpPort,
+                     long appSubmitTime) {
     this(applicationAttemptId, containerId, nmHost, nmPort, nmHttpPort,
         new SystemClock(), appSubmitTime);
   }
 
   public MRAppMaster(ApplicationAttemptId applicationAttemptId,
-      ContainerId containerId, String nmHost, int nmPort, int nmHttpPort,
-      Clock clock, long appSubmitTime) {
+                     ContainerId containerId, String nmHost, int nmPort, int nmHttpPort,
+                     Clock clock, long appSubmitTime) {
     super(MRAppMaster.class.getName());
     this.clock = clock;
     this.startTime = clock.getTime();
@@ -261,19 +224,19 @@ public class MRAppMaster extends CompositeService {
     appName = conf.get(MRJobConfig.JOB_NAME, "<missing app name>");
 
     conf.setInt(MRJobConfig.APPLICATION_ATTEMPT_ID, appAttemptID.getAttemptId());
-     
+
     newApiCommitter = false;
     jobId = MRBuilderUtils.newJobId(appAttemptID.getApplicationId(),
         appAttemptID.getApplicationId().getId());
     int numReduceTasks = conf.getInt(MRJobConfig.NUM_REDUCES, 0);
-    if ((numReduceTasks > 0 && 
+    if ((numReduceTasks > 0 &&
         conf.getBoolean("mapred.reducer.new-api", false)) ||
-          (numReduceTasks == 0 && 
-           conf.getBoolean("mapred.mapper.new-api", false)))  {
+        (numReduceTasks == 0 &&
+            conf.getBoolean("mapred.mapper.new-api", false))) {
       newApiCommitter = true;
       LOG.info("Using mapred newApiCommitter.");
     }
-    
+
     boolean copyHistory = false;
     try {
       String user = UserGroupInformation.getCurrentUser().getShortUserName();
@@ -286,7 +249,7 @@ public class MRAppMaster extends CompositeService {
       boolean commitSuccess = fs.exists(endCommitSuccessFile);
       Path endCommitFailureFile = MRApps.getEndJobCommitFailureFile(conf, user, jobId);
       boolean commitFailure = fs.exists(endCommitFailureFile);
-      if(!stagingExists) {
+      if (!stagingExists) {
         isLastAMRetry = true;
         LOG.info("Attempt num: " + appAttemptID.getAttemptId() +
             " is last retry: " + isLastAMRetry +
@@ -319,19 +282,19 @@ public class MRAppMaster extends CompositeService {
     } catch (IOException e) {
       throw new YarnRuntimeException("Error while initializing", e);
     }
-    
+
     if (errorHappenedShutDown) {
       dispatcher = createDispatcher();
       addIfService(dispatcher);
-      
+
       NoopEventHandler eater = new NoopEventHandler();
       //We do not have a JobEventDispatcher in this path
       dispatcher.register(JobEventType.class, eater);
 
       EventHandler<JobHistoryEvent> historyService = null;
       if (copyHistory) {
-        historyService = 
-          createJobHistoryHandler(context);
+        historyService =
+            createJobHistoryHandler(context);
         dispatcher.register(org.apache.hadoop.mapreduce.jobhistory.EventType.class,
             historyService);
       } else {
@@ -379,9 +342,9 @@ public class MRAppMaster extends CompositeService {
       // service needs to wait some time before it stops so clients can know the
       // final states
       clientService.init(conf);
-      
+
       containerAllocator = createContainerAllocator(clientService, context);
-      
+
       //service to handle the output committer
       committerEventHandler = createCommitterEventHandler(context, committer);
       addIfService(committerEventHandler);
@@ -391,8 +354,8 @@ public class MRAppMaster extends CompositeService {
       addIfService(taskAttemptListener);
 
       //service to log job history events
-      EventHandler<JobHistoryEvent> historyService = 
-        createJobHistoryHandler(context);
+      EventHandler<JobHistoryEvent> historyService =
+          createJobHistoryHandler(context);
       dispatcher.register(org.apache.hadoop.mapreduce.jobhistory.EventType.class,
           historyService);
 
@@ -401,7 +364,7 @@ public class MRAppMaster extends CompositeService {
       //register the event dispatchers
       dispatcher.register(JobEventType.class, jobEventDispatcher);
       dispatcher.register(TaskEventType.class, new TaskEventDispatcher());
-      dispatcher.register(TaskAttemptEventType.class, 
+      dispatcher.register(TaskAttemptEventType.class,
           new TaskAttemptEventDispatcher());
       dispatcher.register(CommitterEventType.class, committerEventHandler);
 
@@ -443,7 +406,7 @@ public class MRAppMaster extends CompositeService {
     }
     super.serviceInit(conf);
   } // end of init()
-  
+
   protected Dispatcher createDispatcher() {
     return new AsyncDispatcher();
   }
@@ -486,7 +449,7 @@ public class MRAppMaster extends CompositeService {
     return (conf.getKeepTaskFilesPattern() != null || conf
         .getKeepFailedTaskFiles());
   }
-  
+
   /**
    * Create the default file System for this job.
    * @param conf the conf object
@@ -521,11 +484,11 @@ public class MRAppMaster extends CompositeService {
             " " + jobTempDir);
         fs.delete(jobTempDirPath, true);
       }
-    } catch(IOException io) {
+    } catch (IOException io) {
       LOG.error("Failed to cleanup staging dir " + jobTempDir, io);
     }
   }
-  
+
   /**
    * Exit call. Just in a function call to enable testing.
    */
@@ -542,8 +505,8 @@ public class MRAppMaster extends CompositeService {
 
     try {
       //if isLastAMRetry comes as true, should never set it to false
-      if ( !isLastAMRetry){
-        if (((JobImpl)job).getInternalState() != JobStateInternal.REBOOT) {
+      if (!isLastAMRetry) {
+        if (((JobImpl) job).getInternalState() != JobStateInternal.REBOOT) {
           LOG.info("We are finishing cleanly so this is the last retry");
           isLastAMRetry = true;
         }
@@ -589,14 +552,14 @@ public class MRAppMaster extends CompositeService {
     }
 
   }
- 
+
   private class JobFinishEventHandler implements EventHandler<JobFinishEvent> {
     @Override
     public void handle(JobFinishEvent event) {
       // Create a new thread to shutdown the AM. We should not do it in-line
       // to avoid blocking the dispatcher itself.
       new Thread() {
-        
+
         @Override
         public void run() {
           shutDownJob();
@@ -604,7 +567,7 @@ public class MRAppMaster extends CompositeService {
       }.start();
     }
   }
-  
+
   /**
    * create an event handler that handles the job finish event.
    * @return the job finish event handler.
@@ -617,8 +580,8 @@ public class MRAppMaster extends CompositeService {
    * @param forcedState a state to force the job into or null for normal operation. 
    * @param diagnostic a diagnostic message to include with the job.
    */
-  protected Job createJob(Configuration conf, JobStateInternal forcedState, 
-      String diagnostic) {
+  protected Job createJob(Configuration conf, JobStateInternal forcedState,
+                          String diagnostic) {
 
     // create single job
     Job newJob =
@@ -626,12 +589,12 @@ public class MRAppMaster extends CompositeService {
             taskAttemptListener, jobTokenSecretManager, jobCredentials, clock,
             completedTasksFromPreviousRun, metrics,
             committer, newApiCommitter,
-            currentUser.getUserName(), appSubmitTime, amInfos, context, 
+            currentUser.getUserName(), appSubmitTime, amInfos, context,
             forcedState, diagnostic);
     ((RunningAppContext) context).jobs.put(newJob.getID(), newJob);
 
     dispatcher.register(JobFinishEvent.Type.class,
-        createJobFinishEventHandler());     
+        createJobFinishEventHandler());
     return newJob;
   } // end createJob()
 
@@ -644,7 +607,7 @@ public class MRAppMaster extends CompositeService {
 
     try {
       this.currentUser = UserGroupInformation.getCurrentUser();
-      this.jobCredentials = ((JobConf)conf).getCredentials();
+      this.jobCredentials = ((JobConf) conf).getCredentials();
     } catch (IOException e) {
       throw new YarnRuntimeException(e);
     }
@@ -653,7 +616,7 @@ public class MRAppMaster extends CompositeService {
   protected EventHandler<JobHistoryEvent> createJobHistoryHandler(
       AppContext context) {
     this.jobHistoryEventHandler = new JobHistoryEventHandler(context,
-      getStartCount());
+        getStartCount());
     return this.jobHistoryEventHandler;
   }
 
@@ -662,7 +625,7 @@ public class MRAppMaster extends CompositeService {
   }
 
   protected Speculator createSpeculator(Configuration conf,
-      final AppContext context) {
+                                        final AppContext context) {
     return callWithJobClassLoader(conf, new Action<Speculator>() {
       public Speculator call(Configuration conf) {
         Class<? extends Speculator> speculatorClass;
@@ -670,11 +633,11 @@ public class MRAppMaster extends CompositeService {
           speculatorClass
               // "yarn.mapreduce.job.speculator.class"
               = conf.getClass(MRJobConfig.MR_AM_JOB_SPECULATOR,
-                              DefaultSpeculator.class,
-                              Speculator.class);
+              DefaultSpeculator.class,
+              Speculator.class);
           Constructor<? extends Speculator> speculatorConstructor
               = speculatorClass.getConstructor
-                   (Configuration.class, AppContext.class);
+              (Configuration.class, AppContext.class);
           Speculator result = speculatorConstructor.newInstance(conf, context);
 
           return result;
@@ -722,7 +685,7 @@ public class MRAppMaster extends CompositeService {
   }
 
   protected ContainerLauncher
-      createContainerLauncher(final AppContext context) {
+  createContainerLauncher(final AppContext context) {
     return new ContainerLauncherRouter(context);
   }
 
@@ -770,11 +733,11 @@ public class MRAppMaster extends CompositeService {
   public List<AMInfo> getAllAMInfos() {
     return amInfos;
   }
-  
+
   public ContainerAllocator getContainerAllocator() {
     return containerAllocator;
   }
-  
+
   public ContainerLauncher getContainerLauncher() {
     return containerLauncher;
   }
@@ -798,7 +761,7 @@ public class MRAppMaster extends CompositeService {
     private ContainerAllocator containerAllocator;
 
     ContainerAllocatorRouter(ClientService clientService,
-        AppContext context) {
+                             AppContext context) {
       super(ContainerAllocatorRouter.class.getName());
       this.clientService = clientService;
       this.context = context;
@@ -815,8 +778,8 @@ public class MRAppMaster extends CompositeService {
         this.containerAllocator = new RMContainerAllocator(
             this.clientService, this.context);
       }
-      ((Service)this.containerAllocator).init(getConfig());
-      ((Service)this.containerAllocator).start();
+      ((Service) this.containerAllocator).init(getConfig());
+      ((Service) this.containerAllocator).start();
       super.serviceStart();
     }
 
@@ -834,7 +797,7 @@ public class MRAppMaster extends CompositeService {
     public void setSignalled(boolean isSignalled) {
       ((RMCommunicator) containerAllocator).setSignalled(isSignalled);
     }
-    
+
     public void setShouldUnregister(boolean shouldUnregister) {
       ((RMCommunicator) containerAllocator).setShouldUnregister(shouldUnregister);
     }
@@ -872,14 +835,14 @@ public class MRAppMaster extends CompositeService {
       } else {
         this.containerLauncher = new ContainerLauncherImpl(context);
       }
-      ((Service)this.containerLauncher).init(getConfig());
-      ((Service)this.containerLauncher).start();
+      ((Service) this.containerLauncher).init(getConfig());
+      ((Service) this.containerLauncher).start();
       super.serviceStart();
     }
 
     @Override
     public void handle(ContainerLauncherEvent event) {
-        this.containerLauncher.handle(event);
+      this.containerLauncher.handle(event);
     }
 
     @Override
@@ -897,7 +860,7 @@ public class MRAppMaster extends CompositeService {
     @Override
     protected void serviceStop() throws Exception {
       try {
-        if(isLastAMRetry) {
+        if (isLastAMRetry) {
           cleanupStagingDir();
         } else {
           LOG.info("Skipping cleaning up the staging dir. "
@@ -967,7 +930,7 @@ public class MRAppMaster extends CompositeService {
     public Clock getClock() {
       return clock;
     }
-    
+
     @Override
     public ClusterInfo getClusterInfo() {
       return this.clusterInfo;
@@ -977,14 +940,14 @@ public class MRAppMaster extends CompositeService {
     public Set<String> getBlacklistedNodes() {
       return ((RMContainerRequestor) containerAllocator).getBlacklistedNodes();
     }
-    
+
     @Override
     public ClientToAMTokenSecretManager getClientToAMTokenSecretManager() {
       return clientToAMTokenSecretManager;
     }
 
     @Override
-    public boolean isLastAMRetry(){
+    public boolean isLastAMRetry() {
       return isLastAMRetry;
     }
 
@@ -1031,7 +994,7 @@ public class MRAppMaster extends CompositeService {
           new JobHistoryEvent(job.getID(), new AMStartedEvent(info
               .getAppAttemptId(), info.getStartTime(), info.getContainerId(),
               info.getNodeManagerHost(), info.getNodeManagerPort(), info
-                  .getNodeManagerHttpPort())));
+              .getNodeManagerHttpPort())));
     }
 
     // Send out an MR AM inited event for this AM.
@@ -1039,8 +1002,8 @@ public class MRAppMaster extends CompositeService {
         new JobHistoryEvent(job.getID(), new AMStartedEvent(amInfo
             .getAppAttemptId(), amInfo.getStartTime(), amInfo.getContainerId(),
             amInfo.getNodeManagerHost(), amInfo.getNodeManagerPort(), amInfo
-                .getNodeManagerHttpPort(), this.forcedState == null ? null
-                    : this.forcedState.toString())));
+            .getNodeManagerHttpPort(), this.forcedState == null ? null
+            : this.forcedState.toString())));
     amInfos.add(amInfo);
 
     // metrics system init is really init & start.
@@ -1059,7 +1022,7 @@ public class MRAppMaster extends CompositeService {
       // If job is still not initialized, an error happened during
       // initialization. Must complete starting all of the services so failure
       // events can be processed.
-      initFailed = (((JobImpl)job).getInternalState() != JobStateInternal.INITED);
+      initFailed = (((JobImpl) job).getInternalState() != JobStateInternal.INITED);
 
       // JobImpl's InitTransition is done (call above is synchronous), so the
       // "uber-decision" (MR-1220) has been made.  Query job and switch to
@@ -1097,7 +1060,7 @@ public class MRAppMaster extends CompositeService {
       startJobs();
     }
   }
-  
+
   @Override
   public void stop() {
     super.stop();
@@ -1110,23 +1073,23 @@ public class MRAppMaster extends CompositeService {
     if (committer != null) {
       final JobContext _jobContext;
       if (newApiCommitter) {
-         _jobContext = new JobContextImpl(
+        _jobContext = new JobContextImpl(
             conf, TypeConverter.fromYarn(getJobId()));
       } else {
-          _jobContext = new org.apache.hadoop.mapred.JobContextImpl(
-                new JobConf(conf), TypeConverter.fromYarn(getJobId()));
+        _jobContext = new org.apache.hadoop.mapred.JobContextImpl(
+            new JobConf(conf), TypeConverter.fromYarn(getJobId()));
       }
       isSupported = callWithJobClassLoader(conf,
           new ExceptionAction<Boolean>() {
             public Boolean call(Configuration conf) throws IOException {
               return committer.isRecoverySupported(_jobContext);
             }
-      });
+          });
     }
     return isSupported;
   }
 
-  private void processRecovery() throws IOException{
+  private void processRecovery() throws IOException {
     if (appAttemptID.getAttemptId() == 1) {
       return;  // no need to recover on the first attempt
     }
@@ -1157,11 +1120,11 @@ public class MRAppMaster extends CompositeService {
       }
     } else {
       LOG.info("Will not try to recover. recoveryEnabled: "
-            + recoveryEnabled + " recoverySupportedByCommitter: "
-            + recoverySupportedByCommitter + " numReduceTasks: "
-            + numReduceTasks + " shuffleKeyValidForRecovery: "
-            + shuffleKeyValidForRecovery + " ApplicationAttemptID: "
-            + appAttemptID.getAttemptId());
+          + recoveryEnabled + " recoverySupportedByCommitter: "
+          + recoverySupportedByCommitter + " numReduceTasks: "
+          + numReduceTasks + " shuffleKeyValidForRecovery: "
+          + shuffleKeyValidForRecovery + " ApplicationAttemptID: "
+          + appAttemptID.getAttemptId());
       // Get the amInfos anyways whether recovery is enabled or not
       amInfos.addAll(readJustAMInfos());
     }
@@ -1241,11 +1204,11 @@ public class MRAppMaster extends CompositeService {
           }
           AMStartedEvent amStartedEvent = (AMStartedEvent) event;
           amInfos.add(MRBuilderUtils.newAMInfo(
-            amStartedEvent.getAppAttemptId(), amStartedEvent.getStartTime(),
-            amStartedEvent.getContainerId(),
-            StringInterner.weakIntern(amStartedEvent.getNodeManagerHost()),
-            amStartedEvent.getNodeManagerPort(),
-            amStartedEvent.getNodeManagerHttpPort()));
+              amStartedEvent.getAppAttemptId(), amStartedEvent.getStartTime(),
+              amStartedEvent.getContainerId(),
+              StringInterner.weakIntern(amStartedEvent.getNodeManagerHost()),
+              amStartedEvent.getNodeManagerPort(),
+              amStartedEvent.getNodeManagerHttpPort()));
         } else if (amStartedEventsBegan) {
           // This means AMStartedEvents began and this event is a
           // non-AMStarted event.
@@ -1286,7 +1249,7 @@ public class MRAppMaster extends CompositeService {
     @SuppressWarnings("unchecked")
     @Override
     public void handle(JobEvent event) {
-      ((EventHandler<JobEvent>)context.getJob(event.getJobId())).handle(event);
+      ((EventHandler<JobEvent>) context.getJob(event.getJobId())).handle(event);
     }
   }
 
@@ -1296,12 +1259,12 @@ public class MRAppMaster extends CompositeService {
     public void handle(TaskEvent event) {
       Task task = context.getJob(event.getTaskID().getJobId()).getTask(
           event.getTaskID());
-      ((EventHandler<TaskEvent>)task).handle(event);
+      ((EventHandler<TaskEvent>) task).handle(event);
     }
   }
 
-  private class TaskAttemptEventDispatcher 
-          implements EventHandler<TaskAttemptEvent> {
+  private class TaskAttemptEventDispatcher
+      implements EventHandler<TaskAttemptEvent> {
     @SuppressWarnings("unchecked")
     @Override
     public void handle(TaskAttemptEvent event) {
@@ -1316,9 +1279,11 @@ public class MRAppMaster extends CompositeService {
       EventHandler<SpeculatorEvent> {
     private final Configuration conf;
     private volatile boolean disabled;
+
     public SpeculatorEventDispatcher(Configuration config) {
       this.conf = config;
     }
+
     @Override
     public void handle(final SpeculatorEvent event) {
       if (disabled) {
@@ -1331,12 +1296,12 @@ public class MRAppMaster extends CompositeService {
        * ATTEMPT_STATUS_UPDATE
        */
       if (tId != null) {
-        tType = tId.getTaskType(); 
+        tType = tId.getTaskType();
       }
       boolean shouldMapSpec =
-              conf.getBoolean(MRJobConfig.MAP_SPECULATIVE, false);
+          conf.getBoolean(MRJobConfig.MAP_SPECULATIVE, false);
       boolean shouldReduceSpec =
-              conf.getBoolean(MRJobConfig.REDUCE_SPECULATIVE, false);
+          conf.getBoolean(MRJobConfig.REDUCE_SPECULATIVE, false);
 
       /* The point of the following is to allow the MAP and REDUCE speculative
        * config values to be independent:
@@ -1344,8 +1309,8 @@ public class MRAppMaster extends CompositeService {
        * OR IF spec-exec is turned on for reduces AND the task is a reduce task
        * THEN call the speculator to handle the event.
        */
-      if ( (shouldMapSpec && (tType == null || tType == TaskType.MAP))
-        || (shouldReduceSpec && (tType == null || tType == TaskType.REDUCE))) {
+      if ((shouldMapSpec && (tType == null || tType == TaskType.MAP))
+          || (shouldReduceSpec && (tType == null || tType == TaskType.REDUCE))) {
         // Speculator IS enabled, direct the event to there.
         callWithJobClassLoader(conf, new Action<Void>() {
           public Void call(Configuration conf) {
@@ -1372,7 +1337,7 @@ public class MRAppMaster extends CompositeService {
       //Empty
     }
   }
-  
+
   private static void validateInputParam(String value, String param)
       throws IOException {
     if (value == null) {
@@ -1393,7 +1358,7 @@ public class MRAppMaster extends CompositeService {
           System.getenv(Environment.NM_HTTP_PORT.name());
       String appSubmitTimeStr =
           System.getenv(ApplicationConstants.APP_SUBMIT_TIME_ENV);
-      
+
       validateInputParam(containerIdStr,
           Environment.CONTAINER_ID.name());
       validateInputParam(nodeHostString, Environment.NM_HOST.name());
@@ -1407,17 +1372,17 @@ public class MRAppMaster extends CompositeService {
       ApplicationAttemptId applicationAttemptId =
           containerId.getApplicationAttemptId();
       long appSubmitTime = Long.parseLong(appSubmitTimeStr);
-      
-      
+
+
       MRAppMaster appMaster =
           new MRAppMaster(applicationAttemptId, containerId, nodeHostString,
               Integer.parseInt(nodePortString),
               Integer.parseInt(nodeHttpPortString), appSubmitTime);
       ShutdownHookManager.get().addShutdownHook(
-        new MRAppMasterShutdownHook(appMaster), SHUTDOWN_HOOK_PRIORITY);
+          new MRAppMasterShutdownHook(appMaster), SHUTDOWN_HOOK_PRIORITY);
       JobConf conf = new JobConf(new YarnConfiguration());
       conf.addResource(new Path(MRJobConfig.JOB_CONF_FILE));
-      
+
       MRWebAppUtil.initialize(conf);
       String jobUserName = System
           .getenv(ApplicationConstants.Environment.USER.name());
@@ -1437,38 +1402,40 @@ public class MRAppMaster extends CompositeService {
   // close of the JVM.
   static class MRAppMasterShutdownHook implements Runnable {
     MRAppMaster appMaster;
+
     MRAppMasterShutdownHook(MRAppMaster appMaster) {
       this.appMaster = appMaster;
     }
+
     public void run() {
       LOG.info("MRAppMaster received a signal. Signaling RMCommunicator and "
-        + "JobHistoryEventHandler.");
+          + "JobHistoryEventHandler.");
 
       // Notify the JHEH and RMCommunicator that a SIGTERM has been received so
       // that they don't take too long in shutting down
-      if(appMaster.containerAllocator instanceof ContainerAllocatorRouter) {
+      if (appMaster.containerAllocator instanceof ContainerAllocatorRouter) {
         ((ContainerAllocatorRouter) appMaster.containerAllocator)
-          .setSignalled(true);
+            .setSignalled(true);
       }
       appMaster.notifyIsLastAMRetry(appMaster.isLastAMRetry);
       appMaster.stop();
     }
   }
 
-  public void notifyIsLastAMRetry(boolean isLastAMRetry){
-    if(containerAllocator instanceof ContainerAllocatorRouter) {
+  public void notifyIsLastAMRetry(boolean isLastAMRetry) {
+    if (containerAllocator instanceof ContainerAllocatorRouter) {
       LOG.info("Notify RMCommunicator isAMLastRetry: " + isLastAMRetry);
       ((ContainerAllocatorRouter) containerAllocator)
-        .setShouldUnregister(isLastAMRetry);
+          .setShouldUnregister(isLastAMRetry);
     }
-    if(jobHistoryEventHandler != null) {
+    if (jobHistoryEventHandler != null) {
       LOG.info("Notify JHEH isAMLastRetry: " + isLastAMRetry);
       jobHistoryEventHandler.setForcejobCompletion(isLastAMRetry);
     }
   }
 
   protected static void initAndStartAppMaster(final MRAppMaster appMaster,
-      final JobConf conf, String jobUserName) throws IOException,
+                                              final JobConf conf, String jobUserName) throws IOException,
       InterruptedException {
     UserGroupInformation.setConfiguration(conf);
     // Security framework already loaded the tokens into current UGI, just use
@@ -1479,7 +1446,7 @@ public class MRAppMaster extends CompositeService {
     for (Token<?> token : credentials.getAllTokens()) {
       LOG.info(token);
     }
-    
+
     UserGroupInformation appMasterUgi = UserGroupInformation
         .createRemoteUser(jobUserName);
     appMasterUgi.addCredentials(credentials);
@@ -1498,7 +1465,7 @@ public class MRAppMaster extends CompositeService {
       public Object run() throws Exception {
         appMaster.init(conf);
         appMaster.start();
-        if(appMaster.errorHappenedShutDown) {
+        if (appMaster.errorHappenedShutDown) {
           throw new IOException("Was asked to shut down.");
         }
         return null;

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,7 +31,7 @@ class Helper {
 
   /**
    * Splits strings on comma and trims accordingly
-   * 
+   *
    * @param str
    * @return array of split
    */
@@ -44,9 +44,9 @@ class Helper {
 
   /**
    * Converts a byte value into a useful string for output
-   * 
+   *
    * @param bytes
-   * 
+   *
    * @return String
    */
   static String toByteInfo(long bytes) {
@@ -67,12 +67,12 @@ class Helper {
 
   /**
    * Stringifys an array using the given separator.
-   * 
+   *
    * @param args
    *          the array to format
    * @param sep
    *          the separator string to use (ie comma or space)
-   * 
+   *
    * @return String representing that array
    */
   static String stringifyArray(Object[] args, String sep) {

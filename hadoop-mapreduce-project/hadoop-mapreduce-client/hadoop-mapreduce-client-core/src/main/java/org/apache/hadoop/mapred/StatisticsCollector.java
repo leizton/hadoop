@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,15 +17,9 @@
  */
 package org.apache.hadoop.mapred;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
-
 import org.apache.hadoop.mapred.StatisticsCollector.Stat.TimeStat;
+
+import java.util.*;
 
 /**
  * Collects the statistics in time windows.
@@ -34,32 +28,32 @@ class StatisticsCollector {
 
   private static final int DEFAULT_PERIOD = 5;
 
-  static final TimeWindow 
-    SINCE_START = new TimeWindow("Since Start", -1, -1);
-  
-  static final TimeWindow 
-    LAST_WEEK = new TimeWindow("Last Week", 7 * 24 * 60 * 60, 60 * 60);
-  
-  static final TimeWindow 
-    LAST_DAY = new TimeWindow("Last Day", 24 * 60 * 60, 60 * 60);
-  
-  static final TimeWindow 
-    LAST_HOUR = new TimeWindow("Last Hour", 60 * 60, 60);
-  
-  static final TimeWindow 
-    LAST_MINUTE = new TimeWindow("Last Minute", 60, 10);
+  static final TimeWindow
+      SINCE_START = new TimeWindow("Since Start", -1, -1);
+
+  static final TimeWindow
+      LAST_WEEK = new TimeWindow("Last Week", 7 * 24 * 60 * 60, 60 * 60);
+
+  static final TimeWindow
+      LAST_DAY = new TimeWindow("Last Day", 24 * 60 * 60, 60 * 60);
+
+  static final TimeWindow
+      LAST_HOUR = new TimeWindow("Last Hour", 60 * 60, 60);
+
+  static final TimeWindow
+      LAST_MINUTE = new TimeWindow("Last Minute", 60, 10);
 
   static final TimeWindow[] DEFAULT_COLLECT_WINDOWS = {
-    StatisticsCollector.SINCE_START,
-    StatisticsCollector.LAST_DAY,
-    StatisticsCollector.LAST_HOUR
-    };
+      StatisticsCollector.SINCE_START,
+      StatisticsCollector.LAST_DAY,
+      StatisticsCollector.LAST_HOUR
+  };
 
   private final int period;
   private boolean started;
-  
-  private final Map<TimeWindow, StatUpdater> updaters = 
-    new LinkedHashMap<TimeWindow, StatUpdater>();
+
+  private final Map<TimeWindow, StatUpdater> updaters =
+      new LinkedHashMap<TimeWindow, StatUpdater>();
   private final Map<String, Stat> statistics = new HashMap<String, Stat>();
 
   StatisticsCollector() {
@@ -105,15 +99,15 @@ class StatisticsCollector {
 
   synchronized Stat createStat(String name, TimeWindow[] windows) {
     if (statistics.get(name) != null) {
-      throw new RuntimeException("Stat with name "+ name + 
+      throw new RuntimeException("Stat with name " + name +
           " is already defined");
     }
-    Map<TimeWindow, TimeStat> timeStats = 
-      new LinkedHashMap<TimeWindow, TimeStat>();
+    Map<TimeWindow, TimeStat> timeStats =
+        new LinkedHashMap<TimeWindow, TimeStat>();
     for (TimeWindow window : windows) {
       StatUpdater collector = updaters.get(window);
       if (collector == null) {
-        if(SINCE_START.equals(window)) {
+        if (SINCE_START.equals(window)) {
           collector = new StatUpdater();
         } else {
           collector = new TimeWindowStatUpdater(window, period);
@@ -144,6 +138,7 @@ class StatisticsCollector {
     final String name;
     final int windowSize;
     final int updateGranularity;
+
     TimeWindow(String name, int windowSize, int updateGranularity) {
       if (updateGranularity > windowSize) {
         throw new RuntimeException(
@@ -234,8 +229,8 @@ class StatisticsCollector {
 
   private static class StatUpdater {
 
-    protected final Map<String, TimeStat> statToCollect = 
-      new HashMap<String, TimeStat>();
+    protected final Map<String, TimeStat> statToCollect =
+        new HashMap<String, TimeStat>();
 
     synchronized void addTimeStat(String name, TimeStat s) {
       statToCollect.put(name, s);
@@ -256,11 +251,11 @@ class StatisticsCollector {
    * Updates TimeWindow statistics in buckets.
    *
    */
-  private static class TimeWindowStatUpdater extends StatUpdater{
+  private static class TimeWindowStatUpdater extends StatUpdater {
 
     final int collectBuckets;
     final int updatesPerBucket;
-    
+
     private int updates;
     private int buckets;
 
@@ -276,7 +271,7 @@ class StatisticsCollector {
     synchronized void update() {
       updates++;
       if (updates == updatesPerBucket) {
-        for(TimeStat stat : statToCollect.values()) {
+        for (TimeStat stat : statToCollect.values()) {
           stat.addBucket();
         }
         updates = 0;

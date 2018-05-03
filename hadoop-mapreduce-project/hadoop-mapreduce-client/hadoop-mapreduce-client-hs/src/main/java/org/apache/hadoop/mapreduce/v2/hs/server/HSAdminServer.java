@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,9 +18,7 @@
 
 package org.apache.hadoop.mapreduce.v2.hs.server;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-
+import com.google.protobuf.BlockingService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
@@ -28,21 +26,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.ipc.ProtobufRpcEngine;
 import org.apache.hadoop.ipc.RPC;
 import org.apache.hadoop.ipc.WritableRpcEngine;
-import org.apache.hadoop.mapreduce.v2.jobhistory.JHAdminConfig;
-import org.apache.hadoop.security.AccessControlException;
-import org.apache.hadoop.security.Groups;
-import org.apache.hadoop.security.UserGroupInformation;
-import org.apache.hadoop.security.authorize.AccessControlList;
-import org.apache.hadoop.security.authorize.ProxyUsers;
-import org.apache.hadoop.yarn.ipc.RPCUtil;
-import org.apache.hadoop.yarn.logaggregation.AggregatedLogDeletionService;
-import org.apache.hadoop.security.proto.RefreshUserMappingsProtocolProtos.RefreshUserMappingsProtocolService;
-import org.apache.hadoop.security.protocolPB.RefreshUserMappingsProtocolPB;
-import org.apache.hadoop.security.protocolPB.RefreshUserMappingsProtocolServerSideTranslatorPB;
-import org.apache.hadoop.service.AbstractService;
-import org.apache.hadoop.tools.proto.GetUserMappingsProtocolProtos.GetUserMappingsProtocolService;
-import org.apache.hadoop.tools.protocolPB.GetUserMappingsProtocolPB;
-import org.apache.hadoop.tools.protocolPB.GetUserMappingsProtocolServerSideTranslatorPB;
 import org.apache.hadoop.mapreduce.v2.hs.HSAuditLogger;
 import org.apache.hadoop.mapreduce.v2.hs.HSAuditLogger.AuditConstants;
 import org.apache.hadoop.mapreduce.v2.hs.JobHistory;
@@ -50,8 +33,23 @@ import org.apache.hadoop.mapreduce.v2.hs.proto.HSAdminRefreshProtocolProtos.HSAd
 import org.apache.hadoop.mapreduce.v2.hs.protocol.HSAdminProtocol;
 import org.apache.hadoop.mapreduce.v2.hs.protocolPB.HSAdminRefreshProtocolPB;
 import org.apache.hadoop.mapreduce.v2.hs.protocolPB.HSAdminRefreshProtocolServerSideTranslatorPB;
+import org.apache.hadoop.mapreduce.v2.jobhistory.JHAdminConfig;
+import org.apache.hadoop.security.AccessControlException;
+import org.apache.hadoop.security.Groups;
+import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.hadoop.security.authorize.AccessControlList;
+import org.apache.hadoop.security.authorize.ProxyUsers;
+import org.apache.hadoop.security.proto.RefreshUserMappingsProtocolProtos.RefreshUserMappingsProtocolService;
+import org.apache.hadoop.security.protocolPB.RefreshUserMappingsProtocolPB;
+import org.apache.hadoop.security.protocolPB.RefreshUserMappingsProtocolServerSideTranslatorPB;
+import org.apache.hadoop.service.AbstractService;
+import org.apache.hadoop.tools.proto.GetUserMappingsProtocolProtos.GetUserMappingsProtocolService;
+import org.apache.hadoop.tools.protocolPB.GetUserMappingsProtocolPB;
+import org.apache.hadoop.tools.protocolPB.GetUserMappingsProtocolServerSideTranslatorPB;
+import org.apache.hadoop.yarn.logaggregation.AggregatedLogDeletionService;
 
-import com.google.protobuf.BlockingService;
+import java.io.IOException;
+import java.net.InetSocketAddress;
 
 @Private
 public class HSAdminServer extends AbstractService implements HSAdminProtocol {
@@ -67,7 +65,7 @@ public class HSAdminServer extends AbstractService implements HSAdminProtocol {
   private JobHistory jobHistoryService = null;
 
   public HSAdminServer(AggregatedLogDeletionService aggLogDelService,
-      JobHistory jobHistoryService) {
+                       JobHistory jobHistoryService) {
     super(HSAdminServer.class.getName());
     this.aggLogDelService = aggLogDelService;
     this.jobHistoryService = jobHistoryService;
@@ -128,7 +126,7 @@ public class HSAdminServer extends AbstractService implements HSAdminProtocol {
   }
 
   private void addProtocol(Configuration conf, Class<?> protocol,
-      BlockingService blockingService) throws IOException {
+                           BlockingService blockingService) throws IOException {
     RPC.setProtocolEngine(conf, protocol, ProtobufRpcEngine.class);
     clientRpcServer.addProtocol(RPC.RpcKind.RPC_PROTOCOL_BUFFER, protocol,
         blockingService);

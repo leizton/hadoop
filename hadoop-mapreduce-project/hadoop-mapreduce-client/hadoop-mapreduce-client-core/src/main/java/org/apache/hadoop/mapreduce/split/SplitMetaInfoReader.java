@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,9 +17,6 @@
  */
 
 package org.apache.hadoop.mapreduce.split;
-
-import java.io.IOException;
-import java.util.Arrays;
 
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
@@ -33,6 +30,9 @@ import org.apache.hadoop.mapreduce.JobID;
 import org.apache.hadoop.mapreduce.JobSubmissionFiles;
 import org.apache.hadoop.mapreduce.MRJobConfig;
 
+import java.io.IOException;
+import java.util.Arrays;
+
 /**
  * A utility that reads the split meta info and creates
  * split meta info objects
@@ -40,10 +40,10 @@ import org.apache.hadoop.mapreduce.MRJobConfig;
 @InterfaceAudience.Private
 @InterfaceStability.Unstable
 public class SplitMetaInfoReader {
-  
+
   public static JobSplit.TaskSplitMetaInfo[] readSplitMetaInfo(
-      JobID jobId, FileSystem fs, Configuration conf, Path jobSubmitDir) 
-  throws IOException {
+      JobID jobId, FileSystem fs, Configuration conf, Path jobSubmitDir)
+      throws IOException {
     long maxMetaInfoSize = conf.getLong(MRJobConfig.SPLIT_METAINFO_MAXSIZE,
         MRJobConfig.DEFAULT_SPLIT_METAINFO_MAXSIZE);
     Path metaSplitFile = JobSubmissionFiles.getJobSplitMetaFile(jobSubmitDir);
@@ -51,7 +51,7 @@ public class SplitMetaInfoReader {
     FileStatus fStatus = fs.getFileStatus(metaSplitFile);
     if (maxMetaInfoSize > 0 && fStatus.getLen() > maxMetaInfoSize) {
       throw new IOException("Split metadata size exceeded " +
-          maxMetaInfoSize +". Aborting job " + jobId);
+          maxMetaInfoSize + ". Aborting job " + jobId);
     }
     FSDataInputStream in = fs.open(metaSplitFile);
     byte[] header = new byte[JobSplit.META_SPLIT_FILE_HEADER.length];
@@ -65,16 +65,16 @@ public class SplitMetaInfoReader {
       throw new IOException("Unsupported split version " + vers);
     }
     int numSplits = WritableUtils.readVInt(in); //TODO: check for insane values
-    JobSplit.TaskSplitMetaInfo[] allSplitMetaInfo = 
-      new JobSplit.TaskSplitMetaInfo[numSplits];
+    JobSplit.TaskSplitMetaInfo[] allSplitMetaInfo =
+        new JobSplit.TaskSplitMetaInfo[numSplits];
     for (int i = 0; i < numSplits; i++) {
       JobSplit.SplitMetaInfo splitMetaInfo = new JobSplit.SplitMetaInfo();
       splitMetaInfo.readFields(in);
       JobSplit.TaskSplitIndex splitIndex = new JobSplit.TaskSplitIndex(
-          jobSplitFile, 
+          jobSplitFile,
           splitMetaInfo.getStartOffset());
-      allSplitMetaInfo[i] = new JobSplit.TaskSplitMetaInfo(splitIndex, 
-          splitMetaInfo.getLocations(), 
+      allSplitMetaInfo[i] = new JobSplit.TaskSplitMetaInfo(splitIndex,
+          splitMetaInfo.getLocations(),
           splitMetaInfo.getInputDataLength());
     }
     in.close();

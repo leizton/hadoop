@@ -1,40 +1,22 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2.app;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.junit.Assert;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -44,17 +26,8 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapreduce.Counters;
-import org.apache.hadoop.mapreduce.JobCounter;
-import org.apache.hadoop.mapreduce.JobID;
-import org.apache.hadoop.mapreduce.MRJobConfig;
-import org.apache.hadoop.mapreduce.OutputCommitter;
-import org.apache.hadoop.mapreduce.OutputFormat;
-import org.apache.hadoop.mapreduce.RecordWriter;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.TaskAttemptID;
-import org.apache.hadoop.mapreduce.TaskID;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.TaskType;
-import org.apache.hadoop.mapreduce.TypeConverter;
 import org.apache.hadoop.mapreduce.jobhistory.Event;
 import org.apache.hadoop.mapreduce.jobhistory.EventType;
 import org.apache.hadoop.mapreduce.jobhistory.JobHistoryEvent;
@@ -66,24 +39,11 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.mapreduce.security.token.JobTokenIdentifier;
 import org.apache.hadoop.mapreduce.split.JobSplit.TaskSplitMetaInfo;
 import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
-import org.apache.hadoop.mapreduce.v2.api.records.AMInfo;
-import org.apache.hadoop.mapreduce.v2.api.records.JobId;
-import org.apache.hadoop.mapreduce.v2.api.records.JobState;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptState;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskState;
+import org.apache.hadoop.mapreduce.v2.api.records.*;
 import org.apache.hadoop.mapreduce.v2.app.job.Job;
 import org.apache.hadoop.mapreduce.v2.app.job.Task;
 import org.apache.hadoop.mapreduce.v2.app.job.TaskAttempt;
-import org.apache.hadoop.mapreduce.v2.app.job.event.JobCounterUpdateEvent;
-import org.apache.hadoop.mapreduce.v2.app.job.event.JobTaskEvent;
-import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptContainerLaunchedEvent;
-import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptEvent;
-import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptEventType;
-import org.apache.hadoop.mapreduce.v2.app.job.event.TaskEvent;
-import org.apache.hadoop.mapreduce.v2.app.job.event.TaskEventType;
-import org.apache.hadoop.mapreduce.v2.app.job.event.TaskRecoverEvent;
+import org.apache.hadoop.mapreduce.v2.app.job.event.*;
 import org.apache.hadoop.mapreduce.v2.app.job.impl.MapTaskImpl;
 import org.apache.hadoop.mapreduce.v2.app.launcher.ContainerLauncher;
 import org.apache.hadoop.mapreduce.v2.app.launcher.ContainerLauncherEvent;
@@ -98,15 +58,25 @@ import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.event.EventHandler;
 import org.apache.hadoop.yarn.util.Clock;
 import org.apache.hadoop.yarn.util.SystemClock;
+import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.*;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.*;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class TestRecovery {
 
   private static final Log LOG = LogFactory.getLog(TestRecovery.class);
-  private static Path outputDir = new Path(new File("target", 
-      TestRecovery.class.getName()).getAbsolutePath() + 
+  private static Path outputDir = new Path(new File("target",
+      TestRecovery.class.getName()).getAbsolutePath() +
       Path.SEPARATOR + "out");
   private static String partFile = "part-r-00000";
   private Text key1 = new Text("key1");
@@ -119,7 +89,7 @@ public class TestRecovery {
    * completely disappears because of failed launch, one attempt gets killed and
    * one attempt succeeds. AM crashes after the first tasks finishes and
    * recovers completely and succeeds in the second generation.
-   * 
+   *
    * @throws Exception
    */
   @Test
@@ -138,24 +108,24 @@ public class TestRecovery {
     long jobStartTime = job.getReport().getStartTime();
     //all maps would be running
     Assert.assertEquals("No of tasks not correct",
-       3, job.getTasks().size());
+        3, job.getTasks().size());
     Iterator<Task> it = job.getTasks().values().iterator();
     Task mapTask1 = it.next();
     Task mapTask2 = it.next();
     Task reduceTask = it.next();
-    
+
     // all maps must be running
     app.waitForState(mapTask1, TaskState.RUNNING);
     app.waitForState(mapTask2, TaskState.RUNNING);
-    
+
     TaskAttempt task1Attempt1 = mapTask1.getAttempts().values().iterator().next();
     TaskAttempt task2Attempt = mapTask2.getAttempts().values().iterator().next();
-    
+
     //before sending the TA_DONE, event make sure attempt has come to 
     //RUNNING state
     app.waitForState(task1Attempt1, TaskAttemptState.RUNNING);
     app.waitForState(task2Attempt, TaskAttemptState.RUNNING);
-    
+
     // reduces must be in NEW state
     Assert.assertEquals("Reduce Task state not correct",
         TaskState.RUNNING, reduceTask.getReport().getTaskState());
@@ -166,7 +136,7 @@ public class TestRecovery {
         new TaskAttemptEvent(
             task1Attempt1.getID(),
             TaskAttemptEventType.TA_FAILMSG));
-    
+
     app.waitForState(task1Attempt1, TaskAttemptState.FAILED);
 
     int timeOut = 0;
@@ -178,13 +148,13 @@ public class TestRecovery {
     Iterator<TaskAttempt> itr = mapTask1.getAttempts().values().iterator();
     itr.next();
     TaskAttempt task1Attempt2 = itr.next();
-    
+
     // This attempt will automatically fail because of the way ContainerLauncher
     // is setup
     // This attempt 'disappears' from JobHistory and so causes MAPREDUCE-3846
     app.getContext().getEventHandler().handle(
-      new TaskAttemptEvent(task1Attempt2.getID(),
-        TaskAttemptEventType.TA_CONTAINER_LAUNCH_FAILED));
+        new TaskAttemptEvent(task1Attempt2.getID(),
+            TaskAttemptEventType.TA_CONTAINER_LAUNCH_FAILED));
     app.waitForState(task1Attempt2, TaskAttemptState.FAILED);
 
     timeOut = 0;
@@ -197,7 +167,7 @@ public class TestRecovery {
     itr.next();
     itr.next();
     TaskAttempt task1Attempt3 = itr.next();
-    
+
     app.waitForState(task1Attempt3, TaskAttemptState.RUNNING);
 
     //send the kill signal to the 1st map 3rd attempt
@@ -205,7 +175,7 @@ public class TestRecovery {
         new TaskAttemptEvent(
             task1Attempt3.getID(),
             TaskAttemptEventType.TA_KILL));
-    
+
     app.waitForState(task1Attempt3, TaskAttemptState.KILLED);
 
     timeOut = 0;
@@ -219,7 +189,7 @@ public class TestRecovery {
     itr.next();
     itr.next();
     TaskAttempt task1Attempt4 = itr.next();
-    
+
     app.waitForState(task1Attempt4, TaskAttemptState.RUNNING);
 
     //send the done signal to the 1st map 4th attempt
@@ -234,7 +204,7 @@ public class TestRecovery {
     app.waitForState(mapTask1, TaskState.SUCCEEDED);
     long task1StartTime = mapTask1.getReport().getStartTime();
     long task1FinishTime = mapTask1.getReport().getFinishTime();
-    
+
     //stop the app
     app.stop();
 
@@ -252,31 +222,31 @@ public class TestRecovery {
     app.waitForState(job, JobState.RUNNING);
     //all maps would be running
     Assert.assertEquals("No of tasks not correct",
-       3, job.getTasks().size());
+        3, job.getTasks().size());
     it = job.getTasks().values().iterator();
     mapTask1 = it.next();
     mapTask2 = it.next();
     reduceTask = it.next();
-    
+
     // first map will be recovered, no need to send done
     app.waitForState(mapTask1, TaskState.SUCCEEDED);
-    
+
     app.waitForState(mapTask2, TaskState.RUNNING);
-    
+
     task2Attempt = mapTask2.getAttempts().values().iterator().next();
     //before sending the TA_DONE, event make sure attempt has come to 
     //RUNNING state
     app.waitForState(task2Attempt, TaskAttemptState.RUNNING);
-    
+
     //send the done signal to the 2nd map task
     app.getContext().getEventHandler().handle(
         new TaskAttemptEvent(
             mapTask2.getAttempts().values().iterator().next().getID(),
             TaskAttemptEventType.TA_DONE));
-    
+
     //wait to get it completed
     app.waitForState(mapTask2, TaskState.SUCCEEDED);
-    
+
     //wait for reduce to be running before sending done
     app.waitForState(reduceTask, TaskState.RUNNING);
     //send the done signal to the reduce
@@ -284,7 +254,7 @@ public class TestRecovery {
         new TaskAttemptEvent(
             reduceTask.getAttempts().values().iterator().next().getID(),
             TaskAttemptEventType.TA_DONE));
-    
+
     app.waitForState(job, JobState.SUCCEEDED);
     app.verifyCompleted();
     Assert.assertEquals("Job Start time not correct",
@@ -318,7 +288,7 @@ public class TestRecovery {
   /**
    * AM with 3 maps and 0 reduce. AM crashes after the first two tasks finishes
    * and recovers completely and succeeds in the second generation.
-   * 
+   *
    * @throws Exception
    */
   @Test
@@ -326,7 +296,7 @@ public class TestRecovery {
     int runCount = 0;
     MRApp app =
         new MRAppWithHistory(3, 0, false, this.getClass().getName(), true,
-          ++runCount);
+            ++runCount);
     Configuration conf = new Configuration();
     conf.setBoolean("mapred.mapper.new-api", true);
     conf.setBoolean(MRJobConfig.JOB_UBERTASK_ENABLE, false);
@@ -361,15 +331,15 @@ public class TestRecovery {
 
     // send the done signal to the 1st two maps
     app
-      .getContext()
-      .getEventHandler()
-      .handle(
-        new TaskAttemptEvent(task1Attempt.getID(), TaskAttemptEventType.TA_DONE));
+        .getContext()
+        .getEventHandler()
+        .handle(
+            new TaskAttemptEvent(task1Attempt.getID(), TaskAttemptEventType.TA_DONE));
     app
-      .getContext()
-      .getEventHandler()
-      .handle(
-        new TaskAttemptEvent(task2Attempt.getID(), TaskAttemptEventType.TA_DONE));
+        .getContext()
+        .getEventHandler()
+        .handle(
+            new TaskAttemptEvent(task2Attempt.getID(), TaskAttemptEventType.TA_DONE));
 
     // wait for first two map task to complete
     app.waitForState(mapTask1, TaskState.SUCCEEDED);
@@ -382,7 +352,7 @@ public class TestRecovery {
     // in rerun the 1st two map will be recovered from previous run
     app =
         new MRAppWithHistory(2, 1, false, this.getClass().getName(), false,
-          ++runCount);
+            ++runCount);
     conf = new Configuration();
     conf.setBoolean(MRJobConfig.MR_AM_JOB_RECOVERY_ENABLE, true);
     conf.setBoolean("mapred.mapper.new-api", true);
@@ -412,11 +382,11 @@ public class TestRecovery {
 
     // send the done signal to the 3rd map task
     app
-      .getContext()
-      .getEventHandler()
-      .handle(
-        new TaskAttemptEvent(mapTask3.getAttempts().values().iterator().next()
-          .getID(), TaskAttemptEventType.TA_DONE));
+        .getContext()
+        .getEventHandler()
+        .handle(
+            new TaskAttemptEvent(mapTask3.getAttempts().values().iterator().next()
+                .getID(), TaskAttemptEventType.TA_DONE));
 
     // wait to get it completed
     app.waitForState(mapTask3, TaskState.SUCCEEDED);
@@ -450,7 +420,7 @@ public class TestRecovery {
    * property. In this case, recover is turned ON. AM with 3 maps and 0 reduce.
    * AM crashes after the first two tasks finishes and recovers completely and
    * succeeds in the second generation.
-   * 
+   *
    * @throws Exception
    */
   @Test
@@ -563,7 +533,7 @@ public class TestRecovery {
    * property. In this case, recover is turned OFF. AM with 3 maps and 0 reduce.
    * AM crashes after the first two tasks finishes and recovery fails and have
    * to rerun fully in the second generation and succeeds.
-   * 
+   *
    * @throws Exception
    */
   @Test
@@ -571,10 +541,10 @@ public class TestRecovery {
     int runCount = 0;
     MRApp app =
         new MRAppWithHistory(3, 0, false, this.getClass().getName(), true,
-          ++runCount);
+            ++runCount);
     Configuration conf = new Configuration();
     conf.setClass("mapred.output.committer.class", TestFileOutputCommitter.class,
-          org.apache.hadoop.mapred.OutputCommitter.class);
+        org.apache.hadoop.mapred.OutputCommitter.class);
     conf.set(FileOutputFormat.OUTDIR, outputDir.toString());
     conf.setBoolean("want.am.recovery", false);
     Job job = app.submit(conf);
@@ -607,15 +577,15 @@ public class TestRecovery {
 
     // send the done signal to the 1st two maps
     app
-      .getContext()
-      .getEventHandler()
-      .handle(
-        new TaskAttemptEvent(task1Attempt.getID(), TaskAttemptEventType.TA_DONE));
+        .getContext()
+        .getEventHandler()
+        .handle(
+            new TaskAttemptEvent(task1Attempt.getID(), TaskAttemptEventType.TA_DONE));
     app
-      .getContext()
-      .getEventHandler()
-      .handle(
-        new TaskAttemptEvent(task2Attempt.getID(), TaskAttemptEventType.TA_DONE));
+        .getContext()
+        .getEventHandler()
+        .handle(
+            new TaskAttemptEvent(task2Attempt.getID(), TaskAttemptEventType.TA_DONE));
 
     // wait for first two map task to complete
     app.waitForState(mapTask1, TaskState.SUCCEEDED);
@@ -628,10 +598,10 @@ public class TestRecovery {
     // in rerun the 1st two map will be recovered from previous run
     app =
         new MRAppWithHistory(2, 1, false, this.getClass().getName(), false,
-          ++runCount);
+            ++runCount);
     conf = new Configuration();
     conf.setClass("mapred.output.committer.class", TestFileOutputCommitter.class,
-            org.apache.hadoop.mapred.OutputCommitter.class);
+        org.apache.hadoop.mapred.OutputCommitter.class);
     conf.setBoolean("want.am.recovery", false);
     conf.set(FileOutputFormat.OUTDIR, outputDir.toString());
     // Set num-reduces explicitly in conf as recovery logic depends on it.
@@ -659,24 +629,24 @@ public class TestRecovery {
 
     // send the done signal to all 3 tasks map task
     app
-      .getContext()
-      .getEventHandler()
-      .handle(
-        new TaskAttemptEvent(mapTask1.getAttempts().values().iterator().next()
-          .getID(), TaskAttemptEventType.TA_DONE));
+        .getContext()
+        .getEventHandler()
+        .handle(
+            new TaskAttemptEvent(mapTask1.getAttempts().values().iterator().next()
+                .getID(), TaskAttemptEventType.TA_DONE));
     app
-    .getContext()
-    .getEventHandler()
-    .handle(
-      new TaskAttemptEvent(mapTask2.getAttempts().values().iterator().next()
-        .getID(), TaskAttemptEventType.TA_DONE));
+        .getContext()
+        .getEventHandler()
+        .handle(
+            new TaskAttemptEvent(mapTask2.getAttempts().values().iterator().next()
+                .getID(), TaskAttemptEventType.TA_DONE));
 
     app
-    .getContext()
-    .getEventHandler()
-    .handle(
-      new TaskAttemptEvent(mapTask3.getAttempts().values().iterator().next()
-        .getID(), TaskAttemptEventType.TA_DONE));
+        .getContext()
+        .getEventHandler()
+        .handle(
+            new TaskAttemptEvent(mapTask3.getAttempts().values().iterator().next()
+                .getID(), TaskAttemptEventType.TA_DONE));
 
     // wait to get it completed
     app.waitForState(mapTask3, TaskState.SUCCEEDED);
@@ -691,7 +661,7 @@ public class TestRecovery {
     int runCount = 0;
     MRApp app =
         new MRAppWithHistory(2, 1, false, this.getClass().getName(), true,
-          ++runCount);
+            ++runCount);
     Configuration conf = new Configuration();
     conf.setBoolean("mapred.mapper.new-api", true);
     conf.setBoolean("mapred.reducer.new-api", true);
@@ -701,24 +671,24 @@ public class TestRecovery {
     app.waitForState(job, JobState.RUNNING);
     //all maps would be running
     Assert.assertEquals("No of tasks not correct",
-       3, job.getTasks().size());
+        3, job.getTasks().size());
     Iterator<Task> it = job.getTasks().values().iterator();
     Task mapTask1 = it.next();
     Task mapTask2 = it.next();
     Task reduceTask = it.next();
-    
+
     // all maps must be running
     app.waitForState(mapTask1, TaskState.RUNNING);
     app.waitForState(mapTask2, TaskState.RUNNING);
-    
+
     TaskAttempt task1Attempt1 = mapTask1.getAttempts().values().iterator().next();
     TaskAttempt task2Attempt = mapTask2.getAttempts().values().iterator().next();
-    
+
     //before sending the TA_DONE, event make sure attempt has come to 
     //RUNNING state
     app.waitForState(task1Attempt1, TaskAttemptState.RUNNING);
     app.waitForState(task2Attempt, TaskAttemptState.RUNNING);
-    
+
     // reduces must be in NEW state
     Assert.assertEquals("Reduce Task state not correct",
         TaskState.RUNNING, reduceTask.getReport().getTaskState());
@@ -726,12 +696,12 @@ public class TestRecovery {
     //send the done signal to the 1st map
     app.getContext().getEventHandler().handle(
         new TaskAttemptEvent(
-          task1Attempt1.getID(),
-          TaskAttemptEventType.TA_DONE));
+            task1Attempt1.getID(),
+            TaskAttemptEventType.TA_DONE));
 
     //wait for first map task to complete
     app.waitForState(mapTask1, TaskState.SUCCEEDED);
-    
+
     // Crash the app
     app.stop();
 
@@ -739,7 +709,7 @@ public class TestRecovery {
     //in rerun the 1st map will be recovered from previous run
     app =
         new MRAppWithHistory(2, 1, false, this.getClass().getName(), false,
-          ++runCount);
+            ++runCount);
     conf = new Configuration();
     conf.setBoolean(MRJobConfig.MR_AM_JOB_RECOVERY_ENABLE, true);
     conf.setBoolean("mapred.mapper.new-api", true);
@@ -750,28 +720,28 @@ public class TestRecovery {
     app.waitForState(job, JobState.RUNNING);
     //all maps would be running
     Assert.assertEquals("No of tasks not correct",
-       3, job.getTasks().size());
+        3, job.getTasks().size());
     it = job.getTasks().values().iterator();
     mapTask1 = it.next();
     mapTask2 = it.next();
     reduceTask = it.next();
-    
+
     // first map will be recovered, no need to send done
     app.waitForState(mapTask1, TaskState.SUCCEEDED);
-    
+
     app.waitForState(mapTask2, TaskState.RUNNING);
-    
+
     task2Attempt = mapTask2.getAttempts().values().iterator().next();
     //before sending the TA_DONE, event make sure attempt has come to 
     //RUNNING state
     app.waitForState(task2Attempt, TaskAttemptState.RUNNING);
-    
+
     //send the done signal to the 2nd map task
     app.getContext().getEventHandler().handle(
         new TaskAttemptEvent(
             mapTask2.getAttempts().values().iterator().next().getID(),
             TaskAttemptEventType.TA_DONE));
-    
+
     //wait to get it completed
     app.waitForState(mapTask2, TaskState.SUCCEEDED);
 
@@ -782,7 +752,7 @@ public class TestRecovery {
     //in rerun the 1st and 2nd map will be recovered from previous run
     app =
         new MRAppWithHistory(2, 1, false, this.getClass().getName(), false,
-          ++runCount);
+            ++runCount);
     conf = new Configuration();
     conf.setBoolean(MRJobConfig.MR_AM_JOB_RECOVERY_ENABLE, true);
     conf.setBoolean("mapred.mapper.new-api", true);
@@ -793,12 +763,12 @@ public class TestRecovery {
     app.waitForState(job, JobState.RUNNING);
     //all maps would be running
     Assert.assertEquals("No of tasks not correct",
-       3, job.getTasks().size());
+        3, job.getTasks().size());
     it = job.getTasks().values().iterator();
     mapTask1 = it.next();
     mapTask2 = it.next();
     reduceTask = it.next();
-    
+
     // The maps will be recovered, no need to send done
     app.waitForState(mapTask1, TaskState.SUCCEEDED);
     app.waitForState(mapTask2, TaskState.SUCCEEDED);
@@ -810,7 +780,7 @@ public class TestRecovery {
         new TaskAttemptEvent(
             reduceTask.getAttempts().values().iterator().next().getID(),
             TaskAttemptEventType.TA_DONE));
-    
+
     app.waitForState(job, JobState.SUCCEEDED);
     app.verifyCompleted();
   }
@@ -828,39 +798,39 @@ public class TestRecovery {
     Job job = app.submit(conf);
     app.waitForState(job, JobState.RUNNING);
     Assert.assertEquals("No of tasks not correct",
-       3, job.getTasks().size());
+        3, job.getTasks().size());
     Iterator<Task> it = job.getTasks().values().iterator();
     Task mapTask1 = it.next();
     Task reduceTask1 = it.next();
-    
+
     // all maps must be running
     app.waitForState(mapTask1, TaskState.RUNNING);
-    
+
     TaskAttempt task1Attempt1 = mapTask1.getAttempts().values().iterator()
         .next();
-    
+
     //before sending the TA_DONE, event make sure attempt has come to 
     //RUNNING state
     app.waitForState(task1Attempt1, TaskAttemptState.RUNNING);
-  
+
     //send the done signal to the map
     app.getContext().getEventHandler().handle(
         new TaskAttemptEvent(
             task1Attempt1.getID(),
             TaskAttemptEventType.TA_DONE));
-    
+
     //wait for map task to complete
     app.waitForState(mapTask1, TaskState.SUCCEEDED);
 
     // Verify the shuffle-port
     Assert.assertEquals(5467, task1Attempt1.getShufflePort());
-    
+
     app.waitForState(reduceTask1, TaskState.RUNNING);
     TaskAttempt reduce1Attempt1 = reduceTask1.getAttempts().values().iterator().next();
-    
+
     // write output corresponding to reduce1
     writeOutput(reduce1Attempt1, conf);
-    
+
     //send the done signal to the 1st reduce
     app.getContext().getEventHandler().handle(
         new TaskAttemptEvent(
@@ -869,7 +839,7 @@ public class TestRecovery {
 
     //wait for first reduce task to complete
     app.waitForState(reduceTask1, TaskState.SUCCEEDED);
-    
+
     //stop the app before the job completes.
     app.stop();
 
@@ -886,39 +856,39 @@ public class TestRecovery {
     job = app.submit(conf);
     app.waitForState(job, JobState.RUNNING);
     Assert.assertEquals("No of tasks not correct",
-       3, job.getTasks().size());
+        3, job.getTasks().size());
     it = job.getTasks().values().iterator();
     mapTask1 = it.next();
     reduceTask1 = it.next();
     Task reduceTask2 = it.next();
-    
+
     // map will be recovered, no need to send done
     app.waitForState(mapTask1, TaskState.SUCCEEDED);
 
     // Verify the shuffle-port after recovery
     task1Attempt1 = mapTask1.getAttempts().values().iterator().next();
     Assert.assertEquals(5467, task1Attempt1.getShufflePort());
-    
+
     // first reduce will be recovered, no need to send done
-    app.waitForState(reduceTask1, TaskState.SUCCEEDED); 
-    
+    app.waitForState(reduceTask1, TaskState.SUCCEEDED);
+
     app.waitForState(reduceTask2, TaskState.RUNNING);
-    
+
     TaskAttempt reduce2Attempt = reduceTask2.getAttempts().values()
         .iterator().next();
     //before sending the TA_DONE, event make sure attempt has come to 
     //RUNNING state
     app.waitForState(reduce2Attempt, TaskAttemptState.RUNNING);
-    
-   //send the done signal to the 2nd reduce task
+
+    //send the done signal to the 2nd reduce task
     app.getContext().getEventHandler().handle(
         new TaskAttemptEvent(
             reduce2Attempt.getID(),
             TaskAttemptEventType.TA_DONE));
-    
+
     //wait to get it completed
     app.waitForState(reduceTask2, TaskState.SUCCEEDED);
-    
+
     app.waitForState(job, JobState.SUCCEEDED);
     app.verifyCompleted();
     validateOutput();
@@ -937,32 +907,32 @@ public class TestRecovery {
     Job job = app.submit(conf);
     app.waitForState(job, JobState.RUNNING);
     Assert.assertEquals("No of tasks not correct",
-       3, job.getTasks().size());
+        3, job.getTasks().size());
     Iterator<Task> it = job.getTasks().values().iterator();
     Task mapTask1 = it.next();
     Task mapTask2 = it.next();
     Task reduceTask1 = it.next();
-    
+
     // all maps must be running
     app.waitForState(mapTask1, TaskState.RUNNING);
-    
+
     TaskAttempt task1Attempt1 = mapTask1.getAttempts().values().iterator()
         .next();
-    
+
     //before sending the TA_DONE, event make sure attempt has come to 
     //RUNNING state
     app.waitForState(task1Attempt1, TaskAttemptState.RUNNING);
-  
+
     // write output corresponding to map1 (This is just to validate that it is
     //no included in the output)
     writeBadOutput(task1Attempt1, conf);
-    
+
     //send the done signal to the map
     app.getContext().getEventHandler().handle(
         new TaskAttemptEvent(
             task1Attempt1.getID(),
             TaskAttemptEventType.TA_DONE));
-    
+
     //wait for map task to complete
     app.waitForState(mapTask1, TaskState.SUCCEEDED);
 
@@ -971,7 +941,7 @@ public class TestRecovery {
 
     //stop the app before the job completes.
     app.stop();
-    
+
     //rerun
     //in rerun the map will be recovered from previous run
     app = new MRAppWithHistory(2, 1, false, this.getClass().getName(), false,
@@ -985,23 +955,23 @@ public class TestRecovery {
     job = app.submit(conf);
     app.waitForState(job, JobState.RUNNING);
     Assert.assertEquals("No of tasks not correct",
-       3, job.getTasks().size());
+        3, job.getTasks().size());
     it = job.getTasks().values().iterator();
     mapTask1 = it.next();
     mapTask2 = it.next();
     reduceTask1 = it.next();
-    
+
     // map will be recovered, no need to send done
     app.waitForState(mapTask1, TaskState.SUCCEEDED);
 
     // Verify the shuffle-port after recovery
     task1Attempt1 = mapTask1.getAttempts().values().iterator().next();
     Assert.assertEquals(5467, task1Attempt1.getShufflePort());
-    
+
     app.waitForState(mapTask2, TaskState.RUNNING);
-    
+
     TaskAttempt task2Attempt1 = mapTask2.getAttempts().values().iterator()
-    .next();
+        .next();
 
     //before sending the TA_DONE, event make sure attempt has come to 
     //RUNNING state
@@ -1018,13 +988,13 @@ public class TestRecovery {
 
     // Verify the shuffle-port
     Assert.assertEquals(5467, task2Attempt1.getShufflePort());
-    
+
     app.waitForState(reduceTask1, TaskState.RUNNING);
     TaskAttempt reduce1Attempt1 = reduceTask1.getAttempts().values().iterator().next();
-    
+
     // write output corresponding to reduce1
     writeOutput(reduce1Attempt1, conf);
-    
+
     //send the done signal to the 1st reduce
     app.getContext().getEventHandler().handle(
         new TaskAttemptEvent(
@@ -1033,12 +1003,12 @@ public class TestRecovery {
 
     //wait for first reduce task to complete
     app.waitForState(reduceTask1, TaskState.SUCCEEDED);
-    
+
     app.waitForState(job, JobState.SUCCEEDED);
     app.verifyCompleted();
     validateOutput();
   }
-  
+
   @Test
   public void testRecoveryWithOldCommiter() throws Exception {
     int runCount = 0;
@@ -1052,39 +1022,39 @@ public class TestRecovery {
     Job job = app.submit(conf);
     app.waitForState(job, JobState.RUNNING);
     Assert.assertEquals("No of tasks not correct",
-       3, job.getTasks().size());
+        3, job.getTasks().size());
     Iterator<Task> it = job.getTasks().values().iterator();
     Task mapTask1 = it.next();
     Task reduceTask1 = it.next();
-    
+
     // all maps must be running
     app.waitForState(mapTask1, TaskState.RUNNING);
-    
+
     TaskAttempt task1Attempt1 = mapTask1.getAttempts().values().iterator()
         .next();
-    
+
     //before sending the TA_DONE, event make sure attempt has come to 
     //RUNNING state
     app.waitForState(task1Attempt1, TaskAttemptState.RUNNING);
-  
+
     //send the done signal to the map
     app.getContext().getEventHandler().handle(
         new TaskAttemptEvent(
             task1Attempt1.getID(),
             TaskAttemptEventType.TA_DONE));
-    
+
     //wait for map task to complete
     app.waitForState(mapTask1, TaskState.SUCCEEDED);
 
     // Verify the shuffle-port
     Assert.assertEquals(5467, task1Attempt1.getShufflePort());
-    
+
     app.waitForState(reduceTask1, TaskState.RUNNING);
     TaskAttempt reduce1Attempt1 = reduceTask1.getAttempts().values().iterator().next();
-    
+
     // write output corresponding to reduce1
     writeOutput(reduce1Attempt1, conf);
-    
+
     //send the done signal to the 1st reduce
     app.getContext().getEventHandler().handle(
         new TaskAttemptEvent(
@@ -1093,7 +1063,7 @@ public class TestRecovery {
 
     //wait for first reduce task to complete
     app.waitForState(reduceTask1, TaskState.SUCCEEDED);
-    
+
     //stop the app before the job completes.
     app.stop();
 
@@ -1110,39 +1080,39 @@ public class TestRecovery {
     job = app.submit(conf);
     app.waitForState(job, JobState.RUNNING);
     Assert.assertEquals("No of tasks not correct",
-       3, job.getTasks().size());
+        3, job.getTasks().size());
     it = job.getTasks().values().iterator();
     mapTask1 = it.next();
     reduceTask1 = it.next();
     Task reduceTask2 = it.next();
-    
+
     // map will be recovered, no need to send done
     app.waitForState(mapTask1, TaskState.SUCCEEDED);
 
     // Verify the shuffle-port after recovery
     task1Attempt1 = mapTask1.getAttempts().values().iterator().next();
     Assert.assertEquals(5467, task1Attempt1.getShufflePort());
-    
+
     // first reduce will be recovered, no need to send done
-    app.waitForState(reduceTask1, TaskState.SUCCEEDED); 
-    
+    app.waitForState(reduceTask1, TaskState.SUCCEEDED);
+
     app.waitForState(reduceTask2, TaskState.RUNNING);
-    
+
     TaskAttempt reduce2Attempt = reduceTask2.getAttempts().values()
         .iterator().next();
     //before sending the TA_DONE, event make sure attempt has come to 
     //RUNNING state
     app.waitForState(reduce2Attempt, TaskAttemptState.RUNNING);
-    
-   //send the done signal to the 2nd reduce task
+
+    //send the done signal to the 2nd reduce task
     app.getContext().getEventHandler().handle(
         new TaskAttemptEvent(
             reduce2Attempt.getID(),
             TaskAttemptEventType.TA_DONE));
-    
+
     //wait to get it completed
     app.waitForState(reduceTask2, TaskState.SUCCEEDED);
-    
+
     app.waitForState(job, JobState.SUCCEEDED);
     app.verifyCompleted();
     validateOutput();
@@ -1153,7 +1123,7 @@ public class TestRecovery {
    * completely disappears because of failed launch, one attempt gets killed and
    * one attempt succeeds. AM crashes after the first tasks finishes and
    * recovers completely and succeeds in the second generation.
-   * 
+   *
    * @throws Exception
    */
   @Test
@@ -1172,7 +1142,7 @@ public class TestRecovery {
     long jobStartTime = job.getReport().getStartTime();
     //all maps would be running
     Assert.assertEquals("No of tasks not correct",
-       3, job.getTasks().size());
+        3, job.getTasks().size());
 
     Iterator<Task> it = job.getTasks().values().iterator();
     Task mapTask1 = it.next();
@@ -1246,7 +1216,7 @@ public class TestRecovery {
     app.waitForState(job, JobState.RUNNING);
     //all maps would be running
     Assert.assertEquals("No of tasks not correct",
-       3, job.getTasks().size());
+        3, job.getTasks().size());
     it = job.getTasks().values().iterator();
     mapTask1 = it.next();
     mapTask2 = it.next();
@@ -1309,7 +1279,7 @@ public class TestRecovery {
 
   }
 
-  @Test(timeout=30000)
+  @Test(timeout = 30000)
   public void testRecoveryWithoutShuffleSecret() throws Exception {
 
     int runCount = 0;
@@ -1324,7 +1294,7 @@ public class TestRecovery {
     app.waitForState(job, JobState.RUNNING);
     //all maps would be running
     Assert.assertEquals("No of tasks not correct",
-       3, job.getTasks().size());
+        3, job.getTasks().size());
     Iterator<Task> it = job.getTasks().values().iterator();
     Task mapTask1 = it.next();
     Task mapTask2 = it.next();
@@ -1373,7 +1343,7 @@ public class TestRecovery {
     app.waitForState(job, JobState.RUNNING);
     //all maps would be running
     Assert.assertEquals("No of tasks not correct",
-       3, job.getTasks().size());
+        3, job.getTasks().size());
     it = job.getTasks().values().iterator();
     mapTask1 = it.next();
     mapTask2 = it.next();
@@ -1448,17 +1418,17 @@ public class TestRecovery {
         TaskAttemptState.FAILED);
     mockTaskAttempts.put(taId2, mockTAinfo2);
 
-    OutputCommitter mockCommitter = mock (OutputCommitter.class);
+    OutputCommitter mockCommitter = mock(OutputCommitter.class);
     TaskInfo mockTaskInfo = mock(TaskInfo.class);
     when(mockTaskInfo.getTaskStatus()).thenReturn("SUCCEEDED");
     when(mockTaskInfo.getTaskId()).thenReturn(taskID);
     when(mockTaskInfo.getAllTaskAttempts()).thenReturn(mockTaskAttempts);
 
     recoverMapTask.handle(
-        new TaskRecoverEvent(taskId, mockTaskInfo,mockCommitter, true));
+        new TaskRecoverEvent(taskId, mockTaskInfo, mockCommitter, true));
 
     ArgumentCaptor<Event> arg = ArgumentCaptor.forClass(Event.class);
-    verify(mockEventHandler,atLeast(1)).handle(
+    verify(mockEventHandler, atLeast(1)).handle(
         (org.apache.hadoop.yarn.event.Event) arg.capture());
 
     Map<TaskAttemptID, TaskAttemptState> finalAttemptStates =
@@ -1505,7 +1475,7 @@ public class TestRecovery {
         TaskAttemptState.FAILED);
     mockTaskAttempts.put(taId2, mockTAinfo2);
 
-    OutputCommitter mockCommitter = mock (OutputCommitter.class);
+    OutputCommitter mockCommitter = mock(OutputCommitter.class);
 
     TaskInfo mockTaskInfo = mock(TaskInfo.class);
     when(mockTaskInfo.getTaskStatus()).thenReturn("FAILED");
@@ -1516,7 +1486,7 @@ public class TestRecovery {
         new TaskRecoverEvent(taskId, mockTaskInfo, mockCommitter, true));
 
     ArgumentCaptor<Event> arg = ArgumentCaptor.forClass(Event.class);
-    verify(mockEventHandler,atLeast(1)).handle(
+    verify(mockEventHandler, atLeast(1)).handle(
         (org.apache.hadoop.yarn.event.Event) arg.capture());
 
     Map<TaskAttemptID, TaskAttemptState> finalAttemptStates =
@@ -1563,7 +1533,7 @@ public class TestRecovery {
         TaskAttemptState.FAILED);
     mockTaskAttempts.put(taId2, mockTAinfo2);
 
-    OutputCommitter mockCommitter = mock (OutputCommitter.class);
+    OutputCommitter mockCommitter = mock(OutputCommitter.class);
     TaskInfo mockTaskInfo = mock(TaskInfo.class);
     when(mockTaskInfo.getTaskStatus()).thenReturn("SUCCEEDED");
     when(mockTaskInfo.getTaskId()).thenReturn(taskID);
@@ -1573,7 +1543,7 @@ public class TestRecovery {
         new TaskRecoverEvent(taskId, mockTaskInfo, mockCommitter, true));
 
     ArgumentCaptor<Event> arg = ArgumentCaptor.forClass(Event.class);
-    verify(mockEventHandler,atLeast(1)).handle(
+    verify(mockEventHandler, atLeast(1)).handle(
         (org.apache.hadoop.yarn.event.Event) arg.capture());
 
     Map<TaskAttemptID, TaskAttemptState> finalAttemptStates =
@@ -1622,7 +1592,7 @@ public class TestRecovery {
         TaskAttemptState.SUCCEEDED);
     mockTaskAttempts.put(taId2, mockTAinfo2);
 
-    OutputCommitter mockCommitter = mock (OutputCommitter.class);
+    OutputCommitter mockCommitter = mock(OutputCommitter.class);
     TaskInfo mockTaskInfo = mock(TaskInfo.class);
     when(mockTaskInfo.getTaskStatus()).thenReturn("SUCCEEDED");
     when(mockTaskInfo.getTaskId()).thenReturn(taskID);
@@ -1632,7 +1602,7 @@ public class TestRecovery {
         new TaskRecoverEvent(taskId, mockTaskInfo, mockCommitter, true));
 
     ArgumentCaptor<Event> arg = ArgumentCaptor.forClass(Event.class);
-    verify(mockEventHandler,atLeast(1)).handle(
+    verify(mockEventHandler, atLeast(1)).handle(
         (org.apache.hadoop.yarn.event.Event) arg.capture());
 
     Map<TaskAttemptID, TaskAttemptState> finalAttemptStates =
@@ -1678,7 +1648,7 @@ public class TestRecovery {
         TaskAttemptState.KILLED);
     mockTaskAttempts.put(taId2, mockTAinfo2);
 
-    OutputCommitter mockCommitter = mock (OutputCommitter.class);
+    OutputCommitter mockCommitter = mock(OutputCommitter.class);
     TaskInfo mockTaskInfo = mock(TaskInfo.class);
     when(mockTaskInfo.getTaskStatus()).thenReturn("KILLED");
     when(mockTaskInfo.getTaskId()).thenReturn(taskID);
@@ -1688,7 +1658,7 @@ public class TestRecovery {
         new TaskRecoverEvent(taskId, mockTaskInfo, mockCommitter, true));
 
     ArgumentCaptor<Event> arg = ArgumentCaptor.forClass(Event.class);
-    verify(mockEventHandler,atLeast(1)).handle(
+    verify(mockEventHandler, atLeast(1)).handle(
         (org.apache.hadoop.yarn.event.Event) arg.capture());
 
     Map<TaskAttemptID, TaskAttemptState> finalAttemptStates =
@@ -1708,9 +1678,9 @@ public class TestRecovery {
   }
 
   private void recoveryChecker(MapTaskImpl checkTask, TaskState finalState,
-      Map<TaskAttemptID, TaskAttemptState> finalAttemptStates,
-      ArgumentCaptor<Event> arg, List<EventType> expectedJobHistoryEvents,
-      long expectedMapLaunches, long expectedFailedMaps) {
+                               Map<TaskAttemptID, TaskAttemptState> finalAttemptStates,
+                               ArgumentCaptor<Event> arg, List<EventType> expectedJobHistoryEvents,
+                               long expectedMapLaunches, long expectedFailedMaps) {
 
     assertEquals("Final State of Task", finalState, checkTask.getState());
 
@@ -1742,7 +1712,7 @@ public class TestRecovery {
         assertEquals(expectedJobHistoryEvents.get(0),
             jhe.getHistoryEvent().getEventType());
         expectedJobHistoryEvents.remove(0);
-      }  else if (current instanceof JobCounterUpdateEvent) {
+      } else if (current instanceof JobCounterUpdateEvent) {
         JobCounterUpdateEvent jcue = (JobCounterUpdateEvent) current;
 
         LOG.info("JobCounterUpdateEvent "
@@ -1804,7 +1774,7 @@ public class TestRecovery {
   }
 
   private TaskAttemptInfo getMockTaskAttemptInfo(TaskAttemptID tai,
-      TaskAttemptState tas) {
+                                                 TaskAttemptState tas) {
 
     ContainerId ci = mock(ContainerId.class);
     Counters counters = mock(Counters.class);
@@ -1827,7 +1797,7 @@ public class TestRecovery {
     when(mockTAinfo.getShuffleFinishTime()).thenReturn(finishTime - 2000L);
     when(mockTAinfo.getShufflePort()).thenReturn(25);
     when(mockTAinfo.getSortFinishTime()).thenReturn(finishTime - 3000L);
-    when(mockTAinfo.getStartTime()).thenReturn(finishTime -10000);
+    when(mockTAinfo.getStartTime()).thenReturn(finishTime - 10000);
     when(mockTAinfo.getState()).thenReturn("task in progress");
     when(mockTAinfo.getTaskStatus()).thenReturn(tas.toString());
     when(mockTAinfo.getTaskType()).thenReturn(tt);
@@ -1836,44 +1806,44 @@ public class TestRecovery {
   }
 
   private void writeBadOutput(TaskAttempt attempt, Configuration conf)
-  throws Exception {
-  TaskAttemptContext tContext = new TaskAttemptContextImpl(conf, 
-      TypeConverter.fromYarn(attempt.getID()));
- 
-  TextOutputFormat<?, ?> theOutputFormat = new TextOutputFormat();
-  RecordWriter theRecordWriter = theOutputFormat
-      .getRecordWriter(tContext);
-  
-  NullWritable nullWritable = NullWritable.get();
-  try {
-    theRecordWriter.write(key2, val2);
-    theRecordWriter.write(null, nullWritable);
-    theRecordWriter.write(null, val2);
-    theRecordWriter.write(nullWritable, val1);
-    theRecordWriter.write(key1, nullWritable);
-    theRecordWriter.write(key2, null);
-    theRecordWriter.write(null, null);
-    theRecordWriter.write(key1, val1);
-  } finally {
-    theRecordWriter.close(tContext);
-  }
-  
-  OutputFormat outputFormat = ReflectionUtils.newInstance(
-      tContext.getOutputFormatClass(), conf);
-  OutputCommitter committer = outputFormat.getOutputCommitter(tContext);
-  committer.commitTask(tContext);
-}
-  
-  
-  private void writeOutput(TaskAttempt attempt, Configuration conf)
-    throws Exception {
-    TaskAttemptContext tContext = new TaskAttemptContextImpl(conf, 
+      throws Exception {
+    TaskAttemptContext tContext = new TaskAttemptContextImpl(conf,
         TypeConverter.fromYarn(attempt.getID()));
-    
+
     TextOutputFormat<?, ?> theOutputFormat = new TextOutputFormat();
     RecordWriter theRecordWriter = theOutputFormat
         .getRecordWriter(tContext);
-    
+
+    NullWritable nullWritable = NullWritable.get();
+    try {
+      theRecordWriter.write(key2, val2);
+      theRecordWriter.write(null, nullWritable);
+      theRecordWriter.write(null, val2);
+      theRecordWriter.write(nullWritable, val1);
+      theRecordWriter.write(key1, nullWritable);
+      theRecordWriter.write(key2, null);
+      theRecordWriter.write(null, null);
+      theRecordWriter.write(key1, val1);
+    } finally {
+      theRecordWriter.close(tContext);
+    }
+
+    OutputFormat outputFormat = ReflectionUtils.newInstance(
+        tContext.getOutputFormatClass(), conf);
+    OutputCommitter committer = outputFormat.getOutputCommitter(tContext);
+    committer.commitTask(tContext);
+  }
+
+
+  private void writeOutput(TaskAttempt attempt, Configuration conf)
+      throws Exception {
+    TaskAttemptContext tContext = new TaskAttemptContextImpl(conf,
+        TypeConverter.fromYarn(attempt.getID()));
+
+    TextOutputFormat<?, ?> theOutputFormat = new TextOutputFormat();
+    RecordWriter theRecordWriter = theOutputFormat
+        .getRecordWriter(tContext);
+
     NullWritable nullWritable = NullWritable.get();
     try {
       theRecordWriter.write(key1, val1);
@@ -1887,7 +1857,7 @@ public class TestRecovery {
     } finally {
       theRecordWriter.close(tContext);
     }
-    
+
     OutputFormat outputFormat = ReflectionUtils.newInstance(
         tContext.getOutputFormatClass(), conf);
     OutputCommitter committer = outputFormat.getOutputCommitter(tContext);
@@ -1924,7 +1894,7 @@ public class TestRecovery {
 
   static class MRAppWithHistory extends MRApp {
     public MRAppWithHistory(int maps, int reduces, boolean autoComplete,
-        String testName, boolean cleanOnStart, int startCount) {
+                            String testName, boolean cleanOnStart, int startCount) {
       super(maps, reduces, autoComplete, testName, cleanOnStart, startCount);
     }
 
@@ -1948,7 +1918,7 @@ public class TestRecovery {
     @Override
     protected EventHandler<JobHistoryEvent> createJobHistoryHandler(
         AppContext context) {
-      JobHistoryEventHandler eventHandler = new JobHistoryEventHandler(context, 
+      JobHistoryEventHandler eventHandler = new JobHistoryEventHandler(context,
           getStartCount());
       return eventHandler;
     }
@@ -1956,7 +1926,7 @@ public class TestRecovery {
 
   static class MRAppNoShuffleSecret extends MRAppWithHistory {
     public MRAppNoShuffleSecret(int maps, int reduces, boolean autoComplete,
-        String testName, boolean cleanOnStart, int startCount) {
+                                String testName, boolean cleanOnStart, int startCount) {
       super(maps, reduces, autoComplete, testName, cleanOnStart, startCount);
     }
 

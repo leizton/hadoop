@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,20 +18,20 @@
 
 package org.apache.hadoop.mapreduce.lib.aggregate;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.TreeMap;
-import java.util.Map.Entry;
-import java.util.Arrays;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 
 
 /**
  * This class implements a value aggregator that computes the 
  * histogram of a sequence of strings.
- * 
+ *
  */
 @InterfaceAudience.Public
 @InterfaceStability.Stable
@@ -45,7 +45,7 @@ public class ValueHistogram implements ValueAggregator<String> {
 
   /**
    * add the given val to the aggregator.
-   * 
+   *
    * @param val the value to be added. It is expected to be a string
    * in the form of xxxx\tnum, meaning xxxx has num occurrences.
    */
@@ -58,7 +58,7 @@ public class ValueHistogram implements ValueAggregator<String> {
       valStr = valCountStr.substring(0, pos);
       countStr = valCountStr.substring(pos + 1);
     }
-    
+
     Long count = (Long) this.items.get(valStr);
     long inc = Long.parseLong(countStr);
 
@@ -127,20 +127,20 @@ public class ValueHistogram implements ValueAggregator<String> {
     return sb.toString();
   }
 
-  /** 
-   * 
+  /**
+   *
    * @return a string representation of the list of value/frequence pairs of 
    * the histogram
    */
   public String getReportDetails() {
     StringBuffer sb = new StringBuffer();
-    Iterator<Entry<Object,Object>> iter = items.entrySet().iterator();
+    Iterator<Entry<Object, Object>> iter = items.entrySet().iterator();
     while (iter.hasNext()) {
-      Entry<Object,Object> en = iter.next();
+      Entry<Object, Object> en = iter.next();
       Object val = en.getKey();
       Long count = (Long) en.getValue();
       sb.append("\t").append(val.toString()).append("\t").
-         append(count.longValue()).append("\n");
+          append(count.longValue()).append("\n");
     }
     return sb.toString();
   }
@@ -151,10 +151,10 @@ public class ValueHistogram implements ValueAggregator<String> {
    */
   public ArrayList<String> getCombinerOutput() {
     ArrayList<String> retv = new ArrayList<String>();
-    Iterator<Entry<Object,Object>> iter = items.entrySet().iterator();
+    Iterator<Entry<Object, Object>> iter = items.entrySet().iterator();
 
     while (iter.hasNext()) {
-      Entry<Object,Object> en =  iter.next();
+      Entry<Object, Object> en = iter.next();
       Object val = en.getKey();
       Long count = (Long) en.getValue();
       retv.add(val.toString() + "\t" + count.longValue());
@@ -162,15 +162,15 @@ public class ValueHistogram implements ValueAggregator<String> {
     return retv;
   }
 
-  /** 
-   * 
+  /**
+   *
    * @return a TreeMap representation of the histogram
    */
-  public TreeMap<Object,Object> getReportItems() {
+  public TreeMap<Object, Object> getReportItems() {
     return items;
   }
 
-  /** 
+  /**
    * reset the aggregator
    */
   public void reset() {

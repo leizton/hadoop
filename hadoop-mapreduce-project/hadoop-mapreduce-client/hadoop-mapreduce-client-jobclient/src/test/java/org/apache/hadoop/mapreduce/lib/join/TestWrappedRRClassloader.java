@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,7 +18,6 @@
 package org.apache.hadoop.mapreduce.lib.join;
 
 import junit.framework.TestCase;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -45,31 +44,31 @@ public class TestWrappedRRClassloader extends TestCase {
         .makeQualified(fs);
 
     Path base = new Path(testdir, "/empty");
-    Path[] src = { new Path(base, "i0"), new Path("i1"), new Path("i2") };
-    conf.set(CompositeInputFormat.JOIN_EXPR, 
-      CompositeInputFormat.compose("outer", IF_ClassLoaderChecker.class, src));
+    Path[] src = {new Path(base, "i0"), new Path("i1"), new Path("i2")};
+    conf.set(CompositeInputFormat.JOIN_EXPR,
+        CompositeInputFormat.compose("outer", IF_ClassLoaderChecker.class, src));
 
-    CompositeInputFormat<NullWritable> inputFormat = 
-      new CompositeInputFormat<NullWritable>();
+    CompositeInputFormat<NullWritable> inputFormat =
+        new CompositeInputFormat<NullWritable>();
     // create dummy TaskAttemptID
     TaskAttemptID tid = new TaskAttemptID("jt", 1, TaskType.MAP, 0, 0);
     conf.set(MRJobConfig.TASK_ATTEMPT_ID, tid.toString());
     inputFormat.createRecordReader
-      (inputFormat.getSplits(Job.getInstance(conf)).get(0), 
-       new TaskAttemptContextImpl(conf, tid));
+        (inputFormat.getSplits(Job.getInstance(conf)).get(0),
+            new TaskAttemptContextImpl(conf, tid));
   }
 
   public static class Fake_ClassLoader extends ClassLoader {
   }
 
-  public static class IF_ClassLoaderChecker<K, V> 
+  public static class IF_ClassLoaderChecker<K, V>
       extends MapReduceTestUtil.Fake_IF<K, V> {
 
     public IF_ClassLoaderChecker() {
     }
 
-    public RecordReader<K, V> createRecordReader(InputSplit ignored, 
-        TaskAttemptContext context) {
+    public RecordReader<K, V> createRecordReader(InputSplit ignored,
+                                                 TaskAttemptContext context) {
       return new RR_ClassLoaderChecker<K, V>(context.getConfiguration());
     }
   }
@@ -79,7 +78,7 @@ public class TestWrappedRRClassloader extends TestCase {
     @SuppressWarnings("unchecked")
     public RR_ClassLoaderChecker(Configuration conf) {
       assertTrue("The class loader has not been inherited from "
-          + CompositeRecordReader.class.getSimpleName(),
+              + CompositeRecordReader.class.getSimpleName(),
           conf.getClassLoader() instanceof Fake_ClassLoader);
 
     }

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,39 +19,29 @@
 package org.apache.hadoop.mapreduce.v2.api.records.impl.pb;
 
 
+import org.apache.hadoop.mapreduce.v2.api.records.*;
+import org.apache.hadoop.mapreduce.v2.proto.MRProtos.*;
+import org.apache.hadoop.mapreduce.v2.util.MRProtoUtils;
+import org.apache.hadoop.yarn.api.records.impl.pb.ProtoBase;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.hadoop.mapreduce.v2.api.records.Counters;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskReport;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskState;
-import org.apache.hadoop.mapreduce.v2.proto.MRProtos.CountersProto;
-import org.apache.hadoop.mapreduce.v2.proto.MRProtos.TaskAttemptIdProto;
-import org.apache.hadoop.mapreduce.v2.proto.MRProtos.TaskIdProto;
-import org.apache.hadoop.mapreduce.v2.proto.MRProtos.TaskReportProto;
-import org.apache.hadoop.mapreduce.v2.proto.MRProtos.TaskReportProtoOrBuilder;
-import org.apache.hadoop.mapreduce.v2.proto.MRProtos.TaskStateProto;
-import org.apache.hadoop.mapreduce.v2.util.MRProtoUtils;
-import org.apache.hadoop.yarn.api.records.impl.pb.ProtoBase;
 
-
-    
 public class TaskReportPBImpl extends ProtoBase<TaskReportProto> implements TaskReport {
   TaskReportProto proto = TaskReportProto.getDefaultInstance();
   TaskReportProto.Builder builder = null;
   boolean viaProto = false;
-  
+
   private TaskId taskId = null;
   private Counters counters = null;
   private List<TaskAttemptId> runningAttempts = null;
   private TaskAttemptId successfulAttemptId = null;
   private List<String> diagnostics = null;
   private String status;
-  
-  
+
+
   public TaskReportPBImpl() {
     builder = TaskReportProto.newBuilder();
   }
@@ -60,9 +50,9 @@ public class TaskReportPBImpl extends ProtoBase<TaskReportProto> implements Task
     this.proto = proto;
     viaProto = true;
   }
-  
+
   public TaskReportProto getProto() {
-      mergeLocalToProto();
+    mergeLocalToProto();
     proto = viaProto ? proto : builder.build();
     viaProto = true;
     return proto;
@@ -87,7 +77,7 @@ public class TaskReportPBImpl extends ProtoBase<TaskReportProto> implements Task
   }
 
   private void mergeLocalToProto() {
-    if (viaProto) 
+    if (viaProto)
       maybeInitBuilder();
     mergeLocalToBuilder();
     proto = builder.build();
@@ -100,8 +90,8 @@ public class TaskReportPBImpl extends ProtoBase<TaskReportProto> implements Task
     }
     viaProto = false;
   }
-    
-  
+
+
   @Override
   public Counters getCounters() {
     TaskReportProtoOrBuilder p = viaProto ? proto : builder;
@@ -118,10 +108,11 @@ public class TaskReportPBImpl extends ProtoBase<TaskReportProto> implements Task
   @Override
   public void setCounters(Counters counters) {
     maybeInitBuilder();
-    if (counters == null) 
+    if (counters == null)
       builder.clearCounters();
     this.counters = counters;
   }
+
   @Override
   public long getStartTime() {
     TaskReportProtoOrBuilder p = viaProto ? proto : builder;
@@ -133,7 +124,7 @@ public class TaskReportPBImpl extends ProtoBase<TaskReportProto> implements Task
     maybeInitBuilder();
     builder.setStartTime((startTime));
   }
-  
+
   @Override
   public long getFinishTime() {
     TaskReportProtoOrBuilder p = viaProto ? proto : builder;
@@ -145,7 +136,7 @@ public class TaskReportPBImpl extends ProtoBase<TaskReportProto> implements Task
     maybeInitBuilder();
     builder.setFinishTime((finishTime));
   }
-  
+
   @Override
   public TaskId getTaskId() {
     TaskReportProtoOrBuilder p = viaProto ? proto : builder;
@@ -162,10 +153,11 @@ public class TaskReportPBImpl extends ProtoBase<TaskReportProto> implements Task
   @Override
   public void setTaskId(TaskId taskId) {
     maybeInitBuilder();
-    if (taskId == null) 
+    if (taskId == null)
       builder.clearTaskId();
     this.taskId = taskId;
   }
+
   @Override
   public float getProgress() {
     TaskReportProtoOrBuilder p = viaProto ? proto : builder;
@@ -206,22 +198,25 @@ public class TaskReportPBImpl extends ProtoBase<TaskReportProto> implements Task
     }
     builder.setTaskState(convertToProtoFormat(taskState));
   }
+
   @Override
   public List<TaskAttemptId> getRunningAttemptsList() {
     initRunningAttempts();
     return this.runningAttempts;
   }
+
   @Override
   public TaskAttemptId getRunningAttempt(int index) {
     initRunningAttempts();
     return this.runningAttempts.get(index);
   }
+
   @Override
   public int getRunningAttemptsCount() {
     initRunningAttempts();
     return this.runningAttempts.size();
   }
-  
+
   private void initRunningAttempts() {
     if (this.runningAttempts != null) {
       return;
@@ -234,7 +229,7 @@ public class TaskReportPBImpl extends ProtoBase<TaskReportProto> implements Task
       this.runningAttempts.add(convertFromProtoFormat(c));
     }
   }
-  
+
   @Override
   public void addAllRunningAttempts(final List<TaskAttemptId> runningAttempts) {
     if (runningAttempts == null)
@@ -242,7 +237,7 @@ public class TaskReportPBImpl extends ProtoBase<TaskReportProto> implements Task
     initRunningAttempts();
     this.runningAttempts.addAll(runningAttempts);
   }
-  
+
   private void addRunningAttemptsToProto() {
     maybeInitBuilder();
     builder.clearRunningAttempts();
@@ -276,21 +271,25 @@ public class TaskReportPBImpl extends ProtoBase<TaskReportProto> implements Task
     };
     builder.addAllRunningAttempts(iterable);
   }
+
   @Override
   public void addRunningAttempt(TaskAttemptId runningAttempts) {
     initRunningAttempts();
     this.runningAttempts.add(runningAttempts);
   }
+
   @Override
   public void removeRunningAttempt(int index) {
     initRunningAttempts();
     this.runningAttempts.remove(index);
   }
+
   @Override
   public void clearRunningAttempts() {
     initRunningAttempts();
     this.runningAttempts.clear();
   }
+
   @Override
   public TaskAttemptId getSuccessfulAttempt() {
     TaskReportProtoOrBuilder p = viaProto ? proto : builder;
@@ -307,26 +306,29 @@ public class TaskReportPBImpl extends ProtoBase<TaskReportProto> implements Task
   @Override
   public void setSuccessfulAttempt(TaskAttemptId successfulAttempt) {
     maybeInitBuilder();
-    if (successfulAttempt == null) 
+    if (successfulAttempt == null)
       builder.clearSuccessfulAttempt();
     this.successfulAttemptId = successfulAttempt;
   }
+
   @Override
   public List<String> getDiagnosticsList() {
     initDiagnostics();
     return this.diagnostics;
   }
+
   @Override
   public String getDiagnostics(int index) {
     initDiagnostics();
     return this.diagnostics.get(index);
   }
+
   @Override
   public int getDiagnosticsCount() {
     initDiagnostics();
     return this.diagnostics.size();
   }
-  
+
   private void initDiagnostics() {
     if (this.diagnostics != null) {
       return;
@@ -339,7 +341,7 @@ public class TaskReportPBImpl extends ProtoBase<TaskReportProto> implements Task
       this.diagnostics.add(c);
     }
   }
-  
+
   @Override
   public void addAllDiagnostics(final List<String> diagnostics) {
     if (diagnostics == null)
@@ -347,24 +349,27 @@ public class TaskReportPBImpl extends ProtoBase<TaskReportProto> implements Task
     initDiagnostics();
     this.diagnostics.addAll(diagnostics);
   }
-  
+
   private void addDiagnosticsToProto() {
     maybeInitBuilder();
     builder.clearDiagnostics();
-    if (diagnostics == null) 
+    if (diagnostics == null)
       return;
     builder.addAllDiagnostics(diagnostics);
   }
+
   @Override
   public void addDiagnostics(String diagnostics) {
     initDiagnostics();
     this.diagnostics.add(diagnostics);
   }
+
   @Override
   public void removeDiagnostics(int index) {
     initDiagnostics();
     this.diagnostics.remove(index);
   }
+
   @Override
   public void clearDiagnostics() {
     initDiagnostics();
@@ -376,7 +381,7 @@ public class TaskReportPBImpl extends ProtoBase<TaskReportProto> implements Task
   }
 
   private CountersProto convertToProtoFormat(Counters t) {
-    return ((CountersPBImpl)t).getProto();
+    return ((CountersPBImpl) t).getProto();
   }
 
   private TaskIdPBImpl convertFromProtoFormat(TaskIdProto p) {
@@ -384,7 +389,7 @@ public class TaskReportPBImpl extends ProtoBase<TaskReportProto> implements Task
   }
 
   private TaskIdProto convertToProtoFormat(TaskId t) {
-    return ((TaskIdPBImpl)t).getProto();
+    return ((TaskIdPBImpl) t).getProto();
   }
 
   private TaskStateProto convertToProtoFormat(TaskState e) {
@@ -400,9 +405,8 @@ public class TaskReportPBImpl extends ProtoBase<TaskReportProto> implements Task
   }
 
   private TaskAttemptIdProto convertToProtoFormat(TaskAttemptId t) {
-    return ((TaskAttemptIdPBImpl)t).getProto();
+    return ((TaskAttemptIdPBImpl) t).getProto();
   }
 
 
-
-}  
+}

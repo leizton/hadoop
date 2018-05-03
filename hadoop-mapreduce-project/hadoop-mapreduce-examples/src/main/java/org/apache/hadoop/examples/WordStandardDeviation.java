@@ -8,9 +8,9 @@ package org.apache.hadoop.examples;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,11 +18,7 @@ package org.apache.hadoop.examples;
  * limitations under the License.
  */
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.StringTokenizer;
-
+import com.google.common.base.Charsets;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
@@ -37,7 +33,10 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
-import com.google.common.base.Charsets;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.StringTokenizer;
 
 public class WordStandardDeviation extends Configured implements Tool {
 
@@ -62,7 +61,7 @@ public class WordStandardDeviation extends Configured implements Tool {
     /**
      * Emits 3 key-value pairs for counting the word, its length, and the
      * squares of its length. Outputs are (Text, LongWritable).
-     * 
+     *
      * @param value
      *          This will be a line of text coming in from our input file.
      */
@@ -95,7 +94,7 @@ public class WordStandardDeviation extends Configured implements Tool {
     /**
      * Sums all the individual values within the iterator and writes them to the
      * same key.
-     * 
+     *
      * @param key
      *          This will be one of 2 constants: LENGTH_STR, COUNT_STR, or
      *          SQUARE_STR.
@@ -119,7 +118,7 @@ public class WordStandardDeviation extends Configured implements Tool {
    * Reads the output file and parses the summation of lengths, the word count,
    * and the lengths squared, to perform a quick calculation of the standard
    * deviation.
-   * 
+   *
    * @param path
    *          The path to find the output file in. Set in main to the output
    *          directory.

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,36 +17,32 @@
  */
 package org.apache.hadoop.mapreduce.task.reduce;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-abstract class MergeThread<T,K,V> extends Thread {
-  
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+abstract class MergeThread<T, K, V> extends Thread {
+
   private static final Log LOG = LogFactory.getLog(MergeThread.class);
 
   private AtomicInteger numPending = new AtomicInteger(0);
   private LinkedList<List<T>> pendingToBeMerged;
-  protected final MergeManagerImpl<K,V> manager;
+  protected final MergeManagerImpl<K, V> manager;
   private final ExceptionReporter reporter;
   private boolean closed = false;
   private final int mergeFactor;
-  
-  public MergeThread(MergeManagerImpl<K,V> manager, int mergeFactor,
+
+  public MergeThread(MergeManagerImpl<K, V> manager, int mergeFactor,
                      ExceptionReporter reporter) {
     this.pendingToBeMerged = new LinkedList<List<T>>();
     this.manager = manager;
     this.mergeFactor = mergeFactor;
     this.reporter = reporter;
   }
-  
+
   public synchronized void close() throws InterruptedException {
     closed = true;
     waitForMerge();
@@ -57,14 +53,14 @@ abstract class MergeThread<T,K,V> extends Thread {
     if (!closed) {
       numPending.incrementAndGet();
       List<T> toMergeInputs = new ArrayList<T>();
-      Iterator<T> iter=inputs.iterator();
+      Iterator<T> iter = inputs.iterator();
       for (int ctr = 0; iter.hasNext() && ctr < mergeFactor; ++ctr) {
         toMergeInputs.add(iter.next());
         iter.remove();
       }
-      LOG.info(getName() + ": Starting merge with " + toMergeInputs.size() + 
-               " segments, while ignoring " + inputs.size() + " segments");
-      synchronized(pendingToBeMerged) {
+      LOG.info(getName() + ": Starting merge with " + toMergeInputs.size() +
+          " segments, while ignoring " + inputs.size() + " segments");
+      synchronized (pendingToBeMerged) {
         pendingToBeMerged.addLast(toMergeInputs);
         pendingToBeMerged.notifyAll();
       }
@@ -83,7 +79,7 @@ abstract class MergeThread<T,K,V> extends Thread {
       try {
         // Wait for notification to start the merge...
         synchronized (pendingToBeMerged) {
-          while(pendingToBeMerged.size() <= 0) {
+          while (pendingToBeMerged.size() <= 0) {
             pendingToBeMerged.wait();
           }
           // Pickup the inputs to merge.
@@ -95,7 +91,7 @@ abstract class MergeThread<T,K,V> extends Thread {
       } catch (InterruptedException ie) {
         numPending.set(0);
         return;
-      } catch(Throwable t) {
+      } catch (Throwable t) {
         numPending.set(0);
         reporter.reportException(t);
         return;

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,10 +16,6 @@
  * limitations under the License.
  */
 package org.apache.hadoop.mapred;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -32,10 +28,14 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
+
 public class TestJobClient {
 
   final static String TEST_DIR = new File("target",
-    TestJobClient.class.getSimpleName()).getAbsolutePath();
+      TestJobClient.class.getSimpleName()).getAbsolutePath();
 
   @After
   public void tearDown() {
@@ -72,11 +72,11 @@ public class TestJobClient {
     fs.create(jobconf);
     fs.create(jobsplit);
     Assert.assertTrue(JobClient.isJobDirValid(testDir, fs));
-    
+
     fs.delete(jobconf, true);
     fs.delete(jobsplit, true);
   }
-  
+
   @Test(timeout = 10000)
   public void testGetStagingAreaDir() throws IOException, InterruptedException {
     Configuration conf = new Configuration();

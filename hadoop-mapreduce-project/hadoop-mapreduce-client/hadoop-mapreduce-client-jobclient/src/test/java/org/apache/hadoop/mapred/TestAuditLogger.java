@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,9 +17,7 @@
  */
 package org.apache.hadoop.mapred;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-
+import junit.framework.TestCase;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.ipc.ProtocolInfo;
 import org.apache.hadoop.ipc.RPC;
@@ -29,7 +27,8 @@ import org.apache.hadoop.ipc.TestRPC.TestProtocol;
 import org.apache.hadoop.mapred.AuditLogger.Keys;
 import org.apache.hadoop.net.NetUtils;
 
-import junit.framework.TestCase;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 
 /**
  * Tests {@link AuditLogger}.
@@ -58,7 +57,7 @@ public class TestAuditLogger extends TestCase {
     assertEquals(expLog.toString(), actLog.toString());
 
     // append another k1=null pair and test
-    AuditLogger.add(Keys.PERMISSIONS, (String)null, actLog);
+    AuditLogger.add(Keys.PERMISSIONS, (String) null, actLog);
     expLog.append("\tPERMISSIONS=null");
     assertEquals(expLog.toString(), actLog.toString());
 
@@ -90,7 +89,7 @@ public class TestAuditLogger extends TestCase {
    */
   private void testFailureLogFormat(boolean checkIP, String perm) {
     String fLog =
-      AuditLogger.createFailureLog(USER, OPERATION, perm, TARGET, DESC);
+        AuditLogger.createFailureLog(USER, OPERATION, perm, TARGET, DESC);
     StringBuilder expLog = new StringBuilder();
     expLog.append("USER=test\t");
     if (checkIP) {
@@ -141,15 +140,15 @@ public class TestAuditLogger extends TestCase {
     Configuration conf = new Configuration();
     // start the IPC server
     Server server = new RPC.Builder(conf).setProtocol(TestProtocol.class)
-            .setInstance(new MyTestRPCServer()).setBindAddress("0.0.0.0")
-            .setPort(0).build();
+        .setInstance(new MyTestRPCServer()).setBindAddress("0.0.0.0")
+        .setPort(0).build();
     server.start();
 
     InetSocketAddress addr = NetUtils.getConnectAddress(server);
 
     // Make a client connection and test the audit log
-    TestProtocol proxy = (TestProtocol)RPC.getProxy(TestProtocol.class,
-                           TestProtocol.versionID, addr, conf);
+    TestProtocol proxy = (TestProtocol) RPC.getProxy(TestProtocol.class,
+        TestProtocol.versionID, addr, conf);
     // Start the testcase
     proxy.ping();
 

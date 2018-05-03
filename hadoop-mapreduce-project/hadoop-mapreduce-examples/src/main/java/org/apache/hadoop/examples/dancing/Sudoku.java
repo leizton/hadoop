@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,10 +18,13 @@
 
 package org.apache.hadoop.examples.dancing;
 
-import java.io.*;
-import java.util.*;
-
 import com.google.common.base.Charsets;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.StringTokenizer;
 
 /**
  * This class uses the dancing links algorithm from Knuth to solve sudoku
@@ -32,24 +35,24 @@ public class Sudoku {
   /**
    * The preset values in the board
    * board[y][x] is the value at x,y with -1 = any
-   */ 
+   */
   private int[][] board;
-  
+
   /**
    * The size of the board
    */
   private int size;
-  
+
   /**
    * The size of the sub-squares in cells across
    */
   private int squareXSize;
-  
+
   /**
    * The size of the sub-squares in celss up and down
    */
   private int squareYSize;
-  
+
   /**
    * This interface is a marker class for the columns created for the
    * Sudoku solver.
@@ -69,11 +72,11 @@ public class Sudoku {
     StringBuffer result = new StringBuffer();
     // go through the rows selected in the model and build a picture of the
     // solution.
-    for(List<ColumnName> row: solution) {
+    for (List<ColumnName> row : solution) {
       int x = -1;
       int y = -1;
       int num = -1;
-      for(ColumnName item: row) {
+      for (ColumnName item : row) {
         if (item instanceof ColumnConstraint) {
           x = ((ColumnConstraint) item).column;
           num = ((ColumnConstraint) item).num;
@@ -84,8 +87,8 @@ public class Sudoku {
       picture[y][x] = num;
     }
     // build the string
-    for(int y=0; y < size; ++y) {
-      for (int x=0; x < size; ++x) {
+    for (int y = 0; y < size; ++y) {
+      for (int x = 0; x < size; ++x) {
         result.append(picture[y][x]);
         result.append(" ");
       }
@@ -98,8 +101,8 @@ public class Sudoku {
    * An acceptor to get the solutions to the puzzle as they are generated and
    * print them to the console.
    */
-  private static class SolutionPrinter 
-  implements DancingLinks.SolutionAcceptor<ColumnName> {
+  private static class SolutionPrinter
+      implements DancingLinks.SolutionAcceptor<ColumnName> {
     int size;
 
     public SolutionPrinter(int size) {
@@ -112,15 +115,15 @@ public class Sudoku {
      * @param solution a list of list of column names
      */
     void rawWrite(List solution) {
-      for (Iterator itr=solution.iterator(); itr.hasNext(); ) {
+      for (Iterator itr = solution.iterator(); itr.hasNext(); ) {
         Iterator subitr = ((List) itr.next()).iterator();
         while (subitr.hasNext()) {
           System.out.print(subitr.next().toString() + " ");
         }
         System.out.println();
-      }      
+      }
     }
-    
+
     public void solution(List<List<ColumnName>> names) {
       System.out.println(stringifySolution(size, names));
     }
@@ -144,10 +147,10 @@ public class Sudoku {
       int size = tokenizer.countTokens();
       int[] col = new int[size];
       int y = 0;
-      while(tokenizer.hasMoreElements()) {
+      while (tokenizer.hasMoreElements()) {
         String word = tokenizer.nextToken();
         if ("?".equals(word)) {
-          col[y] = - 1;
+          col[y] = -1;
         } else {
           col[y] = Integer.parseInt(word);
         }
@@ -157,12 +160,12 @@ public class Sudoku {
       line = file.readLine();
     }
     size = result.size();
-    board = result.toArray(new int [size][]);
+    board = result.toArray(new int[size][]);
     squareYSize = (int) Math.sqrt(size);
     squareXSize = size / squareYSize;
     file.close();
   }
-  
+
   /**
    * A constraint that each number can appear just once in a column.
    */
@@ -171,13 +174,15 @@ public class Sudoku {
       this.num = num;
       this.column = column;
     }
+
     int num;
     int column;
+
     public String toString() {
       return num + " in column " + column;
     }
   }
-  
+
   /**
    * A constraint that each number can appear just once in a row.
    */
@@ -186,8 +191,10 @@ public class Sudoku {
       this.num = num;
       this.row = row;
     }
+
     int num;
     int row;
+
     public String toString() {
       return num + " in row " + row;
     }
@@ -202,9 +209,11 @@ public class Sudoku {
       this.x = x;
       this.y = y;
     }
+
     int num;
     int x;
     int y;
+
     public String toString() {
       return num + " in square " + x + "," + y;
     }
@@ -218,13 +227,15 @@ public class Sudoku {
       this.x = x;
       this.y = y;
     }
+
     int x;
     int y;
+
     public String toString() {
       return "cell " + x + "," + y;
     }
   }
-  
+
   /**
    * Create a row that places num in cell x, y.
    * @param rowValues a scratch pad to mark the bits needed
@@ -235,57 +246,57 @@ public class Sudoku {
    */
   private boolean[] generateRow(boolean[] rowValues, int x, int y, int num) {
     // clear the scratch array
-    for(int i=0; i < rowValues.length; ++i) {
+    for (int i = 0; i < rowValues.length; ++i) {
       rowValues[i] = false;
     }
     // find the square coordinates
     int xBox = x / squareXSize;
     int yBox = y / squareYSize;
     // mark the column
-    rowValues[x*size + num - 1] = true;
+    rowValues[x * size + num - 1] = true;
     // mark the row
-    rowValues[size*size + y*size + num - 1] = true;
+    rowValues[size * size + y * size + num - 1] = true;
     // mark the square
-    rowValues[2*size*size + (xBox*squareXSize + yBox)*size + num - 1] = true;
+    rowValues[2 * size * size + (xBox * squareXSize + yBox) * size + num - 1] = true;
     // mark the cell
-    rowValues[3*size*size + size*x + y] = true;
+    rowValues[3 * size * size + size * x + y] = true;
     return rowValues;
   }
-  
+
   private DancingLinks<ColumnName> makeModel() {
     DancingLinks<ColumnName> model = new DancingLinks<ColumnName>();
     // create all of the columns constraints
-    for(int x=0; x < size; ++x) {
-      for(int num=1; num <= size; ++num) {
+    for (int x = 0; x < size; ++x) {
+      for (int num = 1; num <= size; ++num) {
         model.addColumn(new ColumnConstraint(num, x));
       }
     }
     // create all of the row constraints
-    for(int y=0; y < size; ++y) {
-      for(int num=1; num <= size; ++num) {
+    for (int y = 0; y < size; ++y) {
+      for (int num = 1; num <= size; ++num) {
         model.addColumn(new RowConstraint(num, y));
       }
     }
     // create the square constraints
-    for(int x=0; x < squareYSize; ++x) {
-      for(int y=0; y < squareXSize; ++y) {
-        for(int num=1; num <= size; ++num) {
+    for (int x = 0; x < squareYSize; ++x) {
+      for (int y = 0; y < squareXSize; ++y) {
+        for (int num = 1; num <= size; ++num) {
           model.addColumn(new SquareConstraint(num, x, y));
         }
       }
     }
     // create the cell constraints
-    for(int x=0; x < size; ++x) {
-      for(int y=0; y < size; ++y) {
+    for (int x = 0; x < size; ++x) {
+      for (int y = 0; y < size; ++y) {
         model.addColumn(new CellConstraint(x, y));
       }
     }
-    boolean[] rowValues = new boolean[size*size*4]; 
-    for(int x=0; x < size; ++x) {
-      for(int y=0; y < size; ++y) {
+    boolean[] rowValues = new boolean[size * size * 4];
+    for (int x = 0; x < size; ++x) {
+      for (int y = 0; y < size; ++y) {
         if (board[y][x] == -1) {
           // try each possible value in the cell
-          for(int num=1; num <= size; ++num) {
+          for (int num = 1; num <= size; ++num) {
             model.addRow(generateRow(rowValues, x, y, num));
           }
         } else {
@@ -296,13 +307,13 @@ public class Sudoku {
     }
     return model;
   }
-  
+
   public void solve() {
     DancingLinks<ColumnName> model = makeModel();
     int results = model.solve(new SolutionPrinter(size));
     System.out.println("Found " + results + " solutions");
   }
-  
+
   /**
    * Solves a set of sudoku puzzles.
    * @param args a list of puzzle filenames to solve
@@ -311,7 +322,7 @@ public class Sudoku {
     if (args.length == 0) {
       System.out.println("Include a puzzle on the command line.");
     }
-    for(int i=0; i < args.length; ++i) {
+    for (int i = 0; i < args.length; ++i) {
       Sudoku problem = new Sudoku(new FileInputStream(args[i]));
       System.out.println("Solving " + args[i]);
       problem.solve();

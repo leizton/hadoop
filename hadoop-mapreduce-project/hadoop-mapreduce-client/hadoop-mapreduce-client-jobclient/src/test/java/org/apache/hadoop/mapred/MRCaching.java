@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,32 +18,25 @@
 
 package org.apache.hadoop.mapred;
 
-import java.io.*;
-import java.util.*;
-
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.*;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.JobClient;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.Mapper;
-import org.apache.hadoop.mapred.OutputCollector;
-import org.apache.hadoop.mapred.Reducer;
-import org.apache.hadoop.mapred.Reporter;
-import org.apache.hadoop.util.*;
-import org.apache.hadoop.mapred.MapReduceBase;
-import org.apache.hadoop.mapreduce.filecache.DistributedCache;
 import org.apache.hadoop.mapreduce.MRJobConfig;
-
-import java.net.URI;
-
+import org.apache.hadoop.mapreduce.filecache.DistributedCache;
+import org.apache.hadoop.util.StringUtils;
 import org.junit.Assert;
+
+import java.io.*;
+import java.net.URI;
+import java.util.Iterator;
+import java.util.StringTokenizer;
 
 public class MRCaching {
   static String testStr = "This is a test file " + "used for testing caching "
-    + "jars, zip and normal files.";
+      + "jars, zip and normal files.";
 
   /**
    * Using the wordcount example and adding caching to it. The cache
@@ -51,8 +44,8 @@ public class MRCaching {
    * localized or not.
    */
   public static class MapClass extends MapReduceBase
-    implements Mapper<LongWritable, Text, Text, IntWritable> {
-    
+      implements Mapper<LongWritable, Text, Text, IntWritable> {
+
     JobConf conf;
 
     private final static IntWritable one = new IntWritable(1);
@@ -66,7 +59,7 @@ public class MRCaching {
         Path[] localFiles = DistributedCache.getLocalCacheFiles(conf);
         // read the cached files (unzipped, unjarred and text)
         // and put it into a single file TEST_ROOT_DIR/test.txt
-        String TEST_ROOT_DIR = jconf.get("test.build.data","/tmp");
+        String TEST_ROOT_DIR = jconf.get("test.build.data", "/tmp");
         Path file = new Path("file:///", TEST_ROOT_DIR);
         FileSystem fs = FileSystem.getLocal(conf);
         if (!fs.mkdirs(file)) {
@@ -120,7 +113,7 @@ public class MRCaching {
    * symlinked or not.
    */
   public static class MapClass2 extends MapClass {
-    
+
     JobConf conf;
 
     public void configure(JobConf jconf) {
@@ -128,7 +121,7 @@ public class MRCaching {
       try {
         // read the cached files (unzipped, unjarred and text)
         // and put it into a single file TEST_ROOT_DIR/test.txt
-        String TEST_ROOT_DIR = jconf.get("test.build.data","/tmp");
+        String TEST_ROOT_DIR = jconf.get("test.build.data", "/tmp");
         Path file = new Path("file:///", TEST_ROOT_DIR);
         FileSystem fs = FileSystem.getLocal(conf);
         if (!fs.mkdirs(file)) {
@@ -136,7 +129,7 @@ public class MRCaching {
         }
         Path fileOut = new Path(file, "test.txt");
         fs.delete(fileOut, true);
-        DataOutputStream out = fs.create(fileOut); 
+        DataOutputStream out = fs.create(fileOut);
         String[] symlinks = new String[6];
         symlinks[0] = ".";
         symlinks[1] = "testjar";
@@ -167,7 +160,7 @@ public class MRCaching {
    * A reducer class that just emits the sum of the input values.
    */
   public static class ReduceClass extends MapReduceBase
-    implements Reducer<Text, IntWritable, Text, IntWritable> {
+      implements Reducer<Text, IntWritable, Text, IntWritable> {
 
     public void reduce(Text key, Iterator<IntWritable> values,
                        OutputCollector<Text, IntWritable> output,
@@ -183,14 +176,15 @@ public class MRCaching {
   public static class TestResult {
     public RunningJob job;
     public boolean isOutputOk;
+
     TestResult(RunningJob job, boolean isOutputOk) {
       this.job = job;
       this.isOutputOk = isOutputOk;
     }
   }
 
-  static void setupCache(String cacheDir, FileSystem fs) 
-  throws IOException {
+  static void setupCache(String cacheDir, FileSystem fs)
+      throws IOException {
     Path localPath = new Path(System.getProperty("test.cache.data", "build/test/cache"));
     Path txtPath = new Path(localPath, new Path("test.txt"));
     Path jarPath = new Path(localPath, new Path("test.jar"));
@@ -210,13 +204,13 @@ public class MRCaching {
     fs.copyFromLocalFile(tarPath1, cachePath);
     fs.copyFromLocalFile(tarPath2, cachePath);
   }
-  
+
   public static TestResult launchMRCache(String indir,
-                                         String outdir, String cacheDir, 
+                                         String outdir, String cacheDir,
                                          JobConf conf, String input)
-    throws IOException {
-    String TEST_ROOT_DIR = new Path(System.getProperty("test.build.data","/tmp"))
-      .toString().replace(' ', '+');
+      throws IOException {
+    String TEST_ROOT_DIR = new Path(System.getProperty("test.build.data", "/tmp"))
+        .toString().replace(' ', '+');
     //if (TEST_ROOT_DIR.startsWith("C:")) TEST_ROOT_DIR = "/tmp";
     conf.set("test.build.data", TEST_ROOT_DIR);
     final Path inDir = new Path(indir);
@@ -227,7 +221,7 @@ public class MRCaching {
       throw new IOException("Mkdirs failed to create " + inDir.toString());
     }
     {
-      System.out.println("HERE:"+inDir);
+      System.out.println("HERE:" + inDir);
       DataOutputStream file = fs.create(new Path(inDir, "part-0"));
       file.writeBytes(input);
       file.close();
@@ -263,8 +257,8 @@ public class MRCaching {
     long[] archiveSizes = new long[5]; // track last 5
     for (int i = 1; i < 6; i++) {
       DistributedCache.addCacheArchive(uris[i], conf);
-      archiveSizes[i-1] = // starting with second archive
-        fs.getFileStatus(new Path(uris[i].getPath())).getLen();
+      archiveSizes[i - 1] = // starting with second archive
+          fs.getFileStatus(new Path(uris[i].getPath())).getLen();
     }
     RunningJob job = JobClient.runJob(conf);
     int count = 0;
@@ -273,7 +267,7 @@ public class MRCaching {
     Path result = new Path(TEST_ROOT_DIR + "/test.txt");
     {
       BufferedReader file = new BufferedReader
-         (new InputStreamReader(FileSystem.getLocal(conf).open(result)));
+          (new InputStreamReader(FileSystem.getLocal(conf).open(result)));
       String line = file.readLine();
       while (line != null) {
         if (!testStr.equals(line))
@@ -291,9 +285,9 @@ public class MRCaching {
     // Note, the underlying job clones the original conf before determine
     // various stats (timestamps etc.), so we have to getConfiguration here.
     validateCacheFileSizes(job.getConfiguration(), fileSizes,
-                           MRJobConfig.CACHE_FILES_SIZES);
+        MRJobConfig.CACHE_FILES_SIZES);
     validateCacheFileSizes(job.getConfiguration(), archiveSizes,
-                           MRJobConfig.CACHE_ARCHIVES_SIZES);
+        MRJobConfig.CACHE_ARCHIVES_SIZES);
 
     return new TestResult(job, true);
 
@@ -302,17 +296,17 @@ public class MRCaching {
   private static void validateCacheFileSizes(Configuration job,
                                              long[] expectedSizes,
                                              String configKey)
-  throws IOException {
+      throws IOException {
     String configValues = job.get(configKey, "");
     System.out.println(configKey + " -> " + configValues);
     String[] realSizes = StringUtils.getStrings(configValues);
-    Assert.assertEquals("Number of files for "+ configKey,
-                        expectedSizes.length, realSizes.length);
+    Assert.assertEquals("Number of files for " + configKey,
+        expectedSizes.length, realSizes.length);
 
-    for (int i=0; i < expectedSizes.length; ++i) {
+    for (int i = 0; i < expectedSizes.length; ++i) {
       long actual = Long.valueOf(realSizes[i]);
       long expected = expectedSizes[i];
-      Assert.assertEquals("File "+ i +" for "+ configKey, expected, actual);
+      Assert.assertEquals("File " + i + " for " + configKey, expected, actual);
     }
   }
 }

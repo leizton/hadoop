@@ -1,26 +1,24 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2.hs;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Private;
@@ -45,7 +43,8 @@ import org.apache.hadoop.yarn.event.Dispatcher;
 import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
 import org.apache.hadoop.yarn.logaggregation.AggregatedLogDeletionService;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.io.IOException;
+import java.net.InetSocketAddress;
 
 /******************************************************************
  * {@link JobHistoryServer} is responsible for servicing all job history
@@ -92,7 +91,7 @@ public class JobHistoryServer extends CompositeService {
 
       try {
         jhsDTSecretManager.startThreads();
-      } catch(IOException io) {
+      } catch (IOException io) {
         LOG.error("Error while starting the Secret Manager threads", io);
         throw io;
       }
@@ -123,11 +122,11 @@ public class JobHistoryServer extends CompositeService {
     MRWebAppUtil.initialize(getConfig());
     try {
       doSecureLogin(conf);
-    } catch(IOException ie) {
+    } catch (IOException ie) {
       throw new YarnRuntimeException("History Server Failed to login", ie);
     }
     jobHistoryService = new JobHistory();
-    historyContext = (HistoryContext)jobHistoryService;
+    historyContext = (HistoryContext) jobHistoryService;
     stateStore = createStateStore(conf);
     this.jhsDTSecretManager = createJHSSecretManager(conf, stateStore);
     clientService = createHistoryClientService();
@@ -144,23 +143,23 @@ public class JobHistoryServer extends CompositeService {
 
   @VisibleForTesting
   protected HistoryClientService createHistoryClientService() {
-    return new HistoryClientService(historyContext, 
+    return new HistoryClientService(historyContext,
         this.jhsDTSecretManager);
   }
 
   protected JHSDelegationTokenSecretManager createJHSSecretManager(
       Configuration conf, HistoryServerStateStoreService store) {
-    long secretKeyInterval = 
-        conf.getLong(MRConfig.DELEGATION_KEY_UPDATE_INTERVAL_KEY, 
-                     MRConfig.DELEGATION_KEY_UPDATE_INTERVAL_DEFAULT);
-      long tokenMaxLifetime =
+    long secretKeyInterval =
+        conf.getLong(MRConfig.DELEGATION_KEY_UPDATE_INTERVAL_KEY,
+            MRConfig.DELEGATION_KEY_UPDATE_INTERVAL_DEFAULT);
+    long tokenMaxLifetime =
         conf.getLong(MRConfig.DELEGATION_TOKEN_MAX_LIFETIME_KEY,
-                     MRConfig.DELEGATION_TOKEN_MAX_LIFETIME_DEFAULT);
-      long tokenRenewInterval =
-        conf.getLong(MRConfig.DELEGATION_TOKEN_RENEW_INTERVAL_KEY, 
-                     MRConfig.DELEGATION_TOKEN_RENEW_INTERVAL_DEFAULT);
-      
-    return new JHSDelegationTokenSecretManager(secretKeyInterval, 
+            MRConfig.DELEGATION_TOKEN_MAX_LIFETIME_DEFAULT);
+    long tokenRenewInterval =
+        conf.getLong(MRConfig.DELEGATION_TOKEN_RENEW_INTERVAL_KEY,
+            MRConfig.DELEGATION_TOKEN_RENEW_INTERVAL_DEFAULT);
+
+    return new JHSDelegationTokenSecretManager(secretKeyInterval,
         tokenMaxLifetime, tokenRenewInterval, 3600000, store);
   }
 
@@ -183,8 +182,8 @@ public class JobHistoryServer extends CompositeService {
    */
   public static InetSocketAddress getBindAddress(Configuration conf) {
     return conf.getSocketAddr(JHAdminConfig.MR_HISTORY_ADDRESS,
-      JHAdminConfig.DEFAULT_MR_HISTORY_ADDRESS,
-      JHAdminConfig.DEFAULT_MR_HISTORY_PORT);
+        JHAdminConfig.DEFAULT_MR_HISTORY_ADDRESS,
+        JHAdminConfig.DEFAULT_MR_HISTORY_PORT);
   }
 
   @Override
@@ -193,7 +192,7 @@ public class JobHistoryServer extends CompositeService {
     JvmMetrics.initSingleton("JobHistoryServer", null);
     super.serviceStart();
   }
-  
+
   @Override
   protected void serviceStop() throws Exception {
     DefaultMetricsSystem.shutdown();

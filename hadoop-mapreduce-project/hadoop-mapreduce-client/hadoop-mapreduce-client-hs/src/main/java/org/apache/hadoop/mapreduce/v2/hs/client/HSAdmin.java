@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,10 +17,6 @@
  */
 
 package org.apache.hadoop.mapreduce.v2.hs.client;
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.Arrays;
 
 import org.apache.hadoop.classification.InterfaceAudience.Private;
 import org.apache.hadoop.conf.Configuration;
@@ -35,6 +31,10 @@ import org.apache.hadoop.tools.GetUserMappingsProtocol;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.Arrays;
+
 @Private
 public class HSAdmin extends Configured implements Tool {
 
@@ -48,7 +48,7 @@ public class HSAdmin extends Configured implements Tool {
 
   /**
    * Displays format of commands.
-   * 
+   *
    * @param cmd
    *          The command that is being executed.
    */
@@ -106,12 +106,12 @@ public class HSAdmin extends Configured implements Tool {
 
     String refreshLoadedJobCache = "-refreshLoadedJobCache: Refresh loaded job cache of Job history server\n";
 
-    String refreshJobRetentionSettings = "-refreshJobRetentionSettings:" + 
+    String refreshJobRetentionSettings = "-refreshJobRetentionSettings:" +
         "Refresh job history period,job cleaner settings\n";
 
-    String refreshLogRetentionSettings = "-refreshLogRetentionSettings:" + 
+    String refreshLogRetentionSettings = "-refreshLogRetentionSettings:" +
         "Refresh log retention period and log retention check interval\n";
-    
+
     String getGroups = "-getGroups [username]: Get the groups which given user belongs to\n";
 
     String help = "-help [cmd]: \tDisplays help for the given command or all commands if none\n"
@@ -151,8 +151,8 @@ public class HSAdmin extends Configured implements Tool {
   private int getGroups(String[] usernames) throws IOException {
     // Get groups users belongs to
     if (usernames.length == 0) {
-      usernames = new String[] { UserGroupInformation.getCurrentUser()
-          .getUserName() };
+      usernames = new String[]{UserGroupInformation.getCurrentUser()
+          .getUserName()};
     }
 
     // Get the current configuration
@@ -245,7 +245,7 @@ public class HSAdmin extends Configured implements Tool {
     refreshProtocol.refreshLoadedJobCache();
     return 0;
   }
-    
+
   private int refreshJobRetentionSettings() throws IOException {
     // Refresh job retention settings
     Configuration conf = getConf();

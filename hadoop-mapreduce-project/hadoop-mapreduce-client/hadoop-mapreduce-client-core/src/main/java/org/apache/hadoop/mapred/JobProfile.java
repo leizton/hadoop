@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,11 +17,6 @@
  */
 package org.apache.hadoop.mapred;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-import java.net.URL;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.io.Text;
@@ -29,6 +24,11 @@ import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.WritableFactories;
 import org.apache.hadoop.io.WritableFactory;
 import org.apache.hadoop.util.StringInterner;
+
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+import java.net.URL;
 
 /**************************************************
  * A JobProfile is a MapReduce primitive.  Tracks a job,
@@ -41,10 +41,12 @@ public class JobProfile implements Writable {
 
   static {                                      // register a ctor
     WritableFactories.setFactory
-      (JobProfile.class,
-       new WritableFactory() {
-         public Writable newInstance() { return new JobProfile(); }
-       });
+        (JobProfile.class,
+            new WritableFactory() {
+              public Writable newInstance() {
+                return new JobProfile();
+              }
+            });
   }
 
   String user;
@@ -53,7 +55,7 @@ public class JobProfile implements Writable {
   String url;
   String name;
   String queueName;
-  
+
   /**
    * Construct an empty {@link JobProfile}.
    */
@@ -64,14 +66,14 @@ public class JobProfile implements Writable {
   /**
    * Construct a {@link JobProfile} the userid, jobid, 
    * job config-file, job-details url and job name. 
-   * 
+   *
    * @param user userid of the person who submitted the job.
    * @param jobid id of the job.
    * @param jobFile job configuration file. 
    * @param url link to the web-ui for details of the job.
    * @param name user-specified job name.
    */
-  public JobProfile(String user, org.apache.hadoop.mapreduce.JobID jobid, 
+  public JobProfile(String user, org.apache.hadoop.mapreduce.JobID jobid,
                     String jobFile, String url,
                     String name) {
     this(user, jobid, jobFile, url, name, JobConf.DEFAULT_QUEUE_NAME);
@@ -80,7 +82,7 @@ public class JobProfile implements Writable {
   /**
    * Construct a {@link JobProfile} the userid, jobid, 
    * job config-file, job-details url and job name. 
-   * 
+   *
    * @param user userid of the person who submitted the job.
    * @param jobid id of the job.
    * @param jobFile job configuration file. 
@@ -88,7 +90,7 @@ public class JobProfile implements Writable {
    * @param name user-specified job name.
    * @param queueName name of the queue to which the job is submitted
    */
-  public JobProfile(String user, org.apache.hadoop.mapreduce.JobID jobid, 
+  public JobProfile(String user, org.apache.hadoop.mapreduce.JobID jobid,
                     String jobFile, String url,
                     String name, String queueName) {
     this.user = user;
@@ -98,23 +100,23 @@ public class JobProfile implements Writable {
     this.name = name;
     this.queueName = queueName;
   }
-  
+
   /**
    * @deprecated use JobProfile(String, JobID, String, String, String) instead
    */
   @Deprecated
   public JobProfile(String user, String jobid, String jobFile, String url,
-      String name) {
+                    String name) {
     this(user, JobID.forName(jobid), jobFile, url, name);
   }
-  
+
   /**
    * Get the user id.
    */
   public String getUser() {
     return user;
   }
-    
+
   /**
    * Get the job id.
    */
@@ -129,7 +131,7 @@ public class JobProfile implements Writable {
   public String getJobId() {
     return jobid.toString();
   }
-  
+
   /**
    * Get the configuration file for the job.
    */
@@ -154,7 +156,7 @@ public class JobProfile implements Writable {
   public String getJobName() {
     return name;
   }
-  
+
   /**
    * Get the name of the queue to which the job is submitted.
    * @return name of the queue.
@@ -162,7 +164,7 @@ public class JobProfile implements Writable {
   public String getQueueName() {
     return queueName;
   }
-  
+
   ///////////////////////////////////////
   // Writable
   ///////////////////////////////////////

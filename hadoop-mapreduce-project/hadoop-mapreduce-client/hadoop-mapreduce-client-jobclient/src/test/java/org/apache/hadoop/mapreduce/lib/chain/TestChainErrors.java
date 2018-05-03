@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,8 +16,6 @@
  * limitations under the License.
  */
 package org.apache.hadoop.mapreduce.lib.chain;
-
-import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -29,6 +27,8 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.MapReduceTestUtil;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
+
+import java.io.IOException;
 
 /**
  * Tests error conditions in ChainMapper/ChainReducer.
@@ -48,7 +48,7 @@ public class TestChainErrors extends HadoopTestCase {
 
   /**
    * Tests errors during submission.
-   * 
+   *
    * @throws Exception
    */
   public void testChainSubmission() throws Exception {
@@ -86,7 +86,7 @@ public class TestChainErrors extends HadoopTestCase {
 
   /**
    * Tests one of the mappers throwing exception.
-   * 
+   *
    * @throws Exception
    */
   public void testChainFail() throws Exception {
@@ -111,7 +111,7 @@ public class TestChainErrors extends HadoopTestCase {
 
   /**
    * Tests Reducer throwing exception.
-   * 
+   *
    * @throws Exception
    */
   public void testReducerFail() throws Exception {
@@ -136,7 +136,7 @@ public class TestChainErrors extends HadoopTestCase {
 
   /**
    * Tests one of the maps consuming output.
-   * 
+   *
    * @throws Exception
    */
   public void testChainMapNoOuptut() throws Exception {
@@ -160,7 +160,7 @@ public class TestChainErrors extends HadoopTestCase {
 
   /**
    * Tests reducer consuming output.
-   * 
+   *
    * @throws Exception
    */
   public void testChainReduceNoOuptut() throws Exception {

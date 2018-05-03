@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,16 +18,16 @@
 
 package org.apache.hadoop.mapred.join;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.PriorityQueue;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.io.WritableComparator;
 import org.apache.hadoop.mapred.JobConf;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.PriorityQueue;
 
 /**
  * Prefer the &quot;rightmost&quot; data source for this key.
@@ -38,11 +38,11 @@ import org.apache.hadoop.mapred.JobConf;
 @InterfaceAudience.Public
 @InterfaceStability.Stable
 public class OverrideRecordReader<K extends WritableComparable,
-                                  V extends Writable>
-    extends MultiFilterRecordReader<K,V> {
+    V extends Writable>
+    extends MultiFilterRecordReader<K, V> {
 
   OverrideRecordReader(int id, JobConf conf, int capacity,
-      Class<? extends WritableComparator> cmpcl) throws IOException {
+                       Class<? extends WritableComparator> cmpcl) throws IOException {
     super(id, conf, capacity, cmpcl);
   }
 
@@ -64,15 +64,15 @@ public class OverrideRecordReader<K extends WritableComparable,
    * streams for the given key.
    */
   protected void fillJoinCollector(K iterkey) throws IOException {
-    final PriorityQueue<ComposableRecordReader<K,?>> q = getRecordReaderQueue();
+    final PriorityQueue<ComposableRecordReader<K, ?>> q = getRecordReaderQueue();
     if (!q.isEmpty()) {
       int highpos = -1;
-      ArrayList<ComposableRecordReader<K,?>> list =
-        new ArrayList<ComposableRecordReader<K,?>>(kids.length);
+      ArrayList<ComposableRecordReader<K, ?>> list =
+          new ArrayList<ComposableRecordReader<K, ?>>(kids.length);
       q.peek().key(iterkey);
       final WritableComparator cmp = getComparator();
       while (0 == cmp.compare(q.peek().key(), iterkey)) {
-        ComposableRecordReader<K,?> t = q.poll();
+        ComposableRecordReader<K, ?> t = q.poll();
         if (-1 == highpos || list.get(highpos).id() < t.id()) {
           highpos = list.size();
         }
@@ -80,13 +80,13 @@ public class OverrideRecordReader<K extends WritableComparable,
         if (q.isEmpty())
           break;
       }
-      ComposableRecordReader<K,?> t = list.remove(highpos);
+      ComposableRecordReader<K, ?> t = list.remove(highpos);
       t.accept(jc, iterkey);
-      for (ComposableRecordReader<K,?> rr : list) {
+      for (ComposableRecordReader<K, ?> rr : list) {
         rr.skip(iterkey);
       }
       list.add(t);
-      for (ComposableRecordReader<K,?> rr : list) {
+      for (ComposableRecordReader<K, ?> rr : list) {
         if (rr.hasNext()) {
           q.add(rr);
         }

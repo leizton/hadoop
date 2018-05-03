@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,11 +16,6 @@
  * limitations under the License.
  */
 package org.apache.hadoop.mapreduce.v2.app.webapp;
-
-import static org.mockito.Mockito.*;
-
-import java.io.IOException;
-import java.util.Iterator;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -38,7 +33,13 @@ import org.apache.hadoop.yarn.webapp.MimeType;
 import org.apache.hadoop.yarn.webapp.ResponseInfo;
 import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.*;
+
+import java.io.IOException;
+import java.util.Iterator;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.*;
 
 public class TestAppController {
 
@@ -209,6 +210,7 @@ public class TestAppController {
     appController.taskCounters();
     assertEquals(CountersPage.class, appController.getClazz());
   }
+
   /**
    *  Test method 'singleJobCounter'. Should set SingleCounterPage class for rendering
    */
@@ -229,25 +231,27 @@ public class TestAppController {
     assertNotNull(appController.getProperty().get(AppController.COUNTER_GROUP));
     assertNotNull(appController.getProperty().get(AppController.COUNTER_NAME));
   }
+
   /**
    *  Test method 'tasks'. Should set TasksPage class for rendering
    */
 
   @Test
   public void testTasks() {
- 
+
     appController.tasks();
- 
+
     assertEquals(TasksPage.class, appController.getClazz());
   }
+
   /**
    *  Test method 'task'. Should set TaskPage class for rendering and information for title
    */
   @Test
   public void testTask() {
- 
+
     appController.task();
-    assertEquals("Attempts for task_01_01_m01_01" ,
+    assertEquals("Attempts for task_01_01_m01_01",
         appController.getProperty().get("title"));
 
     assertEquals(TaskPage.class, appController.getClazz());
@@ -258,7 +262,7 @@ public class TestAppController {
    */
   @Test
   public void testConfiguration() {
- 
+
     appController.conf();
 
     assertEquals(JobConfPage.class, appController.getClazz());

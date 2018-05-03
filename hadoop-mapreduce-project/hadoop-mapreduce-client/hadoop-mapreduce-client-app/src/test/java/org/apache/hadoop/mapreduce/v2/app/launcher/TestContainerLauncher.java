@@ -1,36 +1,22 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.apache.hadoop.mapreduce.v2.app.launcher;
-
-import static org.mockito.Mockito.mock;
-
-import java.io.IOException;
-import java.lang.reflect.UndeclaredThrowableException;
-import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.junit.Assert;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,12 +24,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.CommonConfigurationKeysPublic;
 import org.apache.hadoop.ipc.Server;
 import org.apache.hadoop.mapreduce.MRJobConfig;
-import org.apache.hadoop.mapreduce.v2.api.records.JobId;
-import org.apache.hadoop.mapreduce.v2.api.records.JobState;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskState;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskType;
+import org.apache.hadoop.mapreduce.v2.api.records.*;
 import org.apache.hadoop.mapreduce.v2.app.AppContext;
 import org.apache.hadoop.mapreduce.v2.app.MRApp;
 import org.apache.hadoop.mapreduce.v2.app.job.Job;
@@ -54,20 +35,8 @@ import org.apache.hadoop.mapreduce.v2.app.job.impl.TaskAttemptImpl;
 import org.apache.hadoop.mapreduce.v2.util.MRBuilderUtils;
 import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.yarn.api.ContainerManagementProtocol;
-import org.apache.hadoop.yarn.api.protocolrecords.GetContainerStatusesRequest;
-import org.apache.hadoop.yarn.api.protocolrecords.GetContainerStatusesResponse;
-import org.apache.hadoop.yarn.api.protocolrecords.StartContainerRequest;
-import org.apache.hadoop.yarn.api.protocolrecords.StartContainersRequest;
-import org.apache.hadoop.yarn.api.protocolrecords.StartContainersResponse;
-import org.apache.hadoop.yarn.api.protocolrecords.StopContainersRequest;
-import org.apache.hadoop.yarn.api.protocolrecords.StopContainersResponse;
-import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
-import org.apache.hadoop.yarn.api.records.ApplicationId;
-import org.apache.hadoop.yarn.api.records.ContainerId;
-import org.apache.hadoop.yarn.api.records.ContainerState;
-import org.apache.hadoop.yarn.api.records.ContainerStatus;
-import org.apache.hadoop.yarn.api.records.NodeId;
-import org.apache.hadoop.yarn.api.records.Token;
+import org.apache.hadoop.yarn.api.protocolrecords.*;
+import org.apache.hadoop.yarn.api.records.*;
 import org.apache.hadoop.yarn.client.api.impl.ContainerManagementProtocolProxy;
 import org.apache.hadoop.yarn.client.api.impl.ContainerManagementProtocolProxy.ContainerManagementProtocolProxyData;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
@@ -79,7 +48,20 @@ import org.apache.hadoop.yarn.security.ContainerTokenIdentifier;
 import org.apache.hadoop.yarn.server.api.records.MasterKey;
 import org.apache.hadoop.yarn.server.nodemanager.security.NMTokenSecretManagerInNM;
 import org.apache.hadoop.yarn.util.Records;
+import org.junit.Assert;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.lang.reflect.UndeclaredThrowableException;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.mockito.Mockito.mock;
 
 public class TestContainerLauncher {
 
@@ -90,18 +72,18 @@ public class TestContainerLauncher {
 
   static final Log LOG = LogFactory.getLog(TestContainerLauncher.class);
 
-  @Test (timeout = 5000)
+  @Test(timeout = 5000)
   public void testPoolSize() throws InterruptedException {
 
     ApplicationId appId = ApplicationId.newInstance(12345, 67);
     ApplicationAttemptId appAttemptId = ApplicationAttemptId.newInstance(
-      appId, 3);
+        appId, 3);
     JobId jobId = MRBuilderUtils.newJobId(appId, 8);
     TaskId taskId = MRBuilderUtils.newTaskId(jobId, 9, TaskType.MAP);
 
     AppContext context = mock(AppContext.class);
     CustomContainerLauncher containerLauncher = new CustomContainerLauncher(
-      context);
+        context);
     containerLauncher.init(new Configuration());
     containerLauncher.start();
 
@@ -110,7 +92,7 @@ public class TestContainerLauncher {
     // No events yet
     Assert.assertEquals(0, threadPool.getPoolSize());
     Assert.assertEquals(ContainerLauncherImpl.INITIAL_POOL_SIZE,
-      threadPool.getCorePoolSize());
+        threadPool.getCorePoolSize());
     Assert.assertNull(containerLauncher.foundErrors);
 
     containerLauncher.expectedCorePoolSize = ContainerLauncherImpl.INITIAL_POOL_SIZE;
@@ -118,8 +100,8 @@ public class TestContainerLauncher {
       ContainerId containerId = ContainerId.newContainerId(appAttemptId, i);
       TaskAttemptId taskAttemptId = MRBuilderUtils.newTaskAttemptId(taskId, i);
       containerLauncher.handle(new ContainerLauncherEvent(taskAttemptId,
-        containerId, "host" + i + ":1234", null,
-        ContainerLauncher.EventType.CONTAINER_REMOTE_LAUNCH));
+          containerId, "host" + i + ":1234", null,
+          ContainerLauncher.EventType.CONTAINER_REMOTE_LAUNCH));
     }
     waitForEvents(containerLauncher, 10);
     Assert.assertEquals(10, threadPool.getPoolSize());
@@ -142,8 +124,8 @@ public class TestContainerLauncher {
       TaskAttemptId taskAttemptId = MRBuilderUtils.newTaskAttemptId(taskId,
           i + 10);
       containerLauncher.handle(new ContainerLauncherEvent(taskAttemptId,
-        containerId, "host" + i + ":1234", null,
-        ContainerLauncher.EventType.CONTAINER_REMOTE_LAUNCH));
+          containerId, "host" + i + ":1234", null,
+          ContainerLauncher.EventType.CONTAINER_REMOTE_LAUNCH));
     }
     waitForEvents(containerLauncher, 20);
     Assert.assertEquals(10, threadPool.getPoolSize());
@@ -157,8 +139,8 @@ public class TestContainerLauncher {
     ContainerId containerId = ContainerId.newContainerId(appAttemptId, 21);
     TaskAttemptId taskAttemptId = MRBuilderUtils.newTaskAttemptId(taskId, 21);
     containerLauncher.handle(new ContainerLauncherEvent(taskAttemptId,
-      containerId, "host11:1234", null,
-      ContainerLauncher.EventType.CONTAINER_REMOTE_LAUNCH));
+        containerId, "host11:1234", null,
+        ContainerLauncher.EventType.CONTAINER_REMOTE_LAUNCH));
     waitForEvents(containerLauncher, 21);
     Assert.assertEquals(11, threadPool.getPoolSize());
     Assert.assertNull(containerLauncher.foundErrors);
@@ -170,7 +152,7 @@ public class TestContainerLauncher {
   public void testPoolLimits() throws InterruptedException {
     ApplicationId appId = ApplicationId.newInstance(12345, 67);
     ApplicationAttemptId appAttemptId = ApplicationAttemptId.newInstance(
-      appId, 3);
+        appId, 3);
     JobId jobId = MRBuilderUtils.newJobId(appId, 8);
     TaskId taskId = MRBuilderUtils.newTaskId(jobId, 9, TaskType.MAP);
     TaskAttemptId taskAttemptId = MRBuilderUtils.newTaskAttemptId(taskId, 0);
@@ -178,7 +160,7 @@ public class TestContainerLauncher {
 
     AppContext context = mock(AppContext.class);
     CustomContainerLauncher containerLauncher = new CustomContainerLauncher(
-      context);
+        context);
     Configuration conf = new Configuration();
     conf.setInt(MRJobConfig.MR_AM_CONTAINERLAUNCHER_THREAD_COUNT_LIMIT, 12);
     containerLauncher.init(conf);
@@ -190,19 +172,19 @@ public class TestContainerLauncher {
     containerLauncher.expectedCorePoolSize = ContainerLauncherImpl.INITIAL_POOL_SIZE;
     for (int i = 0; i < 10; i++) {
       containerLauncher.handle(new ContainerLauncherEvent(taskAttemptId,
-        containerId, "host" + i + ":1234", null,
-        ContainerLauncher.EventType.CONTAINER_REMOTE_LAUNCH));
+          containerId, "host" + i + ":1234", null,
+          ContainerLauncher.EventType.CONTAINER_REMOTE_LAUNCH));
     }
     waitForEvents(containerLauncher, 10);
     Assert.assertEquals(10, threadPool.getPoolSize());
     Assert.assertNull(containerLauncher.foundErrors);
 
     // 4 more different hosts, but thread pool size should be capped at 12
-    containerLauncher.expectedCorePoolSize = 12 ;
+    containerLauncher.expectedCorePoolSize = 12;
     for (int i = 1; i <= 4; i++) {
       containerLauncher.handle(new ContainerLauncherEvent(taskAttemptId,
-        containerId, "host1" + i + ":1234", null,
-        ContainerLauncher.EventType.CONTAINER_REMOTE_LAUNCH));
+          containerId, "host1" + i + ":1234", null,
+          ContainerLauncher.EventType.CONTAINER_REMOTE_LAUNCH));
     }
     waitForEvents(containerLauncher, 12);
     Assert.assertEquals(12, threadPool.getPoolSize());
@@ -218,7 +200,7 @@ public class TestContainerLauncher {
   }
 
   private void waitForEvents(CustomContainerLauncher containerLauncher,
-      int expectedNumEvents) throws InterruptedException {
+                             int expectedNumEvents) throws InterruptedException {
     int timeOut = 0;
     while (containerLauncher.numEventsProcessing.get() < expectedNumEvents
         && timeOut++ < 20) {
@@ -227,7 +209,7 @@ public class TestContainerLauncher {
       Thread.sleep(1000);
     }
     Assert.assertEquals(expectedNumEvents,
-      containerLauncher.numEventsProcessing.get());
+        containerLauncher.numEventsProcessing.get());
   }
 
   @Test(timeout = 15000)
@@ -249,37 +231,37 @@ public class TestContainerLauncher {
     masterKey.setBytes(ByteBuffer.wrap("key".getBytes()));
     tokenSecretManager.setMasterKey(masterKey);
     conf.set(CommonConfigurationKeysPublic.HADOOP_SECURITY_AUTHENTICATION,
-      "token");
+        "token");
     server =
         rpc.getServer(ContainerManagementProtocol.class,
-          new DummyContainerManager(), addr, conf, tokenSecretManager, 1);
+            new DummyContainerManager(), addr, conf, tokenSecretManager, 1);
     server.start();
 
     MRApp app = new MRAppWithSlowNM(tokenSecretManager);
 
     try {
-    Job job = app.submit(conf);
-    app.waitForState(job, JobState.RUNNING);
+      Job job = app.submit(conf);
+      app.waitForState(job, JobState.RUNNING);
 
-    Map<TaskId, Task> tasks = job.getTasks();
-    Assert.assertEquals("Num tasks is not correct", 1, tasks.size());
+      Map<TaskId, Task> tasks = job.getTasks();
+      Assert.assertEquals("Num tasks is not correct", 1, tasks.size());
 
-    Task task = tasks.values().iterator().next();
-    app.waitForState(task, TaskState.SCHEDULED);
+      Task task = tasks.values().iterator().next();
+      app.waitForState(task, TaskState.SCHEDULED);
 
-    Map<TaskAttemptId, TaskAttempt> attempts = tasks.values().iterator()
-        .next().getAttempts();
+      Map<TaskAttemptId, TaskAttempt> attempts = tasks.values().iterator()
+          .next().getAttempts();
       Assert.assertEquals("Num attempts is not correct", maxAttempts,
           attempts.size());
 
-    TaskAttempt attempt = attempts.values().iterator().next();
+      TaskAttempt attempt = attempts.values().iterator().next();
       app.waitForInternalState((TaskAttemptImpl) attempt,
           TaskAttemptStateInternal.ASSIGNED);
 
-    app.waitForState(job, JobState.FAILED);
+      app.waitForState(job, JobState.FAILED);
 
-    String diagnostics = attempt.getDiagnostics().toString();
-    LOG.info("attempt.getDiagnostics: " + diagnostics);
+      String diagnostics = attempt.getDiagnostics().toString();
+      LOG.info("attempt.getDiagnostics: " + diagnostics);
 
       Assert.assertTrue(diagnostics.contains("Container launch failed for "
           + "container_0_0000_01_000000 : "));
@@ -289,8 +271,8 @@ public class TestContainerLauncher {
 
     } finally {
       server.stop();
-    app.stop();
-  }
+      app.stop();
+    }
   }
 
   private final class CustomContainerLauncher extends ContainerLauncherImpl {
@@ -357,6 +339,7 @@ public class TestContainerLauncher {
   private class MRAppWithSlowNM extends MRApp {
 
     private NMTokenSecretManagerInNM tokenSecretManager;
+
     public MRAppWithSlowNM(NMTokenSecretManagerInNM tokenSecretManager) {
       super(1, 0, false, "TestContainerLauncher", true);
       this.tokenSecretManager = tokenSecretManager;
@@ -364,7 +347,7 @@ public class TestContainerLauncher {
 
     @Override
     protected ContainerLauncher
-        createContainerLauncher(final AppContext context) {
+    createContainerLauncher(final AppContext context) {
       return new ContainerLauncherImpl(context) {
 
         @Override
@@ -376,19 +359,21 @@ public class TestContainerLauncher {
               addr.getHostName() + ":" + addr.getPort();
           Token token =
               tokenSecretManager.createNMToken(
-                containerId.getApplicationAttemptId(),
-                NodeId.newInstance(addr.getHostName(), addr.getPort()), "user");
+                  containerId.getApplicationAttemptId(),
+                  NodeId.newInstance(addr.getHostName(), addr.getPort()), "user");
           ContainerManagementProtocolProxy cmProxy =
               new ContainerManagementProtocolProxy(conf);
           ContainerManagementProtocolProxyData proxy =
               cmProxy.new ContainerManagementProtocolProxyData(
-                YarnRPC.create(conf), containerManagerBindAddr, containerId,
-                token);
+                  YarnRPC.create(conf), containerManagerBindAddr, containerId,
+                  token);
           return proxy;
         }
       };
 
-    };
+    }
+
+    ;
   }
 
   public class DummyContainerManager implements ContainerManagementProtocol {
@@ -413,7 +398,7 @@ public class TestContainerLauncher {
 
       // Validate that the container is what RM is giving.
       Assert.assertEquals(MRApp.NM_HOST + ":" + MRApp.NM_PORT,
-        containerTokenIdentifier.getNmHostAddress());
+          containerTokenIdentifier.getNmHostAddress());
 
       StartContainersResponse response = recordFactory
           .newRecordInstance(StartContainersResponse.class);

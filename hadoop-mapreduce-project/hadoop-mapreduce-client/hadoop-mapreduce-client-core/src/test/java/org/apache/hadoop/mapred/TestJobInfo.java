@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,29 +18,26 @@
 
 package org.apache.hadoop.mapred;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.JobID;
+import org.apache.hadoop.mapreduce.JobStatus.State;
 import org.apache.hadoop.mapreduce.TaskID;
 import org.apache.hadoop.mapreduce.TaskType;
-import org.apache.hadoop.mapreduce.JobStatus.State;
 import org.junit.Assert;
 import org.junit.Test;
-import static org.junit.Assert.*;
+
+import java.io.*;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * test class JobInfo
- * 
- * 
+ *
+ *
  */
 public class TestJobInfo {
-  @Test (timeout=5000)
+  @Test(timeout = 5000)
   public void testJobInfo() throws IOException {
     JobID jid = new JobID("001", 1);
     Text user = new Text("User");
@@ -58,7 +55,7 @@ public class TestJobInfo {
     assertEquals(info.getUser().toString(), copyinfo.getUser().toString());
 
   }
-  
+
   @Test(timeout = 5000)
   public void testTaskID() throws IOException, InterruptedException {
     JobID jobid = new JobID("1014873536921", 6);
@@ -67,11 +64,11 @@ public class TestJobInfo {
         org.apache.hadoop.mapred.TaskID.downgrade(tid);
     org.apache.hadoop.mapred.TaskReport treport =
         new org.apache.hadoop.mapred.TaskReport(tid1, 0.0f,
-          State.FAILED.toString(), null, TIPStatus.FAILED, 100, 100,
-          new org.apache.hadoop.mapred.Counters());
+            State.FAILED.toString(), null, TIPStatus.FAILED, 100, 100,
+            new org.apache.hadoop.mapred.Counters());
     Assert
-      .assertEquals(treport.getTaskId(), "task_1014873536921_0006_m_000000");
+        .assertEquals(treport.getTaskId(), "task_1014873536921_0006_m_000000");
     Assert.assertEquals(treport.getTaskID().toString(),
-      "task_1014873536921_0006_m_000000");
+        "task_1014873536921_0006_m_000000");
   }
 }

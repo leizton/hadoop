@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,9 +17,6 @@
  */
 
 package org.apache.hadoop.mapred.pipes;
-
-import java.io.File;
-import java.io.IOException;
 
 import org.apache.hadoop.io.FloatWritable;
 import org.apache.hadoop.io.NullWritable;
@@ -31,8 +28,12 @@ import org.apache.hadoop.mapred.pipes.TestPipeApplication.FakeSplit;
 import org.apache.hadoop.util.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.io.File;
+import java.io.IOException;
+
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
 
 
 public class TestPipesNonJavaInputFormat {
@@ -41,7 +42,7 @@ public class TestPipesNonJavaInputFormat {
 
   /**
    *  test PipesNonJavaInputFormat
-    */
+   */
 
   @Test
   public void testFormat() throws IOException {
@@ -49,7 +50,7 @@ public class TestPipesNonJavaInputFormat {
     PipesNonJavaInputFormat inputFormat = new PipesNonJavaInputFormat();
     JobConf conf = new JobConf();
 
-    Reporter reporter= mock(Reporter.class);
+    Reporter reporter = mock(Reporter.class);
     RecordReader<FloatWritable, NullWritable> reader = inputFormat
         .getRecordReader(new FakeSplit(), conf, reporter);
     assertEquals(0.0f, reader.getProgress(), 0.001);
@@ -82,7 +83,7 @@ public class TestPipesNonJavaInputFormat {
     assertNull(dummyRecordReader.createValue());
     assertEquals(0, dummyRecordReader.getPos());
     assertEquals(0.0, dummyRecordReader.getProgress(), 0.001);
-     // test method next
+    // test method next
     assertTrue(dummyRecordReader.next(new FloatWritable(2.0f), NullWritable.get()));
     assertEquals(2.0, dummyRecordReader.getProgress(), 0.001);
     dummyRecordReader.close();

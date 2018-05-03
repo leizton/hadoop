@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,8 +17,6 @@
  */
 
 package org.apache.hadoop.examples.terasort;
-
-import java.io.IOException;
 
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -33,10 +31,12 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.security.TokenCache;
 
+import java.io.IOException;
+
 /**
  * An output format that writes the key and value appended together.
  */
-public class TeraOutputFormat extends FileOutputFormat<Text,Text> {
+public class TeraOutputFormat extends FileOutputFormat<Text, Text> {
   static final String FINAL_SYNC_ATTRIBUTE = "mapreduce.terasort.final.sync";
   private OutputCommitter committer = null;
 
@@ -54,7 +54,7 @@ public class TeraOutputFormat extends FileOutputFormat<Text,Text> {
     return job.getConfiguration().getBoolean(FINAL_SYNC_ATTRIBUTE, false);
   }
 
-  static class TeraRecordWriter extends RecordWriter<Text,Text> {
+  static class TeraRecordWriter extends RecordWriter<Text, Text> {
     private boolean finalSync = false;
     private FSDataOutputStream out;
 
@@ -64,12 +64,12 @@ public class TeraOutputFormat extends FileOutputFormat<Text,Text> {
       this.out = out;
     }
 
-    public synchronized void write(Text key, 
+    public synchronized void write(Text key,
                                    Text value) throws IOException {
       out.write(key.getBytes(), 0, key.getLength());
       out.write(value.getBytes(), 0, value.getLength());
     }
-    
+
     public void close(TaskAttemptContext context) throws IOException {
       if (finalSync) {
         out.sync();
@@ -80,7 +80,7 @@ public class TeraOutputFormat extends FileOutputFormat<Text,Text> {
 
   @Override
   public void checkOutputSpecs(JobContext job
-                              ) throws InvalidJobConfException, IOException {
+  ) throws InvalidJobConfException, IOException {
     // Ensure that the output directory is set
     Path outDir = getOutputPath(job);
     if (outDir == null) {
@@ -89,18 +89,18 @@ public class TeraOutputFormat extends FileOutputFormat<Text,Text> {
 
     // get delegation token for outDir's file system
     TokenCache.obtainTokensForNamenodes(job.getCredentials(),
-        new Path[] { outDir }, job.getConfiguration());
+        new Path[]{outDir}, job.getConfiguration());
   }
 
-  public RecordWriter<Text,Text> getRecordWriter(TaskAttemptContext job
-                                                 ) throws IOException {
+  public RecordWriter<Text, Text> getRecordWriter(TaskAttemptContext job
+  ) throws IOException {
     Path file = getDefaultWorkFile(job, "");
     FileSystem fs = file.getFileSystem(job.getConfiguration());
-     FSDataOutputStream fileOut = fs.create(file);
+    FSDataOutputStream fileOut = fs.create(file);
     return new TeraRecordWriter(fileOut, job);
   }
-  
-  public OutputCommitter getOutputCommitter(TaskAttemptContext context) 
+
+  public OutputCommitter getOutputCommitter(TaskAttemptContext context)
       throws IOException {
     if (committer == null) {
       Path output = getOutputPath(context);

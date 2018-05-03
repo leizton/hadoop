@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,14 +18,14 @@
 
 package org.apache.hadoop.mapreduce.lib.aggregate;
 
-import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.Map.Entry;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
+
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.Map.Entry;
 
 /**
  * This class implements a wrapper for a user defined value 
@@ -34,7 +34,7 @@ import org.apache.hadoop.io.Text;
  * ValueAggregatorDescriptor from the name of a user defined class
  * that may be dynamically loaded. The other is to
  * delegate invocations of generateKeyValPairs function to the created object.
- * 
+ *
  */
 @InterfaceAudience.Public
 @InterfaceStability.Stable
@@ -44,7 +44,7 @@ public class UserDefinedValueAggregatorDescriptor implements
 
   protected ValueAggregatorDescriptor theAggregatorDescriptor = null;
 
-  private static final Class<?>[] argArray = new Class[] {};
+  private static final Class<?>[] argArray = new Class[]{};
 
   /**
    * Create an instance of the given class
@@ -68,18 +68,18 @@ public class UserDefinedValueAggregatorDescriptor implements
   private void createAggregator(Configuration conf) {
     if (theAggregatorDescriptor == null) {
       theAggregatorDescriptor = (ValueAggregatorDescriptor)
-                                  createInstance(this.className);
+          createInstance(this.className);
       theAggregatorDescriptor.configure(conf);
     }
   }
 
   /**
-   * 
+   *
    * @param className the class name of the user defined descriptor class
    * @param conf a configure object used for decriptor configuration
    */
-  public UserDefinedValueAggregatorDescriptor(String className, 
-      Configuration conf) {
+  public UserDefinedValueAggregatorDescriptor(String className,
+                                              Configuration conf) {
     this.className = className;
     this.createAggregator(conf);
   }
@@ -87,7 +87,7 @@ public class UserDefinedValueAggregatorDescriptor implements
   /**
    *   Generate a list of aggregation-id/value pairs for the given 
    *   key/value pairs by delegating the invocation to the real object.
-   *   
+   *
    * @param key
    *          input key
    * @param val
@@ -110,7 +110,7 @@ public class UserDefinedValueAggregatorDescriptor implements
    */
   public String toString() {
     return "UserDefinedValueAggregatorDescriptor with class name:" + "\t"
-      + this.className;
+        + this.className;
   }
 
   /**

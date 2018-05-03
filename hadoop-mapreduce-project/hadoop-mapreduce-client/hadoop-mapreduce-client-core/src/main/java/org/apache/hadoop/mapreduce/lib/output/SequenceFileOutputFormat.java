@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,75 +18,70 @@
 
 package org.apache.hadoop.mapreduce.lib.output;
 
-import java.io.IOException;
-
+import org.apache.hadoop.classification.InterfaceAudience;
+import org.apache.hadoop.classification.InterfaceStability;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.SequenceFile.CompressionType;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.io.compress.DefaultCodec;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.JobContext;
-import org.apache.hadoop.mapreduce.OutputFormat;
-import org.apache.hadoop.mapreduce.RecordWriter;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.util.ReflectionUtils;
-import org.apache.hadoop.classification.InterfaceAudience;
-import org.apache.hadoop.classification.InterfaceStability;
-import org.apache.hadoop.conf.Configuration;
+
+import java.io.IOException;
 
 /** An {@link OutputFormat} that writes {@link SequenceFile}s. */
 @InterfaceAudience.Public
 @InterfaceStability.Stable
-public class SequenceFileOutputFormat <K,V> extends FileOutputFormat<K, V> {
+public class SequenceFileOutputFormat<K, V> extends FileOutputFormat<K, V> {
 
   protected SequenceFile.Writer getSequenceWriter(TaskAttemptContext context,
-      Class<?> keyClass, Class<?> valueClass) 
+                                                  Class<?> keyClass, Class<?> valueClass)
       throws IOException {
     Configuration conf = context.getConfiguration();
-	    
+
     CompressionCodec codec = null;
     CompressionType compressionType = CompressionType.NONE;
     if (getCompressOutput(context)) {
       // find the kind of compression to do
       compressionType = getOutputCompressionType(context);
       // find the right codec
-      Class<?> codecClass = getOutputCompressorClass(context, 
-                                                     DefaultCodec.class);
-      codec = (CompressionCodec) 
-        ReflectionUtils.newInstance(codecClass, conf);
+      Class<?> codecClass = getOutputCompressorClass(context,
+          DefaultCodec.class);
+      codec = (CompressionCodec)
+          ReflectionUtils.newInstance(codecClass, conf);
     }
     // get the path of the temporary output file 
     Path file = getDefaultWorkFile(context, "");
     FileSystem fs = file.getFileSystem(conf);
     return SequenceFile.createWriter(fs, conf, file,
-             keyClass,
-             valueClass,
-             compressionType,
-             codec,
-             context);
+        keyClass,
+        valueClass,
+        compressionType,
+        codec,
+        context);
   }
-  
-  public RecordWriter<K, V> 
-         getRecordWriter(TaskAttemptContext context
-                         ) throws IOException, InterruptedException {
+
+  public RecordWriter<K, V>
+  getRecordWriter(TaskAttemptContext context
+  ) throws IOException, InterruptedException {
     final SequenceFile.Writer out = getSequenceWriter(context,
-      context.getOutputKeyClass(), context.getOutputValueClass());
+        context.getOutputKeyClass(), context.getOutputValueClass());
 
     return new RecordWriter<K, V>() {
 
-        public void write(K key, V value)
+      public void write(K key, V value)
           throws IOException {
 
-          out.append(key, value);
-        }
+        out.append(key, value);
+      }
 
-        public void close(TaskAttemptContext context) throws IOException { 
-          out.close();
-        }
-      };
+      public void close(TaskAttemptContext context) throws IOException {
+        out.close();
+      }
+    };
   }
 
   /**
@@ -96,22 +91,22 @@ public class SequenceFileOutputFormat <K,V> extends FileOutputFormat<K, V> {
    *         defaulting to {@link CompressionType#RECORD}
    */
   public static CompressionType getOutputCompressionType(JobContext job) {
-    String val = job.getConfiguration().get(FileOutputFormat.COMPRESS_TYPE, 
-                                            CompressionType.RECORD.toString());
+    String val = job.getConfiguration().get(FileOutputFormat.COMPRESS_TYPE,
+        CompressionType.RECORD.toString());
     return CompressionType.valueOf(val);
   }
-  
+
   /**
    * Set the {@link CompressionType} for the output {@link SequenceFile}.
    * @param job the {@link Job} to modify
    * @param style the {@link CompressionType} for the output
    *              {@link SequenceFile} 
    */
-  public static void setOutputCompressionType(Job job, 
-		                                          CompressionType style) {
+  public static void setOutputCompressionType(Job job,
+                                              CompressionType style) {
     setCompressOutput(job, true);
-    job.getConfiguration().set(FileOutputFormat.COMPRESS_TYPE, 
-                               style.toString());
+    job.getConfiguration().set(FileOutputFormat.COMPRESS_TYPE,
+        style.toString());
   }
 
 }

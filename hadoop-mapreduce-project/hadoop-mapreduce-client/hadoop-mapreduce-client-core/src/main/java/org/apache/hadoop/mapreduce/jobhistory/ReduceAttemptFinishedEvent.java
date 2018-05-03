@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -33,7 +33,7 @@ import org.apache.hadoop.mapreduce.TaskType;
  */
 @InterfaceAudience.Private
 @InterfaceStability.Unstable
-public class ReduceAttemptFinishedEvent  implements HistoryEvent {
+public class ReduceAttemptFinishedEvent implements HistoryEvent {
 
   private ReduceAttemptFinished datum = null;
 
@@ -73,10 +73,10 @@ public class ReduceAttemptFinishedEvent  implements HistoryEvent {
    *        virtual memory and physical memory.  
    */
   public ReduceAttemptFinishedEvent
-    (TaskAttemptID id, TaskType taskType, String taskStatus, 
-     long shuffleFinishTime, long sortFinishTime, long finishTime,
-     String hostname, int port,  String rackName, String state, 
-     Counters counters, int[][] allSplits) {
+  (TaskAttemptID id, TaskType taskType, String taskStatus,
+   long shuffleFinishTime, long sortFinishTime, long finishTime,
+   String hostname, int port, String rackName, String state,
+   Counters counters, int[][] allSplits) {
     this.attemptId = id;
     this.taskType = taskType;
     this.taskStatus = taskStatus;
@@ -113,15 +113,16 @@ public class ReduceAttemptFinishedEvent  implements HistoryEvent {
    * @param counters Counters for the attempt
    */
   public ReduceAttemptFinishedEvent
-    (TaskAttemptID id, TaskType taskType, String taskStatus, 
-     long shuffleFinishTime, long sortFinishTime, long finishTime,
-     String hostname, String state, Counters counters) {
+  (TaskAttemptID id, TaskType taskType, String taskStatus,
+   long shuffleFinishTime, long sortFinishTime, long finishTime,
+   String hostname, String state, Counters counters) {
     this(id, taskType, taskStatus,
-         shuffleFinishTime, sortFinishTime, finishTime,
-         hostname, -1, "", state, counters, null);
+        shuffleFinishTime, sortFinishTime, finishTime,
+        hostname, -1, "", state, counters, null);
   }
 
-  ReduceAttemptFinishedEvent() {}
+  ReduceAttemptFinishedEvent() {
+  }
 
   public Object getDatum() {
     if (datum == null) {
@@ -142,19 +143,19 @@ public class ReduceAttemptFinishedEvent  implements HistoryEvent {
       datum.counters = EventWriter.toAvro(counters);
 
       datum.clockSplits = AvroArrayUtils.toAvro(ProgressSplitsBlock
-        .arrayGetWallclockTime(allSplits));
+          .arrayGetWallclockTime(allSplits));
       datum.cpuUsages = AvroArrayUtils.toAvro(ProgressSplitsBlock
-        .arrayGetCPUTime(allSplits));
+          .arrayGetCPUTime(allSplits));
       datum.vMemKbytes = AvroArrayUtils.toAvro(ProgressSplitsBlock
-        .arrayGetVMemKbytes(allSplits));
+          .arrayGetVMemKbytes(allSplits));
       datum.physMemKbytes = AvroArrayUtils.toAvro(ProgressSplitsBlock
-        .arrayGetPhysMemKbytes(allSplits));
+          .arrayGetPhysMemKbytes(allSplits));
     }
     return datum;
   }
 
   public void setDatum(Object oDatum) {
-    this.datum = (ReduceAttemptFinished)oDatum;
+    this.datum = (ReduceAttemptFinished) oDatum;
     this.attemptId = TaskAttemptID.forName(datum.attemptId.toString());
     this.taskType = TaskType.valueOf(datum.taskType.toString());
     this.taskStatus = datum.taskStatus.toString();
@@ -173,37 +174,65 @@ public class ReduceAttemptFinishedEvent  implements HistoryEvent {
   }
 
   /** Get the Task ID */
-  public TaskID getTaskId() { return attemptId.getTaskID(); }
+  public TaskID getTaskId() {
+    return attemptId.getTaskID();
+  }
+
   /** Get the attempt id */
   public TaskAttemptID getAttemptId() {
     return attemptId;
   }
+
   /** Get the task type */
   public TaskType getTaskType() {
     return taskType;
   }
+
   /** Get the task status */
-  public String getTaskStatus() { return taskStatus.toString(); }
+  public String getTaskStatus() {
+    return taskStatus.toString();
+  }
+
   /** Get the finish time of the sort phase */
-  public long getSortFinishTime() { return sortFinishTime; }
+  public long getSortFinishTime() {
+    return sortFinishTime;
+  }
+
   /** Get the finish time of the shuffle phase */
-  public long getShuffleFinishTime() { return shuffleFinishTime; }
+  public long getShuffleFinishTime() {
+    return shuffleFinishTime;
+  }
+
   /** Get the finish time of the attempt */
-  public long getFinishTime() { return finishTime; }
+  public long getFinishTime() {
+    return finishTime;
+  }
+
   /** Get the name of the host where the attempt ran */
-  public String getHostname() { return hostname.toString(); }
+  public String getHostname() {
+    return hostname.toString();
+  }
+
   /** Get the tracker rpc port */
-  public int getPort() { return port; }
-  
+  public int getPort() {
+    return port;
+  }
+
   /** Get the rack name of the node where the attempt ran */
   public String getRackName() {
     return rackName == null ? null : rackName.toString();
   }
-  
+
   /** Get the state string */
-  public String getState() { return state.toString(); }
+  public String getState() {
+    return state.toString();
+  }
+
   /** Get the counters for the attempt */
-  Counters getCounters() { return counters; }
+  Counters getCounters() {
+    return counters;
+  }
+
   /** Get the event type */
   public EventType getEventType() {
     return EventType.REDUCE_ATTEMPT_FINISHED;
@@ -213,12 +242,15 @@ public class ReduceAttemptFinishedEvent  implements HistoryEvent {
   public int[] getClockSplits() {
     return clockSplits;
   }
+
   public int[] getCpuUsages() {
     return cpuUsages;
   }
+
   public int[] getVMemKbytes() {
     return vMemKbytes;
   }
+
   public int[] getPhysMemKbytes() {
     return physMemKbytes;
   }

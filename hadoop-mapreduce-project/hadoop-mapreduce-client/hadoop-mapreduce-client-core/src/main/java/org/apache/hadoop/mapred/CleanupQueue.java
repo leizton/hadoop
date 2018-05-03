@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,19 +18,18 @@
 
 package org.apache.hadoop.mapred;
 
-import java.io.IOException;
-import java.util.concurrent.LinkedBlockingQueue;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+
+import java.io.IOException;
+import java.util.concurrent.LinkedBlockingQueue;
 
 class CleanupQueue {
 
   public static final Log LOG =
-    LogFactory.getLog(CleanupQueue.class);
+      LogFactory.getLog(CleanupQueue.class);
 
   private static PathCleanupThread cleanupThread;
 
@@ -49,7 +48,7 @@ class CleanupQueue {
       }
     }
   }
-  
+
   /**
    * Contains info related to the path of the file/dir to be deleted
    */
@@ -61,7 +60,7 @@ class CleanupQueue {
       this.fs = fs;
       this.fullPath = fullPath;
     }
-    
+
     protected String getPathForCleanup() {
       return fullPath;
     }
@@ -83,7 +82,7 @@ class CleanupQueue {
   }
 
   protected static boolean deletePath(PathDeletionContext context)
-            throws IOException {
+      throws IOException {
     context.enablePathForCleanup();
 
     if (LOG.isDebugEnabled()) {
@@ -104,7 +103,7 @@ class CleanupQueue {
 
     // cleanup queue which deletes files/directories of the paths queued up.
     private LinkedBlockingQueue<PathDeletionContext> queue =
-      new LinkedBlockingQueue<PathDeletionContext>();
+        new LinkedBlockingQueue<PathDeletionContext>();
 
     public PathCleanupThread() {
       setName("Directory/File cleanup thread");
@@ -116,7 +115,8 @@ class CleanupQueue {
       for (PathDeletionContext context : contexts) {
         try {
           queue.put(context);
-        } catch(InterruptedException ie) {}
+        } catch (InterruptedException ie) {
+        }
       }
     }
 
@@ -131,8 +131,7 @@ class CleanupQueue {
           // delete the path.
           if (!deletePath(context)) {
             LOG.warn("CleanupThread:Unable to delete path " + context.fullPath);
-          }
-          else if (LOG.isDebugEnabled()) {
+          } else if (LOG.isDebugEnabled()) {
             LOG.debug("DELETED " + context.fullPath);
           }
         } catch (InterruptedException t) {
@@ -140,7 +139,7 @@ class CleanupQueue {
           return;
         } catch (Exception e) {
           LOG.warn("Error deleting path " + context.fullPath + ": " + e);
-        } 
+        }
       }
     }
   }

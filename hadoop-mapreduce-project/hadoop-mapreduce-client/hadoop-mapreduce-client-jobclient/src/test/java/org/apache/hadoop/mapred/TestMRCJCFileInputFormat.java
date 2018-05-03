@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,25 +17,20 @@
  */
 package org.apache.hadoop.mapred;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import junit.framework.TestCase;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.*;
+import org.apache.hadoop.hdfs.DFSTestUtil;
+import org.apache.hadoop.hdfs.MiniDFSCluster;
+import org.apache.hadoop.io.Text;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
-import junit.framework.TestCase;
-
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.BlockLocation;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hdfs.DFSTestUtil;
-import org.apache.hadoop.hdfs.MiniDFSCluster;
-import org.apache.hadoop.io.Text;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @SuppressWarnings("deprecation")
 public class TestMRCJCFileInputFormat extends TestCase {
@@ -67,14 +62,14 @@ public class TestMRCJCFileInputFormat extends TestCase {
     InputSplit[] splits = inFormat.getSplits(job, 1);
     FileStatus fileStatus = fs.getFileStatus(new Path(inputDir, fileName));
     BlockLocation[] locations =
-      fs.getFileBlockLocations(fileStatus, 0, fileStatus.getLen());
+        fs.getFileBlockLocations(fileStatus, 0, fileStatus.getLen());
     System.out.println("Made splits");
 
     // make sure that each split is a block and the locations match
-    for(int i=0; i < splits.length; ++i) {
+    for (int i = 0; i < splits.length; ++i) {
       FileSplit fileSplit = (FileSplit) splits[i];
       System.out.println("File split: " + fileSplit);
-      for (String h: fileSplit.getLocations()) {
+      for (String h : fileSplit.getLocations()) {
         System.out.println("Location: " + h);
       }
       System.out.println("Block: " + locations[i]);
@@ -85,13 +80,13 @@ public class TestMRCJCFileInputFormat extends TestCase {
       assertEquals(2, blockLocs.length);
       assertEquals(2, splitLocs.length);
       assertTrue((blockLocs[0].equals(splitLocs[0]) &&
-                  blockLocs[1].equals(splitLocs[1])) ||
-                 (blockLocs[1].equals(splitLocs[0]) &&
-                  blockLocs[0].equals(splitLocs[1])));
+          blockLocs[1].equals(splitLocs[1])) ||
+          (blockLocs[1].equals(splitLocs[0]) &&
+              blockLocs[0].equals(splitLocs[1])));
     }
 
     assertEquals("Expected value of " + FileInputFormat.NUM_INPUT_FILES,
-                 1, job.getLong(FileInputFormat.NUM_INPUT_FILES, 0));
+        1, job.getLong(FileInputFormat.NUM_INPUT_FILES, 0));
   }
 
   private void createInputs(FileSystem fs, Path inDir, String fileName)
@@ -100,8 +95,8 @@ public class TestMRCJCFileInputFormat extends TestCase {
     Path path = new Path(inDir, fileName);
     final short replication = 2;
     DataOutputStream out = fs.create(path, true, 4096,
-                                     replication, 512, null);
-    for(int i=0; i < 1000; ++i) {
+        replication, 512, null);
+    for (int i = 0; i < 1000; ++i) {
       out.writeChars("Hello\n");
     }
     out.close();
@@ -118,7 +113,7 @@ public class TestMRCJCFileInputFormat extends TestCase {
     Path inputDir = new Path("/foo/");
     final int numFiles = 10;
     String fileNameBase = "part-0000";
-    for (int i=0; i < numFiles; ++i) {
+    for (int i = 0; i < numFiles; ++i) {
       createInputs(fs, inputDir, fileNameBase + String.valueOf(i));
     }
     createInputs(fs, inputDir, "_meta");
@@ -131,9 +126,9 @@ public class TestMRCJCFileInputFormat extends TestCase {
     InputSplit[] splits = inFormat.getSplits(job, 1);
 
     assertEquals("Expected value of " + FileInputFormat.NUM_INPUT_FILES,
-                 numFiles, job.getLong(FileInputFormat.NUM_INPUT_FILES, 0));
+        numFiles, job.getLong(FileInputFormat.NUM_INPUT_FILES, 0));
   }
-  
+
   final Path root = new Path("/TestFileInputFormat");
   final Path file1 = new Path(root, "file1");
   final Path dir1 = new Path(root, "dir1");
@@ -142,17 +137,17 @@ public class TestMRCJCFileInputFormat extends TestCase {
   static final int BLOCKSIZE = 1024;
   static final byte[] databuf = new byte[BLOCKSIZE];
 
-  private static final String rack1[] = new String[] {
-    "/r1"
+  private static final String rack1[] = new String[]{
+      "/r1"
   };
-  private static final String hosts1[] = new String[] {
-    "host1.rack1.com"
+  private static final String hosts1[] = new String[]{
+      "host1.rack1.com"
   };
-  
+
   private class DummyFileInputFormat extends FileInputFormat<Text, Text> {
     @Override
     public RecordReader<Text, Text> getRecordReader(InputSplit split,
-        JobConf job, Reporter reporter) throws IOException {
+                                                    JobConf job, Reporter reporter) throws IOException {
       return null;
     }
   }
@@ -165,14 +160,14 @@ public class TestMRCJCFileInputFormat extends TestCase {
     dfs.waitActive();
 
     String namenode = (dfs.getFileSystem()).getUri().getHost() + ":" +
-                      (dfs.getFileSystem()).getUri().getPort();
+        (dfs.getFileSystem()).getUri().getPort();
 
     FileSystem fileSys = dfs.getFileSystem();
     if (!fileSys.mkdirs(dir1)) {
       throw new IOException("Mkdirs failed to create " + root.toString());
     }
-    writeFile(job, file1, (short)1, 1);
-    writeFile(job, file2, (short)1, 1);
+    writeFile(job, file1, (short) 1, 1);
+    writeFile(job, file2, (short) 1, 1);
 
     // split it using a CombinedFile input format
     DummyFileInputFormat inFormat = new DummyFileInputFormat();
@@ -245,7 +240,7 @@ public class TestMRCJCFileInputFormat extends TestCase {
 
     @Override
     public RecordReader<K, V> getRecordReader(InputSplit split, JobConf job,
-        Reporter reporter) throws IOException {
+                                              Reporter reporter) throws IOException {
       return null;
     }
 
@@ -281,8 +276,8 @@ public class TestMRCJCFileInputFormat extends TestCase {
         numLocations++;
       BlockLocation[] blockLocations = new BlockLocation[numLocations];
       for (int i = 0; i < numLocations; i++) {
-        String[] names = new String[] { "b" + i };
-        String[] hosts = new String[] { "host" + i };
+        String[] names = new String[]{"b" + i};
+        String[] hosts = new String[]{"host" + i};
         blockLocations[i] = new BlockLocation(names, hosts, i * splitSize,
             Math.min(splitSize, size - (splitSize * i)));
       }
@@ -291,13 +286,13 @@ public class TestMRCJCFileInputFormat extends TestCase {
   }
 
   static void writeFile(Configuration conf, Path name,
-      short replication, int numBlocks)
+                        short replication, int numBlocks)
       throws IOException, TimeoutException, InterruptedException {
     FileSystem fileSys = FileSystem.get(conf);
 
     FSDataOutputStream stm = fileSys.create(name, true,
-                                            conf.getInt("io.file.buffer.size", 4096),
-                                            replication, (long)BLOCKSIZE);
+        conf.getInt("io.file.buffer.size", 4096),
+        replication, (long) BLOCKSIZE);
     for (int i = 0; i < numBlocks; i++) {
       stm.write(databuf);
     }

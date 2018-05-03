@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,22 +18,6 @@
 
 package org.apache.hadoop.mapreduce.v2.app.job.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
-import org.junit.Assert;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -47,15 +31,7 @@ import org.apache.hadoop.mapreduce.MRJobConfig;
 import org.apache.hadoop.mapreduce.jobhistory.JobHistoryEvent;
 import org.apache.hadoop.mapreduce.jobhistory.TaskAttemptUnsuccessfulCompletion;
 import org.apache.hadoop.mapreduce.split.JobSplit.TaskSplitMetaInfo;
-import org.apache.hadoop.mapreduce.v2.api.records.JobId;
-import org.apache.hadoop.mapreduce.v2.api.records.JobState;
-import org.apache.hadoop.mapreduce.v2.api.records.Locality;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptReport;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptState;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskId;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskState;
-import org.apache.hadoop.mapreduce.v2.api.records.TaskType;
+import org.apache.hadoop.mapreduce.v2.api.records.*;
 import org.apache.hadoop.mapreduce.v2.app.AppContext;
 import org.apache.hadoop.mapreduce.v2.app.ClusterInfo;
 import org.apache.hadoop.mapreduce.v2.app.MRApp;
@@ -64,35 +40,34 @@ import org.apache.hadoop.mapreduce.v2.app.job.Job;
 import org.apache.hadoop.mapreduce.v2.app.job.Task;
 import org.apache.hadoop.mapreduce.v2.app.job.TaskAttempt;
 import org.apache.hadoop.mapreduce.v2.app.job.TaskAttemptStateInternal;
-import org.apache.hadoop.mapreduce.v2.app.job.event.JobEvent;
-import org.apache.hadoop.mapreduce.v2.app.job.event.JobEventType;
-import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptContainerAssignedEvent;
-import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptContainerLaunchedEvent;
-import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptDiagnosticsUpdateEvent;
-import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptEvent;
-import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptEventType;
+import org.apache.hadoop.mapreduce.v2.app.job.event.*;
 import org.apache.hadoop.mapreduce.v2.app.rm.ContainerRequestEvent;
 import org.apache.hadoop.mapreduce.v2.util.MRBuilderUtils;
 import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.token.Token;
-import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
-import org.apache.hadoop.yarn.api.records.ApplicationId;
-import org.apache.hadoop.yarn.api.records.Container;
-import org.apache.hadoop.yarn.api.records.ContainerId;
-import org.apache.hadoop.yarn.api.records.NodeId;
-import org.apache.hadoop.yarn.api.records.Resource;
+import org.apache.hadoop.yarn.api.records.*;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.event.Event;
 import org.apache.hadoop.yarn.event.EventHandler;
 import org.apache.hadoop.yarn.util.Clock;
 import org.apache.hadoop.yarn.util.ControlledClock;
 import org.apache.hadoop.yarn.util.SystemClock;
+import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+
 @SuppressWarnings({"unchecked", "rawtypes"})
-public class TestTaskAttempt{
-	
+public class TestTaskAttempt {
+
   static public class StubbedFS extends RawLocalFileSystem {
     @Override
     public FileStatus getFileStatus(Path f) throws IOException {
@@ -191,7 +166,7 @@ public class TestTaskAttempt{
   }
 
   public void verifyMillisCounters(int mapMemMb, int reduceMemMb,
-      int minContainerSize) throws Exception {
+                                   int minContainerSize) throws Exception {
     Clock actualClock = new SystemClock();
     ControlledClock clock = new ControlledClock(actualClock);
     clock.setTime(10);
@@ -200,8 +175,8 @@ public class TestTaskAttempt{
     Configuration conf = new Configuration();
     conf.setInt(MRJobConfig.MAP_MEMORY_MB, mapMemMb);
     conf.setInt(MRJobConfig.REDUCE_MEMORY_MB, reduceMemMb);
-    conf.setInt(YarnConfiguration.RM_SCHEDULER_MINIMUM_ALLOCATION_MB, 
-      minContainerSize);
+    conf.setInt(YarnConfiguration.RM_SCHEDULER_MINIMUM_ALLOCATION_MB,
+        minContainerSize);
     app.setClusterInfo(new ClusterInfo(Resource.newInstance(10240, 1)));
 
     Job job = app.submit(conf);
@@ -333,7 +308,7 @@ public class TestTaskAttempt{
   public void testLaunchFailedWhileKilling() throws Exception {
     ApplicationId appId = ApplicationId.newInstance(1, 2);
     ApplicationAttemptId appAttemptId =
-      ApplicationAttemptId.newInstance(appId, 0);
+        ApplicationAttemptId.newInstance(appId, 0);
     JobId jobId = MRBuilderUtils.newJobId(appId, 1);
     TaskId taskId = MRBuilderUtils.newTaskId(jobId, 1, TaskType.MAP);
     TaskAttemptId attemptId = MRBuilderUtils.newTaskAttemptId(taskId, 0);
@@ -350,13 +325,13 @@ public class TestTaskAttempt{
     jobConf.set(MRJobConfig.APPLICATION_ATTEMPT_ID, "10");
 
     TaskSplitMetaInfo splits = mock(TaskSplitMetaInfo.class);
-    when(splits.getLocations()).thenReturn(new String[] {"127.0.0.1"});
+    when(splits.getLocations()).thenReturn(new String[]{"127.0.0.1"});
 
     TaskAttemptImpl taImpl =
-      new MapTaskAttemptImpl(taskId, 1, eventHandler, jobFile, 1,
-          splits, jobConf, taListener,
-          new Token(), new Credentials(),
-          new SystemClock(), null);
+        new MapTaskAttemptImpl(taskId, 1, eventHandler, jobFile, 1,
+            splits, jobConf, taListener,
+            new Token(), new Credentials(),
+            new SystemClock(), null);
 
     NodeId nid = NodeId.newInstance("127.0.0.1", 0);
     ContainerId contId = ContainerId.newContainerId(appAttemptId, 3);
@@ -375,7 +350,7 @@ public class TestTaskAttempt{
     taImpl.handle(new TaskAttemptEvent(attemptId,
         TaskAttemptEventType.TA_CONTAINER_LAUNCH_FAILED));
     assertFalse(eventHandler.internalError);
-    assertEquals("Task attempt is not assigned on the local node", 
+    assertEquals("Task attempt is not assigned on the local node",
         Locality.NODE_LOCAL, taImpl.getLocality());
   }
 
@@ -383,7 +358,7 @@ public class TestTaskAttempt{
   public void testContainerCleanedWhileRunning() throws Exception {
     ApplicationId appId = ApplicationId.newInstance(1, 2);
     ApplicationAttemptId appAttemptId =
-      ApplicationAttemptId.newInstance(appId, 0);
+        ApplicationAttemptId.newInstance(appId, 0);
     JobId jobId = MRBuilderUtils.newJobId(appId, 1);
     TaskId taskId = MRBuilderUtils.newTaskId(jobId, 1, TaskType.MAP);
     TaskAttemptId attemptId = MRBuilderUtils.newTaskAttemptId(taskId, 0);
@@ -400,7 +375,7 @@ public class TestTaskAttempt{
     jobConf.set(MRJobConfig.APPLICATION_ATTEMPT_ID, "10");
 
     TaskSplitMetaInfo splits = mock(TaskSplitMetaInfo.class);
-    when(splits.getLocations()).thenReturn(new String[] {"127.0.0.1"});
+    when(splits.getLocations()).thenReturn(new String[]{"127.0.0.1"});
 
     AppContext appCtx = mock(AppContext.class);
     ClusterInfo clusterInfo = mock(ClusterInfo.class);
@@ -409,10 +384,10 @@ public class TestTaskAttempt{
     when(resource.getMemory()).thenReturn(1024);
 
     TaskAttemptImpl taImpl =
-      new MapTaskAttemptImpl(taskId, 1, eventHandler, jobFile, 1,
-          splits, jobConf, taListener,
-          new Token(), new Credentials(),
-          new SystemClock(), appCtx);
+        new MapTaskAttemptImpl(taskId, 1, eventHandler, jobFile, 1,
+            splits, jobConf, taListener,
+            new Token(), new Credentials(),
+            new SystemClock(), appCtx);
 
     NodeId nid = NodeId.newInstance("127.0.0.2", 0);
     ContainerId contId = ContainerId.newContainerId(appAttemptId, 3);
@@ -440,7 +415,7 @@ public class TestTaskAttempt{
   public void testContainerCleanedWhileCommitting() throws Exception {
     ApplicationId appId = ApplicationId.newInstance(1, 2);
     ApplicationAttemptId appAttemptId =
-      ApplicationAttemptId.newInstance(appId, 0);
+        ApplicationAttemptId.newInstance(appId, 0);
     JobId jobId = MRBuilderUtils.newJobId(appId, 1);
     TaskId taskId = MRBuilderUtils.newTaskId(jobId, 1, TaskType.MAP);
     TaskAttemptId attemptId = MRBuilderUtils.newTaskAttemptId(taskId, 0);
@@ -457,7 +432,7 @@ public class TestTaskAttempt{
     jobConf.set(MRJobConfig.APPLICATION_ATTEMPT_ID, "10");
 
     TaskSplitMetaInfo splits = mock(TaskSplitMetaInfo.class);
-    when(splits.getLocations()).thenReturn(new String[] {});
+    when(splits.getLocations()).thenReturn(new String[]{});
 
     AppContext appCtx = mock(AppContext.class);
     ClusterInfo clusterInfo = mock(ClusterInfo.class);
@@ -466,10 +441,10 @@ public class TestTaskAttempt{
     when(resource.getMemory()).thenReturn(1024);
 
     TaskAttemptImpl taImpl =
-      new MapTaskAttemptImpl(taskId, 1, eventHandler, jobFile, 1,
-          splits, jobConf, taListener,
-          new Token(), new Credentials(),
-          new SystemClock(), appCtx);
+        new MapTaskAttemptImpl(taskId, 1, eventHandler, jobFile, 1,
+            splits, jobConf, taListener,
+            new Token(), new Credentials(),
+            new SystemClock(), appCtx);
 
     NodeId nid = NodeId.newInstance("127.0.0.1", 0);
     ContainerId contId = ContainerId.newContainerId(appAttemptId, 3);
@@ -500,7 +475,7 @@ public class TestTaskAttempt{
   public void testDoubleTooManyFetchFailure() throws Exception {
     ApplicationId appId = ApplicationId.newInstance(1, 2);
     ApplicationAttemptId appAttemptId =
-      ApplicationAttemptId.newInstance(appId, 0);
+        ApplicationAttemptId.newInstance(appId, 0);
     JobId jobId = MRBuilderUtils.newJobId(appId, 1);
     TaskId taskId = MRBuilderUtils.newTaskId(jobId, 1, TaskType.MAP);
     TaskAttemptId attemptId = MRBuilderUtils.newTaskAttemptId(taskId, 0);
@@ -517,7 +492,7 @@ public class TestTaskAttempt{
     jobConf.set(MRJobConfig.APPLICATION_ATTEMPT_ID, "10");
 
     TaskSplitMetaInfo splits = mock(TaskSplitMetaInfo.class);
-    when(splits.getLocations()).thenReturn(new String[] {"127.0.0.1"});
+    when(splits.getLocations()).thenReturn(new String[]{"127.0.0.1"});
 
     AppContext appCtx = mock(AppContext.class);
     ClusterInfo clusterInfo = mock(ClusterInfo.class);
@@ -526,10 +501,10 @@ public class TestTaskAttempt{
     when(resource.getMemory()).thenReturn(1024);
 
     TaskAttemptImpl taImpl =
-      new MapTaskAttemptImpl(taskId, 1, eventHandler, jobFile, 1,
-          splits, jobConf, taListener,
-          new Token(), new Credentials(),
-          new SystemClock(), appCtx);
+        new MapTaskAttemptImpl(taskId, 1, eventHandler, jobFile, 1,
+            splits, jobConf, taListener,
+            new Token(), new Credentials(),
+            new SystemClock(), appCtx);
 
     NodeId nid = NodeId.newInstance("127.0.0.1", 0);
     ContainerId contId = ContainerId.newContainerId(appAttemptId, 3);
@@ -563,7 +538,6 @@ public class TestTaskAttempt{
   }
 
 
-
   @Test
   public void testAppDiognosticEventOnUnassignedTask() throws Exception {
     ApplicationId appId = ApplicationId.newInstance(1, 2);
@@ -586,7 +560,7 @@ public class TestTaskAttempt{
     jobConf.set(MRJobConfig.APPLICATION_ATTEMPT_ID, "10");
 
     TaskSplitMetaInfo splits = mock(TaskSplitMetaInfo.class);
-    when(splits.getLocations()).thenReturn(new String[] { "127.0.0.1" });
+    when(splits.getLocations()).thenReturn(new String[]{"127.0.0.1"});
 
     AppContext appCtx = mock(AppContext.class);
     ClusterInfo clusterInfo = mock(ClusterInfo.class);
@@ -617,7 +591,7 @@ public class TestTaskAttempt{
   public void testTooManyFetchFailureAfterKill() throws Exception {
     ApplicationId appId = ApplicationId.newInstance(1, 2);
     ApplicationAttemptId appAttemptId =
-      ApplicationAttemptId.newInstance(appId, 0);
+        ApplicationAttemptId.newInstance(appId, 0);
     JobId jobId = MRBuilderUtils.newJobId(appId, 1);
     TaskId taskId = MRBuilderUtils.newTaskId(jobId, 1, TaskType.MAP);
     TaskAttemptId attemptId = MRBuilderUtils.newTaskAttemptId(taskId, 0);
@@ -634,7 +608,7 @@ public class TestTaskAttempt{
     jobConf.set(MRJobConfig.APPLICATION_ATTEMPT_ID, "10");
 
     TaskSplitMetaInfo splits = mock(TaskSplitMetaInfo.class);
-    when(splits.getLocations()).thenReturn(new String[] {"127.0.0.1"});
+    when(splits.getLocations()).thenReturn(new String[]{"127.0.0.1"});
 
     AppContext appCtx = mock(AppContext.class);
     ClusterInfo clusterInfo = mock(ClusterInfo.class);
@@ -643,10 +617,10 @@ public class TestTaskAttempt{
     when(resource.getMemory()).thenReturn(1024);
 
     TaskAttemptImpl taImpl =
-      new MapTaskAttemptImpl(taskId, 1, eventHandler, jobFile, 1,
-        splits, jobConf, taListener,
-        mock(Token.class), new Credentials(),
-        new SystemClock(), appCtx);
+        new MapTaskAttemptImpl(taskId, 1, eventHandler, jobFile, 1,
+            splits, jobConf, taListener,
+            mock(Token.class), new Credentials(),
+            new SystemClock(), appCtx);
 
     NodeId nid = NodeId.newInstance("127.0.0.1", 0);
     ContainerId contId = ContainerId.newContainerId(appAttemptId, 3);
@@ -656,27 +630,27 @@ public class TestTaskAttempt{
     when(container.getNodeHttpAddress()).thenReturn("localhost:0");
 
     taImpl.handle(new TaskAttemptEvent(attemptId,
-      TaskAttemptEventType.TA_SCHEDULE));
+        TaskAttemptEventType.TA_SCHEDULE));
     taImpl.handle(new TaskAttemptContainerAssignedEvent(attemptId,
-      container, mock(Map.class)));
+        container, mock(Map.class)));
     taImpl.handle(new TaskAttemptContainerLaunchedEvent(attemptId, 0));
     taImpl.handle(new TaskAttemptEvent(attemptId,
-      TaskAttemptEventType.TA_DONE));
+        TaskAttemptEventType.TA_DONE));
     taImpl.handle(new TaskAttemptEvent(attemptId,
-      TaskAttemptEventType.TA_CONTAINER_CLEANED));
+        TaskAttemptEventType.TA_CONTAINER_CLEANED));
 
     assertEquals("Task attempt is not in succeeded state", taImpl.getState(),
-      TaskAttemptState.SUCCEEDED);
+        TaskAttemptState.SUCCEEDED);
     taImpl.handle(new TaskAttemptEvent(attemptId,
-      TaskAttemptEventType.TA_KILL));
+        TaskAttemptEventType.TA_KILL));
     assertEquals("Task attempt is not in KILLED state", taImpl.getState(),
-      TaskAttemptState.KILLED);
+        TaskAttemptState.KILLED);
     taImpl.handle(new TaskAttemptEvent(attemptId,
-      TaskAttemptEventType.TA_TOO_MANY_FETCH_FAILURE));
+        TaskAttemptEventType.TA_TOO_MANY_FETCH_FAILURE));
     assertEquals("Task attempt is not in KILLED state, still", taImpl.getState(),
-      TaskAttemptState.KILLED);
+        TaskAttemptState.KILLED);
     assertFalse("InternalError occurred trying to handle TA_CONTAINER_CLEANED",
-      eventHandler.internalError);
+        eventHandler.internalError);
   }
 
   @Test
@@ -701,7 +675,7 @@ public class TestTaskAttempt{
     jobConf.set(MRJobConfig.APPLICATION_ATTEMPT_ID, "10");
 
     TaskSplitMetaInfo splits = mock(TaskSplitMetaInfo.class);
-    when(splits.getLocations()).thenReturn(new String[] { "127.0.0.1" });
+    when(splits.getLocations()).thenReturn(new String[]{"127.0.0.1"});
 
     AppContext appCtx = mock(AppContext.class);
     ClusterInfo clusterInfo = mock(ClusterInfo.class);
@@ -725,76 +699,76 @@ public class TestTaskAttempt{
         "InternalError occurred trying to handle TA_DIAGNOSTICS_UPDATE on assigned task",
         eventHandler.internalError);
   }
-    
+
   @Test
-  public void testFetchFailureAttemptFinishTime() throws Exception{
-	ApplicationId appId = ApplicationId.newInstance(1, 2);
-	ApplicationAttemptId appAttemptId =
-	ApplicationAttemptId.newInstance(appId, 0);
-	JobId jobId = MRBuilderUtils.newJobId(appId, 1);
-	TaskId taskId = MRBuilderUtils.newTaskId(jobId, 1, TaskType.MAP);
-	TaskAttemptId attemptId = MRBuilderUtils.newTaskAttemptId(taskId, 0);
-	Path jobFile = mock(Path.class);
+  public void testFetchFailureAttemptFinishTime() throws Exception {
+    ApplicationId appId = ApplicationId.newInstance(1, 2);
+    ApplicationAttemptId appAttemptId =
+        ApplicationAttemptId.newInstance(appId, 0);
+    JobId jobId = MRBuilderUtils.newJobId(appId, 1);
+    TaskId taskId = MRBuilderUtils.newTaskId(jobId, 1, TaskType.MAP);
+    TaskAttemptId attemptId = MRBuilderUtils.newTaskAttemptId(taskId, 0);
+    Path jobFile = mock(Path.class);
 
-	MockEventHandler eventHandler = new MockEventHandler();
-	TaskAttemptListener taListener = mock(TaskAttemptListener.class);
-	when(taListener.getAddress()).thenReturn(
-		new InetSocketAddress("localhost", 0));
+    MockEventHandler eventHandler = new MockEventHandler();
+    TaskAttemptListener taListener = mock(TaskAttemptListener.class);
+    when(taListener.getAddress()).thenReturn(
+        new InetSocketAddress("localhost", 0));
 
-	JobConf jobConf = new JobConf();
-	jobConf.setClass("fs.file.impl", StubbedFS.class, FileSystem.class);
-	jobConf.setBoolean("fs.file.impl.disable.cache", true);
-	jobConf.set(JobConf.MAPRED_MAP_TASK_ENV, "");
-	jobConf.set(MRJobConfig.APPLICATION_ATTEMPT_ID, "10");
+    JobConf jobConf = new JobConf();
+    jobConf.setClass("fs.file.impl", StubbedFS.class, FileSystem.class);
+    jobConf.setBoolean("fs.file.impl.disable.cache", true);
+    jobConf.set(JobConf.MAPRED_MAP_TASK_ENV, "");
+    jobConf.set(MRJobConfig.APPLICATION_ATTEMPT_ID, "10");
 
-	TaskSplitMetaInfo splits = mock(TaskSplitMetaInfo.class);
-	when(splits.getLocations()).thenReturn(new String[] {"127.0.0.1"});
+    TaskSplitMetaInfo splits = mock(TaskSplitMetaInfo.class);
+    when(splits.getLocations()).thenReturn(new String[]{"127.0.0.1"});
 
-	AppContext appCtx = mock(AppContext.class);
-	ClusterInfo clusterInfo = mock(ClusterInfo.class);
-	when(appCtx.getClusterInfo()).thenReturn(clusterInfo);
+    AppContext appCtx = mock(AppContext.class);
+    ClusterInfo clusterInfo = mock(ClusterInfo.class);
+    when(appCtx.getClusterInfo()).thenReturn(clusterInfo);
 
-	TaskAttemptImpl taImpl =
-	  new MapTaskAttemptImpl(taskId, 1, eventHandler, jobFile, 1,
-	  splits, jobConf, taListener,mock(Token.class), new Credentials(),
-	  new SystemClock(), appCtx);
+    TaskAttemptImpl taImpl =
+        new MapTaskAttemptImpl(taskId, 1, eventHandler, jobFile, 1,
+            splits, jobConf, taListener, mock(Token.class), new Credentials(),
+            new SystemClock(), appCtx);
 
-	NodeId nid = NodeId.newInstance("127.0.0.1", 0);
-	ContainerId contId = ContainerId.newContainerId(appAttemptId, 3);
-	Container container = mock(Container.class);
-	when(container.getId()).thenReturn(contId);
-	when(container.getNodeId()).thenReturn(nid);
-	when(container.getNodeHttpAddress()).thenReturn("localhost:0"); 
-	    
-	taImpl.handle(new TaskAttemptEvent(attemptId,
-	 	TaskAttemptEventType.TA_SCHEDULE));
-	taImpl.handle(new TaskAttemptContainerAssignedEvent(attemptId,
-	    container, mock(Map.class)));
-	taImpl.handle(new TaskAttemptContainerLaunchedEvent(attemptId, 0));
-	taImpl.handle(new TaskAttemptEvent(attemptId,
-	    TaskAttemptEventType.TA_DONE));
-	taImpl.handle(new TaskAttemptEvent(attemptId,
-	    TaskAttemptEventType.TA_CONTAINER_CLEANED));
-	    
-	assertEquals("Task attempt is not in succeeded state", taImpl.getState(),
-		      TaskAttemptState.SUCCEEDED);
-	
-	assertTrue("Task Attempt finish time is not greater than 0", 
-			taImpl.getFinishTime() > 0);
-	
-	Long finishTime = taImpl.getFinishTime();
-	Thread.sleep(5);   
-	taImpl.handle(new TaskAttemptEvent(attemptId,
-	   TaskAttemptEventType.TA_TOO_MANY_FETCH_FAILURE));
-	
-	assertEquals("Task attempt is not in Too Many Fetch Failure state", 
-			taImpl.getState(), TaskAttemptState.FAILED);
-	
-	assertEquals("After TA_TOO_MANY_FETCH_FAILURE,"
-		+ " Task attempt finish time is not the same ",
-		finishTime, Long.valueOf(taImpl.getFinishTime()));  
+    NodeId nid = NodeId.newInstance("127.0.0.1", 0);
+    ContainerId contId = ContainerId.newContainerId(appAttemptId, 3);
+    Container container = mock(Container.class);
+    when(container.getId()).thenReturn(contId);
+    when(container.getNodeId()).thenReturn(nid);
+    when(container.getNodeHttpAddress()).thenReturn("localhost:0");
+
+    taImpl.handle(new TaskAttemptEvent(attemptId,
+        TaskAttemptEventType.TA_SCHEDULE));
+    taImpl.handle(new TaskAttemptContainerAssignedEvent(attemptId,
+        container, mock(Map.class)));
+    taImpl.handle(new TaskAttemptContainerLaunchedEvent(attemptId, 0));
+    taImpl.handle(new TaskAttemptEvent(attemptId,
+        TaskAttemptEventType.TA_DONE));
+    taImpl.handle(new TaskAttemptEvent(attemptId,
+        TaskAttemptEventType.TA_CONTAINER_CLEANED));
+
+    assertEquals("Task attempt is not in succeeded state", taImpl.getState(),
+        TaskAttemptState.SUCCEEDED);
+
+    assertTrue("Task Attempt finish time is not greater than 0",
+        taImpl.getFinishTime() > 0);
+
+    Long finishTime = taImpl.getFinishTime();
+    Thread.sleep(5);
+    taImpl.handle(new TaskAttemptEvent(attemptId,
+        TaskAttemptEventType.TA_TOO_MANY_FETCH_FAILURE));
+
+    assertEquals("Task attempt is not in Too Many Fetch Failure state",
+        taImpl.getState(), TaskAttemptState.FAILED);
+
+    assertEquals("After TA_TOO_MANY_FETCH_FAILURE,"
+            + " Task attempt finish time is not the same ",
+        finishTime, Long.valueOf(taImpl.getFinishTime()));
   }
-  
+
   @Test
   public void testContainerKillAfterAssigned() throws Exception {
     ApplicationId appId = ApplicationId.newInstance(1, 2);
@@ -817,7 +791,7 @@ public class TestTaskAttempt{
     jobConf.set(MRJobConfig.APPLICATION_ATTEMPT_ID, "10");
 
     TaskSplitMetaInfo splits = mock(TaskSplitMetaInfo.class);
-    when(splits.getLocations()).thenReturn(new String[] { "127.0.0.1" });
+    when(splits.getLocations()).thenReturn(new String[]{"127.0.0.1"});
 
     AppContext appCtx = mock(AppContext.class);
     ClusterInfo clusterInfo = mock(ClusterInfo.class);
@@ -871,7 +845,7 @@ public class TestTaskAttempt{
     jobConf.set(MRJobConfig.APPLICATION_ATTEMPT_ID, "10");
 
     TaskSplitMetaInfo splits = mock(TaskSplitMetaInfo.class);
-    when(splits.getLocations()).thenReturn(new String[] { "127.0.0.1" });
+    when(splits.getLocations()).thenReturn(new String[]{"127.0.0.1"});
 
     AppContext appCtx = mock(AppContext.class);
     ClusterInfo clusterInfo = mock(ClusterInfo.class);
@@ -928,7 +902,7 @@ public class TestTaskAttempt{
     jobConf.set(MRJobConfig.APPLICATION_ATTEMPT_ID, "10");
 
     TaskSplitMetaInfo splits = mock(TaskSplitMetaInfo.class);
-    when(splits.getLocations()).thenReturn(new String[] { "127.0.0.1" });
+    when(splits.getLocations()).thenReturn(new String[]{"127.0.0.1"});
 
     AppContext appCtx = mock(AppContext.class);
     ClusterInfo clusterInfo = mock(ClusterInfo.class);
@@ -980,5 +954,7 @@ public class TestTaskAttempt{
       }
     }
 
-  };
+  }
+
+  ;
 }

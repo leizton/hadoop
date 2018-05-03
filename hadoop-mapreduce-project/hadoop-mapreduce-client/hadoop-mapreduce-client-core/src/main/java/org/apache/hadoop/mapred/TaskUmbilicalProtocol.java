@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,32 +18,31 @@
 
 package org.apache.hadoop.mapred;
 
-import java.io.IOException;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.ipc.VersionedProtocol;
-import org.apache.hadoop.mapred.JvmTask;
 import org.apache.hadoop.mapreduce.security.token.JobTokenSelector;
 import org.apache.hadoop.security.token.TokenInfo;
+
+import java.io.IOException;
 
 /** Protocol that task child process uses to contact its parent process.  The
  * parent is a daemon which which polls the central master for a new map or
  * reduce task and runs it as a child process.  All communication between child
- * and parent is via this protocol. */ 
+ * and parent is via this protocol. */
 @TokenInfo(JobTokenSelector.class)
 @InterfaceAudience.Private
 @InterfaceStability.Stable
 public interface TaskUmbilicalProtocol extends VersionedProtocol {
 
-  /** 
+  /**
    * Changed the version to 2, since we have a new method getMapOutputs 
    * Changed version to 3 to have progress() return a boolean
    * Changed the version to 4, since we have replaced 
    *         TaskUmbilicalProtocol.progress(String, float, String, 
    *         org.apache.hadoop.mapred.TaskStatus.Phase, Counters) 
    *         with statusUpdate(String, TaskStatus)
-   * 
+   *
    * Version 5 changed counters representation for HADOOP-2248
    * Version 6 changes the TaskStatus representation for HADOOP-2208
    * Version 7 changes the done api (via HADOOP-3140). It now expects whether
@@ -67,43 +66,43 @@ public interface TaskUmbilicalProtocol extends VersionedProtocol {
    * */
 
   public static final long versionID = 19L;
-  
+
   /**
    * Called when a child task process starts, to get its task.
    * @param context the JvmContext of the JVM w.r.t the TaskTracker that
    *  launched it
    * @return Task object
-   * @throws IOException 
+   * @throws IOException
    */
   JvmTask getTask(JvmContext context) throws IOException;
-  
+
   /**
    * Report child's progress to parent.
-   * 
+   *
    * @param taskId task-id of the child
    * @param taskStatus status of the child
    * @throws IOException
    * @throws InterruptedException
    * @return True if the task is known
    */
-  boolean statusUpdate(TaskAttemptID taskId, TaskStatus taskStatus) 
-  throws IOException, InterruptedException;
-  
+  boolean statusUpdate(TaskAttemptID taskId, TaskStatus taskStatus)
+      throws IOException, InterruptedException;
+
   /** Report error messages back to parent.  Calls should be sparing, since all
    *  such messages are held in the job tracker.
    *  @param taskid the id of the task involved
    *  @param trace the text to report
    */
   void reportDiagnosticInfo(TaskAttemptID taskid, String trace) throws IOException;
-  
+
   /**
    * Report the record range which is going to process next by the Task.
    * @param taskid the id of the task involved
    * @param range the range of record sequence nos
    * @throws IOException
    */
-  void reportNextRecordRange(TaskAttemptID taskid, SortedRanges.Range range) 
-    throws IOException;
+  void reportNextRecordRange(TaskAttemptID taskid, SortedRanges.Range range)
+      throws IOException;
 
   /** Periodically called by child to check if parent is still alive. 
    * @return True if the task is known
@@ -115,16 +114,16 @@ public interface TaskUmbilicalProtocol extends VersionedProtocol {
    * @param taskid task's id
    */
   void done(TaskAttemptID taskid) throws IOException;
-  
-  /** 
+
+  /**
    * Report that the task is complete, but its commit is pending.
-   * 
+   *
    * @param taskId task's id
    * @param taskStatus status of the child
    * @throws IOException
    */
-  void commitPending(TaskAttemptID taskId, TaskStatus taskStatus) 
-  throws IOException, InterruptedException;  
+  void commitPending(TaskAttemptID taskId, TaskStatus taskStatus)
+      throws IOException, InterruptedException;
 
   /**
    * Polling to know whether the task can go-ahead with commit 
@@ -136,13 +135,13 @@ public interface TaskUmbilicalProtocol extends VersionedProtocol {
 
   /** Report that a reduce-task couldn't shuffle map-outputs.*/
   void shuffleError(TaskAttemptID taskId, String message) throws IOException;
-  
+
   /** Report that the task encounted a local filesystem error.*/
   void fsError(TaskAttemptID taskId, String message) throws IOException;
 
   /** Report that the task encounted a fatal error.*/
   void fatalError(TaskAttemptID taskId, String message) throws IOException;
-  
+
   /** Called by a reduce task to get the map output locations for finished maps.
    * Returns an update centered around the map-task-completion-events. 
    * The update also piggybacks the information whether the events copy at the 
@@ -155,10 +154,10 @@ public interface TaskUmbilicalProtocol extends VersionedProtocol {
    * @param id The attempt id of the task that is trying to communicate
    * @return A {@link MapTaskCompletionEventsUpdate} 
    */
-  MapTaskCompletionEventsUpdate getMapCompletionEvents(JobID jobId, 
-                                                       int fromIndex, 
+  MapTaskCompletionEventsUpdate getMapCompletionEvents(JobID jobId,
+                                                       int fromIndex,
                                                        int maxLocs,
-                                                       TaskAttemptID id) 
-  throws IOException;
+                                                       TaskAttemptID id)
+      throws IOException;
 
 }

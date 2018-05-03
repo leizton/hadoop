@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -43,7 +43,7 @@ public class TestFileOutputFormat extends HadoopTestCase {
     // Hack for local FS that does not have the concept of a 'mounting point'
     if (isLocalFS()) {
       String localPathRoot = System.getProperty("test.build.data", "/tmp")
-        .replace(' ', '+');
+          .replace(' ', '+');
       inDir = new Path(localPathRoot, inDir);
       outDir = new Path(localPathRoot, outDir);
     }
@@ -106,17 +106,16 @@ public class TestFileOutputFormat extends HadoopTestCase {
   }
 
   public static class TestMap implements Mapper<LongWritable, Text,
-    LongWritable, Text> {
+      LongWritable, Text> {
 
     public void configure(JobConf conf) {
       try {
         FileSystem fs = FileSystem.get(conf);
         OutputStream os =
-          fs.create(FileOutputFormat.getPathForCustomFile(conf, "test"));
+            fs.create(FileOutputFormat.getPathForCustomFile(conf, "test"));
         os.write(1);
         os.close();
-      }
-      catch (IOException ex) {
+      } catch (IOException ex) {
         throw new RuntimeException(ex);
       }
     }
@@ -132,17 +131,16 @@ public class TestFileOutputFormat extends HadoopTestCase {
   }
 
   public static class TestReduce implements Reducer<LongWritable, Text,
-    LongWritable, Text> {
+      LongWritable, Text> {
 
     public void configure(JobConf conf) {
       try {
         FileSystem fs = FileSystem.get(conf);
         OutputStream os =
-          fs.create(FileOutputFormat.getPathForCustomFile(conf, "test"));
+            fs.create(FileOutputFormat.getPathForCustomFile(conf, "test"));
         os.write(1);
         os.close();
-      }
-      catch (IOException ex) {
+      } catch (IOException ex) {
         throw new RuntimeException(ex);
       }
     }

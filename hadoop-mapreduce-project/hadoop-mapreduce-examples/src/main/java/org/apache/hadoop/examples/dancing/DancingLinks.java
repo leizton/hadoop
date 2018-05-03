@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,27 +17,28 @@
  */
 package org.apache.hadoop.examples.dancing;
 
-import java.util.*;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A generic solver for tile laying problems using Knuth's dancing link
  * algorithm. It provides a very fast backtracking data structure for problems
  * that can expressed as a sparse boolean matrix where the goal is to select a
  * subset of the rows such that each column has exactly 1 true in it.
- * 
+ *
  * The application gives each column a name and each row is named after the
  * set of columns that it has as true. Solutions are passed back by giving the 
  * selected rows' names.
- * 
+ *
  * The type parameter ColumnName is the class of application's column names.
  */
 public class DancingLinks<ColumnName> {
-  private static final Log LOG = 
-    LogFactory.getLog(DancingLinks.class.getName());
-  
+  private static final Log LOG =
+      LogFactory.getLog(DancingLinks.class.getName());
+
   /**
    * A cell in the table with up/down and left/right links that form doubly
    * linked lists in both directions. It also includes a link to the column
@@ -49,8 +50,8 @@ public class DancingLinks<ColumnName> {
     Node<ColumnName> up;
     Node<ColumnName> down;
     ColumnHeader<ColumnName> head;
-    
-    Node(Node<ColumnName> l, Node<ColumnName> r, Node<ColumnName> u, 
+
+    Node(Node<ColumnName> l, Node<ColumnName> r, Node<ColumnName> u,
          Node<ColumnName> d, ColumnHeader<ColumnName> h) {
       left = l;
       right = r;
@@ -58,12 +59,12 @@ public class DancingLinks<ColumnName> {
       down = d;
       head = h;
     }
-    
+
     Node() {
       this(null, null, null, null, null);
     }
   }
-  
+
   /**
    * Column headers record the name of the column and the number of rows that 
    * satisfy this column. The names are provided by the application and can 
@@ -73,29 +74,29 @@ public class DancingLinks<ColumnName> {
   private static class ColumnHeader<ColumnName> extends Node<ColumnName> {
     ColumnName name;
     int size;
-    
+
     ColumnHeader(ColumnName n, int s) {
       name = n;
       size = s;
       head = this;
     }
-    
+
     ColumnHeader() {
       this(null, 0);
     }
   }
-  
+
   /**
    * The head of the table. Left/Right from the head are the unsatisfied 
    * ColumnHeader objects.
    */
   private ColumnHeader<ColumnName> head;
-  
+
   /**
    * The complete list of columns.
    */
   private List<ColumnHeader<ColumnName>> columns;
-  
+
   public DancingLinks() {
     head = new ColumnHeader<ColumnName>(null, 0);
     head.left = head;
@@ -104,7 +105,7 @@ public class DancingLinks<ColumnName> {
     head.down = head;
     columns = new ArrayList<ColumnHeader<ColumnName>>(200);
   }
-  
+
   /**
    * Add a column to the table
    * @param name The name of the column, which will be returned as part of 
@@ -127,7 +128,7 @@ public class DancingLinks<ColumnName> {
     }
     columns.add(top);
   }
-  
+
   /**
    * Add a column to the table
    * @param name The name of the column, which will be included in the solution
@@ -135,7 +136,7 @@ public class DancingLinks<ColumnName> {
   public void addColumn(ColumnName name) {
     addColumn(name, true);
   }
-  
+
   /**
    * Get the number of columns.
    * @return the number of columns
@@ -143,7 +144,7 @@ public class DancingLinks<ColumnName> {
   public int getNumberColumns() {
     return columns.size();
   }
-  
+
   /**
    * Get the name of a given column as a string
    * @param index the index of the column
@@ -152,20 +153,20 @@ public class DancingLinks<ColumnName> {
   public String getColumnName(int index) {
     return columns.get(index).name.toString();
   }
-  
+
   /**
    * Add a row to the table. 
    * @param values the columns that are satisfied by this row
    */
   public void addRow(boolean[] values) {
     Node<ColumnName> prev = null;
-    for(int i=0; i < values.length; ++i) {
+    for (int i = 0; i < values.length; ++i) {
       if (values[i]) {
         ColumnHeader<ColumnName> top = columns.get(i);
         top.size += 1;
         Node<ColumnName> bottom = top.up;
-        Node<ColumnName> node = new Node<ColumnName>(null, null, bottom, 
-                                                     top, top);
+        Node<ColumnName> node = new Node<ColumnName>(null, null, bottom,
+            top, top);
         bottom.down = node;
         top.up = node;
         if (prev != null) {
@@ -182,7 +183,7 @@ public class DancingLinks<ColumnName> {
       }
     }
   }
-  
+
   /**
    * Applications should implement this to receive the solutions to their 
    * problems.
@@ -195,7 +196,7 @@ public class DancingLinks<ColumnName> {
      */
     void solution(List<List<ColumnName>> value);
   }
-  
+
   /**
    * Find the column with the fewest choices.
    * @return The column header
@@ -213,7 +214,7 @@ public class DancingLinks<ColumnName> {
     }
     return result;
   }
-  
+
   /**
    * Hide a column in the table
    * @param col the column to hide
@@ -235,7 +236,7 @@ public class DancingLinks<ColumnName> {
       row = row.down;
     }
   }
-  
+
   /**
    * Uncover a column that was hidden.
    * @param col the column to unhide
@@ -256,7 +257,7 @@ public class DancingLinks<ColumnName> {
     col.right.left = col;
     col.left.right = col;
   }
-  
+
   /**
    * Get the name of a row by getting the list of column names that it 
    * satisfies.
@@ -273,7 +274,7 @@ public class DancingLinks<ColumnName> {
     }
     return result;
   }
-  
+
   /**
    * Find a solution to the problem.
    * @param partial a temporary datastructure to keep the current partial 
@@ -285,7 +286,7 @@ public class DancingLinks<ColumnName> {
     int results = 0;
     if (head.right == head) {
       List<List<ColumnName>> result = new ArrayList<List<ColumnName>>(partial.size());
-      for(Node<ColumnName> row: partial) {
+      for (Node<ColumnName> row : partial) {
         result.add(getRowName(row));
       }
       output.solution(result);
@@ -316,7 +317,7 @@ public class DancingLinks<ColumnName> {
     }
     return results;
   }
-  
+
   /**
    * Generate a list of prefixes down to a given depth. Assumes that the 
    * problem is always deeper than depth.
@@ -324,7 +325,7 @@ public class DancingLinks<ColumnName> {
    * @param choices an array of length depth to describe a prefix
    * @param prefixes a working datastructure
    */
-  private void searchPrefixes(int depth, int[] choices, 
+  private void searchPrefixes(int depth, int[] choices,
                               List<int[]> prefixes) {
     if (depth == 0) {
       prefixes.add(choices.clone());
@@ -354,7 +355,7 @@ public class DancingLinks<ColumnName> {
       }
     }
   }
-  
+
   /**
    * Generate a list of row choices to cover the first moves.
    * @param depth the length of the prefixes to generate
@@ -393,7 +394,7 @@ public class DancingLinks<ColumnName> {
     }
     return null;
   }
-  
+
   /**
    * Undo a prefix exploration
    * @param row
@@ -406,7 +407,7 @@ public class DancingLinks<ColumnName> {
     }
     uncoverColumn(row.head);
   }
-  
+
   /**
    * Given a prefix, find solutions under it.
    * @param prefix a list of row choices that control which part of the search
@@ -416,16 +417,16 @@ public class DancingLinks<ColumnName> {
    */
   public int solve(int[] prefix, SolutionAcceptor<ColumnName> output) {
     List<Node<ColumnName>> choices = new ArrayList<Node<ColumnName>>();
-    for(int i=0; i < prefix.length; ++i) {
+    for (int i = 0; i < prefix.length; ++i) {
       choices.add(advance(prefix[i]));
     }
     int result = search(choices, output);
-    for(int i=prefix.length-1; i >=0; --i) {
+    for (int i = prefix.length - 1; i >= 0; --i) {
       rollback(choices.get(i));
     }
     return result;
   }
-  
+
   /**
    * Solve a complete problem
    * @param output the acceptor to receive answers
@@ -434,5 +435,5 @@ public class DancingLinks<ColumnName> {
   public int solve(SolutionAcceptor<ColumnName> output) {
     return search(new ArrayList<Node<ColumnName>>(), output);
   }
-  
+
 }

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,17 +18,17 @@
 
 package org.apache.hadoop.mapred.join;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-import java.util.HashSet;
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.mapred.InputSplit;
 import org.apache.hadoop.util.ReflectionUtils;
+
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+import java.util.HashSet;
 
 /**
  * This InputSplit contains a set of child InputSplits. Any InputSplit inserted
@@ -42,7 +42,8 @@ public class CompositeInputSplit implements InputSplit {
   private long totsize = 0L;
   private InputSplit[] splits;
 
-  public CompositeInputSplit() { }
+  public CompositeInputSplit() {
+  }
 
   public CompositeInputSplit(int capacity) {
     splits = new InputSplit[capacity];
@@ -139,14 +140,14 @@ public class CompositeInputSplit implements InputSplit {
     try {
       for (int i = 0; i < card; ++i) {
         cls[i] =
-          Class.forName(Text.readString(in)).asSubclass(InputSplit.class);
+            Class.forName(Text.readString(in)).asSubclass(InputSplit.class);
       }
       for (int i = 0; i < card; ++i) {
         splits[i] = ReflectionUtils.newInstance(cls[i], null);
         splits[i].readFields(in);
       }
     } catch (ClassNotFoundException e) {
-      throw (IOException)new IOException("Failed split init").initCause(e);
+      throw (IOException) new IOException("Failed split init").initCause(e);
     }
   }
 

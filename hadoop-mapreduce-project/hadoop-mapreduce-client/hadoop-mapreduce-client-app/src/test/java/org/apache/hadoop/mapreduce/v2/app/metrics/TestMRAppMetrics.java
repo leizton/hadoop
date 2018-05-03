@@ -17,26 +17,26 @@
  */
 package org.apache.hadoop.mapreduce.v2.app.metrics;
 
-import org.apache.hadoop.mapreduce.v2.app.job.Job;
 import org.apache.hadoop.mapreduce.v2.api.records.TaskType;
+import org.apache.hadoop.mapreduce.v2.app.job.Job;
 import org.apache.hadoop.mapreduce.v2.app.job.Task;
 import org.apache.hadoop.metrics2.MetricsRecordBuilder;
-
-import static org.apache.hadoop.test.MetricsAsserts.*;
-import static org.apache.hadoop.test.MockitoMaker.*;
-
 import org.junit.Test;
 
-import static org.mockito.Mockito.*;
+import static org.apache.hadoop.test.MetricsAsserts.*;
+import static org.apache.hadoop.test.MockitoMaker.make;
+import static org.apache.hadoop.test.MockitoMaker.stub;
+import static org.mockito.Mockito.mock;
 
 public class TestMRAppMetrics {
 
-  @Test public void testNames() {
+  @Test
+  public void testNames() {
     Job job = mock(Job.class);
     Task mapTask = make(stub(Task.class).returning(TaskType.MAP).
-                        from.getType());
+        from.getType());
     Task reduceTask = make(stub(Task.class).returning(TaskType.REDUCE).
-                           from.getType());
+        from.getType());
     MRAppMetrics metrics = MRAppMetrics.create();
 
     metrics.submittedJob(job);
@@ -86,16 +86,16 @@ public class TestMRAppMetrics {
     metrics.completedJob(job);
 
     checkMetrics(/*job*/3, 1, 1, 1, 0, 0,
-                 /*map*/3, 1, 1, 1, 0, 0,
-                 /*reduce*/1, 1, 0, 0, 0, 0);
+        /*map*/3, 1, 1, 1, 0, 0,
+        /*reduce*/1, 1, 0, 0, 0, 0);
   }
 
   private void checkMetrics(int jobsSubmitted, int jobsCompleted,
-      int jobsFailed, int jobsKilled, int jobsPreparing, int jobsRunning,
-      int mapsLaunched, int mapsCompleted, int mapsFailed, int mapsKilled,
-      int mapsRunning, int mapsWaiting, int reducesLaunched,
-      int reducesCompleted, int reducesFailed, int reducesKilled,
-      int reducesRunning, int reducesWaiting) {
+                            int jobsFailed, int jobsKilled, int jobsPreparing, int jobsRunning,
+                            int mapsLaunched, int mapsCompleted, int mapsFailed, int mapsKilled,
+                            int mapsRunning, int mapsWaiting, int reducesLaunched,
+                            int reducesCompleted, int reducesFailed, int reducesKilled,
+                            int reducesRunning, int reducesWaiting) {
     MetricsRecordBuilder rb = getMetrics("MRAppMetrics");
     assertCounter("JobsSubmitted", jobsSubmitted, rb);
     assertCounter("JobsCompleted", jobsCompleted, rb);

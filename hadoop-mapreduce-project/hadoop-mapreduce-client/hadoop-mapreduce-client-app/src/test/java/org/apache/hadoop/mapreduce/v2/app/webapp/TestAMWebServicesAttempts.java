@@ -1,5 +1,5 @@
 /**
-/**
+ * /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -7,9 +7,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,19 +19,17 @@
 
 package org.apache.hadoop.mapreduce.v2.app.webapp;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.io.StringReader;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.core.MediaType;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.servlet.GuiceServletContextListener;
+import com.google.inject.servlet.ServletModule;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.ClientResponse.Status;
+import com.sun.jersey.api.client.UniformInterfaceException;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
+import com.sun.jersey.test.framework.JerseyTest;
+import com.sun.jersey.test.framework.WebAppDescriptor;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.v2.api.records.JobId;
 import org.apache.hadoop.mapreduce.v2.api.records.TaskAttemptId;
@@ -55,17 +53,14 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.servlet.GuiceServletContextListener;
-import com.google.inject.servlet.ServletModule;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.ClientResponse.Status;
-import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
-import com.sun.jersey.test.framework.JerseyTest;
-import com.sun.jersey.test.framework.WebAppDescriptor;
+import javax.ws.rs.core.MediaType;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.StringReader;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.*;
 
 /**
  * Test the app master web service Rest API for getting task attempts, a
@@ -399,7 +394,7 @@ public class TestAMWebServicesAttempts extends JerseyTest {
   }
 
   public void verifyAMTaskAttemptXML(Element element, TaskAttempt att,
-      TaskType ttype) {
+                                     TaskType ttype) {
     verifyTaskAttemptGeneric(att, ttype,
         WebServicesTestUtils.getXmlString(element, "id"),
         WebServicesTestUtils.getXmlString(element, "state"),
@@ -424,7 +419,7 @@ public class TestAMWebServicesAttempts extends JerseyTest {
   }
 
   public void verifyAMTaskAttempt(JSONObject info, TaskAttempt att,
-      TaskType ttype) throws JSONException {
+                                  TaskType ttype) throws JSONException {
     if (ttype == TaskType.REDUCE) {
       assertEquals("incorrect number of elements", 17, info.length());
     } else {
@@ -488,9 +483,9 @@ public class TestAMWebServicesAttempts extends JerseyTest {
   }
 
   public void verifyTaskAttemptGeneric(TaskAttempt ta, TaskType ttype,
-      String id, String state, String type, String rack,
-      String nodeHttpAddress, String diagnostics, String assignedContainerId,
-      long startTime, long finishTime, long elapsedTime, float progress) {
+                                       String id, String state, String type, String rack,
+                                       String nodeHttpAddress, String diagnostics, String assignedContainerId,
+                                       long startTime, long finishTime, long elapsedTime, float progress) {
 
     TaskAttemptId attid = ta.getID();
     String attemptId = MRApps.toString(attid);
@@ -525,8 +520,8 @@ public class TestAMWebServicesAttempts extends JerseyTest {
   }
 
   public void verifyReduceTaskAttemptGeneric(TaskAttempt ta,
-      long shuffleFinishTime, long mergeFinishTime, long elapsedShuffleTime,
-      long elapsedMergeTime, long elapsedReduceTime) {
+                                             long shuffleFinishTime, long mergeFinishTime, long elapsedShuffleTime,
+                                             long elapsedMergeTime, long elapsedReduceTime) {
 
     assertEquals("shuffleFinishTime wrong", ta.getShuffleFinishTime(),
         shuffleFinishTime);
