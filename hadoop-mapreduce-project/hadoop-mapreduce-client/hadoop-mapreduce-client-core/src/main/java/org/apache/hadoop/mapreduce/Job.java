@@ -998,6 +998,7 @@ public class Job extends JobContextImpl implements JobContext {
    * @throws IllegalStateException if the job is submitted
    * @see #setCombinerKeyGroupingComparatorClass(Class)
    */
+  //= 实际是设置 outputValueGroupingComparator
   public void setGroupingComparatorClass(Class<? extends RawComparator> cls
   ) throws IllegalStateException {
     ensureState(JobState.DEFINE);

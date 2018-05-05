@@ -970,6 +970,7 @@ public class JobConf extends Configuration {
    * @return comparator set by the user for grouping values.
    * @see #setOutputValueGroupingComparator(Class) for details.
    */
+  //= 提供给reduceTask获取outputValueGroupingComparator
   public RawComparator getOutputValueGroupingComparator() {
     Class<? extends RawComparator> theClass = getClass(
         JobContext.GROUP_COMPARATOR_CLASS, null, RawComparator.class);

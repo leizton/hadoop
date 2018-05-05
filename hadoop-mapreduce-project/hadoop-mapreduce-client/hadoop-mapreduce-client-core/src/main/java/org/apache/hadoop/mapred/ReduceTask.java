@@ -46,7 +46,9 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.util.*;
 
-/** A Reduce task. */
+/**
+ * A Reduce task.
+ */
 @InterfaceAudience.Private
 @InterfaceStability.Unstable
 public class ReduceTask extends Task {
@@ -133,7 +135,7 @@ public class ReduceTask extends Task {
   /**
    * Register the set of mapper outputs created by a LocalJobRunner-based
    * job with this ReduceTask so it knows where to fetch from.
-   *
+   * <p>
    * This should not be called in normal (networked) execution.
    */
   public void setLocalMapFiles(Map<TaskAttemptID, MapOutputFile> mapFiles) {
@@ -195,7 +197,7 @@ public class ReduceTask extends Task {
   private class ReduceValuesIterator<KEY, VALUE>
       extends ValuesIterator<KEY, VALUE> {
     public ReduceValuesIterator(RawKeyValueIterator in,
-                                RawComparator<KEY> comparator,
+                                RawComparator<KEY> comparator,  //= comparator是outputValueGroupingComparator
                                 Class<KEY> keyClass,
                                 Class<VALUE> valClass,
                                 Configuration conf, Progressable reporter)
@@ -434,7 +436,10 @@ public class ReduceTask extends Task {
       values.informReduceProgress();
       while (values.more()) {
         reduceInputKeyCounter.increment(1);
+
+        //= 调用reduce()函数
         reducer.reduce(values.getKey(), values, collector, reporter);
+
         if (incrProcCount) {
           reporter.incrCounter(SkipBadRecords.COUNTER_GROUP,
               SkipBadRecords.COUNTER_REDUCE_PROCESSED_GROUPS, 1);
