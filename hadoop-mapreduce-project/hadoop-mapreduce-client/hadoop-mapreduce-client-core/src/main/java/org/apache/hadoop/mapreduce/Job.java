@@ -845,6 +845,7 @@ public class Job extends JobContextImpl implements JobContext {
   public void setMapperClass(Class<? extends Mapper> cls
   ) throws IllegalStateException {
     ensureState(JobState.DEFINE);
+    //= mapper setting实际是设置到conf上
     conf.setClass(MAP_CLASS_ATTR, cls, Mapper.class);
   }
 
@@ -1225,39 +1226,40 @@ public class Job extends JobContextImpl implements JobContext {
     conf.setBooleanIfUnset("mapred.mapper.new-api",
         conf.get(oldMapperClass) == null);
     if (conf.getUseNewMapper()) {
-      String mode = "new map API";
-      ensureNotSet("mapred.input.format.class", mode);
-      ensureNotSet(oldMapperClass, mode);
+      String errorMsg = "new map API";
+      ensureNotSet("mapred.input.format.class", errorMsg);
+      ensureNotSet(oldMapperClass, errorMsg);
       if (numReduces != 0) {
-        ensureNotSet("mapred.partitioner.class", mode);
+        ensureNotSet("mapred.partitioner.class", errorMsg);
       } else {
-        ensureNotSet("mapred.output.format.class", mode);
+        ensureNotSet("mapred.output.format.class", errorMsg);
       }
     } else {
-      String mode = "map compatability";
-      ensureNotSet(INPUT_FORMAT_CLASS_ATTR, mode);
-      ensureNotSet(MAP_CLASS_ATTR, mode);
+      String errorMsg = "map compatability";
+      ensureNotSet(INPUT_FORMAT_CLASS_ATTR, errorMsg);
+      ensureNotSet(MAP_CLASS_ATTR, errorMsg);
       if (numReduces != 0) {
-        ensureNotSet(PARTITIONER_CLASS_ATTR, mode);
+        ensureNotSet(PARTITIONER_CLASS_ATTR, errorMsg);
       } else {
-        ensureNotSet(OUTPUT_FORMAT_CLASS_ATTR, mode);
+        ensureNotSet(OUTPUT_FORMAT_CLASS_ATTR, errorMsg);
       }
     }
     if (numReduces != 0) {
       conf.setBooleanIfUnset("mapred.reducer.new-api",
           conf.get(oldReduceClass) == null);
       if (conf.getUseNewReducer()) {
-        String mode = "new reduce API";
-        ensureNotSet("mapred.output.format.class", mode);
-        ensureNotSet(oldReduceClass, mode);
+        String errorMsg = "new reduce API";
+        ensureNotSet("mapred.output.format.class", errorMsg);
+        ensureNotSet(oldReduceClass, errorMsg);
       } else {
-        String mode = "reduce compatability";
-        ensureNotSet(OUTPUT_FORMAT_CLASS_ATTR, mode);
-        ensureNotSet(REDUCE_CLASS_ATTR, mode);
+        String errorMsg = "reduce compatability";
+        ensureNotSet(OUTPUT_FORMAT_CLASS_ATTR, errorMsg);
+        ensureNotSet(REDUCE_CLASS_ATTR, errorMsg);
       }
     }
   }
 
+  //= 初始化 #cluster
   private synchronized void connect()
       throws IOException, InterruptedException, ClassNotFoundException {
     if (cluster == null) {
