@@ -221,7 +221,7 @@ public abstract class FileInputFormat<K, V> extends InputFormat<K, V> {
    */
   protected List<FileStatus> listStatus(JobContext job
   ) throws IOException {
-    Path[] dirs = getInputPaths(job);
+    Path[] dirs = getInputPaths(job);  //= 读配置, mapreduce.input.fileinputformat.inputdir
     if (dirs.length == 0) {
       throw new IOException("No input paths specified in job");
     }
@@ -245,8 +245,10 @@ public abstract class FileInputFormat<K, V> extends InputFormat<K, V> {
 
     List<FileStatus> result = null;
 
+    //= 用几个线程获取List<FileStatus>
     int numThreads = job.getConfiguration().getInt(LIST_STATUS_NUM_THREADS,
         DEFAULT_LIST_STATUS_NUM_THREADS);
+
     Stopwatch sw = new Stopwatch().start();
     if (numThreads == 1) {
       result = singleThreadedListStatus(job, dirs, inputFilter, recursive);
