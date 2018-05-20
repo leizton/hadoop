@@ -872,8 +872,8 @@ public class MapTask extends Task {
     private static final int KEYSTART = 1;         // key offset in acct
     private static final int PARTITION = 2;        // partition offset in acct
     private static final int VALLEN = 3;           // length of value
-    private static final int NMETA = 4;            // num meta ints
-    private static final int METASIZE = NMETA * 4; // size in bytes
+    private static final int NMETA = 4;            // 一个kvmeta包含int的个数
+    private static final int METASIZE = NMETA * 4; // 一个kvmeta的字节数
 
     // spill accounting
     private int maxRec;
@@ -928,6 +928,8 @@ public class MapTask extends Task {
       //sanity checks
       final float spillper =
           job.getFloat(JobContext.MAP_SORT_SPILL_PERCENT, (float) 0.8);
+
+      //= 获取 io.sort.mb 大小
       final int sortmb = job.getInt(JobContext.IO_SORT_MB, 100);
       indexCacheMemoryLimit = job.getInt(JobContext.INDEX_CACHE_MEMORY_LIMIT,
           INDEX_CACHE_MEMORY_LIMIT_DEFAULT);
@@ -935,23 +937,28 @@ public class MapTask extends Task {
         throw new IOException("Invalid \"" + JobContext.MAP_SORT_SPILL_PERCENT +
             "\": " + spillper);
       }
-      if ((sortmb & 0x7FF) != sortmb) {
+      if ((sortmb & 0x7FF) != sortmb) {  //= 不能超过0x7ff(2047)
         throw new IOException(
             "Invalid \"" + JobContext.IO_SORT_MB + "\": " + sortmb);
       }
+
       sorter = ReflectionUtils.newInstance(job.getClass("map.sort.class",
           QuickSort.class, IndexedSorter.class), job);
+
       // buffers and accounting
       int maxMemUsage = sortmb << 20;
       maxMemUsage -= maxMemUsage % METASIZE;
       kvbuffer = new byte[maxMemUsage];
       bufvoid = kvbuffer.length;
-      kvmeta = ByteBuffer.wrap(kvbuffer)
-          .order(ByteOrder.nativeOrder())
-          .asIntBuffer();
+      kvmeta = ByteBuffer.wrap(kvbuffer).order(ByteOrder.nativeOrder()).asIntBuffer();
+
+      /*
+      equator = 0
+      kvindex = (kvbuffer.length - METASIZE) / 4
+      */
       setEquator(0);
-      bufstart = bufend = bufindex = equator;
-      kvstart = kvend = kvindex;
+      bufstart = bufend = bufindex = equator;  //= init: 0
+      kvstart = kvend = kvindex;  //= init: (kvbuffer.length - 一个kvmeta大小) / sizeof(int)
 
       maxRec = kvmeta.capacity() / NMETA;
       softLimit = (int) (kvbuffer.length * spillper);
@@ -1026,6 +1033,7 @@ public class MapTask extends Task {
      * When this method returns, kvindex must refer to sufficient unused
      * storage to store one METADATA.
      */
+    //= mapper context write 的实际逻辑
     public synchronized void collect(K key, V value, final int partition
     ) throws IOException {
       reporter.progress();
@@ -1044,68 +1052,22 @@ public class MapTask extends Task {
             partition + ")");
       }
       checkSpillException();
+
       bufferRemaining -= METASIZE;
       if (bufferRemaining <= 0) {
-        // start spill if the thread is not running and the soft limit has been
-        // reached
         spillLock.lock();
         try {
-          do {
-            if (!spillInProgress) {
-              final int kvbidx = 4 * kvindex;
-              final int kvbend = 4 * kvend;
-              // serialized, unspilled bytes always lie between kvindex and
-              // bufindex, crossing the equator. Note that any void space
-              // created by a reset must be included in "used" bytes
-              final int bUsed = distanceTo(kvbidx, bufindex);
-              final boolean bufsoftlimit = bUsed >= softLimit;
-              if ((kvbend + METASIZE) % kvbuffer.length !=
-                  equator - (equator % METASIZE)) {
-                // spill finished, reclaim space
-                resetSpill();
-                bufferRemaining = Math.min(
-                    distanceTo(bufindex, kvbidx) - 2 * METASIZE,
-                    softLimit - bUsed) - METASIZE;
-                continue;
-              } else if (bufsoftlimit && kvindex != kvend) {
-                // spill records, if any collected; check latter, as it may
-                // be possible for metadata alignment to hit spill pcnt
-                startSpill();
-                final int avgRec = (int)
-                    (mapOutputByteCounter.getCounter() /
-                        mapOutputRecordCounter.getCounter());
-                // leave at least half the split buffer for serialization data
-                // ensure that kvindex >= bufindex
-                final int distkvi = distanceTo(bufindex, kvbidx);
-                final int newPos = (bufindex +
-                    Math.max(2 * METASIZE - 1,
-                        Math.min(distkvi / 2,
-                            distkvi / (METASIZE + avgRec) * METASIZE)))
-                    % kvbuffer.length;
-                setEquator(newPos);
-                bufmark = bufindex = newPos;
-                final int serBound = 4 * kvend;
-                // bytes remaining before the lock must be held and limits
-                // checked is the minimum of three arcs: the metadata space, the
-                // serialization space, and the soft limit
-                bufferRemaining = Math.min(
-                    // metadata max
-                    distanceTo(bufend, newPos),
-                    Math.min(
-                        // serialization max
-                        distanceTo(newPos, serBound),
-                        // soft limit
-                        softLimit)) - 2 * METASIZE;
-              }
-            }
-          } while (false);
+          tryStartSpill();
         } finally {
           spillLock.unlock();
         }
       }
 
       try {
-        // serialize key bytes into buffer
+        //= 把key写到buffer
+        //= keySerializer.serialize(key) => key.write(dataOut) => #Buffer.write(byte[])
+        //= keySerializer: WritableSerialization.WritableSerializer
+        //= dataOut: #bb:#BlockingBuffer
         int keystart = bufindex;
         keySerializer.serialize(key);
         if (bufindex < keystart) {
@@ -1113,37 +1075,79 @@ public class MapTask extends Task {
           bb.shiftBufferedKey();
           keystart = 0;
         }
-        // serialize value bytes into buffer
+
+        //= 把key写到buffer
         final int valstart = bufindex;
         valSerializer.serialize(value);
-        // It's possible for records to have zero length, i.e. the serializer
-        // will perform no writes. To ensure that the boundary conditions are
-        // checked and that the kvindex invariant is maintained, perform a
-        // zero-length write into the buffer. The logic monitoring this could be
-        // moved into collect, but this is cleaner and inexpensive. For now, it
-        // is acceptable.
         bb.write(b0, 0, 0);
-
-        // the record must be marked after the preceding write, as the metadata
-        // for this record are not yet written
-        int valend = bb.markRecord();
+        int valend = bb.markRecord();  //= bufindex
 
         mapOutputRecordCounter.increment(1);
-        mapOutputByteCounter.increment(
-            distanceTo(keystart, valend, bufvoid));
+        mapOutputByteCounter.increment(distanceTo(keystart, valend, bufvoid));
 
-        // write accounting info
-        kvmeta.put(kvindex + PARTITION, partition);
+        //= 写kvmeta
+        //= 4个int
+        kvmeta.put(kvindex + PARTITION, partition);  //= PARTITION(2): partition字段的偏移
         kvmeta.put(kvindex + KEYSTART, keystart);
         kvmeta.put(kvindex + VALSTART, valstart);
         kvmeta.put(kvindex + VALLEN, distanceTo(valstart, valend));
-        // advance kvindex
+
+        //= kvindex实际在变小(减NMETA)
         kvindex = (kvindex - NMETA + kvmeta.capacity()) % kvmeta.capacity();
+
       } catch (MapBufferTooSmallException e) {
         LOG.info("Record too large for in-memory buffer: " + e.getMessage());
         spillSingleRecord(key, value, partition);
         mapOutputRecordCounter.increment(1);
         return;
+      }
+    }
+
+    private void tryStartSpill() {
+      if (spillInProgress) {
+        return;
+      }
+
+      final int kvbidx = 4 * kvindex;
+      final int kvbend = 4 * kvend;
+      // serialized, unspilled bytes always lie between kvindex and
+      // bufindex, crossing the equator. Note that any void space
+      // created by a reset must be included in "used" bytes
+      final int bUsed = distanceTo(kvbidx, bufindex);
+      final boolean bufsoftlimit = bUsed >= softLimit;
+      if ((kvbend + METASIZE) % kvbuffer.length != equator - (equator % METASIZE)) {
+        // spill finished, reclaim space
+        resetSpill();
+        bufferRemaining = Math.min(
+            distanceTo(bufindex, kvbidx) - 2 * METASIZE,
+            softLimit - bUsed) - METASIZE;
+      } else if (bufsoftlimit && kvindex != kvend) {
+        // spill records, if any collected; check latter, as it may
+        // be possible for metadata alignment to hit spill pcnt
+        startSpill();
+        final int avgRec = (int)
+            (mapOutputByteCounter.getCounter() /
+                mapOutputRecordCounter.getCounter());
+        // leave at least half the split buffer for serialization data
+        // ensure that kvindex >= bufindex
+        final int distkvi = distanceTo(bufindex, kvbidx);
+        final int newPos =
+            (bufindex + Math.max(2 * METASIZE - 1, Math.min(distkvi / 2, distkvi / (METASIZE + avgRec) * METASIZE)))
+                % kvbuffer.length;
+        setEquator(newPos);
+        bufmark = bufindex = newPos;
+        final int serBound = 4 * kvend;
+        // bytes remaining before the lock must be held and limits
+        // checked is the minimum of three arcs: the metadata space, the
+        // serialization space, and the soft limit
+        bufferRemaining = Math.min(
+            // metadata max
+            distanceTo(bufend, newPos),
+            Math.min(
+                // serialization max
+                distanceTo(newPos, serBound),
+                // soft limit
+                softLimit)) - 2 * METASIZE;
       }
     }
 
@@ -1161,10 +1165,8 @@ public class MapTask extends Task {
       // set index prior to first entry, aligned at meta boundary
       final int aligned = pos - (pos % METASIZE);
       // Cast one of the operands to long to avoid integer overflow
-      kvindex = (int)
-          (((long) aligned - METASIZE + kvbuffer.length) % kvbuffer.length) / 4;
-      LOG.info("(EQUATOR) " + pos + " kvi " + kvindex +
-          "(" + (kvindex * 4) + ")");
+      kvindex = (int) (((long) aligned - METASIZE + kvbuffer.length) % kvbuffer.length) / 4;
+      LOG.info("(EQUATOR) " + pos + " kvi " + kvindex + "(" + (kvindex * 4) + ")");
     }
 
     /**
@@ -1288,8 +1290,7 @@ public class MapTask extends Task {
         bufvoid = bufmark;
         final int kvbidx = 4 * kvindex;
         final int kvbend = 4 * kvend;
-        final int avail =
-            Math.min(distanceTo(0, kvbidx), distanceTo(0, kvbend));
+        final int avail = Math.min(distanceTo(0, kvbidx), distanceTo(0, kvbend));
         if (bufindex + headbytelen < avail) {
           System.arraycopy(kvbuffer, 0, kvbuffer, headbytelen, bufindex);
           System.arraycopy(kvbuffer, bufvoid, kvbuffer, 0, headbytelen);
@@ -1309,8 +1310,7 @@ public class MapTask extends Task {
       private final byte[] scratch = new byte[1];
 
       @Override
-      public void write(int v)
-          throws IOException {
+      public void write(int v) throws IOException {
         scratch[0] = (byte) v;
         write(scratch, 0, 1);
       }
@@ -1324,8 +1324,7 @@ public class MapTask extends Task {
        *                                    deserialize into the collection buffer.
        */
       @Override
-      public void write(byte b[], int off, int len)
-          throws IOException {
+      public void write(byte b[], int off, int len) throws IOException {
         // must always verify the invariant that at least METASIZE bytes are
         // available beyond kvindex, even when len == 0
         bufferRemaining -= len;
@@ -1409,7 +1408,8 @@ public class MapTask extends Task {
             spillLock.unlock();
           }
         }
-        // here, we know that we have sufficient space to write
+
+        //= 经过上面的(bufferRemaining <= 0)检查, 此时有足够的空间
         if (bufindex + len > bufvoid) {
           final int gaplen = bufvoid - bufindex;
           System.arraycopy(b, off, kvbuffer, bufindex, gaplen);
@@ -1542,18 +1542,18 @@ public class MapTask extends Task {
       spillReady.signal();
     }
 
-    private void sortAndSpill() throws IOException, ClassNotFoundException,
-        InterruptedException {
+    //= spill impl
+    private void sortAndSpill() throws IOException, ClassNotFoundException, InterruptedException {
       //approximate the length of the output file to be the length of the
       //buffer + header lengths for the partitions
-      final long size = distanceTo(bufstart, bufend, bufvoid) +
-          partitions * APPROX_HEADER_LENGTH;
+      final long size = distanceTo(bufstart, bufend, bufvoid) + partitions * APPROX_HEADER_LENGTH;
+
       FSDataOutputStream out = null;
       try {
         // create spill file
+        //= numSpills: 第几次spill
         final SpillRecord spillRec = new SpillRecord(partitions);
-        final Path filename =
-            mapOutputFile.getSpillFileForWrite(numSpills, size);
+        final Path filename = mapOutputFile.getSpillFileForWrite(numSpills, size);
         out = rfs.create(filename);
 
         final int mstart = kvend / NMETA;
