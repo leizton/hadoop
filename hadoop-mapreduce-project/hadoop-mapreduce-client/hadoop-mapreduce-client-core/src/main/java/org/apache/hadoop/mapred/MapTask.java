@@ -57,7 +57,9 @@ import java.util.List;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-/** A Map task. */
+/**
+ * A Map task.
+ */
 @InterfaceAudience.LimitedPrivate({"MapReduce"})
 @InterfaceStability.Unstable
 public class MapTask extends Task {
@@ -121,6 +123,7 @@ public class MapTask extends Task {
   /**
    * This class wraps the user's record reader to update the counters and progress
    * as records are read.
+   *
    * @param <K>
    * @param <V>
    */
@@ -148,8 +151,7 @@ public class MapTask extends Task {
       fsStats = matchedStats;
 
       bytesInPrev = getInputBytes(fsStats);
-      rawIn = job.getInputFormat().getRecordReader(reporter.getInputSplit(),
-          job, reporter);
+      rawIn = job.getInputFormat().getRecordReader(reporter.getInputSplit(), job, reporter);
       bytesInCurr = getInputBytes(fsStats);
       fileInputByteCounter.increment(bytesInCurr - bytesInPrev);
     }
@@ -215,7 +217,7 @@ public class MapTask extends Task {
   }
 
   /**
-   * This class skips the records based on the failed ranges from previous 
+   * This class skips the records based on the failed ranges from previous
    * attempts.
    */
   class SkippingRecordReader<K, V> extends TrackedRecordReader<K, V> {
@@ -292,12 +294,12 @@ public class MapTask extends Task {
     this.umbilical = umbilical;
 
     if (isMapTask()) {
-      // If there are no reducers then there won't be any sort. Hence the map 
+      // If there are no reducers then there won't be any sort. Hence the map
       // phase will govern the entire attempt's progress.
       if (conf.getNumReduceTasks() == 0) {
         mapPhase = getProgress().addPhase("map", 1.0f);
       } else {
-        // If there are reducers then the entire attempt's progress will be 
+        // If there are reducers then the entire attempt's progress will be
         // split between the map phase (67%) and the sort phase (33%).
         mapPhase = getProgress().addPhase("map", 0.667f);
         sortPhase = getProgress().addPhase("sort", 0.333f);
@@ -363,14 +365,12 @@ public class MapTask extends Task {
   }
 
   @SuppressWarnings("unchecked")
-  private <KEY, VALUE> MapOutputCollector<KEY, VALUE>
-  createSortingCollector(JobConf job, TaskReporter reporter)
-      throws IOException, ClassNotFoundException {
-    MapOutputCollector.Context context =
-        new MapOutputCollector.Context(this, job, reporter);
+  private <KEY, VALUE> MapOutputCollector<KEY, VALUE> createSortingCollector(JobConf job, TaskReporter reporter) throws IOException, ClassNotFoundException {
+    MapOutputCollector.Context context = new MapOutputCollector.Context(this, job, reporter);
 
-    Class<?>[] collectorClasses = job.getClasses(
-        JobContext.MAP_OUTPUT_COLLECTOR_CLASS_ATTR, MapOutputBuffer.class);
+    //= 默认使用 MapOutputBuffer
+    Class<?>[] collectorClasses = job.getClasses(JobContext.MAP_OUTPUT_COLLECTOR_CLASS_ATTR, MapOutputBuffer.class);
+
     int remainingCollectors = collectorClasses.length;
     for (Class clazz : collectorClasses) {
       try {
@@ -378,11 +378,9 @@ public class MapTask extends Task {
           throw new IOException("Invalid output collector class: " + clazz.getName() +
               " (does not implement MapOutputCollector)");
         }
-        Class<? extends MapOutputCollector> subclazz =
-            clazz.asSubclass(MapOutputCollector.class);
+        Class<? extends MapOutputCollector> subclazz = clazz.asSubclass(MapOutputCollector.class);
         LOG.debug("Trying map output collector class: " + subclazz.getName());
-        MapOutputCollector<KEY, VALUE> collector =
-            ReflectionUtils.newInstance(subclazz, job);
+        MapOutputCollector<KEY, VALUE> collector = ReflectionUtils.newInstance(subclazz, job);
         collector.init(context);
         LOG.info("Map output collector class = " + collector.getClass().getName());
         return collector;
@@ -418,12 +416,10 @@ public class MapTask extends Task {
       collector = createSortingCollector(job, reporter);
     } else {
       collector = new DirectMapOutputCollector<OUTKEY, OUTVALUE>();
-      MapOutputCollector.Context context =
-          new MapOutputCollector.Context(this, job, reporter);
+      MapOutputCollector.Context context = new MapOutputCollector.Context(this, job, reporter);
       collector.init(context);
     }
-    MapRunnable<INKEY, INVALUE, OUTKEY, OUTVALUE> runner =
-        ReflectionUtils.newInstance(job.getMapRunnerClass(), job);
+    MapRunnable<INKEY, INVALUE, OUTKEY, OUTVALUE> runner = ReflectionUtils.newInstance(job.getMapRunnerClass(), job);
 
     try {
       runner.run(in, new OldOutputCollector(collector, conf), reporter);
@@ -448,7 +444,8 @@ public class MapTask extends Task {
 
   /**
    * Update the job with details about the file split
-   * @param job the job configuration to update
+   *
+   * @param job        the job configuration to update
    * @param inputSplit the file split
    */
   private void updateJobWithSplit(final JobConf job, InputSplit inputSplit) {
@@ -661,8 +658,8 @@ public class MapTask extends Task {
     }
   }
 
-  private class NewOutputCollector<K, V>
-      extends org.apache.hadoop.mapreduce.RecordWriter<K, V> {
+  //= mapper的输出
+  private class NewOutputCollector<K, V> extends org.apache.hadoop.mapreduce.RecordWriter<K, V> {
     private final MapOutputCollector<K, V> collector;
     private final org.apache.hadoop.mapreduce.Partitioner<K, V> partitioner;
     private final int partitions;
@@ -671,9 +668,11 @@ public class MapTask extends Task {
     NewOutputCollector(org.apache.hadoop.mapreduce.JobContext jobContext,
                        JobConf job,
                        TaskUmbilicalProtocol umbilical,
-                       TaskReporter reporter
-    ) throws IOException, ClassNotFoundException {
+                       TaskReporter reporter) throws IOException, ClassNotFoundException {
+      //= default: MapOutputBuffer
       collector = createSortingCollector(job, reporter);
+
+      //= partition
       partitions = jobContext.getNumReduceTasks();
       if (partitions > 1) {
         partitioner = (org.apache.hadoop.mapreduce.Partitioner<K, V>)
@@ -690,8 +689,10 @@ public class MapTask extends Task {
 
     @Override
     public void write(K key, V value) throws IOException, InterruptedException {
-      collector.collect(key, value,
-          partitioner.getPartition(key, value, partitions));
+      //= 先计算partition
+      int partId = partitioner.getPartition(key, value, partitions);
+      //=
+      collector.collect(key, value, partId);
     }
 
     @Override
@@ -714,44 +715,35 @@ public class MapTask extends Task {
         new org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl(job, getTaskID(), reporter);
     // make a mapper
     org.apache.hadoop.mapreduce.Mapper<INKEY, INVALUE, OUTKEY, OUTVALUE> mapper =
-        (org.apache.hadoop.mapreduce.Mapper<INKEY, INVALUE, OUTKEY, OUTVALUE>)
-            ReflectionUtils.newInstance(taskContext.getMapperClass(), job);
+        (org.apache.hadoop.mapreduce.Mapper<INKEY, INVALUE, OUTKEY, OUTVALUE>) ReflectionUtils.newInstance(taskContext.getMapperClass(), job);
     // make the input format
     org.apache.hadoop.mapreduce.InputFormat<INKEY, INVALUE> inputFormat =
-        (org.apache.hadoop.mapreduce.InputFormat<INKEY, INVALUE>)
-            ReflectionUtils.newInstance(taskContext.getInputFormatClass(), job);
+        (org.apache.hadoop.mapreduce.InputFormat<INKEY, INVALUE>) ReflectionUtils.newInstance(taskContext.getInputFormatClass(), job);
     // rebuild the input split
     org.apache.hadoop.mapreduce.InputSplit split = null;
-    split = getSplitDetails(new Path(splitIndex.getSplitLocation()),
-        splitIndex.getStartOffset());
+    split = getSplitDetails(new Path(splitIndex.getSplitLocation()), splitIndex.getStartOffset());
     LOG.info("Processing split: " + split);
 
+    //= input: RecordReader
     org.apache.hadoop.mapreduce.RecordReader<INKEY, INVALUE> input =
-        new NewTrackingRecordReader<INKEY, INVALUE>
-            (split, inputFormat, reporter, taskContext);
+        new NewTrackingRecordReader<INKEY, INVALUE>(split, inputFormat, reporter, taskContext);
 
     job.setBoolean(JobContext.SKIP_RECORDS, isSkipping());
-    org.apache.hadoop.mapreduce.RecordWriter output = null;
 
-    // get an output object
+    //= output: RecordWriter
+    org.apache.hadoop.mapreduce.RecordWriter output;
     if (job.getNumReduceTasks() == 0) {
-      output =
-          new NewDirectOutputCollector(taskContext, job, umbilical, reporter);
+      //= 可以设置reducerNum是0
+      output = new NewDirectOutputCollector(taskContext, job, umbilical, reporter);
     } else {
       output = new NewOutputCollector(taskContext, job, umbilical, reporter);
     }
 
-    org.apache.hadoop.mapreduce.MapContext<INKEY, INVALUE, OUTKEY, OUTVALUE>
-        mapContext =
-        new MapContextImpl<INKEY, INVALUE, OUTKEY, OUTVALUE>(job, getTaskID(),
-            input, output,
-            committer,
-            reporter, split);
+    org.apache.hadoop.mapreduce.MapContext<INKEY, INVALUE, OUTKEY, OUTVALUE> mapContext =
+        new MapContextImpl<INKEY, INVALUE, OUTKEY, OUTVALUE>(job, getTaskID(), input, output, committer, reporter, split);
 
-    org.apache.hadoop.mapreduce.Mapper<INKEY, INVALUE, OUTKEY, OUTVALUE>.Context
-        mapperContext =
-        new WrappedMapper<INKEY, INVALUE, OUTKEY, OUTVALUE>().getMapContext(
-            mapContext);
+    org.apache.hadoop.mapreduce.Mapper<INKEY, INVALUE, OUTKEY, OUTVALUE>.Context mapperContext =
+        new WrappedMapper<INKEY, INVALUE, OUTKEY, OUTVALUE>().getMapContext(mapContext);
 
     try {
       input.initialize(split, mapperContext);
@@ -769,8 +761,7 @@ public class MapTask extends Task {
     }
   }
 
-  class DirectMapOutputCollector<K, V>
-      implements MapOutputCollector<K, V> {
+  class DirectMapOutputCollector<K, V> implements MapOutputCollector<K, V> {
 
     private RecordWriter<K, V> out = null;
 
@@ -844,8 +835,7 @@ public class MapTask extends Task {
 
   @InterfaceAudience.LimitedPrivate({"MapReduce"})
   @InterfaceStability.Unstable
-  public static class MapOutputBuffer<K extends Object, V extends Object>
-      implements MapOutputCollector<K, V>, IndexedSortable {
+  public static class MapOutputBuffer<K extends Object, V extends Object> implements MapOutputCollector<K, V>, IndexedSortable {
     private int partitions;
     private JobConf job;
     private TaskReporter reporter;
@@ -889,7 +879,6 @@ public class MapTask extends Task {
     private int maxRec;
     private int softLimit;
     boolean spillInProgress;
-    ;
     int bufferRemaining;
     volatile Throwable sortSpillException = null;
 
@@ -1198,6 +1187,7 @@ public class MapTask extends Task {
     /**
      * Compute the distance in bytes between two indices in the serialization
      * buffer.
+     *
      * @see #distanceTo(int, int, int)
      */
     final int distanceTo(final int i, final int j) {
@@ -1225,6 +1215,7 @@ public class MapTask extends Task {
     /**
      * Compare logical range, st i, j MOD offset capacity.
      * Compare by partition, then by key.
+     *
      * @see IndexedSortable#compare
      */
     public int compare(final int mi, final int mj) {
@@ -1249,6 +1240,7 @@ public class MapTask extends Task {
 
     /**
      * Swap metadata for items i, j
+     *
      * @see IndexedSortable#swap
      */
     public void swap(final int mi, final int mj) {
@@ -1287,6 +1279,7 @@ public class MapTask extends Task {
        * this method should <b>only</b> be called immediately after detecting
        * this condition. To call it at any other time is undefined and would
        * likely result in data loss or corruption.
+       *
        * @see #markRecord()
        */
       protected void shiftBufferedKey() throws IOException {
@@ -1326,8 +1319,9 @@ public class MapTask extends Task {
        * Attempt to write a sequence of bytes to the collection buffer.
        * This method will block if the spill thread is running and it
        * cannot write.
+       *
        * @throws MapBufferTooSmallException if record is too large to
-       *    deserialize into the collection buffer.
+       *                                    deserialize into the collection buffer.
        */
       @Override
       public void write(byte b[], int off, int len)

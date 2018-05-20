@@ -27,16 +27,13 @@ import java.io.IOException;
 @InterfaceAudience.LimitedPrivate({"MapReduce"})
 @InterfaceStability.Unstable
 public interface MapOutputCollector<K, V> {
-  public void init(Context context
-  ) throws IOException, ClassNotFoundException;
+  public void init(Context context) throws IOException, ClassNotFoundException;
 
-  public void collect(K key, V value, int partition
-  ) throws IOException, InterruptedException;
+  public void collect(K key, V value, int partition) throws IOException, InterruptedException;
 
   public void close() throws IOException, InterruptedException;
 
-  public void flush() throws IOException, InterruptedException,
-      ClassNotFoundException;
+  public void flush() throws IOException, InterruptedException, ClassNotFoundException;
 
   @InterfaceAudience.LimitedPrivate({"MapReduce"})
   @InterfaceStability.Unstable
