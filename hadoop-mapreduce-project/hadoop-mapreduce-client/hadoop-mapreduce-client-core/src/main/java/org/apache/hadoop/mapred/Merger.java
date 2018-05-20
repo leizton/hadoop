@@ -194,14 +194,14 @@ public class Merger {
         mergePhase);
   }
 
-  public static <K extends Object, V extends Object>
-  void writeFile(RawKeyValueIterator records, Writer<K, V> writer,
-                 Progressable progressable, Configuration conf)
-      throws IOException {
-    long progressBar = conf.getLong(JobContext.RECORDS_BEFORE_PROGRESS,
-        10000);
+  public static <K extends Object, V extends Object> void writeFile(
+      RawKeyValueIterator records, Writer<K, V> writer, Progressable progressable, Configuration conf) throws IOException
+  {
+    long progressBar = conf.getLong(JobContext.RECORDS_BEFORE_PROGRESS, 10000);
     long recordCtr = 0;
+
     while (records.next()) {
+      //= 写到writer
       writer.append(records.getKey(), records.getValue());
 
       if (((recordCtr++) % progressBar) == 0) {
@@ -380,7 +380,9 @@ public class Merger {
 
 
   private static class MergeQueue<K extends Object, V extends Object>
-      extends PriorityQueue<Segment<K, V>> implements RawKeyValueIterator {
+      extends PriorityQueue<Segment<K, V>>
+      implements RawKeyValueIterator
+  {
     Configuration conf;
     FileSystem fs;
     CompressionCodec codec;

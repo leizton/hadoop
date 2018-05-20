@@ -691,7 +691,6 @@ public class MapTask extends Task {
     public void write(K key, V value) throws IOException, InterruptedException {
       //= 先计算partition
       int partId = partitioner.getPartition(key, value, partitions);
-      //=
       collector.collect(key, value, partId);
     }
 
@@ -699,7 +698,7 @@ public class MapTask extends Task {
     public void close(TaskAttemptContext context
     ) throws IOException, InterruptedException {
       try {
-        collector.flush();
+        collector.flush();  //= 执行merge
       } catch (ClassNotFoundException cnf) {
         throw new IOException("can't find class ", cnf);
       }
@@ -1422,8 +1421,8 @@ public class MapTask extends Task {
       }
     }
 
-    public void flush() throws IOException, ClassNotFoundException,
-        InterruptedException {
+    //= sortSpill & merge
+    public void flush() throws IOException, ClassNotFoundException, InterruptedException {
       LOG.info("Starting flush of map output");
       spillLock.lock();
       try {
@@ -1469,8 +1468,11 @@ public class MapTask extends Task {
       } catch (InterruptedException e) {
         throw new IOException("Spill failed", e);
       }
+
       // release sort buffer before the merge
       kvbuffer = null;
+
+      //= merge partitions
       mergeParts();
       Path outputPath = mapOutputFile.getOutputFile();
       fileOutputByteCounter.increment(rfs.getFileStatus(outputPath).getLen());
@@ -1558,25 +1560,23 @@ public class MapTask extends Task {
 
         final int mstart = kvend / NMETA;
         final int mend = 1 + // kvend is a valid record
-            (kvstart >= kvend
-                ? kvstart
-                : kvmeta.capacity() + kvstart) / NMETA;
+            (kvstart >= kvend ? kvstart : kvmeta.capacity() + kvstart) / NMETA;
         sorter.sort(MapOutputBuffer.this, mstart, mend, reporter);
+
         int spindex = mstart;
         final IndexRecord rec = new IndexRecord();
         final InMemValBytes value = new InMemValBytes();
-        for (int i = 0; i < partitions; ++i) {
+
+        for (int partId = 0; partId < partitions; ++partId) {
           IFile.Writer<K, V> writer = null;
           try {
             long segmentStart = out.getPos();
             FSDataOutputStream partitionOut = CryptoUtils.wrapIfNecessary(job, out);
-            writer = new Writer<K, V>(job, partitionOut, keyClass, valClass, codec,
-                spilledRecordsCounter);
+            writer = new Writer<K, V>(job, partitionOut, keyClass, valClass, codec, spilledRecordsCounter);
             if (combinerRunner == null) {
               // spill directly
               DataInputBuffer key = new DataInputBuffer();
-              while (spindex < mend &&
-                  kvmeta.get(offsetFor(spindex % maxRec) + PARTITION) == i) {
+              while (spindex < mend && kvmeta.get(offsetFor(spindex % maxRec) + PARTITION) == partId) {
                 final int kvoff = offsetFor(spindex % maxRec);
                 int keystart = kvmeta.get(kvoff + KEYSTART);
                 int valstart = kvmeta.get(kvoff + VALSTART);
@@ -1587,17 +1587,14 @@ public class MapTask extends Task {
               }
             } else {
               int spstart = spindex;
-              while (spindex < mend &&
-                  kvmeta.get(offsetFor(spindex % maxRec)
-                      + PARTITION) == i) {
+              while (spindex < mend && kvmeta.get(offsetFor(spindex % maxRec) + PARTITION) == partId) {
                 ++spindex;
               }
               // Note: we would like to avoid the combiner if we've fewer
               // than some threshold of records for a partition
               if (spstart != spindex) {
                 combineCollector.setWriter(writer);
-                RawKeyValueIterator kvIter =
-                    new MRResultIterator(spstart, spindex);
+                RawKeyValueIterator kvIter = new MRResultIterator(spstart, spindex);
                 combinerRunner.combine(kvIter, combineCollector);
               }
             }
@@ -1609,7 +1606,7 @@ public class MapTask extends Task {
             rec.startOffset = segmentStart;
             rec.rawLength = writer.getRawLength() + CryptoUtils.cryptoPadding(job);
             rec.partLength = writer.getCompressedLength() + CryptoUtils.cryptoPadding(job);
-            spillRec.putIndex(rec, i);
+            spillRec.putIndex(rec, partId);
 
             writer = null;
           } finally {
@@ -1772,27 +1769,25 @@ public class MapTask extends Task {
       }
     }
 
-    private void mergeParts() throws IOException, InterruptedException,
-        ClassNotFoundException {
+    private void mergeParts() throws IOException, InterruptedException, ClassNotFoundException {
       // get the approximate size of the final output/index files
       long finalOutFileSize = 0;
       long finalIndexFileSize = 0;
-      final Path[] filename = new Path[numSpills];
       final TaskAttemptID mapId = getTaskID();
 
+      //= spill出来的所有文件路径
+      final Path[] filename = new Path[numSpills];
       for (int i = 0; i < numSpills; i++) {
         filename[i] = mapOutputFile.getSpillFile(i);
         finalOutFileSize += rfs.getFileStatus(filename[i]).getLen();
       }
+
       if (numSpills == 1) { //the spill is the final output
-        sameVolRename(filename[0],
-            mapOutputFile.getOutputFileForWriteInVolume(filename[0]));
+        sameVolRename(filename[0], mapOutputFile.getOutputFileForWriteInVolume(filename[0]));
         if (indexCacheList.size() == 0) {
-          sameVolRename(mapOutputFile.getSpillIndexFile(0),
-              mapOutputFile.getOutputIndexFileForWriteInVolume(filename[0]));
+          sameVolRename(mapOutputFile.getSpillIndexFile(0), mapOutputFile.getOutputIndexFileForWriteInVolume(filename[0]));
         } else {
-          indexCacheList.get(0).writeToFile(
-              mapOutputFile.getOutputIndexFileForWriteInVolume(filename[0]), job);
+          indexCacheList.get(0).writeToFile(mapOutputFile.getOutputIndexFileForWriteInVolume(filename[0]), job);
         }
         sortPhase.complete();
         return;
@@ -1808,10 +1803,8 @@ public class MapTask extends Task {
       //lengths for each partition
       finalOutFileSize += partitions * APPROX_HEADER_LENGTH;
       finalIndexFileSize = partitions * MAP_OUTPUT_INDEX_RECORD_LENGTH;
-      Path finalOutputFile =
-          mapOutputFile.getOutputFileForWrite(finalOutFileSize);
-      Path finalIndexFile =
-          mapOutputFile.getOutputIndexFileForWrite(finalIndexFileSize);
+      Path finalOutputFile = mapOutputFile.getOutputFileForWrite(finalOutFileSize);
+      Path finalIndexFile = mapOutputFile.getOutputIndexFileForWrite(finalIndexFileSize);
 
       //The output stream for the final single output file
       FSDataOutputStream finalOut = rfs.create(finalOutputFile, true, 4096);
@@ -1824,8 +1817,7 @@ public class MapTask extends Task {
           for (int i = 0; i < partitions; i++) {
             long segmentStart = finalOut.getPos();
             FSDataOutputStream finalPartitionOut = CryptoUtils.wrapIfNecessary(job, finalOut);
-            Writer<K, V> writer =
-                new Writer<K, V>(job, finalPartitionOut, keyClass, valClass, codec, null);
+            Writer<K, V> writer = new Writer<K, V>(job, finalPartitionOut, keyClass, valClass, codec, null);
             writer.close();
             rec.startOffset = segmentStart;
             rec.rawLength = writer.getRawLength() + CryptoUtils.cryptoPadding(job);
@@ -1839,36 +1831,36 @@ public class MapTask extends Task {
         sortPhase.complete();
         return;
       }
+
       {
         sortPhase.addPhases(partitions); // Divide sort phase into sub-phases
 
         IndexRecord rec = new IndexRecord();
         final SpillRecord spillRec = new SpillRecord(partitions);
-        for (int parts = 0; parts < partitions; parts++) {
-          //create the segments to be merged
-          List<Segment<K, V>> segmentList =
-              new ArrayList<Segment<K, V>>(numSpills);
-          for (int i = 0; i < numSpills; i++) {
-            IndexRecord indexRecord = indexCacheList.get(i).getIndex(parts);
 
-            Segment<K, V> s =
-                new Segment<K, V>(job, rfs, filename[i], indexRecord.startOffset,
-                    indexRecord.partLength, codec, true);
+        for (int partId = 0; partId < partitions; partId++) {
+          //= 每个spillFile的partId创建一个segment
+          List<Segment<K, V>> segmentList = new ArrayList<Segment<K, V>>(numSpills);
+          for (int i = 0; i < numSpills; i++) {
+            IndexRecord indexRecord = indexCacheList.get(i).getIndex(partId);
+
+            Segment<K, V> s = new Segment<K, V>(job, rfs, filename[i],
+                indexRecord.startOffset, indexRecord.partLength, codec, true);
             segmentList.add(i, s);
 
             if (LOG.isDebugEnabled()) {
-              LOG.debug("MapId=" + mapId + " Reducer=" + parts +
+              LOG.debug("MapId=" + mapId + " Reducer=" + partId +
                   "Spill =" + i + "(" + indexRecord.startOffset + "," +
                   indexRecord.rawLength + ", " + indexRecord.partLength + ")");
             }
           }
 
           int mergeFactor = job.getInt(JobContext.IO_SORT_FACTOR, 100);
-          // sort the segments only if there are intermediate merges
           boolean sortSegments = segmentList.size() > mergeFactor;
-          //merge
-          @SuppressWarnings("unchecked")
-          RawKeyValueIterator kvIter = Merger.merge(job, rfs,
+
+          //= merge
+          RawKeyValueIterator kvIter = Merger.merge(
+              job, rfs,
               keyClass, valClass, codec,
               segmentList, mergeFactor,
               new Path(mapId.toString()),
@@ -1876,12 +1868,10 @@ public class MapTask extends Task {
               null, spilledRecordsCounter, sortPhase.phase(),
               TaskType.MAP);
 
-          //write merged output to disk
+          //= merge输出到disk
           long segmentStart = finalOut.getPos();
           FSDataOutputStream finalPartitionOut = CryptoUtils.wrapIfNecessary(job, finalOut);
-          Writer<K, V> writer =
-              new Writer<K, V>(job, finalPartitionOut, keyClass, valClass, codec,
-                  spilledRecordsCounter);
+          Writer<K, V> writer = new Writer<K, V>(job, finalPartitionOut, keyClass, valClass, codec, spilledRecordsCounter);
           if (combinerRunner == null || numSpills < minSpillsForCombine) {
             Merger.writeFile(kvIter, writer, reporter, job);
           } else {
@@ -1898,10 +1888,12 @@ public class MapTask extends Task {
           rec.startOffset = segmentStart;
           rec.rawLength = writer.getRawLength() + CryptoUtils.cryptoPadding(job);
           rec.partLength = writer.getCompressedLength() + CryptoUtils.cryptoPadding(job);
-          spillRec.putIndex(rec, parts);
+          spillRec.putIndex(rec, partId);
         }
+
         spillRec.writeToFile(finalIndexFile, job);
         finalOut.close();
+        //= 删除spillFiles
         for (int i = 0; i < numSpills; i++) {
           rfs.delete(filename[i], true);
         }
