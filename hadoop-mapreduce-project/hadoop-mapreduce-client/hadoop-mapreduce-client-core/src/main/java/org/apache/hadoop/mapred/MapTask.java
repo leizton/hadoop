@@ -398,15 +398,9 @@ public class MapTask extends Task {
   }
 
   @SuppressWarnings("unchecked")
-  private <INKEY, INVALUE, OUTKEY, OUTVALUE>
-  void runOldMapper(final JobConf job,
-                    final TaskSplitIndex splitIndex,
-                    final TaskUmbilicalProtocol umbilical,
-                    TaskReporter reporter
-  ) throws IOException, InterruptedException,
-      ClassNotFoundException {
-    InputSplit inputSplit = getSplitDetails(new Path(splitIndex.getSplitLocation()),
-        splitIndex.getStartOffset());
+  //= old mapper entry
+  private <INKEY, INVALUE, OUTKEY, OUTVALUE> void runOldMapper(final JobConf job, final TaskSplitIndex splitIndex, final TaskUmbilicalProtocol umbilical, TaskReporter reporter) throws IOException, InterruptedException, ClassNotFoundException {
+    InputSplit inputSplit = getSplitDetails(new Path(splitIndex.getSplitLocation()), splitIndex.getStartOffset());
 
     updateJobWithSplit(job, inputSplit);
     reporter.setInputSplit(inputSplit);
@@ -713,18 +707,11 @@ public class MapTask extends Task {
   }
 
   @SuppressWarnings("unchecked")
-  private <INKEY, INVALUE, OUTKEY, OUTVALUE>
-  void runNewMapper(final JobConf job,
-                    final TaskSplitIndex splitIndex,
-                    final TaskUmbilicalProtocol umbilical,
-                    TaskReporter reporter
-  ) throws IOException, ClassNotFoundException,
-      InterruptedException {
+  //= new mapper entry
+  private <INKEY, INVALUE, OUTKEY, OUTVALUE> void runNewMapper(final JobConf job, final TaskSplitIndex splitIndex, final TaskUmbilicalProtocol umbilical, TaskReporter reporter) throws IOException, ClassNotFoundException, InterruptedException {
     // make a task context so we can get the classes
     org.apache.hadoop.mapreduce.TaskAttemptContext taskContext =
-        new org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl(job,
-            getTaskID(),
-            reporter);
+        new org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl(job, getTaskID(), reporter);
     // make a mapper
     org.apache.hadoop.mapreduce.Mapper<INKEY, INVALUE, OUTKEY, OUTVALUE> mapper =
         (org.apache.hadoop.mapreduce.Mapper<INKEY, INVALUE, OUTKEY, OUTVALUE>)

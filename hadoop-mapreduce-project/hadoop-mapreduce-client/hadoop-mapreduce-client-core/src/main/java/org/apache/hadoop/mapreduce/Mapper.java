@@ -118,8 +118,7 @@ public class Mapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT> {
    * should override this, but the default is the identity function.
    */
   @SuppressWarnings("unchecked")
-  protected void map(KEYIN key, VALUEIN value,
-                     Context context) throws IOException, InterruptedException {
+  protected void map(KEYIN key, VALUEIN value, Context context) throws IOException, InterruptedException {
     context.write((KEYOUT) key, (VALUEOUT) value);
   }
 
@@ -140,6 +139,7 @@ public class Mapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT> {
   public void run(Context context) throws IOException, InterruptedException {
     setup(context);
     try {
+      //= circulate call map()
       while (context.nextKeyValue()) {
         map(context.getCurrentKey(), context.getCurrentValue(), context);
       }

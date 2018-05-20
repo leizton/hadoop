@@ -36,22 +36,19 @@ import java.net.URI;
  */
 @InterfaceAudience.Public
 @InterfaceStability.Evolving
-public class WrappedMapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT>
-    extends Mapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT> {
+public class WrappedMapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT> extends Mapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT> {
 
   /**
    * Get a wrapped {@link Mapper.Context} for custom implementations.
    * @param mapContext <code>MapContext</code> to be wrapped
    * @return a wrapped <code>Mapper.Context</code> for custom implementations
    */
-  public Mapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT>.Context
-  getMapContext(MapContext<KEYIN, VALUEIN, KEYOUT, VALUEOUT> mapContext) {
+  public Mapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT>.Context getMapContext(MapContext<KEYIN, VALUEIN, KEYOUT, VALUEOUT> mapContext) {
     return new Context(mapContext);
   }
 
   @InterfaceStability.Evolving
-  public class Context
-      extends Mapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT>.Context {
+  public class Context extends Mapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT>.Context {
 
     protected MapContext<KEYIN, VALUEIN, KEYOUT, VALUEOUT> mapContext;
 

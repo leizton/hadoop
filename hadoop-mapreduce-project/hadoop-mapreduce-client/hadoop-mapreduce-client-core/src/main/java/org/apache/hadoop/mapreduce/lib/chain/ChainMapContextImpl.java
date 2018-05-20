@@ -32,8 +32,7 @@ import java.net.URI;
  * underlying context, but overrides the methods to do with record readers ,
  * record writers and configuration.
  */
-class ChainMapContextImpl<KEYIN, VALUEIN, KEYOUT, VALUEOUT> implements
-    MapContext<KEYIN, VALUEIN, KEYOUT, VALUEOUT> {
+class ChainMapContextImpl<KEYIN, VALUEIN, KEYOUT, VALUEOUT> implements MapContext<KEYIN, VALUEIN, KEYOUT, VALUEOUT> {
 
   private RecordReader<KEYIN, VALUEIN> reader;
   private RecordWriter<KEYOUT, VALUEOUT> output;

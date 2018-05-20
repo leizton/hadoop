@@ -34,7 +34,7 @@ import java.util.Map;
 
 /**
  * The Chain class provides all the common functionality for the
- * {@link ChainMapper} and the {@link ChainReducer} classes.
+ * {@lKEYIN ChainMapper} and the {@lKEYIN ChainReducer} classes.
  */
 @InterfaceAudience.Private
 @InterfaceStability.Unstable
@@ -73,8 +73,7 @@ public class Chain {
   private List<Configuration> confList = new ArrayList<Configuration>();
   private Configuration rConf;
   private List<Thread> threads = new ArrayList<Thread>();
-  private List<ChainBlockingQueue<?>> blockingQueues =
-      new ArrayList<ChainBlockingQueue<?>>();
+  private List<ChainBlockingQueue<?>> blockingQueues = new ArrayList<ChainBlockingQueue<?>>();
   private Throwable throwable = null;
 
   /**
@@ -355,28 +354,25 @@ public class Chain {
    * Create a map context that is based on ChainMapContext and the given record
    * reader and record writer
    */
+  //= create map context
   private <KEYIN, VALUEIN, KEYOUT, VALUEOUT>
   Mapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT>.Context createMapContext(
       RecordReader<KEYIN, VALUEIN> rr, RecordWriter<KEYOUT, VALUEOUT> rw,
       TaskInputOutputContext<KEYIN, VALUEIN, KEYOUT, VALUEOUT> context,
       Configuration conf) {
-    MapContext<KEYIN, VALUEIN, KEYOUT, VALUEOUT> mapContext =
-        new ChainMapContextImpl<KEYIN, VALUEIN, KEYOUT, VALUEOUT>(
-            context, rr, rw, conf);
-    Mapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT>.Context mapperContext =
-        new WrappedMapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT>()
-            .getMapContext(mapContext);
-    return mapperContext;
+    //= WrappedMapper.Context 只是简单的wrap, 实际是 ChainMapContextImpl
+    //= ChainMapContextImpl 只是简单地调用 recordReader.next_Key/Value() 和 recordWriter.write()
+    MapContext<KEYIN, VALUEIN, KEYOUT, VALUEOUT> mapContext = new ChainMapContextImpl<KEYIN, VALUEIN, KEYOUT, VALUEOUT>(context, rr, rw, conf);
+    return new WrappedMapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT>().getMapContext(mapContext);
   }
 
   @SuppressWarnings("unchecked")
-  void runMapper(TaskInputOutputContext context, int index) throws IOException,
-      InterruptedException {
+  //= create context & run mapper
+  void runMapper(TaskInputOutputContext context, int index) throws IOException, InterruptedException {
     Mapper mapper = mappers.get(index);
     RecordReader rr = new ChainRecordReader(context);
     RecordWriter rw = new ChainRecordWriter(context);
-    Mapper.Context mapperContext = createMapContext(rr, rw, context,
-        getConf(index));
+    Mapper.Context mapperContext = createMapContext(rr, rw, context, getConf(index));
     mapper.run(mapperContext);
     rr.close();
     rw.close(context);
@@ -388,18 +384,14 @@ public class Chain {
    */
   @SuppressWarnings("unchecked")
   void addMapper(TaskInputOutputContext inputContext,
-                 ChainBlockingQueue<KeyValuePair<?, ?>> output, int index)
-      throws IOException, InterruptedException {
+                 ChainBlockingQueue<KeyValuePair<?, ?>> output, int index) throws IOException, InterruptedException {
     Configuration conf = getConf(index);
     Class<?> keyOutClass = conf.getClass(MAPPER_OUTPUT_KEY_CLASS, Object.class);
-    Class<?> valueOutClass = conf.getClass(MAPPER_OUTPUT_VALUE_CLASS,
-        Object.class);
+    Class<?> valueOutClass = conf.getClass(MAPPER_OUTPUT_VALUE_CLASS, Object.class);
 
     RecordReader rr = new ChainRecordReader(inputContext);
-    RecordWriter rw = new ChainRecordWriter(keyOutClass, valueOutClass, output,
-        conf);
-    Mapper.Context mapperContext = createMapContext(rr, rw,
-        (MapContext) inputContext, getConf(index));
+    RecordWriter rw = new ChainRecordWriter(keyOutClass, valueOutClass, output, conf);
+    Mapper.Context mapperContext = createMapContext(rr, rw, inputContext, getConf(index));
     MapRunner runner = new MapRunner(mappers.get(index), mapperContext, rr, rw);
     threads.add(runner);
   }
@@ -428,19 +420,15 @@ public class Chain {
   @SuppressWarnings("unchecked")
   void addMapper(ChainBlockingQueue<KeyValuePair<?, ?>> input,
                  ChainBlockingQueue<KeyValuePair<?, ?>> output,
-                 TaskInputOutputContext context, int index) throws IOException,
-      InterruptedException {
+                 TaskInputOutputContext context, int index) throws IOException, InterruptedException {
     Configuration conf = getConf(index);
     Class<?> keyClass = conf.getClass(MAPPER_INPUT_KEY_CLASS, Object.class);
     Class<?> valueClass = conf.getClass(MAPPER_INPUT_VALUE_CLASS, Object.class);
     Class<?> keyOutClass = conf.getClass(MAPPER_OUTPUT_KEY_CLASS, Object.class);
-    Class<?> valueOutClass = conf.getClass(MAPPER_OUTPUT_VALUE_CLASS,
-        Object.class);
+    Class<?> valueOutClass = conf.getClass(MAPPER_OUTPUT_VALUE_CLASS, Object.class);
     RecordReader rr = new ChainRecordReader(keyClass, valueClass, input, conf);
-    RecordWriter rw = new ChainRecordWriter(keyOutClass, valueOutClass, output,
-        conf);
-    MapRunner runner = new MapRunner(mappers.get(index), createMapContext(rr,
-        rw, context, getConf(index)), rr, rw);
+    RecordWriter rw = new ChainRecordWriter(keyOutClass, valueOutClass, output, conf);
+    MapRunner runner = new MapRunner(mappers.get(index), createMapContext(rr, rw, context, getConf(index)), rr, rw);
     threads.add(runner);
   }
 
@@ -546,7 +534,7 @@ public class Chain {
   }
 
   /**
-   * Creates a {@link Configuration} for the Map or Reduce in the chain.
+   * Creates a {@lKEYIN Configuration} for the Map or Reduce in the chain.
    *
    * <p>
    * It creates a new Configuration using the chain job's Configuration as base
@@ -804,7 +792,7 @@ public class Chain {
    * Setup the chain.
    *
    * @param jobConf
-   *          chain job's {@link Configuration}.
+   *          chain job's {@lKEYIN Configuration}.
    */
   @SuppressWarnings("unchecked")
   void setup(Configuration jobConf) {
@@ -819,7 +807,6 @@ public class Chain {
       confList.add(mConf);
       Mapper mapper = ReflectionUtils.newInstance(klass, mConf);
       mappers.add(mapper);
-
     }
 
     Class<? extends Reducer> klass = jobConf.getClass(prefix

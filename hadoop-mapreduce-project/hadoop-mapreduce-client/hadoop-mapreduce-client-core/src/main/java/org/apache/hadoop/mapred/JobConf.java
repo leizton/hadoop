@@ -1121,6 +1121,8 @@ public class JobConf extends Configuration {
    *
    * @return the {@link MapRunnable} class for the job.
    */
+  //= 返回 MapRunner.class
+  //= MapRunner 实现了 MapRunnable接口
   public Class<? extends MapRunnable> getMapRunnerClass() {
     return getClass("mapred.map.runner.class",
         MapRunner.class, MapRunnable.class);
