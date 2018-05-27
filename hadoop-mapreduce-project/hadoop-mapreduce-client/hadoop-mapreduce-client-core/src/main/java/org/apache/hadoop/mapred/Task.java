@@ -1009,6 +1009,7 @@ abstract public class Task implements Writable, Configurable {
         .setValue(currentHeapUsage);
   }
 
+  //= task执行完成
   public void done(TaskUmbilicalProtocol umbilical,
                    TaskReporter reporter
   ) throws IOException, InterruptedException {

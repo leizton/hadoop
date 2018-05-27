@@ -48,8 +48,7 @@ public interface MergeManager<K, V> {
    * @return a MapOutput object that can be used by shuffle to shuffle data.  If
    * required resources cannot be reserved immediately, a null can be returned.
    */
-  public MapOutput<K, V> reserve(TaskAttemptID mapId, long requestedSize,
-                                 int fetcher) throws IOException;
+  public MapOutput<K, V> reserve(TaskAttemptID mapId, long requestedSize, int fetcher) throws IOException;
 
   /**
    * Called at the end of shuffle.

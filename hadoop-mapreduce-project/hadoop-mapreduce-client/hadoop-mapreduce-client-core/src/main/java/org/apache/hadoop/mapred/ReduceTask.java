@@ -340,52 +340,53 @@ public class ReduceTask extends Task {
       return;
     }
 
-    // Initialize the codec
+    //= combiner
+    Class combinerClz = conf.getCombinerClass();
+    CombineOutputCollector combineCollector = (combinerClz == null) ? null :
+        new CombineOutputCollector(reduceCombineOutputCounter, reporter, conf);
+
+    //= codec, for decode input when shuffle
     codec = initCodec();
-    RawKeyValueIterator rIter = null;
-    ShuffleConsumerPlugin shuffleConsumerPlugin = null;
 
-    Class combinerClass = conf.getCombinerClass();
-    CombineOutputCollector combineCollector =
-        (null != combinerClass) ?
-            new CombineOutputCollector(reduceCombineOutputCounter, reporter, conf) : null;
-
-    Class<? extends ShuffleConsumerPlugin> clazz =
+    //= shuffler
+    //= ShuffleConsumerPlugin: shuffle接口
+    //= Shuffle: shuffle接口的默认实现
+    Class<? extends ShuffleConsumerPlugin> shuffleConsumerClz =
         job.getClass(MRConfig.SHUFFLE_CONSUMER_PLUGIN, Shuffle.class, ShuffleConsumerPlugin.class);
-
-    shuffleConsumerPlugin = ReflectionUtils.newInstance(clazz, job);
-    LOG.info("Using ShuffleConsumerPlugin: " + shuffleConsumerPlugin);
-
     ShuffleConsumerPlugin.Context shuffleContext =
         new ShuffleConsumerPlugin.Context(getTaskID(), job, FileSystem.getLocal(job), umbilical,
             super.lDirAlloc, reporter, codec,
-            combinerClass, combineCollector,
+            combinerClz, combineCollector,
             spilledRecordsCounter, reduceCombineInputCounter,
             shuffledMapsCounter,
             reduceShuffleBytes, failedShuffleCounter,
             mergedMapOutputsCounter,
             taskStatus, copyPhase, sortPhase, this,
             mapOutputFile, localMapFiles);
+    ShuffleConsumerPlugin shuffleConsumerPlugin = null;
+    shuffleConsumerPlugin = ReflectionUtils.newInstance(shuffleConsumerClz, job);
     shuffleConsumerPlugin.init(shuffleContext);
+    LOG.info("Using ShuffleConsumerPlugin: " + shuffleConsumerPlugin);
 
-    rIter = shuffleConsumerPlugin.run();
+    //= 从shuffle获取iter
+    RawKeyValueIterator rIter = shuffleConsumerPlugin.run();
 
     // free up the data structures
     mapOutputFilesOnDisk.clear();
 
-    sortPhase.complete();                         // sort is complete
+    //= shuffle(Sort)完成后执行'REDUCE'
+    sortPhase.complete();
     setPhase(TaskStatus.Phase.REDUCE);
     statusUpdate(umbilical);
     Class keyClass = job.getMapOutputKeyClass();
     Class valueClass = job.getMapOutputValueClass();
     RawComparator comparator = job.getOutputValueGroupingComparator();
 
+    //= reduce
     if (useNewApi) {
-      runNewReducer(job, umbilical, reporter, rIter, comparator,
-          keyClass, valueClass);
+      runNewReducer(job, umbilical, reporter, rIter, comparator, keyClass, valueClass);
     } else {
-      runOldReducer(job, umbilical, reporter, rIter, comparator,
-          keyClass, valueClass);
+      runOldReducer(job, umbilical, reporter, rIter, comparator, keyClass, valueClass);
     }
 
     shuffleConsumerPlugin.close();
@@ -577,9 +578,8 @@ public class ReduceTask extends Task {
                      RawKeyValueIterator rIter,
                      RawComparator<INKEY> comparator,
                      Class<INKEY> keyClass,
-                     Class<INVALUE> valueClass
-  ) throws IOException, InterruptedException,
-      ClassNotFoundException {
+                     Class<INVALUE> valueClass)
+      throws IOException, InterruptedException, ClassNotFoundException {
     // wrap value iterator to report progress.
     final RawKeyValueIterator rawIter = rIter;
     rIter = new RawKeyValueIterator() {
@@ -605,18 +605,25 @@ public class ReduceTask extends Task {
         return ret;
       }
     };
+
     // make a task context so we can get the classes
     org.apache.hadoop.mapreduce.TaskAttemptContext taskContext =
         new org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl(job,
             getTaskID(), reporter);
-    // make a reducer
-    org.apache.hadoop.mapreduce.Reducer<INKEY, INVALUE, OUTKEY, OUTVALUE> reducer =
-        (org.apache.hadoop.mapreduce.Reducer<INKEY, INVALUE, OUTKEY, OUTVALUE>)
-            ReflectionUtils.newInstance(taskContext.getReducerClass(), job);
+
     org.apache.hadoop.mapreduce.RecordWriter<OUTKEY, OUTVALUE> trackedRW =
         new NewTrackingRecordWriter<OUTKEY, OUTVALUE>(this, taskContext);
     job.setBoolean("mapred.skip.on", isSkipping());
     job.setBoolean(JobContext.SKIP_RECORDS, isSkipping());
+
+    //= reducer
+    org.apache.hadoop.mapreduce.Reducer<INKEY, INVALUE, OUTKEY, OUTVALUE> reducer =
+        (org.apache.hadoop.mapreduce.Reducer<INKEY, INVALUE, OUTKEY, OUTVALUE>)
+            ReflectionUtils.newInstance(taskContext.getReducerClass(), job);
+
+    //= reducer's context
+    //= context里调用rIter
+    //= context's impl: ReduceContextImpl
     org.apache.hadoop.mapreduce.Reducer.Context
         reducerContext = createReduceContext(reducer, job, getTaskID(),
         rIter, reduceInputKeyCounter,
@@ -625,6 +632,7 @@ public class ReduceTask extends Task {
         committer,
         reporter, comparator, keyClass,
         valueClass);
+
     try {
       reducer.run(reducerContext);
     } finally {

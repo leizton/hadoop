@@ -499,15 +499,16 @@ public class LocalJobRunner implements ClientProtocol {
         Map<TaskAttemptID, MapOutputFile> mapOutputFiles =
             Collections.synchronizedMap(new HashMap<TaskAttemptID, MapOutputFile>());
 
+        //= 初始化mapper列表, 并执行
         List<RunnableWithThrowable> mapRunnables = getMapTaskRunnables(
             taskSplitMetaInfos, jobId, mapOutputFiles);
-
         initCounters(mapRunnables.size(), numReduceTasks);
         ExecutorService mapService = createMapExecutor();
         runTasks(mapRunnables, mapService, "map");
 
         try {
           if (numReduceTasks > 0) {
+            //= 初始化reducer列表, 并执行
             List<RunnableWithThrowable> reduceRunnables = getReduceTaskRunnables(
                 jobId, mapOutputFiles);
             ExecutorService reduceService = createReduceExecutor();

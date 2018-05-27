@@ -291,7 +291,9 @@ public class MergeManagerImpl<K, V> implements MergeManager<K, V> {
   }
 
   public synchronized void closeInMemoryFile(InMemoryMapOutput<K, V> mapOutput) {
+    //= mapOutput 加到 #inMemoryMapOutputs
     inMemoryMapOutputs.add(mapOutput);
+
     LOG.info("closeInMemoryFile -> map-output of size: " + mapOutput.getSize()
         + ", inMemoryMapOutputs.size() -> " + inMemoryMapOutputs.size()
         + ", commitMemory -> " + commitMemory + ", usedMemory ->" + usedMemory);
@@ -451,6 +453,7 @@ public class MergeManagerImpl<K, V> implements MergeManager<K, V> {
         LOG.info("Initiating in-memory merge with " + noInMemorySegments +
             " segments...");
 
+        //= 把多个mapper的输出combine成一个
         rIter = Merger.merge(jobConf, rfs,
             (Class<K>) jobConf.getMapOutputKeyClass(),
             (Class<V>) jobConf.getMapOutputValueClass(),
@@ -603,11 +606,9 @@ public class MergeManagerImpl<K, V> implements MergeManager<K, V> {
       totalSize += size;
       fullSize -= size;
       Reader<K, V> reader = new InMemoryReader<K, V>(MergeManagerImpl.this,
-          mo.getMapId(),
-          data, 0, (int) size, jobConf);
+          mo.getMapId(), data, 0, (int) size, jobConf);
       inMemorySegments.add(new Segment<K, V>(reader, true,
-          (mo.isPrimaryMapOutput() ?
-              mergedMapOutputsCounter : null)));
+          (mo.isPrimaryMapOutput() ? mergedMapOutputsCounter : null)));
     }
     return totalSize;
   }
@@ -653,8 +654,7 @@ public class MergeManagerImpl<K, V> implements MergeManager<K, V> {
 
   private RawKeyValueIterator finalMerge(JobConf job, FileSystem fs,
                                          List<InMemoryMapOutput<K, V>> inMemoryMapOutputs,
-                                         List<CompressAwarePath> onDiskMapOutputs
-  ) throws IOException {
+                                         List<CompressAwarePath> onDiskMapOutputs) throws IOException {
     LOG.info("finalMerge called with " +
         inMemoryMapOutputs.size() + " in-memory map-outputs and " +
         onDiskMapOutputs.size() + " on-disk map-outputs");
@@ -762,8 +762,7 @@ public class MergeManagerImpl<K, V> implements MergeManager<K, V> {
               null : mergedMapOutputsCounter), file.getRawDataLength()
       ));
     }
-    LOG.info("Merging " + onDisk.length + " files, " +
-        onDiskBytes + " bytes from disk");
+    LOG.info("Merging " + onDisk.length + " files, " + onDiskBytes + " bytes from disk");
     Collections.sort(diskSegments, new Comparator<Segment<K, V>>() {
       public int compare(Segment<K, V> o1, Segment<K, V> o2) {
         if (o1.getLength() == o2.getLength()) {
@@ -801,7 +800,6 @@ public class MergeManagerImpl<K, V> implements MergeManager<K, V> {
         finalSegments, finalSegments.size(), tmpDir,
         comparator, reporter, spilledRecordsCounter, null,
         null);
-
   }
 
   static class CompressAwarePath extends Path {

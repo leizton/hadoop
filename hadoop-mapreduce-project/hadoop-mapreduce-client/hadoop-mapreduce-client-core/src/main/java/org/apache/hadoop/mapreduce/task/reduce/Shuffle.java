@@ -93,47 +93,44 @@ public class Shuffle<K, V> implements ShuffleConsumerPlugin<K, V>, ExceptionRepo
         MAX_RPC_OUTSTANDING_EVENTS / jobConf.getNumReduceTasks());
     int maxEventsToFetch = Math.min(MAX_EVENTS_TO_FETCH, eventsPerReducer);
 
-    // Start the map-completion events fetcher thread
+    //= collect map-completion event的线程
+    //= completion-event被加到scheduler.reserve()
+    //= scheduler.reserve()解析出MapHost
     final EventFetcher<K, V> eventFetcher =
-        new EventFetcher<K, V>(reduceId, umbilical, scheduler, this,
-            maxEventsToFetch);
+        new EventFetcher<K, V>(reduceId, umbilical, scheduler, this, maxEventsToFetch);
     eventFetcher.start();
 
-    // Start the map-output fetcher threads
+    //= fetch map output的线程池
+    //= fetcher调用scheduler.getHost()获得可拉取的MapHost
+    //= 配置MRJobConfig.SHUFFLE_PARALLEL_COPIES: fetcher并发数
     boolean isLocal = localMapFiles != null;
     final int numFetchers = isLocal ? 1 :
         jobConf.getInt(MRJobConfig.SHUFFLE_PARALLEL_COPIES, 5);
     Fetcher<K, V>[] fetchers = new Fetcher[numFetchers];
     if (isLocal) {
-      fetchers[0] = new LocalFetcher<K, V>(jobConf, reduceId, scheduler,
-          merger, reporter, metrics, this, reduceTask.getShuffleSecret(),
-          localMapFiles);
+      fetchers[0] = new LocalFetcher<K, V>(jobConf, reduceId, scheduler, merger,
+          reporter, metrics, this, reduceTask.getShuffleSecret(), localMapFiles);
       fetchers[0].start();
     } else {
       for (int i = 0; i < numFetchers; ++i) {
         fetchers[i] = new Fetcher<K, V>(jobConf, reduceId, scheduler, merger,
-            reporter, metrics, this,
-            reduceTask.getShuffleSecret());
+            reporter, metrics, this, reduceTask.getShuffleSecret());
         fetchers[i].start();
       }
     }
 
-    // Wait for shuffle to complete successfully
+    //= 等待shuffle完成
     while (!scheduler.waitUntilDone(PROGRESS_FREQUENCY)) {
       reporter.progress();
-
       synchronized (this) {
         if (throwable != null) {
-          throw new ShuffleError("error in shuffle in " + throwingThreadName,
-              throwable);
+          throw new ShuffleError("error in shuffle in " + throwingThreadName, throwable);
         }
       }
     }
 
-    // Stop the event-fetcher thread
+    //= 关闭eventFetcher和mapOutFetchers
     eventFetcher.shutDown();
-
-    // Stop the map-output fetcher threads
     for (Fetcher<K, V> fetcher : fetchers) {
       fetcher.shutDown();
     }

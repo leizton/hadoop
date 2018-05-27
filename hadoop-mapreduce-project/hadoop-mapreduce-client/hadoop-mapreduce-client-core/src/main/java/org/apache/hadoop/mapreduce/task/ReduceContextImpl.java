@@ -128,15 +128,16 @@ public class ReduceContextImpl<KEYIN, VALUEIN, KEYOUT, VALUEOUT>
       value = null;
       return false;
     }
+
     firstValue = !nextKeyIsSame;
+
     DataInputBuffer nextKey = input.getKey();
-    currentRawKey.set(nextKey.getData(), nextKey.getPosition(),
-        nextKey.getLength() - nextKey.getPosition());
+    currentRawKey.set(nextKey.getData(), nextKey.getPosition(), nextKey.getLength() - nextKey.getPosition());
     buffer.reset(currentRawKey.getBytes(), 0, currentRawKey.getLength());
     key = keyDeserializer.deserialize(key);
+
     DataInputBuffer nextVal = input.getValue();
-    buffer.reset(nextVal.getData(), nextVal.getPosition(), nextVal.getLength()
-        - nextVal.getPosition());
+    buffer.reset(nextVal.getData(), nextVal.getPosition(), nextVal.getLength() - nextVal.getPosition());
     value = valueDeserializer.deserialize(value);
 
     currentKeyLength = nextKey.getLength() - nextKey.getPosition();
@@ -149,12 +150,9 @@ public class ReduceContextImpl<KEYIN, VALUEIN, KEYOUT, VALUEOUT>
     hasMore = input.next();
     if (hasMore) {
       nextKey = input.getKey();
-      nextKeyIsSame = comparator.compare(currentRawKey.getBytes(), 0,
-          currentRawKey.getLength(),
-          nextKey.getData(),
-          nextKey.getPosition(),
-          nextKey.getLength() - nextKey.getPosition()
-      ) == 0;
+      nextKeyIsSame = comparator.compare(
+          currentRawKey.getBytes(), 0, currentRawKey.getLength(),
+          nextKey.getData(), nextKey.getPosition(), nextKey.getLength() - nextKey.getPosition()) == 0;
     } else {
       nextKeyIsSame = false;
     }
@@ -303,7 +301,7 @@ public class ReduceContextImpl<KEYIN, VALUEIN, KEYOUT, VALUEOUT>
     }
 
     /**
-     * This method is called when the reducer moves from one key to 
+     * This method is called when the reducer moves from one key to
      * another.
      * @throws IOException
      */
@@ -351,9 +349,9 @@ public class ReduceContextImpl<KEYIN, VALUEIN, KEYOUT, VALUEOUT>
   }
 
   /**
-   * Iterate through the values for the current key, reusing the same value 
+   * Iterate through the values for the current key, reusing the same value
    * object, which is stored in the context.
-   * @return the series of values associated with the current key. All of the 
+   * @return the series of values associated with the current key. All of the
    * objects returned directly and indirectly from this method are reused.
    */
   public Iterable<VALUEIN> getValues() throws IOException, InterruptedException {

@@ -76,12 +76,13 @@ class InMemoryMapOutput<K, V> extends MapOutput<K, V> {
                       long compressedLength, long decompressedLength,
                       ShuffleClientMetrics metrics,
                       Reporter reporter) throws IOException {
-    IFileInputStream checksumIn =
-        new IFileInputStream(input, compressedLength, conf);
+    //= 把input缓存到#memory里
+    //= 读取mapper输出的kv在InMemoryReader里实现
 
+    IFileInputStream checksumIn = new IFileInputStream(input, compressedLength, conf);
     input = checksumIn;
 
-    // Are map-outputs compressed?
+    //= 解压缩
     if (codec != null) {
       decompressor.reset();
       input = codec.createInputStream(input, decompressor);

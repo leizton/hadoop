@@ -261,25 +261,18 @@ class Fetcher<K, V> extends Thread {
   protected void copyFromHost(MapHost host) throws IOException {
     // reset retryStartTime for a new host
     retryStartTime = 0;
-    // Get completed maps on 'host'
-    List<TaskAttemptID> maps = scheduler.getMapsForHost(host);
 
-    // Sanity check to catch hosts with only 'OBSOLETE' maps, 
-    // especially at the tail of large jobs
+    //= 一个host可能运行过多个mapper, 返回的maps都是已经完成的mapper
+    List<TaskAttemptID> maps = scheduler.getMapsForHost(host);
     if (maps.size() == 0) {
       return;
     }
-
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Fetcher " + id + " going to fetch from " + host + " for: "
-          + maps);
+      LOG.debug("Fetcher " + id + " going to fetch from " + host + " for: " + maps);
     }
-
-    // List of maps to be fetched yet
     Set<TaskAttemptID> remaining = new HashSet<TaskAttemptID>(maps);
 
-    // Construct the url and connect
-    DataInputStream input = null;
+    //= 建立与host的连接
     URL url = getMapOutputURL(host, maps);
     try {
       setupConnectionsWithRetry(host, remaining, url);
@@ -309,7 +302,7 @@ class Fetcher<K, V> extends Thread {
       return;
     }
 
-    input = new DataInputStream(connection.getInputStream());
+    DataInputStream input = new DataInputStream(connection.getInputStream());
 
     try {
       // Loop through available map-outputs and fetch them
@@ -319,6 +312,7 @@ class Fetcher<K, V> extends Thread {
       TaskAttemptID[] failedTasks = null;
       while (!remaining.isEmpty() && failedTasks == null) {
         try {
+          //= fetch 实际操作
           failedTasks = copyMapOutput(host, input, remaining, fetchRetryEnabled);
         } catch (IOException e) {
           //
@@ -468,7 +462,8 @@ class Fetcher<K, V> extends Thread {
     try {
       long startTime = Time.monotonicNow();
       int forReduce = -1;
-      //Read the shuffle header
+
+      //= read the shuffle header
       try {
         ShuffleHeader header = new ShuffleHeader();
         header.readFields(input);
@@ -483,24 +478,22 @@ class Fetcher<K, V> extends Thread {
         return remaining.toArray(new TaskAttemptID[remaining.size()]);
       }
 
-      InputStream is = input;
-      is = CryptoUtils.wrapIfNecessary(jobConf, is, compressedLength);
+      InputStream inp = input;
+      inp = CryptoUtils.wrapIfNecessary(jobConf, inp, compressedLength);
       compressedLength -= CryptoUtils.cryptoPadding(jobConf);
       decompressedLength -= CryptoUtils.cryptoPadding(jobConf);
 
       // Do some basic sanity verification
-      if (!verifySanity(compressedLength, decompressedLength, forReduce,
-          remaining, mapId)) {
+      if (!verifySanity(compressedLength, decompressedLength, forReduce, remaining, mapId)) {
         return new TaskAttemptID[]{mapId};
       }
-
       if (LOG.isDebugEnabled()) {
-        LOG.debug("header: " + mapId + ", len: " + compressedLength +
-            ", decomp len: " + decompressedLength);
+        LOG.debug("header: " + mapId + ", len: " + compressedLength + ", decomp len: " + decompressedLength);
       }
 
       // Get the location for the map output - either in-memory or on-disk
       try {
+        //= 每个fetcher的mapOutput不同
         mapOutput = merger.reserve(mapId, decompressedLength, id);
       } catch (IOException ioe) {
         // kill this reduce attempt
@@ -524,8 +517,9 @@ class Fetcher<K, V> extends Thread {
         LOG.info("fetcher#" + id + " about to shuffle output of map "
             + mapOutput.getMapId() + " decomp: " + decompressedLength
             + " len: " + compressedLength + " to " + mapOutput.getDescription());
-        mapOutput.shuffle(host, is, compressedLength, decompressedLength,
-            metrics, reporter);
+
+        //= shuffle 实际操作
+        mapOutput.shuffle(host, inp, compressedLength, decompressedLength, metrics, reporter);
       } catch (java.lang.InternalError e) {
         LOG.warn("Failed to shuffle for fetcher#" + id, e);
         throw new IOException(e);
@@ -536,6 +530,7 @@ class Fetcher<K, V> extends Thread {
       // Reset retryStartTime as map task make progress if retried before.
       retryStartTime = 0;
 
+      //= fetch mapper完成后 => mapOutput.commit() => MergeManagerImpl.closeInMemoryFile(mapOutput)
       scheduler.copySucceeded(mapId, host, compressedLength,
           startTime, endTime, mapOutput);
       // Note successful shuffle
