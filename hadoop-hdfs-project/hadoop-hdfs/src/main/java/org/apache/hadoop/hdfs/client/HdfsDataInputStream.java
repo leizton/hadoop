@@ -37,6 +37,8 @@ import com.google.common.base.Preconditions;
  */
 @InterfaceAudience.Public
 @InterfaceStability.Evolving
+//= 底层InputStream实现: DFSInputStream
+//= 把DFSInputStream包装成DataInputStream
 public class HdfsDataInputStream extends FSDataInputStream {
   public HdfsDataInputStream(DFSInputStream in) throws IOException {
     super(in);

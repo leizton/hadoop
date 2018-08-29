@@ -2196,6 +2196,7 @@ public class PBHelper {
         proto.getConfigVersion(), proto.getUptime());
   }
 
+  //= 读一个前缀int做size
   public static InputStream vintPrefixed(final InputStream input)
       throws IOException {
     final int firstByte = input.read();

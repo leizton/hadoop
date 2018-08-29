@@ -300,8 +300,8 @@ public class BlockReaderFactory implements ShortCircuitReplicaCreator {
    */
   public BlockReader build() throws IOException {
     BlockReader reader = null;
-
     Preconditions.checkNotNull(configuration);
+
     if (conf.shortCircuitLocalReads && allowShortCircuitLocalReads) {
       if (clientContext.getUseLegacyBlockReaderLocal()) {
         reader = getLegacyBlockReaderLocal();
@@ -321,6 +321,7 @@ public class BlockReaderFactory implements ShortCircuitReplicaCreator {
         }
       }
     }
+
     if (conf.domainSocketDataTraffic) {
       reader = getRemoteBlockReaderFromDomain();
       if (reader != null) {
@@ -331,6 +332,7 @@ public class BlockReaderFactory implements ShortCircuitReplicaCreator {
         return reader;
       }
     }
+
     Preconditions.checkState(!DFSInputStream.tcpReadsDisabledForTesting,
         "TCP reads were disabled for testing, but we failed to " +
         "do a non-TCP read.");
@@ -587,7 +589,7 @@ public class BlockReaderFactory implements ShortCircuitReplicaCreator {
   private BlockReader getRemoteBlockReaderFromDomain() throws IOException {
     if (pathInfo == null) {
       pathInfo = clientContext.getDomainSocketFactory().
-                      getPathInfo(inetSocketAddress, conf);
+          getPathInfo(inetSocketAddress, conf);
     }
     if (!pathInfo.getPathState().getUsableForDataTransfer()) {
       PerformanceAdvisory.LOG.debug(this + ": not trying to create a " +

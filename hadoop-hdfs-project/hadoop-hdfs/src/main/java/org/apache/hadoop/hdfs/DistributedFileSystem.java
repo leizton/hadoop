@@ -291,24 +291,24 @@ public class DistributedFileSystem extends FileSystem {
   }
 
   @Override
-  public FSDataInputStream open(Path f, final int bufferSize)
-      throws IOException {
+  public FSDataInputStream open(Path f, final int bufferSize) throws IOException {
     statistics.incrementReadOps(1);
     Path absF = fixRelativePart(f);
-    return new FileSystemLinkResolver<FSDataInputStream>() {
+
+    //= doCall()失败后再用next()
+    FileSystemLinkResolver<FSDataInputStream> resolver = new FileSystemLinkResolver<FSDataInputStream>() {
       @Override
-      public FSDataInputStream doCall(final Path p)
-          throws IOException, UnresolvedLinkException {
-        final DFSInputStream dfsis =
-          dfs.open(getPathName(p), bufferSize, verifyChecksum);
-        return dfs.createWrappedInputStream(dfsis);
+      public FSDataInputStream doCall(final Path p) throws IOException, UnresolvedLinkException {
+        final DFSInputStream dfsis = dfs.open(getPathName(p), bufferSize, verifyChecksum);
+        return dfs.createWrappedInputStream(dfsis);  //= 用HdfsDataInputStream包装DFSInputStream
       }
+
       @Override
-      public FSDataInputStream next(final FileSystem fs, final Path p)
-          throws IOException {
+      public FSDataInputStream next(final FileSystem fs, final Path p) throws IOException {
         return fs.open(p, bufferSize);
       }
-    }.resolve(this, absF);
+    };
+    return resolver.resolve(this, absF);
   }
 
   @Override

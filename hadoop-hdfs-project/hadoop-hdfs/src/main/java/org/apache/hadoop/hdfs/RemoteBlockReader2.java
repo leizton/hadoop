@@ -129,11 +129,11 @@ public class RemoteBlockReader2  implements BlockReader {
   public Peer getPeer() {
     return peer;
   }
-  
+
+  //= #callink_readWithStrategy_3
   @Override
   public synchronized int read(byte[] buf, int off, int len) 
                                throws IOException {
-
     UUID randomId = null;
     if (LOG.isTraceEnabled()) {
       randomId = UUID.randomUUID();
@@ -386,47 +386,36 @@ public class RemoteBlockReader2  implements BlockReader {
    * @return New BlockReader instance, or null on error.
    */
   public static BlockReader newBlockReader(String file,
-                                     ExtendedBlock block,
-                                     Token<BlockTokenIdentifier> blockToken,
-                                     long startOffset, long len,
-                                     boolean verifyChecksum,
-                                     String clientName,
-                                     Peer peer, DatanodeID datanodeID,
-                                     PeerCache peerCache,
-                                     CachingStrategy cachingStrategy) throws IOException {
+                                           ExtendedBlock block,
+                                           Token<BlockTokenIdentifier> blockToken,
+                                           long startOffset, long len,
+                                           boolean verifyChecksum,
+                                           String clientName,
+                                           Peer peer, DatanodeID datanodeID,
+                                           PeerCache peerCache,
+                                           CachingStrategy cachingStrategy) throws IOException {
     // in and out will be closed when sock is closed (by the caller)
-    final DataOutputStream out = new DataOutputStream(new BufferedOutputStream(
-          peer.getOutputStream()));
-    new Sender(out).readBlock(block, blockToken, clientName, startOffset, len,
-        verifyChecksum, cachingStrategy);
+    final DataOutputStream out = new DataOutputStream(new BufferedOutputStream(peer.getOutputStream()));
+    new Sender(out).readBlock(block, blockToken, clientName, startOffset, len, verifyChecksum, cachingStrategy);
 
-    //
-    // Get bytes in block
-    //
     DataInputStream in = new DataInputStream(peer.getInputStream());
 
-    BlockOpResponseProto status = BlockOpResponseProto.parseFrom(
-        PBHelper.vintPrefixed(in));
+    BlockOpResponseProto status = BlockOpResponseProto.parseFrom(PBHelper.vintPrefixed(in));
     checkSuccess(status, peer, block, file);
-    ReadOpChecksumInfoProto checksumInfo =
-      status.getReadOpChecksumInfo();
-    DataChecksum checksum = DataTransferProtoUtil.fromProto(
-        checksumInfo.getChecksum());
-    //Warning when we get CHECKSUM_NULL?
+    ReadOpChecksumInfoProto checksumInfo = status.getReadOpChecksumInfo();
+    DataChecksum checksum = DataTransferProtoUtil.fromProto(checksumInfo.getChecksum());
 
     // Read the first chunk offset.
     long firstChunkOffset = checksumInfo.getChunkOffset();
 
-    if ( firstChunkOffset < 0 || firstChunkOffset > startOffset ||
-        firstChunkOffset <= (startOffset - checksum.getBytesPerChecksum())) {
-      throw new IOException("BlockReader: error in first chunk offset (" +
-                            firstChunkOffset + ") startOffset is " +
-                            startOffset + " for file " + file);
+    if (firstChunkOffset < 0 || firstChunkOffset > startOffset || firstChunkOffset <= (startOffset - checksum.getBytesPerChecksum())) {
+      throw new IOException("BlockReader: error in first chunk offset (" + firstChunkOffset + ") startOffset is " + startOffset + " for file " + file);
     }
 
-    return new RemoteBlockReader2(file, block.getBlockPoolId(), block.getBlockId(),
-        checksum, verifyChecksum, startOffset, firstChunkOffset, len, peer,
-        datanodeID, peerCache);
+    return new RemoteBlockReader2(
+        file, block.getBlockPoolId(), block.getBlockId(),
+        checksum, verifyChecksum, startOffset, firstChunkOffset,
+        len, peer, datanodeID, peerCache);
   }
 
   static void checkSuccess(

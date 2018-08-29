@@ -313,10 +313,11 @@ public abstract class FileSystem extends Configured implements Closeable {
     throws IOException {
     return get(URI.create(fixName(name)), conf);
   }
-  
-  /** Update old-format filesystem names, for back-compatibility.  This should
-   * eventually be replaced with a checkName() method that throws an exception
-   * for old-format names. */ 
+
+
+  //= case local => file:///
+  //= case name without protocol => hdfs://name
+  //= else => name
   private static String fixName(String name) {
     // convert old-format name to new-format name
     if (name.equals("local")) {         // "local" is now "file:///".
@@ -361,7 +362,8 @@ public abstract class FileSystem extends Configured implements Closeable {
         return get(defaultUri, conf);              // return default
       }
     }
-    
+
+    //= 是否禁用cache
     String disableCacheName = String.format("fs.%s.impl.disable.cache", scheme);
     if (conf.getBoolean(disableCacheName, false)) {
       return createFileSystem(uri, conf);
@@ -2556,6 +2558,7 @@ public abstract class FileSystem extends Configured implements Closeable {
   private static final Map<String, Class<? extends FileSystem>>
     SERVICE_FILE_SYSTEMS = new HashMap<String, Class<? extends FileSystem>>();
 
+  //= @ref resources/META-INF.services/org.apache.hadoop.fs.FileSystem, in "hadoop-hdfs-project"
   private static void loadFileSystems() {
     synchronized (FileSystem.class) {
       if (!FILE_SYSTEMS_LOADED) {
@@ -2568,8 +2571,9 @@ public abstract class FileSystem extends Configured implements Closeable {
     }
   }
 
+  //= -> DistributedFileSystem
   public static Class<? extends FileSystem> getFileSystemClass(String scheme,
-      Configuration conf) throws IOException {
+                                                               Configuration conf) throws IOException {
     if (!FILE_SYSTEMS_LOADED) {
       loadFileSystems();
     }
@@ -2586,9 +2590,9 @@ public abstract class FileSystem extends Configured implements Closeable {
     return clazz;
   }
 
-  private static FileSystem createFileSystem(URI uri, Configuration conf
-      ) throws IOException {
-    Class<?> clazz = getFileSystemClass(uri.getScheme(), conf);
+  //= create fileSystem impl
+  private static FileSystem createFileSystem(URI uri, Configuration conf) throws IOException {
+    Class<?> clazz = getFileSystemClass(uri.getScheme(), conf);  //= DistributedFileSystem
     if (clazz == null) {
       throw new IOException("No FileSystem for scheme: " + uri.getScheme());
     }

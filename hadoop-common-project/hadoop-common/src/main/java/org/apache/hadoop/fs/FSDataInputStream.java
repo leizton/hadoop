@@ -32,6 +32,7 @@ import org.apache.hadoop.util.IdentityHashStore;
  * and buffers input through a {@link BufferedInputStream}. */
 @InterfaceAudience.Public
 @InterfaceStability.Stable
+//= @ref org.apache.hadoop.fs.HarFileSystem.HarFSDataInputStream
 public class FSDataInputStream extends DataInputStream
     implements Seekable, PositionedReadable, 
       ByteBufferReadable, HasFileDescriptor, CanSetDropBehind, CanSetReadahead,
@@ -46,7 +47,7 @@ public class FSDataInputStream extends DataInputStream
 
   public FSDataInputStream(InputStream in) {
     super(in);
-    if( !(in instanceof Seekable) || !(in instanceof PositionedReadable) ) {
+    if( !(in instanceof Seekable && in instanceof PositionedReadable) ) {
       throw new IllegalArgumentException(
           "In is not an instance of Seekable or PositionedReadable");
     }

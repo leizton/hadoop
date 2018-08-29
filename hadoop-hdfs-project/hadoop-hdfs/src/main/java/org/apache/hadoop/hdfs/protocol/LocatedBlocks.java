@@ -30,6 +30,7 @@ import org.apache.hadoop.fs.FileEncryptionInfo;
  */
 @InterfaceAudience.Private
 @InterfaceStability.Evolving
+//= 聚合多个block
 public class LocatedBlocks {
   private final long fileLength;
   private final List<LocatedBlock> blocks; // array of blocks with prioritized locations
